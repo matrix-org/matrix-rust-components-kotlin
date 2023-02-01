@@ -9,6 +9,12 @@ from pathlib import Path
 import requests
 import json
 
+github_token = os.environ['GITHUB_TOKEN']
+
+if github_token is None:
+    print("Please set GITHUB_TOKEN environment variable")
+    exit(1)
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--version', type=str, help='Version of the release', required=True)
 parser.add_argument('--sdk_path', type=str, default='', help='Path of the matrix-rust-sdk repository (defaults to sibling matrix-rust-sdk folder)', required=False)
@@ -46,14 +52,7 @@ commit_message = "Bump to " + version + " (matrix-rust-sdk " + sdk_commit_hash +
 print("Pushing changes as: " + commit_message)
 os.system("git add " + root + "/sources")
 os.system("git commit -m '" + commit_message + "'")
-#os.system("git push")
-
-github_token = os.environ['GITHUB_TOKEN']
-
-if github_token is None:
-    print("Please set GITHUB_TOKEN environment variable")
-    exit(1)
-
+os.system("git push")
 
 response1 = requests.post('https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin/releases',
 headers={
@@ -76,7 +75,7 @@ print("Release created: " + creation_response['html_url'])
 
 print("Uploading release assets")
 upload_url = creation_response['upload_url'].split(u"{")[0]
-with open(root + sdk_generated_aar_path, 'rb') as file:
+with open(sdk_path + sdk_generated_aar_path, 'rb') as file:
     response2 = requests.post(upload_url,
     headers={
         'Accept': 'application/vnd.github+json',
