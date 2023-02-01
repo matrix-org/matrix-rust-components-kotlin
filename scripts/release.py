@@ -21,7 +21,7 @@ def remove_suffix(string, suffix):
     return string
 
 # find root directory
-root = remove_suffix(Path(os.path.abspath(os.path.dirname(__file__))).parent.parent.__str__(), '/')
+root = remove_suffix(Path(os.path.abspath(os.path.dirname(__file__))).parent.__str__(), '/')
 version = args['version']
 sdk_path = str(args['sdk_path'])
 if len(sdk_path) == 0:
@@ -29,6 +29,7 @@ if len(sdk_path) == 0:
 else:
     sdk_path = remove_suffix(os.path.realpath(sdk_path), '/')
 
+print("Root path: " + root)
 print("SDK path: " + sdk_path)
 sdk_generated_aar_path = "/bindings/kotlin/sdk/sdk-android/build/outputs/aar/matrix-sdk-release.aar"
 sdk_generated_source_path = "/bindings/kotlin/sdk/sdk-android/build/generated/source/release/"
