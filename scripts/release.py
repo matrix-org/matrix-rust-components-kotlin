@@ -37,7 +37,7 @@ else:
 
 print("Root path: " + root)
 print("SDK path: " + sdk_path)
-sdk_generated_aar_path = "/bindings/kotlin/sdk/sdk-android/build/outputs/aar/matrix-sdk-release.aar"
+sdk_generated_aar_path = "/bindings/kotlin/sdk/sdk-android/build/outputs/aar/sdk-android-release.aar"
 sdk_generated_source_path = "/bindings/kotlin/sdk/sdk-android/build/generated/source/release/"
 os.system("(cd '" + sdk_path + "'; cargo xtask kotlin build-android-library --only-target x86_64-linux-android --release --package full-sdk)")
 
