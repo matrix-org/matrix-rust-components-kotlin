@@ -5,20 +5,21 @@ plugins {
 
 ext {
     PUBLISH_GROUP_ID = ConfigurationData.publishGroupId
-    PUBLISH_ARTIFACT_ID = 'crypto-android'
+    PUBLISH_ARTIFACT_ID = 'sdk-android'
     PUBLISH_VERSION = ConfigurationData.versionName
-    PUBLISH_DESCRIPTION = 'Android Bindings to the Matrix Rust Crypto SDK'
+    PUBLISH_DESCRIPTION = 'Android Bindings to the Matrix Rust SDK'
 }
 
 apply from: "${rootDir}/scripts/publish-module.gradle"
 
 android {
 
-    namespace 'org.matrix.rustcomponents.sdk.crypto'
+    namespace 'org.matrix.rustcomponents.sdk'
 
     compileSdk ConfigurationData.compileSdk
 
     defaultConfig {
+
         minSdk ConfigurationData.minSdk
         targetSdk ConfigurationData.targetSdk
         versionName ConfigurationData.versionName

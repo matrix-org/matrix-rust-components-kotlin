@@ -4,13 +4,8 @@ pluginManagement {
         google()
         mavenCentral()
     }
-    plugins {
-        id 'com.android.application' version '7.1.0-beta01'
-        id 'com.android.library' version '7.1.0-beta01'
-        id 'org.jetbrains.kotlin.android' version '1.5.30'
-        id 'org.jetbrains.kotlin.jvm' version '1.5.30'
-    }
 }
+
 dependencyResolutionManagement {
     repositories {
         google()
@@ -21,6 +16,7 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "MatrixKotlinRustSDK"
-include ':sample'
+include ':sdk:sdk-android'
+include ':sdk:sdk-jvm'
 include ':crypto:crypto-android'
 include ':crypto:crypto-jvm'
