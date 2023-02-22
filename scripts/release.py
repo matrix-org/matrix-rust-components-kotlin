@@ -63,9 +63,9 @@ def bump_version(versions):
 
 bump_version(version.split('.'))
 
+sdk_commit_hash = subprocess.getoutput("cat " + sdk_path + "/.git/refs/heads/main")
 
 def commit_and_push_changes():
-    sdk_commit_hash = subprocess.getoutput("cat " + sdk_path + "/.git/refs/heads/main")
     print("SDK commit: " + sdk_commit_hash)
     commit_message = "Bump to " + version + " (matrix-rust-sdk " + sdk_commit_hash + ")"
     print("Pushing changes as: " + commit_message)
