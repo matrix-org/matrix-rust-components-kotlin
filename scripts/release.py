@@ -44,9 +44,10 @@ crypto_generated_aar_path = "/crypto/crypto-android/build/outputs/aar/sdk-androi
 if os.system("./build.sh -r -m sdk -p " + sdk_path) != 0:
     exit(0)
 
+if os.system("./build.sh -r -m crypto -p " + sdk_path) != 0:
+    exit(0)
 
 print("Creating release")
-
 
 def bump_version(versions):
     major_version = versions[0]
@@ -63,7 +64,6 @@ def bump_version(versions):
 
 
 bump_version(version.split('.'))
-
 sdk_commit_hash = subprocess.getoutput("cat " + sdk_path + "/.git/refs/heads/main")
 
 
@@ -81,7 +81,7 @@ def commit_and_push_changes():
 if commit_and_push_changes() != 0:
     exit(0)
 
-response1 = requests.post(
+create_release_response = requests.post(
     'https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin/releases',
     headers={
         'Accept': 'application/vnd.github+json',
@@ -98,11 +98,13 @@ response1 = requests.post(
         "generate_release_notes": False,
         "make_latest": "true"
     }))
-creation_response = response1.json()
-print("Release created: " + creation_response['html_url'])
+create_release_response_json = create_release_response.json()
+print("Release created: " + create_release_response_json['html_url'])
 
 print("Uploading release assets")
-upload_url = creation_response['upload_url'].split(u"{")[0]
+upload_url = create_release_response_json['upload_url'].split(u"{")[0]
+
+
 def uploadAsset(file, name):
     upload_asset_response = requests.post(upload_url,
                                           headers={
@@ -116,6 +118,14 @@ def uploadAsset(file, name):
     if upload_asset_response.status_code == 201:
         upload_asset_response_json = upload_asset_response.json()
         print("Upload finished: " + upload_asset_response_json['browser_download_url'])
+    else:
+        exit(0)
+
 
 with open(root + sdk_generated_aar_path, 'rb') as file:
     uploadAsset(file, 'matrix-android-sdk.aar')
+with open(root + crypto_generated_aar_path, 'rb') as file:
+    uploadAsset(file, 'matrix-android-crypto.aar')
+
+if os.system("./publish.sh") != 0:
+    exit(0)
