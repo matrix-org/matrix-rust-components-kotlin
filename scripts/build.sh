@@ -5,7 +5,7 @@ helpFunction() {
   echo ""
   echo "Usage: $0 -r -p /Documents/dev/matrix-rust-sdk -m sdk"
   echo -e "\t-p Local path to the rust-sdk repository"
-  echo -e "\t-o The output path with the expected name of the aar file"
+  echo -e "\t-o Optional output path with the expected name of the aar file"
   echo -e "\t-r Flag to build in release mode"
   echo -e "\t-m Option to select the gradle module to build. Default is sdk"
   echo -e "\t-t Option to to select an android target to build against. Default will build for all targets."
@@ -38,11 +38,6 @@ if [ -z "$sdk_path" ]; then
   helpFunction
 fi
 
-if [ -z "$output" ]; then
-  echo "output path is empty, please provide one"
-  helpFunction
-fi
-
 if [ -z "$only_target" ]; then
   echo "no target provided, build for all targets"
   target_command=()
@@ -70,21 +65,29 @@ pushd "$scripts_dir/.." || exit
 
 shift $((OPTIND - 1))
 
+moveFunction() {
+  if [ -z "$output" ]; then
+    echo "No output path provided, keep the generated path"
+  else
+     mv "$0" "$output"
+  fi
+}
+
 if ${is_release}; then
   if [ "$gradle_module" = "sdk" ]; then
     ./gradlew :sdk:sdk-android:assembleRelease
-    mv "sdk/sdk-android/build/outputs/aar/sdk-android-release.aar" "$output"
+    moveFunction "sdk/sdk-android/build/outputs/aar/sdk-android-release.aar"
   else
     ./gradlew :crypto:crypto-android:assembleRelease
-    mv "crypto/crypto-android/build/outputs/aar/crypto-android-release.aar" "$output"
+    moveFunction "crypto/crypto-android/build/outputs/aar/crypto-android-release.aar"
   fi
 else
   if [ "$gradle_module" = "sdk" ]; then
     ./gradlew :sdk:sdk-android:assembleDebug
-    mv "sdk/sdk-android/build/outputs/aar/sdk-android-debug.aar" "$output"
+    moveFunction "sdk/sdk-android/build/outputs/aar/sdk-android-debug.aar"
   else
     ./gradlew :crypto:crypto-android:assembleDebug
-    mv "crypto/crypto-android/build/outputs/aar/crypto-android-debug.aar" "$output"
+    moveFunction "crypto/crypto-android/build/outputs/aar/crypto-android-debug.aar"
   fi
 fi
 

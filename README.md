@@ -9,6 +9,17 @@ This is done with the release script found in the scripts directory.
 ## Testing locally
 As the package vendors a pre-built binary of the SDK, all local development is done via the SDK's repo instead of this one.
 
+## Prerequisites
+
+* the Rust toolchain
+* cargo-ndk < 2.12.0 `cargo install cargo-ndk --version 2.11.0`
+* android targets (e.g. `rustup target add \
+  aarch64-linux-android \
+  armv7-linux-androideabi \
+  x86_64-linux-android \
+  i686-linux-android`)
+
+
 ## License
 
 [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
