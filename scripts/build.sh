@@ -69,7 +69,7 @@ moveFunction() {
   if [ -z "$output" ]; then
     echo "No output path provided, keep the generated path"
   else
-     mv "$0" "$output"
+     mv "$1" "$output"
   fi
 }
 
