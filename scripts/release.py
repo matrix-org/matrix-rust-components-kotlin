@@ -3,7 +3,6 @@
 import argparse
 import json
 import os
-from fileinput import FileInput
 import requests
 import subprocess
 from pathlib import Path
@@ -45,7 +44,9 @@ crypto_generated_aar_path = "/crypto/crypto-android/build/outputs/aar/sdk-androi
 if os.system("./build.sh -r -m sdk -p " + sdk_path) != 0:
     exit(0)
 
+
 print("Creating release")
+
 
 def bump_version(versions):
     major_version = versions[0]
@@ -65,6 +66,7 @@ bump_version(version.split('.'))
 
 sdk_commit_hash = subprocess.getoutput("cat " + sdk_path + "/.git/refs/heads/main")
 
+
 def commit_and_push_changes():
     print("SDK commit: " + sdk_commit_hash)
     commit_message = "Bump to " + version + " (matrix-rust-sdk " + sdk_commit_hash + ")"
@@ -74,6 +76,7 @@ def commit_and_push_changes():
     os.system("git add " + root + "/crypto/crypto-android/src/main/kotlin")
     os.system("git commit -m '" + commit_message + "'")
     return os.system("git push")
+
 
 if commit_and_push_changes() != 0:
     exit(0)
@@ -100,17 +103,19 @@ print("Release created: " + creation_response['html_url'])
 
 print("Uploading release assets")
 upload_url = creation_response['upload_url'].split(u"{")[0]
+def uploadAsset(file, name):
+    upload_asset_response = requests.post(upload_url,
+                                          headers={
+                                              'Accept': 'application/vnd.github+json',
+                                              'Content-Type': 'application/zip',
+                                              'Authorization': 'Bearer ' + github_token,
+                                          },
+                                          params={'name': name},
+                                          data=file)
+
+    if upload_asset_response.status_code == 201:
+        upload_asset_response_json = upload_asset_response.json()
+        print("Upload finished: " + upload_asset_response_json['browser_download_url'])
+
 with open(root + sdk_generated_aar_path, 'rb') as file:
-    response2 = requests.post(upload_url,
-                              headers={
-                                  'Accept': 'application/vnd.github+json',
-                                  'Content-Type': 'application/zip',
-                                  'Authorization': 'Bearer ' + github_token,
-                              },
-                              params={'name': 'matrix-android-sdk.aar'},
-                              data=file)
-
-if response2.status_code == 201:
-    upload_response = response2.json()
-    print("Upload finished: " + upload_response['browser_download_url'])
-
+    uploadAsset(file, 'matrix-android-sdk.aar')
