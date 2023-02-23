@@ -40,7 +40,7 @@ else:
 print("Root path: " + root)
 print("SDK path: " + sdk_path)
 sdk_generated_aar_path = "/sdk/sdk-android/build/outputs/aar/sdk-android-release.aar"
-crypto_generated_aar_path = "/crypto/crypto-android/build/outputs/aar/sdk-android-release.aar"
+crypto_generated_aar_path = "/crypto/crypto-android/build/outputs/aar/crypto-android-release.aar"
 if os.system("./build.sh -r -m sdk -p " + sdk_path) != 0:
     exit(0)
 

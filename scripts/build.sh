@@ -33,6 +33,11 @@ while getopts ':rp:m:t:o:' 'opt'; do
   esac
 done
 
+if [ -z "$ANDROID_NDK" ]; then
+  echo "please set the ANDROID_NDK environment variable to your Android NDK installation"
+  exit 1
+fi
+
 if [ -z "$sdk_path" ]; then
   echo "sdk_path is empty, please provide one"
   helpFunction
