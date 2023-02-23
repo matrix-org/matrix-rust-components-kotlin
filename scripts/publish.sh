@@ -8,4 +8,5 @@ scripts_dir=$(
 
 pushd "$scripts_dir/.." || exit
 ./gradlew publishReleasePublicationToSonatypeRepository
-./gradlew closeAndReleaseSonatypeStagingRepository
+
+echo 'Done publishing. Check and close or drop the publication manually.'

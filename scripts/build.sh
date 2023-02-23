@@ -74,9 +74,17 @@ moveFunction() {
   if [ -z "$output" ]; then
     echo "No output path provided, keep the generated path"
   else
-     mv "$1" "$output"
+    mv "$1" "$output"
   fi
 }
+
+## For now, cargo ndk includes all generated so files from the target directory, so makes sure it just includes the one we need.
+echo "Clean .so files"
+if [ "$gradle_module" = "crypto" ]; then
+  find crypto/crypto-android/src/main/jniLibs -type f ! -name 'libmatrix_sdk_crypto_ffi.so' -delete
+else
+  find sdk/sdk-android/src/main/jniLibs -type f ! -name 'libmatrix_sdk_ffi.so' -delete
+fi
 
 if ${is_release}; then
   if [ "$gradle_module" = "sdk" ]; then
@@ -95,4 +103,3 @@ else
     moveFunction "crypto/crypto-android/build/outputs/aar/crypto-android-debug.aar"
   fi
 fi
-
