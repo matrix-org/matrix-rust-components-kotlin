@@ -21,9 +21,11 @@ import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import com.sun.jna.ptr.ByReference
+import com.sun.jna.Callback
+import com.sun.jna.ptr.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
@@ -39,12 +41,12 @@ open class RustBuffer : Structure() {
     @JvmField var len: Int = 0
     @JvmField var data: Pointer? = null
 
-    class ByValue : RustBuffer(), Structure.ByValue
-    class ByReference : RustBuffer(), Structure.ByReference
+    class ByValue: RustBuffer(), Structure.ByValue
+    class ByReference: RustBuffer(), Structure.ByReference
 
     companion object {
         internal fun alloc(size: Int = 0) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_rustbuffer_alloc(size, status).also {
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_rustbuffer_alloc(size, status).also {
                 if(it.data == null) {
                    throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
                }
@@ -52,7 +54,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_rustbuffer_free(buf, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_rustbuffer_free(buf, status)
         }
     }
 
@@ -80,6 +82,19 @@ class RustBufferByReference : ByReference(16) {
         pointer.setInt(4, value.len)
         pointer.setPointer(8, value.data)
     }
+
+    /**
+     * Get a `RustBuffer.ByValue` from this reference.
+     */
+    fun getValue(): RustBuffer.ByValue {
+        val pointer = getPointer()
+        val value = RustBuffer.ByValue()
+        value.writeField("capacity", pointer.getInt(0))
+        value.writeField("len", pointer.getInt(4))
+        value.writeField("data", pointer.getPointer(8))
+
+        return value
+    }
 }
 
 // This is a helper for safely passing byte references into the rust code.
@@ -95,6 +110,7 @@ open class ForeignBytes : Structure() {
 
     class ByValue : ForeignBytes(), Structure.ByValue
 }
+
 // The FfiConverter interface handles converter types to and from the FFI
 //
 // All implementing objects should be public to support external types.  When a
@@ -260,890 +276,672 @@ internal interface _UniFFILib : Library {
             .also { lib: _UniFFILib ->
                 FfiConverterTypeClientDelegate.register(lib)
                 FfiConverterTypeSessionVerificationControllerDelegate.register(lib)
+                FfiConverterTypeSlidingSyncListRoomItemsObserver.register(lib)
+                FfiConverterTypeSlidingSyncListRoomListObserver.register(lib)
+                FfiConverterTypeSlidingSyncListRoomsCountObserver.register(lib)
+                FfiConverterTypeSlidingSyncListStateObserver.register(lib)
                 FfiConverterTypeSlidingSyncObserver.register(lib)
-                FfiConverterTypeSlidingSyncViewRoomItemsObserver.register(lib)
-                FfiConverterTypeSlidingSyncViewRoomListObserver.register(lib)
-                FfiConverterTypeSlidingSyncViewRoomsCountObserver.register(lib)
-                FfiConverterTypeSlidingSyncViewStateObserver.register(lib)
                 FfiConverterTypeTimelineListener.register(lib)
                 }
             
         }
     }
 
-    fun ffi_matrix_sdk_ffi_2b85_TaskHandle_object_free(`ptr`: Pointer,
+    
+    fun ffi_matrix_sdk_ffi_d61b_TaskHandle_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_TaskHandle_cancel_32dd(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_TaskHandle_cancel_a65c(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_TaskHandle_is_finished_d441(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_TaskHandle_is_finished_56b2(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncListBuilder_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_new(
+    fun matrix_sdk_ffi_d61b_SlidingSyncListBuilder_new(
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_sync_mode(`ptr`: Pointer,`mode`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSyncListBuilder_sync_mode(`ptr`: Pointer,`mode`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_send_updates_for_items(`ptr`: Pointer,`enable`: Byte,
+    fun matrix_sdk_ffi_d61b_SlidingSyncListBuilder_send_updates_for_items(`ptr`: Pointer,`enable`: Byte,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_build(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SlidingSyncListBuilder_build(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_add_range_2a36(`ptr`: Pointer,`from`: Int,`to`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_add_range_2f2d(`ptr`: Pointer,`from`: Int,`to`: Int,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_batch_size_83(`ptr`: Pointer,`batchSize`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_batch_size_2b78(`ptr`: Pointer,`batchSize`: Int,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_filters_877d(`ptr`: Pointer,`filters`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_filters_3274(`ptr`: Pointer,`filters`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_name_e7be(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_name_dfb(`ptr`: Pointer,`name`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_no_filters_b021(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_no_filters_3d7b(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_no_room_limit_7b9c(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_no_room_limit_9ab4(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_no_timeline_limit_2cc7(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_no_timeline_limit_1d0d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_required_state_49c8(`ptr`: Pointer,`requiredState`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_required_state_827b(`ptr`: Pointer,`requiredState`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_reset_ranges_d2bc(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_reset_ranges_5b71(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_room_limit_e8f3(`ptr`: Pointer,`limit`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_room_limit_d39c(`ptr`: Pointer,`limit`: Int,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_sort_4b00(`ptr`: Pointer,`sort`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_sort_1272(`ptr`: Pointer,`sort`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_timeline_limit_29e6(`ptr`: Pointer,`limit`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_timeline_limit_554d(`ptr`: Pointer,`limit`: Int,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncView_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncList_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncView_observe_room_list(`ptr`: Pointer,`observer`: Long,
+    fun matrix_sdk_ffi_d61b_SlidingSyncList_observe_room_list(`ptr`: Pointer,`observer`: Long,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncView_observe_rooms_count(`ptr`: Pointer,`observer`: Long,
+    fun matrix_sdk_ffi_d61b_SlidingSyncList_observe_rooms_count(`ptr`: Pointer,`observer`: Long,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncView_observe_state(`ptr`: Pointer,`observer`: Long,
+    fun matrix_sdk_ffi_d61b_SlidingSyncList_observe_state(`ptr`: Pointer,`observer`: Long,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncView_observe_room_items(`ptr`: Pointer,`observer`: Long,
+    fun matrix_sdk_ffi_d61b_SlidingSyncList_observe_room_items(`ptr`: Pointer,`observer`: Long,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_add_range_9502(`ptr`: Pointer,`start`: Int,`end`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_add_range_8f7c(`ptr`: Pointer,`start`: Int,`end`: Int,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_current_room_count_5194(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_current_room_count_8e0(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_current_rooms_list_946a(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_current_rooms_list_e121(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_get_timeline_limit_f84c(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_get_timeline_limit_486f(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_reset_ranges_d194(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_reset_ranges_ddb(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_set_range_afda(`ptr`: Pointer,`start`: Int,`end`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_set_range_bc4c(`ptr`: Pointer,`start`: Int,`end`: Int,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_set_timeline_limit_e983(`ptr`: Pointer,`value`: Int,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_set_timeline_limit_17e1(`ptr`: Pointer,`value`: Int,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncView_unset_timeline_limit_5cad(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncList_unset_timeline_limit_336e(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncRoom_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncRoom_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncRoom_subscribe_and_add_timeline_listener(`ptr`: Pointer,`listener`: Long,`settings`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSyncRoom_subscribe_and_add_timeline_listener(`ptr`: Pointer,`listener`: Long,`settings`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncRoom_add_timeline_listener(`ptr`: Pointer,`listener`: Long,
+    fun matrix_sdk_ffi_d61b_SlidingSyncRoom_add_timeline_listener(`ptr`: Pointer,`listener`: Long,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_full_room_1d93(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_full_room_6ee7(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_has_unread_notifications_d5da(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_has_unread_notifications_aad9(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_dm_8b22(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_dm_8047(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_initial_3e73(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_initial_b79c(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_loading_more_f939(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_loading_more_98c9(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_latest_room_message_747b(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_latest_room_message_d69d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_name_59a7(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_name_6a4c(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_room_id_b25f(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_room_id_a4da(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_unread_notifications_21b0(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_unread_notifications_4c16(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSync_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSync_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSync_set_observer(`ptr`: Pointer,`observer`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSync_set_observer(`ptr`: Pointer,`observer`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSync_subscribe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSync_subscribe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSync_unsubscribe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSync_unsubscribe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSync_get_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSync_get_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_SlidingSync_get_rooms(`ptr`: Pointer,`roomIds`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSync_get_rooms(`ptr`: Pointer,`roomIds`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_add_common_extensions_26c4(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_add_common_extensions_6d8e(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_add_view_5d63(`ptr`: Pointer,`view`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_add_list_691f(`ptr`: Pointer,`list`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_get_view_79ec(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_get_list_535c(`ptr`: Pointer,`name`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_pop_view_48ba(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_pop_list_c712(`ptr`: Pointer,`name`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_sync_fe44(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSync_sync_4bb(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun ffi_matrix_sdk_ffi_2b85_ClientBuilder_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_ClientBuilder_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_ClientBuilder_new(
+    fun matrix_sdk_ffi_d61b_ClientBuilder_new(
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_ClientBuilder_build(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_ClientBuilder_build(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_base_path_51b4(`ptr`: Pointer,`path`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_base_path_a1af(`ptr`: Pointer,`path`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_homeserver_url_4e68(`ptr`: Pointer,`url`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_homeserver_url_d5fa(`ptr`: Pointer,`url`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_passphrase_e0df(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_passphrase_fa90(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_name_c5a1(`ptr`: Pointer,`serverName`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_name_3073(`ptr`: Pointer,`serverName`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_versions_55f8(`ptr`: Pointer,`versions`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_versions_366(`ptr`: Pointer,`versions`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_sliding_sync_proxy_9658(`ptr`: Pointer,`slidingSyncProxy`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_sliding_sync_proxy_fd67(`ptr`: Pointer,`slidingSyncProxy`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_user_agent_361d(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_user_agent_c34d(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_username_5c1f(`ptr`: Pointer,`username`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_ClientBuilder_username_6f74(`ptr`: Pointer,`username`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncBuilder_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncBuilder_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncBuilder_homeserver(`ptr`: Pointer,`url`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SlidingSyncBuilder_homeserver(`ptr`: Pointer,`url`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_SlidingSyncBuilder_build(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SlidingSyncBuilder_build(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_fullsync_view_fcaa(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_fullsync_list_7e8a(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_view_3018(`ptr`: Pointer,`v`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_list_2044(`ptr`: Pointer,`v`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_cold_cache_7814(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_cold_cache_b320(`ptr`: Pointer,`name`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_no_views_68d8(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_no_lists_8e92(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_all_extensions_a54(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_all_extensions_7e0f(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_common_extensions_f2da(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_common_extensions_e90d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_account_data_extension_5a9d(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_account_data_extension_d3f5(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_e2ee_extension_6ff7(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_e2ee_extension_bc03(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_receipt_extension_9fb2(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_receipt_extension_ea21(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_to_device_extension_29f5(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_to_device_extension_2502(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_typing_extension_f1c8(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_typing_extension_96fe(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun ffi_matrix_sdk_ffi_2b85_Client_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_Client_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_Client_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_Client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_Client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_Client_session(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_session(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_user_id(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_user_id(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_display_name(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_display_name(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_set_display_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_set_display_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_Client_avatar_url(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_avatar_url(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_device_id(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_cached_avatar_url(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_device_id(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_set_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_create_room(`ptr`: Pointer,`request`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun matrix_sdk_ffi_d61b_Client_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun matrix_sdk_ffi_d61b_Client_set_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_Client_upload_media(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_Client_upload_media(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_get_media_content(`ptr`: Pointer,`source`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_get_media_content(`ptr`: Pointer,`source`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_get_media_thumbnail(`ptr`: Pointer,`source`: Pointer,`width`: Long,`height`: Long,
+    fun matrix_sdk_ffi_d61b_Client_get_media_thumbnail(`ptr`: Pointer,`source`: Pointer,`width`: Long,`height`: Long,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Client_get_session_verification_controller(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_get_session_verification_controller(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_Client_full_sliding_sync(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_full_sliding_sync(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun matrix_sdk_ffi_2b85_Client_logout(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Client_logout(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_has_first_synced_4f8(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_Client_homeserver_cb72(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Client_rooms_bbf1(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Client_sliding_sync_3ce1(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Pointer
+    fun ffi_matrix_sdk_ffi_d61b_Room_object_free(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_display_name(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun matrix_sdk_ffi_d61b_Room_is_encrypted(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_homeserver_9e34(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Room_members(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_is_soft_logout_b74b(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_is_syncing_5d85(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_rooms_7819(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Room_member_avatar_url(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_sliding_sync_2052(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_Room_member_display_name(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun matrix_sdk_ffi_d61b_Room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun matrix_sdk_ffi_d61b_Room_paginate_backwards(`ptr`: Pointer,`opts`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_send_read_receipt(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_send_read_marker(`ptr`: Pointer,`fullyReadEventId`: RustBuffer.ByValue,`readReceiptEventId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_send(`ptr`: Pointer,`msg`: Pointer,`txnId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_send_reply(`ptr`: Pointer,`msg`: RustBuffer.ByValue,`inReplyToEventId`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_edit(`ptr`: Pointer,`newMsg`: RustBuffer.ByValue,`originalEventId`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_redact(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_report_content(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`score`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_send_reaction(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_leave(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_Room_reject_invitation(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun _uniffi_matrix_sdk_ffi_impl_Room_alternative_aliases_6756(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Room_avatar_url_723b(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Room_canonical_alias_6c5e(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Room_fetch_members_caf7(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun _uniffi_matrix_sdk_ffi_impl_Room_id_8cb8(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Room_is_direct_5762(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Byte
+    fun _uniffi_matrix_sdk_ffi_impl_Room_is_public_ea60(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Byte
+    fun _uniffi_matrix_sdk_ffi_impl_Room_is_space_4eb2(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Byte
+    fun _uniffi_matrix_sdk_ffi_impl_Room_is_tombstoned_649(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Byte
+    fun _uniffi_matrix_sdk_ffi_impl_Room_membership_723(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Room_name_961e(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_Room_remove_timeline_28b8(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun _uniffi_matrix_sdk_ffi_impl_Room_retry_decryption_d3c(`ptr`: Pointer,`sessionIds`: RustBuffer.ByValue,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun _uniffi_matrix_sdk_ffi_impl_Room_topic_cc24(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_ffi_d61b_TimelineItem_object_free(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineItem_as_event_9e04(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineItem_as_virtual_d72c(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineItem_fmt_debug_6d42(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_ffi_d61b_TimelineDiff_object_free(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_append_c24b(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_change_6a6d(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_insert_b007(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_back_3aff(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_front_96a0(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_remove_d74f(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_reset_6b55(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_set_3cf2(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_ffi_d61b_RoomMessageEventContent_object_free(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun ffi_matrix_sdk_ffi_d61b_MediaSource_object_free(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_MediaSource_url(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_ffi_d61b_AuthenticationService_object_free(`ptr`: Pointer,
+    _uniffi_out_err: RustCallStatus
+    ): Unit
+    fun matrix_sdk_ffi_d61b_AuthenticationService_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_Client_start_sync_25c3(`ptr`: Pointer,`timelineLimit`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_configure_homeserver_5a2b(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_Room_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_display_name(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_homeserver_details_5a3d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Room_is_encrypted(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun matrix_sdk_ffi_2b85_Room_members(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Room_member_avatar_url(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Room_member_display_name(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun matrix_sdk_ffi_2b85_Room_paginate_backwards(`ptr`: Pointer,`opts`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_send_read_receipt(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_send_read_marker(`ptr`: Pointer,`fullyReadEventId`: RustBuffer.ByValue,`readReceiptEventId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_send(`ptr`: Pointer,`msg`: Pointer,`txnId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_send_reply(`ptr`: Pointer,`msg`: RustBuffer.ByValue,`inReplyToEventId`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_edit(`ptr`: Pointer,`newMsg`: RustBuffer.ByValue,`originalEventId`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_redact(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_report_content(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`score`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_Room_send_reaction(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_alternative_aliases_a729(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_avatar_url_faa5(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_canonical_alias_28ec(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_fetch_members_c181(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_id_db81(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_is_direct_ef45(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_is_public_fee7(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_is_space_f6cb(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_is_tombstoned_7e34(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_membership_5040(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_name_9dcf(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_remove_timeline_a9df(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_retry_decryption_b803(`ptr`: Pointer,`sessionIds`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_Room_topic_6137(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_TimelineItem_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineItem_as_event_bdd4(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineItem_as_virtual_c1a3(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineItem_fmt_debug_9284(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_TimelineDiff_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_append_d860(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_change_95d6(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_insert_9db8(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_back_78c(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_front_e1(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_remove_d332(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_reset_13cf(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineDiff_set_a568(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_RoomMessageEventContent_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_MediaSource_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_MediaSource_url(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_AuthenticationService_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun matrix_sdk_ffi_2b85_AuthenticationService_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_login_e1b3(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_configure_homeserver_5456(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_homeserver_details_dd6a(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
-    ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_login_fa49(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_restore_with_access_token_1d43(`ptr`: Pointer,`token`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_AuthenticationService_restore_with_access_token_6783(`ptr`: Pointer,`token`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
-    ): Pointer
-
-    fun ffi_matrix_sdk_ffi_2b85_SessionVerificationEmoji_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SessionVerificationEmoji_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_description_107e(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_description_955f(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_symbol_fa98(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_symbol_89f7(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_SessionVerificationController_object_free(`ptr`: Pointer,
+    fun ffi_matrix_sdk_ffi_d61b_SessionVerificationController_object_free(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SessionVerificationController_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,
+    fun matrix_sdk_ffi_d61b_SessionVerificationController_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SessionVerificationController_request_verification(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SessionVerificationController_request_verification(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SessionVerificationController_start_sas_verification(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SessionVerificationController_start_sas_verification(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SessionVerificationController_approve_verification(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SessionVerificationController_approve_verification(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SessionVerificationController_decline_verification(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SessionVerificationController_decline_verification(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun matrix_sdk_ffi_2b85_SessionVerificationController_cancel_verification(`ptr`: Pointer,
+    fun matrix_sdk_ffi_d61b_SessionVerificationController_cancel_verification(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_SessionVerificationController_is_verified_388a(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_SessionVerificationController_is_verified_e7e9(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
     fun _uniffi_matrix_sdk_ffi_object_free_EventTimelineItem_46cf(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_content_2de3(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_content_b878(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_event_id_4b2b(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_event_id_fd2e(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_fmt_debug_11a(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_fmt_debug_4a27(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_editable_3862(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_editable_b154(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_local_3020(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_local_dd0d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_own_adc2(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_own_1bd0(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_remote_8b79(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_remote_2a3e(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_local_send_state_250(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_local_send_state_6078(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_raw_3a9(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_raw_22a1(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_reactions_ed6a(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_reactions_1f7d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_304e(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_9be3(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_profile_5a53(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_profile_e3f5(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_timestamp_650b(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_timestamp_be48(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Long
-
-    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_unique_identifier_1709(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_EventTimelineItem_unique_identifier_91e7(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
     fun _uniffi_matrix_sdk_ffi_object_free_HomeserverLoginDetails_2400(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_authentication_issuer_ea3c(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_authentication_issuer_8e36(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_supports_password_login_2455(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_supports_password_login_db17(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_url_da8f(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_url_e46d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
     fun _uniffi_matrix_sdk_ffi_object_free_Message_1ab4(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_Message_body_6236(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_Message_body_ad14(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Message_in_reply_to_7f06(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_Message_in_reply_to_8fda(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_Message_is_edited_fcdd(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_Message_is_edited_d878(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_Message_msgtype_5024(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_Message_msgtype_13c1(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
     fun _uniffi_matrix_sdk_ffi_object_free_RoomMember_52e0(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
     fun _uniffi_matrix_sdk_ffi_object_free_TimelineItemContent_2b31(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineItemContent_as_message_667f(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineItemContent_as_message_31df(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_impl_TimelineItemContent_kind_9185(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_TimelineItemContent_kind_4894(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
     fun _uniffi_matrix_sdk_ffi_object_free_UnreadNotificationsCount_b323(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_has_notifications_727e(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_has_notifications_72(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Byte
-
-    fun _uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_highlight_count_67f9(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_highlight_count_41b0(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Int
-
-    fun _uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_notification_count_808c(`ptr`: Pointer,
+    fun _uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_notification_count_1e7d(`ptr`: Pointer,
     _uniffi_out_err: RustCallStatus
     ): Int
-
-    fun ffi_matrix_sdk_ffi_2b85_ClientDelegate_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_ClientDelegate_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncObserver_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncObserver_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncViewStateObserver_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncListStateObserver_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncViewRoomListObserver_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncListRoomListObserver_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncViewRoomsCountObserver_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncListRoomsCountObserver_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SlidingSyncViewRoomItemsObserver_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_SlidingSyncListRoomItemsObserver_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_TimelineListener_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_TimelineListener_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_SessionVerificationControllerDelegate_init_callback(`callbackStub`: ForeignCallback,
+    fun ffi_matrix_sdk_ffi_d61b_SessionVerificationControllerDelegate_init_callback(`callbackStub`: ForeignCallback,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_gen_transaction_id_2d4f(
+    fun _uniffi_matrix_sdk_ffi_gen_transaction_id_4593(
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun _uniffi_matrix_sdk_ffi_media_source_from_url_55aa(`url`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_media_source_from_url_3a26(`url`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_message_event_content_from_markdown_c8db(`md`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_message_event_content_from_markdown_df5b(`md`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Pointer
-
-    fun _uniffi_matrix_sdk_ffi_setup_otlp_tracing_bc07(`filter`: RustBuffer.ByValue,`clientName`: RustBuffer.ByValue,`user`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`otlpEndpoint`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_setup_otlp_tracing_5801(`filter`: RustBuffer.ByValue,`clientName`: RustBuffer.ByValue,`user`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`otlpEndpoint`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun _uniffi_matrix_sdk_ffi_setup_tracing_62d6(`filter`: RustBuffer.ByValue,
+    fun _uniffi_matrix_sdk_ffi_setup_tracing_ac08(`filter`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_rustbuffer_alloc(`size`: Int,
+    fun ffi_matrix_sdk_ffi_d61b_rustbuffer_alloc(`size`: Int,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,
+    fun ffi_matrix_sdk_ffi_d61b_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    fun ffi_matrix_sdk_ffi_2b85_rustbuffer_free(`buf`: RustBuffer.ByValue,
+    fun ffi_matrix_sdk_ffi_d61b_rustbuffer_free(`buf`: RustBuffer.ByValue,
     _uniffi_out_err: RustCallStatus
     ): Unit
-
-    fun ffi_matrix_sdk_ffi_2b85_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,
+    fun ffi_matrix_sdk_ffi_d61b_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,
     _uniffi_out_err: RustCallStatus
     ): RustBuffer.ByValue
-
-    
 }
 
 // Public interface members begin here.
@@ -1499,18 +1297,11 @@ abstract class FFIObject(
 }
 
 public interface AuthenticationServiceInterface {
-    
     @Throws(AuthenticationException::class)
     fun `configureHomeserver`(`serverNameOrHomeserverUrl`: String)
-    
-    fun `homeserverDetails`(): HomeserverLoginDetails?
-    
-    @Throws(AuthenticationException::class)
-    fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?): Client
-    
-    @Throws(AuthenticationException::class)
+    fun `homeserverDetails`(): HomeserverLoginDetails?@Throws(AuthenticationException::class)
+    fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?): Client@Throws(AuthenticationException::class)
     fun `restoreWithAccessToken`(`token`: String, `deviceId`: String): Client
-    
 }
 
 class AuthenticationService(
@@ -1519,7 +1310,7 @@ class AuthenticationService(
     constructor(`basePath`: String, `passphrase`: String?, `customSlidingSyncProxy`: String?) :
         this(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_AuthenticationService_new(FfiConverterString.lower(`basePath`), FfiConverterOptionalString.lower(`passphrase`), FfiConverterOptionalString.lower(`customSlidingSyncProxy`), _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_AuthenticationService_new(FfiConverterString.lower(`basePath`), FfiConverterOptionalString.lower(`passphrase`), FfiConverterOptionalString.lower(`customSlidingSyncProxy`), _status)
 })
 
     /**
@@ -1532,44 +1323,48 @@ class AuthenticationService(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_AuthenticationService_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_AuthenticationService_object_free(this.pointer, status)
         }
     }
 
     
-    @Throws(AuthenticationException::class)override fun `configureHomeserver`(`serverNameOrHomeserverUrl`: String) =
+        @Throws(AuthenticationException::class)override fun `configureHomeserver`(`serverNameOrHomeserverUrl`: String) =
         callWithPointer {
     rustCallWithError(AuthenticationException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_configure_homeserver_5456(it, FfiConverterString.lower(`serverNameOrHomeserverUrl`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_configure_homeserver_5a2b(it, FfiConverterString.lower(`serverNameOrHomeserverUrl`),  _status)
 }
         }
+    
     
     override fun `homeserverDetails`(): HomeserverLoginDetails? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_homeserver_details_dd6a(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_homeserver_details_5a3d(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeHomeserverLoginDetails.lift(it)
         }
     
-    @Throws(AuthenticationException::class)override fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?): Client =
+    
+        @Throws(AuthenticationException::class)override fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?): Client =
         callWithPointer {
     rustCallWithError(AuthenticationException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_login_fa49(it, FfiConverterString.lower(`username`), FfiConverterString.lower(`password`), FfiConverterOptionalString.lower(`initialDeviceName`), FfiConverterOptionalString.lower(`deviceId`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_login_e1b3(it, FfiConverterString.lower(`username`), FfiConverterString.lower(`password`), FfiConverterOptionalString.lower(`initialDeviceName`), FfiConverterOptionalString.lower(`deviceId`),  _status)
 }
         }.let {
             FfiConverterTypeClient.lift(it)
         }
     
-    @Throws(AuthenticationException::class)override fun `restoreWithAccessToken`(`token`: String, `deviceId`: String): Client =
+    
+        @Throws(AuthenticationException::class)override fun `restoreWithAccessToken`(`token`: String, `deviceId`: String): Client =
         callWithPointer {
     rustCallWithError(AuthenticationException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_restore_with_access_token_6783(it, FfiConverterString.lower(`token`), FfiConverterString.lower(`deviceId`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_AuthenticationService_restore_with_access_token_1d43(it, FfiConverterString.lower(`token`), FfiConverterString.lower(`deviceId`),  _status)
 }
         }.let {
             FfiConverterTypeClient.lift(it)
         }
+    
     
 
     
@@ -1602,70 +1397,28 @@ public object FfiConverterTypeAuthenticationService: FfiConverter<Authentication
 
 public interface ClientInterface {
     
-    fun `setDelegate`(`delegate`: ClientDelegate?)
-    
-    @Throws(ClientException::class)
-    fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?)
-    
-    @Throws(ClientException::class)
-    fun `restoreSession`(`session`: Session)
-    
-    @Throws(ClientException::class)
-    fun `session`(): Session
-    
-    @Throws(ClientException::class)
-    fun `userId`(): String
-    
-    @Throws(ClientException::class)
-    fun `displayName`(): String
-    
-    @Throws(ClientException::class)
-    fun `setDisplayName`(`name`: String)
-    
-    @Throws(ClientException::class)
-    fun `avatarUrl`(): String
-    
-    @Throws(ClientException::class)
-    fun `deviceId`(): String
-    
-    @Throws(ClientException::class)
-    fun `accountData`(`eventType`: String): String?
-    
-    @Throws(ClientException::class)
-    fun `setAccountData`(`eventType`: String, `content`: String)
-    
-    @Throws(ClientException::class)
-    fun `uploadMedia`(`mimeType`: String, `content`: List<UByte>): String
-    
-    @Throws(ClientException::class)
-    fun `getMediaContent`(`source`: MediaSource): List<UByte>
-    
-    @Throws(ClientException::class)
-    fun `getMediaThumbnail`(`source`: MediaSource, `width`: ULong, `height`: ULong): List<UByte>
-    
-    @Throws(ClientException::class)
-    fun `getSessionVerificationController`(): SessionVerificationController
-    
-    @Throws(ClientException::class)
-    fun `fullSlidingSync`(): SlidingSync
-    
-    @Throws(ClientException::class)
+    fun `setDelegate`(`delegate`: ClientDelegate?)@Throws(ClientException::class)
+    fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?)@Throws(ClientException::class)
+    fun `restoreSession`(`session`: Session)@Throws(ClientException::class)
+    fun `session`(): Session@Throws(ClientException::class)
+    fun `userId`(): String@Throws(ClientException::class)
+    fun `displayName`(): String@Throws(ClientException::class)
+    fun `setDisplayName`(`name`: String)@Throws(ClientException::class)
+    fun `avatarUrl`(): String?@Throws(ClientException::class)
+    fun `cachedAvatarUrl`(): String?@Throws(ClientException::class)
+    fun `deviceId`(): String@Throws(ClientException::class)
+    fun `createRoom`(`request`: CreateRoomParameters): String@Throws(ClientException::class)
+    fun `accountData`(`eventType`: String): String?@Throws(ClientException::class)
+    fun `setAccountData`(`eventType`: String, `content`: String)@Throws(ClientException::class)
+    fun `uploadMedia`(`mimeType`: String, `content`: List<UByte>): String@Throws(ClientException::class)
+    fun `getMediaContent`(`source`: MediaSource): List<UByte>@Throws(ClientException::class)
+    fun `getMediaThumbnail`(`source`: MediaSource, `width`: ULong, `height`: ULong): List<UByte>@Throws(ClientException::class)
+    fun `getSessionVerificationController`(): SessionVerificationController@Throws(ClientException::class)
+    fun `fullSlidingSync`(): SlidingSync@Throws(ClientException::class)
     fun `logout`()
-    
-    fun `hasFirstSynced`(): Boolean
-    
     fun `homeserver`(): String
-    
-    fun `isSoftLogout`(): Boolean
-    
-    fun `isSyncing`(): Boolean
-    
     fun `rooms`(): List<Room>
-    
     fun `slidingSync`(): SlidingSyncBuilder
-    
-    fun `startSync`(`timelineLimit`: UShort?)
-    
 }
 
 class Client(
@@ -1682,209 +1435,218 @@ class Client(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_Client_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_Client_object_free(this.pointer, status)
         }
     }
 
     override fun `setDelegate`(`delegate`: ClientDelegate?) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_set_delegate(it, FfiConverterOptionalTypeClientDelegate.lower(`delegate`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_set_delegate(it, FfiConverterOptionalTypeClientDelegate.lower(`delegate`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?) =
+    
+        @Throws(ClientException::class)override fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_login(it, FfiConverterString.lower(`username`), FfiConverterString.lower(`password`), FfiConverterOptionalString.lower(`initialDeviceName`), FfiConverterOptionalString.lower(`deviceId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_login(it, FfiConverterString.lower(`username`), FfiConverterString.lower(`password`), FfiConverterOptionalString.lower(`initialDeviceName`), FfiConverterOptionalString.lower(`deviceId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `restoreSession`(`session`: Session) =
+    
+        @Throws(ClientException::class)override fun `restoreSession`(`session`: Session) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_restore_session(it, FfiConverterTypeSession.lower(`session`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_restore_session(it, FfiConverterTypeSession.lower(`session`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `session`(): Session =
+    
+        @Throws(ClientException::class)override fun `session`(): Session =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_session(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_session(it,  _status)
 }
         }.let {
             FfiConverterTypeSession.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `userId`(): String =
+    
+        @Throws(ClientException::class)override fun `userId`(): String =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_user_id(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_user_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `displayName`(): String =
+    
+        @Throws(ClientException::class)override fun `displayName`(): String =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_display_name(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_display_name(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `setDisplayName`(`name`: String) =
+    
+        @Throws(ClientException::class)override fun `setDisplayName`(`name`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_set_display_name(it, FfiConverterString.lower(`name`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_set_display_name(it, FfiConverterString.lower(`name`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `avatarUrl`(): String =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_avatar_url(it,  _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
     
-    @Throws(ClientException::class)override fun `deviceId`(): String =
+        @Throws(ClientException::class)override fun `avatarUrl`(): String? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_device_id(it,  _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    @Throws(ClientException::class)override fun `accountData`(`eventType`: String): String? =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_account_data(it, FfiConverterString.lower(`eventType`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_avatar_url(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `setAccountData`(`eventType`: String, `content`: String) =
+    
+        @Throws(ClientException::class)override fun `cachedAvatarUrl`(): String? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_set_account_data(it, FfiConverterString.lower(`eventType`), FfiConverterString.lower(`content`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_cached_avatar_url(it,  _status)
 }
+        }.let {
+            FfiConverterOptionalString.lift(it)
         }
     
     
-    @Throws(ClientException::class)override fun `uploadMedia`(`mimeType`: String, `content`: List<UByte>): String =
+        @Throws(ClientException::class)override fun `deviceId`(): String =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_upload_media(it, FfiConverterString.lower(`mimeType`), FfiConverterSequenceUByte.lower(`content`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_device_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `getMediaContent`(`source`: MediaSource): List<UByte> =
+    
+        @Throws(ClientException::class)override fun `createRoom`(`request`: CreateRoomParameters): String =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_get_media_content(it, FfiConverterTypeMediaSource.lower(`source`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_create_room(it, FfiConverterTypeCreateRoomParameters.lower(`request`),  _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+        @Throws(ClientException::class)override fun `accountData`(`eventType`: String): String? =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_account_data(it, FfiConverterString.lower(`eventType`),  _status)
+}
+        }.let {
+            FfiConverterOptionalString.lift(it)
+        }
+    
+    
+        @Throws(ClientException::class)override fun `setAccountData`(`eventType`: String, `content`: String) =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_set_account_data(it, FfiConverterString.lower(`eventType`), FfiConverterString.lower(`content`),  _status)
+}
+        }
+    
+    
+    
+        @Throws(ClientException::class)override fun `uploadMedia`(`mimeType`: String, `content`: List<UByte>): String =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_upload_media(it, FfiConverterString.lower(`mimeType`), FfiConverterSequenceUByte.lower(`content`),  _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+        @Throws(ClientException::class)override fun `getMediaContent`(`source`: MediaSource): List<UByte> =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_get_media_content(it, FfiConverterTypeMediaSource.lower(`source`),  _status)
 }
         }.let {
             FfiConverterSequenceUByte.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `getMediaThumbnail`(`source`: MediaSource, `width`: ULong, `height`: ULong): List<UByte> =
+    
+        @Throws(ClientException::class)override fun `getMediaThumbnail`(`source`: MediaSource, `width`: ULong, `height`: ULong): List<UByte> =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_get_media_thumbnail(it, FfiConverterTypeMediaSource.lower(`source`), FfiConverterULong.lower(`width`), FfiConverterULong.lower(`height`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_get_media_thumbnail(it, FfiConverterTypeMediaSource.lower(`source`), FfiConverterULong.lower(`width`), FfiConverterULong.lower(`height`),  _status)
 }
         }.let {
             FfiConverterSequenceUByte.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `getSessionVerificationController`(): SessionVerificationController =
+    
+        @Throws(ClientException::class)override fun `getSessionVerificationController`(): SessionVerificationController =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_get_session_verification_controller(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_get_session_verification_controller(it,  _status)
 }
         }.let {
             FfiConverterTypeSessionVerificationController.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `fullSlidingSync`(): SlidingSync =
+    
+        @Throws(ClientException::class)override fun `fullSlidingSync`(): SlidingSync =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_full_sliding_sync(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_full_sliding_sync(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSync.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `logout`() =
+    
+        @Throws(ClientException::class)override fun `logout`() =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Client_logout(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Client_logout(it,  _status)
 }
         }
     
-    override fun `hasFirstSynced`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_has_first_synced_4f8(it,  _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    
     override fun `homeserver`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_homeserver_9e34(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_homeserver_cb72(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
-    override fun `isSoftLogout`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_is_soft_logout_b74b(it,  _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    override fun `isSyncing`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_is_syncing_5d85(it,  _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    
     override fun `rooms`(): List<Room> =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_rooms_7819(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_rooms_bbf1(it,  _status)
 }
         }.let {
             FfiConverterSequenceTypeRoom.lift(it)
         }
+    
     override fun `slidingSync`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_sliding_sync_2052(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_sliding_sync_3ce1(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
-        }
-    override fun `startSync`(`timelineLimit`: UShort?) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Client_start_sync_25c3(it, FfiConverterOptionalUShort.lower(`timelineLimit`),  _status)
-}
         }
     
     
@@ -1918,26 +1680,16 @@ public object FfiConverterTypeClient: FfiConverter<Client, Pointer> {
 
 
 public interface ClientBuilderInterface {
-    
     @Throws(ClientException::class)
     fun `build`(): Client
-    
     fun `basePath`(`path`: String): ClientBuilder
-    
     fun `homeserverUrl`(`url`: String): ClientBuilder
-    
     fun `passphrase`(`passphrase`: String?): ClientBuilder
-    
     fun `serverName`(`serverName`: String): ClientBuilder
-    
     fun `serverVersions`(`versions`: List<String>): ClientBuilder
-    
     fun `slidingSyncProxy`(`slidingSyncProxy`: String?): ClientBuilder
-    
     fun `userAgent`(`userAgent`: String): ClientBuilder
-    
     fun `username`(`username`: String): ClientBuilder
-    
 }
 
 class ClientBuilder(
@@ -1946,7 +1698,7 @@ class ClientBuilder(
     constructor() :
         this(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_ClientBuilder_new( _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_ClientBuilder_new( _status)
 })
 
     /**
@@ -1959,83 +1711,92 @@ class ClientBuilder(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_ClientBuilder_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_ClientBuilder_object_free(this.pointer, status)
         }
     }
 
     
-    @Throws(ClientException::class)override fun `build`(): Client =
+        @Throws(ClientException::class)override fun `build`(): Client =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_ClientBuilder_build(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_ClientBuilder_build(it,  _status)
 }
         }.let {
             FfiConverterTypeClient.lift(it)
         }
+    
     override fun `basePath`(`path`: String): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_base_path_51b4(it, FfiConverterString.lower(`path`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_base_path_a1af(it, FfiConverterString.lower(`path`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `homeserverUrl`(`url`: String): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_homeserver_url_4e68(it, FfiConverterString.lower(`url`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_homeserver_url_d5fa(it, FfiConverterString.lower(`url`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `passphrase`(`passphrase`: String?): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_passphrase_e0df(it, FfiConverterOptionalString.lower(`passphrase`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_passphrase_fa90(it, FfiConverterOptionalString.lower(`passphrase`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `serverName`(`serverName`: String): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_name_c5a1(it, FfiConverterString.lower(`serverName`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_name_3073(it, FfiConverterString.lower(`serverName`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `serverVersions`(`versions`: List<String>): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_versions_55f8(it, FfiConverterSequenceString.lower(`versions`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_server_versions_366(it, FfiConverterSequenceString.lower(`versions`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `slidingSyncProxy`(`slidingSyncProxy`: String?): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_sliding_sync_proxy_9658(it, FfiConverterOptionalString.lower(`slidingSyncProxy`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_sliding_sync_proxy_fd67(it, FfiConverterOptionalString.lower(`slidingSyncProxy`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `userAgent`(`userAgent`: String): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_user_agent_361d(it, FfiConverterString.lower(`userAgent`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_user_agent_c34d(it, FfiConverterString.lower(`userAgent`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     override fun `username`(`username`: String): ClientBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_username_5c1f(it, FfiConverterString.lower(`username`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_ClientBuilder_username_6f74(it, FfiConverterString.lower(`username`),  _status)
 }
         }.let {
             FfiConverterTypeClientBuilder.lift(it)
         }
+    
     
 
     
@@ -2069,33 +1830,19 @@ public object FfiConverterTypeClientBuilder: FfiConverter<ClientBuilder, Pointer
 public interface EventTimelineItemInterface {
     
     fun `content`(): TimelineItemContent
-    
     fun `eventId`(): String?
-    
     fun `fmtDebug`(): String
-    
     fun `isEditable`(): Boolean
-    
     fun `isLocal`(): Boolean
-    
     fun `isOwn`(): Boolean
-    
     fun `isRemote`(): Boolean
-    
     fun `localSendState`(): EventSendState?
-    
     fun `raw`(): String?
-    
     fun `reactions`(): List<Reaction>?
-    
     fun `sender`(): String
-    
     fun `senderProfile`(): ProfileTimelineDetails
-    
     fun `timestamp`(): ULong
-    
     fun `uniqueIdentifier`(): String
-    
 }
 
 class EventTimelineItem(
@@ -2119,115 +1866,129 @@ class EventTimelineItem(
     override fun `content`(): TimelineItemContent =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_content_2de3(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_content_b878(it,  _status)
 }
         }.let {
             FfiConverterTypeTimelineItemContent.lift(it)
         }
+    
     override fun `eventId`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_event_id_4b2b(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_event_id_fd2e(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `fmtDebug`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_fmt_debug_11a(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_fmt_debug_4a27(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     override fun `isEditable`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_editable_3862(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_editable_b154(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isLocal`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_local_3020(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_local_dd0d(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isOwn`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_own_adc2(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_own_1bd0(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isRemote`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_remote_8b79(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_is_remote_2a3e(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `localSendState`(): EventSendState? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_local_send_state_250(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_local_send_state_6078(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeEventSendState.lift(it)
         }
+    
     override fun `raw`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_raw_3a9(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_raw_22a1(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `reactions`(): List<Reaction>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_reactions_ed6a(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_reactions_1f7d(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceTypeReaction.lift(it)
         }
+    
     override fun `sender`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_304e(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_9be3(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     override fun `senderProfile`(): ProfileTimelineDetails =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_profile_5a53(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_sender_profile_e3f5(it,  _status)
 }
         }.let {
             FfiConverterTypeProfileTimelineDetails.lift(it)
         }
+    
     override fun `timestamp`(): ULong =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_timestamp_650b(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_timestamp_be48(it,  _status)
 }
         }.let {
             FfiConverterULong.lift(it)
         }
+    
     override fun `uniqueIdentifier`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_unique_identifier_1709(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_EventTimelineItem_unique_identifier_91e7(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     
 
     
@@ -2261,11 +2022,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverter<EventTimelineItem,
 public interface HomeserverLoginDetailsInterface {
     
     fun `authenticationIssuer`(): String?
-    
     fun `supportsPasswordLogin`(): Boolean
-    
     fun `url`(): String
-    
 }
 
 class HomeserverLoginDetails(
@@ -2289,27 +2047,30 @@ class HomeserverLoginDetails(
     override fun `authenticationIssuer`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_authentication_issuer_ea3c(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_authentication_issuer_8e36(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `supportsPasswordLogin`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_supports_password_login_2455(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_supports_password_login_db17(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `url`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_url_da8f(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_HomeserverLoginDetails_url_e46d(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     
 
     
@@ -2343,7 +2104,6 @@ public object FfiConverterTypeHomeserverLoginDetails: FfiConverter<HomeserverLog
 public interface MediaSourceInterface {
     
     fun `url`(): String
-    
 }
 
 class MediaSource(
@@ -2360,18 +2120,19 @@ class MediaSource(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_MediaSource_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_MediaSource_object_free(this.pointer, status)
         }
     }
 
     override fun `url`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_MediaSource_url(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_MediaSource_url(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     
 
     
@@ -2405,13 +2166,9 @@ public object FfiConverterTypeMediaSource: FfiConverter<MediaSource, Pointer> {
 public interface MessageInterface {
     
     fun `body`(): String
-    
     fun `inReplyTo`(): String?
-    
     fun `isEdited`(): Boolean
-    
     fun `msgtype`(): MessageType?
-    
 }
 
 class Message(
@@ -2435,35 +2192,39 @@ class Message(
     override fun `body`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_body_6236(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_body_ad14(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     override fun `inReplyTo`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_in_reply_to_7f06(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_in_reply_to_8fda(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `isEdited`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_is_edited_fcdd(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_is_edited_d878(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `msgtype`(): MessageType? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_msgtype_5024(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Message_msgtype_13c1(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeMessageType.lift(it)
         }
+    
     
 
     
@@ -2495,78 +2256,38 @@ public object FfiConverterTypeMessage: FfiConverter<Message, Pointer> {
 
 
 public interface RoomInterface {
-    
     @Throws(ClientException::class)
-    fun `displayName`(): String
-    
-    @Throws(ClientException::class)
-    fun `isEncrypted`(): Boolean
-    
-    @Throws(ClientException::class)
-    fun `members`(): List<RoomMember>
-    
-    @Throws(ClientException::class)
-    fun `memberAvatarUrl`(`userId`: String): String?
-    
-    @Throws(ClientException::class)
+    fun `displayName`(): String@Throws(ClientException::class)
+    fun `isEncrypted`(): Boolean@Throws(ClientException::class)
+    fun `members`(): List<RoomMember>@Throws(ClientException::class)
+    fun `memberAvatarUrl`(`userId`: String): String?@Throws(ClientException::class)
     fun `memberDisplayName`(`userId`: String): String?
-    
-    fun `addTimelineListener`(`listener`: TimelineListener): List<TimelineItem>
-    
-    @Throws(ClientException::class)
-    fun `paginateBackwards`(`opts`: PaginationOptions)
-    
-    @Throws(ClientException::class)
-    fun `sendReadReceipt`(`eventId`: String)
-    
-    @Throws(ClientException::class)
+    fun `addTimelineListener`(`listener`: TimelineListener): List<TimelineItem>@Throws(ClientException::class)
+    fun `paginateBackwards`(`opts`: PaginationOptions)@Throws(ClientException::class)
+    fun `sendReadReceipt`(`eventId`: String)@Throws(ClientException::class)
     fun `sendReadMarker`(`fullyReadEventId`: String, `readReceiptEventId`: String?)
-    
-    fun `send`(`msg`: RoomMessageEventContent, `txnId`: String?)
-    
-    @Throws(ClientException::class)
-    fun `sendReply`(`msg`: String, `inReplyToEventId`: String, `txnId`: String?)
-    
-    @Throws(ClientException::class)
-    fun `edit`(`newMsg`: String, `originalEventId`: String, `txnId`: String?)
-    
-    @Throws(ClientException::class)
-    fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?)
-    
-    @Throws(ClientException::class)
-    fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)
-    
-    @Throws(ClientException::class)
-    fun `sendReaction`(`eventId`: String, `key`: String)
-    
+    fun `send`(`msg`: RoomMessageEventContent, `txnId`: String?)@Throws(ClientException::class)
+    fun `sendReply`(`msg`: String, `inReplyToEventId`: String, `txnId`: String?)@Throws(ClientException::class)
+    fun `edit`(`newMsg`: String, `originalEventId`: String, `txnId`: String?)@Throws(ClientException::class)
+    fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?)@Throws(ClientException::class)
+    fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)@Throws(ClientException::class)
+    fun `sendReaction`(`eventId`: String, `key`: String)@Throws(ClientException::class)
+    fun `leave`()@Throws(ClientException::class)
+    fun `rejectInvitation`()
     fun `alternativeAliases`(): List<String>
-    
     fun `avatarUrl`(): String?
-    
     fun `canonicalAlias`(): String?
-    
     fun `fetchMembers`()
-    
     fun `id`(): String
-    
     fun `isDirect`(): Boolean
-    
     fun `isPublic`(): Boolean
-    
     fun `isSpace`(): Boolean
-    
     fun `isTombstoned`(): Boolean
-    
     fun `membership`(): Membership
-    
     fun `name`(): String?
-    
     fun `removeTimeline`()
-    
     fun `retryDecryption`(`sessionIds`: List<String>)
-    
     fun `topic`(): String?
-    
 }
 
 class Room(
@@ -2583,243 +2304,290 @@ class Room(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_Room_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_Room_object_free(this.pointer, status)
         }
     }
 
     
-    @Throws(ClientException::class)override fun `displayName`(): String =
+        @Throws(ClientException::class)override fun `displayName`(): String =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_display_name(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_display_name(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `isEncrypted`(): Boolean =
+    
+        @Throws(ClientException::class)override fun `isEncrypted`(): Boolean =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_is_encrypted(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_is_encrypted(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `members`(): List<RoomMember> =
+    
+        @Throws(ClientException::class)override fun `members`(): List<RoomMember> =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_members(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_members(it,  _status)
 }
         }.let {
             FfiConverterSequenceTypeRoomMember.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `memberAvatarUrl`(`userId`: String): String? =
+    
+        @Throws(ClientException::class)override fun `memberAvatarUrl`(`userId`: String): String? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_member_avatar_url(it, FfiConverterString.lower(`userId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_member_avatar_url(it, FfiConverterString.lower(`userId`),  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `memberDisplayName`(`userId`: String): String? =
+    
+        @Throws(ClientException::class)override fun `memberDisplayName`(`userId`: String): String? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_member_display_name(it, FfiConverterString.lower(`userId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_member_display_name(it, FfiConverterString.lower(`userId`),  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `addTimelineListener`(`listener`: TimelineListener): List<TimelineItem> =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`),  _status)
 }
         }.let {
             FfiConverterSequenceTypeTimelineItem.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `paginateBackwards`(`opts`: PaginationOptions) =
+    
+        @Throws(ClientException::class)override fun `paginateBackwards`(`opts`: PaginationOptions) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_paginate_backwards(it, FfiConverterTypePaginationOptions.lower(`opts`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_paginate_backwards(it, FfiConverterTypePaginationOptions.lower(`opts`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `sendReadReceipt`(`eventId`: String) =
+    
+        @Throws(ClientException::class)override fun `sendReadReceipt`(`eventId`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_send_read_receipt(it, FfiConverterString.lower(`eventId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_send_read_receipt(it, FfiConverterString.lower(`eventId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `sendReadMarker`(`fullyReadEventId`: String, `readReceiptEventId`: String?) =
+    
+        @Throws(ClientException::class)override fun `sendReadMarker`(`fullyReadEventId`: String, `readReceiptEventId`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_send_read_marker(it, FfiConverterString.lower(`fullyReadEventId`), FfiConverterOptionalString.lower(`readReceiptEventId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_send_read_marker(it, FfiConverterString.lower(`fullyReadEventId`), FfiConverterOptionalString.lower(`readReceiptEventId`),  _status)
 }
         }
+    
     
     override fun `send`(`msg`: RoomMessageEventContent, `txnId`: String?) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_send(it, FfiConverterTypeRoomMessageEventContent.lower(`msg`), FfiConverterOptionalString.lower(`txnId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_send(it, FfiConverterTypeRoomMessageEventContent.lower(`msg`), FfiConverterOptionalString.lower(`txnId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `sendReply`(`msg`: String, `inReplyToEventId`: String, `txnId`: String?) =
+    
+        @Throws(ClientException::class)override fun `sendReply`(`msg`: String, `inReplyToEventId`: String, `txnId`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_send_reply(it, FfiConverterString.lower(`msg`), FfiConverterString.lower(`inReplyToEventId`), FfiConverterOptionalString.lower(`txnId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_send_reply(it, FfiConverterString.lower(`msg`), FfiConverterString.lower(`inReplyToEventId`), FfiConverterOptionalString.lower(`txnId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `edit`(`newMsg`: String, `originalEventId`: String, `txnId`: String?) =
+    
+        @Throws(ClientException::class)override fun `edit`(`newMsg`: String, `originalEventId`: String, `txnId`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_edit(it, FfiConverterString.lower(`newMsg`), FfiConverterString.lower(`originalEventId`), FfiConverterOptionalString.lower(`txnId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_edit(it, FfiConverterString.lower(`newMsg`), FfiConverterString.lower(`originalEventId`), FfiConverterOptionalString.lower(`txnId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?) =
+    
+        @Throws(ClientException::class)override fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_redact(it, FfiConverterString.lower(`eventId`), FfiConverterOptionalString.lower(`reason`), FfiConverterOptionalString.lower(`txnId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_redact(it, FfiConverterString.lower(`eventId`), FfiConverterOptionalString.lower(`reason`), FfiConverterOptionalString.lower(`txnId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?) =
+    
+        @Throws(ClientException::class)override fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_report_content(it, FfiConverterString.lower(`eventId`), FfiConverterOptionalInt.lower(`score`), FfiConverterOptionalString.lower(`reason`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_report_content(it, FfiConverterString.lower(`eventId`), FfiConverterOptionalInt.lower(`score`), FfiConverterOptionalString.lower(`reason`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `sendReaction`(`eventId`: String, `key`: String) =
+    
+        @Throws(ClientException::class)override fun `sendReaction`(`eventId`: String, `key`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_Room_send_reaction(it, FfiConverterString.lower(`eventId`), FfiConverterString.lower(`key`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_send_reaction(it, FfiConverterString.lower(`eventId`), FfiConverterString.lower(`key`),  _status)
 }
         }
+    
+    
+    
+        @Throws(ClientException::class)override fun `leave`() =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_leave(it,  _status)
+}
+        }
+    
+    
+    
+        @Throws(ClientException::class)override fun `rejectInvitation`() =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_Room_reject_invitation(it,  _status)
+}
+        }
+    
     
     override fun `alternativeAliases`(): List<String> =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_alternative_aliases_a729(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_alternative_aliases_6756(it,  _status)
 }
         }.let {
             FfiConverterSequenceString.lift(it)
         }
+    
     override fun `avatarUrl`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_avatar_url_faa5(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_avatar_url_723b(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `canonicalAlias`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_canonical_alias_28ec(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_canonical_alias_6c5e(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `fetchMembers`() =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_fetch_members_c181(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_fetch_members_caf7(it,  _status)
 }
         }
+    
     
     override fun `id`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_id_db81(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_id_8cb8(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     override fun `isDirect`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_direct_ef45(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_direct_5762(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isPublic`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_public_fee7(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_public_ea60(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isSpace`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_space_f6cb(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_space_4eb2(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isTombstoned`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_tombstoned_7e34(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_is_tombstoned_649(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `membership`(): Membership =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_membership_5040(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_membership_723(it,  _status)
 }
         }.let {
             FfiConverterTypeMembership.lift(it)
         }
+    
     override fun `name`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_name_9dcf(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_name_961e(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `removeTimeline`() =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_remove_timeline_a9df(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_remove_timeline_28b8(it,  _status)
 }
         }
+    
     
     override fun `retryDecryption`(`sessionIds`: List<String>) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_retry_decryption_b803(it, FfiConverterSequenceString.lower(`sessionIds`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_retry_decryption_d3c(it, FfiConverterSequenceString.lower(`sessionIds`),  _status)
 }
         }
+    
     
     override fun `topic`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_topic_6137(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_Room_topic_cc24(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     
 
     
@@ -2868,7 +2636,7 @@ class RoomMessageEventContent(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_RoomMessageEventContent_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_RoomMessageEventContent_object_free(this.pointer, status)
         }
     }
 
@@ -2904,25 +2672,13 @@ public object FfiConverterTypeRoomMessageEventContent: FfiConverter<RoomMessageE
 
 public interface SessionVerificationControllerInterface {
     
-    fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)
-    
-    @Throws(ClientException::class)
-    fun `requestVerification`()
-    
-    @Throws(ClientException::class)
-    fun `startSasVerification`()
-    
-    @Throws(ClientException::class)
-    fun `approveVerification`()
-    
-    @Throws(ClientException::class)
-    fun `declineVerification`()
-    
-    @Throws(ClientException::class)
+    fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)@Throws(ClientException::class)
+    fun `requestVerification`()@Throws(ClientException::class)
+    fun `startSasVerification`()@Throws(ClientException::class)
+    fun `approveVerification`()@Throws(ClientException::class)
+    fun `declineVerification`()@Throws(ClientException::class)
     fun `cancelVerification`()
-    
     fun `isVerified`(): Boolean
-    
 }
 
 class SessionVerificationController(
@@ -2939,65 +2695,72 @@ class SessionVerificationController(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SessionVerificationController_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SessionVerificationController_object_free(this.pointer, status)
         }
     }
 
     override fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SessionVerificationController_set_delegate(it, FfiConverterOptionalTypeSessionVerificationControllerDelegate.lower(`delegate`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SessionVerificationController_set_delegate(it, FfiConverterOptionalTypeSessionVerificationControllerDelegate.lower(`delegate`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `requestVerification`() =
+    
+        @Throws(ClientException::class)override fun `requestVerification`() =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SessionVerificationController_request_verification(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SessionVerificationController_request_verification(it,  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `startSasVerification`() =
+    
+        @Throws(ClientException::class)override fun `startSasVerification`() =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SessionVerificationController_start_sas_verification(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SessionVerificationController_start_sas_verification(it,  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `approveVerification`() =
+    
+        @Throws(ClientException::class)override fun `approveVerification`() =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SessionVerificationController_approve_verification(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SessionVerificationController_approve_verification(it,  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `declineVerification`() =
+    
+        @Throws(ClientException::class)override fun `declineVerification`() =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SessionVerificationController_decline_verification(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SessionVerificationController_decline_verification(it,  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `cancelVerification`() =
+    
+        @Throws(ClientException::class)override fun `cancelVerification`() =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SessionVerificationController_cancel_verification(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SessionVerificationController_cancel_verification(it,  _status)
 }
         }
+    
     
     override fun `isVerified`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SessionVerificationController_is_verified_388a(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SessionVerificationController_is_verified_e7e9(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     
 
     
@@ -3031,9 +2794,7 @@ public object FfiConverterTypeSessionVerificationController: FfiConverter<Sessio
 public interface SessionVerificationEmojiInterface {
     
     fun `description`(): String
-    
     fun `symbol`(): String
-    
 }
 
 class SessionVerificationEmoji(
@@ -3050,26 +2811,28 @@ class SessionVerificationEmoji(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SessionVerificationEmoji_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SessionVerificationEmoji_object_free(this.pointer, status)
         }
     }
 
     override fun `description`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_description_107e(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_description_955f(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     override fun `symbol`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_symbol_fa98(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SessionVerificationEmoji_symbol_89f7(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     
 
     
@@ -3102,30 +2865,16 @@ public object FfiConverterTypeSessionVerificationEmoji: FfiConverter<SessionVeri
 
 public interface SlidingSyncInterface {
     
-    fun `setObserver`(`observer`: SlidingSyncObserver?)
-    
-    @Throws(ClientException::class)
-    fun `subscribe`(`roomId`: String, `settings`: RoomSubscription?)
-    
-    @Throws(ClientException::class)
-    fun `unsubscribe`(`roomId`: String)
-    
-    @Throws(ClientException::class)
-    fun `getRoom`(`roomId`: String): SlidingSyncRoom?
-    
-    @Throws(ClientException::class)
+    fun `setObserver`(`observer`: SlidingSyncObserver?)@Throws(ClientException::class)
+    fun `subscribe`(`roomId`: String, `settings`: RoomSubscription?)@Throws(ClientException::class)
+    fun `unsubscribe`(`roomId`: String)@Throws(ClientException::class)
+    fun `getRoom`(`roomId`: String): SlidingSyncRoom?@Throws(ClientException::class)
     fun `getRooms`(`roomIds`: List<String>): List<SlidingSyncRoom?>
-    
     fun `addCommonExtensions`()
-    
-    fun `addView`(`view`: SlidingSyncView): SlidingSyncView?
-    
-    fun `getView`(`name`: String): SlidingSyncView?
-    
-    fun `popView`(`name`: String): SlidingSyncView?
-    
+    fun `addList`(`list`: SlidingSyncList): SlidingSyncList?
+    fun `getList`(`name`: String): SlidingSyncList?
+    fun `popList`(`name`: String): SlidingSyncList?
     fun `sync`(): TaskHandle
-    
 }
 
 class SlidingSync(
@@ -3142,90 +2891,100 @@ class SlidingSync(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SlidingSync_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SlidingSync_object_free(this.pointer, status)
         }
     }
 
     override fun `setObserver`(`observer`: SlidingSyncObserver?) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSync_set_observer(it, FfiConverterOptionalTypeSlidingSyncObserver.lower(`observer`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSync_set_observer(it, FfiConverterOptionalTypeSlidingSyncObserver.lower(`observer`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `subscribe`(`roomId`: String, `settings`: RoomSubscription?) =
+    
+        @Throws(ClientException::class)override fun `subscribe`(`roomId`: String, `settings`: RoomSubscription?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSync_subscribe(it, FfiConverterString.lower(`roomId`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSync_subscribe(it, FfiConverterString.lower(`roomId`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `unsubscribe`(`roomId`: String) =
+    
+        @Throws(ClientException::class)override fun `unsubscribe`(`roomId`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSync_unsubscribe(it, FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSync_unsubscribe(it, FfiConverterString.lower(`roomId`),  _status)
 }
         }
     
     
-    @Throws(ClientException::class)override fun `getRoom`(`roomId`: String): SlidingSyncRoom? =
+    
+        @Throws(ClientException::class)override fun `getRoom`(`roomId`: String): SlidingSyncRoom? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSync_get_room(it, FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSync_get_room(it, FfiConverterString.lower(`roomId`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeSlidingSyncRoom.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `getRooms`(`roomIds`: List<String>): List<SlidingSyncRoom?> =
+    
+        @Throws(ClientException::class)override fun `getRooms`(`roomIds`: List<String>): List<SlidingSyncRoom?> =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSync_get_rooms(it, FfiConverterSequenceString.lower(`roomIds`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSync_get_rooms(it, FfiConverterSequenceString.lower(`roomIds`),  _status)
 }
         }.let {
             FfiConverterSequenceOptionalTypeSlidingSyncRoom.lift(it)
         }
+    
     override fun `addCommonExtensions`() =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_add_common_extensions_26c4(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_add_common_extensions_6d8e(it,  _status)
 }
         }
     
-    override fun `addView`(`view`: SlidingSyncView): SlidingSyncView? =
+    
+    override fun `addList`(`list`: SlidingSyncList): SlidingSyncList? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_add_view_5d63(it, FfiConverterTypeSlidingSyncView.lower(`view`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_add_list_691f(it, FfiConverterTypeSlidingSyncList.lower(`list`),  _status)
 }
         }.let {
-            FfiConverterOptionalTypeSlidingSyncView.lift(it)
+            FfiConverterOptionalTypeSlidingSyncList.lift(it)
         }
-    override fun `getView`(`name`: String): SlidingSyncView? =
+    
+    override fun `getList`(`name`: String): SlidingSyncList? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_get_view_79ec(it, FfiConverterString.lower(`name`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_get_list_535c(it, FfiConverterString.lower(`name`),  _status)
 }
         }.let {
-            FfiConverterOptionalTypeSlidingSyncView.lift(it)
+            FfiConverterOptionalTypeSlidingSyncList.lift(it)
         }
-    override fun `popView`(`name`: String): SlidingSyncView? =
+    
+    override fun `popList`(`name`: String): SlidingSyncList? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_pop_view_48ba(it, FfiConverterString.lower(`name`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_pop_list_c712(it, FfiConverterString.lower(`name`),  _status)
 }
         }.let {
-            FfiConverterOptionalTypeSlidingSyncView.lift(it)
+            FfiConverterOptionalTypeSlidingSyncList.lift(it)
         }
+    
     override fun `sync`(): TaskHandle =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_sync_fe44(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSync_sync_4bb(it,  _status)
 }
         }.let {
             FfiConverterTypeTaskHandle.lift(it)
         }
+    
     
 
     
@@ -3257,35 +3016,20 @@ public object FfiConverterTypeSlidingSync: FfiConverter<SlidingSync, Pointer> {
 
 
 public interface SlidingSyncBuilderInterface {
-    
     @Throws(ClientException::class)
-    fun `homeserver`(`url`: String): SlidingSyncBuilder
-    
-    @Throws(ClientException::class)
+    fun `homeserver`(`url`: String): SlidingSyncBuilder@Throws(ClientException::class)
     fun `build`(): SlidingSync
-    
-    fun `addFullsyncView`(): SlidingSyncBuilder
-    
-    fun `addView`(`v`: SlidingSyncView): SlidingSyncBuilder
-    
+    fun `addFullsyncList`(): SlidingSyncBuilder
+    fun `addList`(`v`: SlidingSyncList): SlidingSyncBuilder
     fun `coldCache`(`name`: String): SlidingSyncBuilder
-    
-    fun `noViews`(): SlidingSyncBuilder
-    
+    fun `noLists`(): SlidingSyncBuilder
     fun `withAllExtensions`(): SlidingSyncBuilder
-    
     fun `withCommonExtensions`(): SlidingSyncBuilder
-    
     fun `withoutAccountDataExtension`(): SlidingSyncBuilder
-    
     fun `withoutE2eeExtension`(): SlidingSyncBuilder
-    
     fun `withoutReceiptExtension`(): SlidingSyncBuilder
-    
     fun `withoutToDeviceExtension`(): SlidingSyncBuilder
-    
     fun `withoutTypingExtension`(): SlidingSyncBuilder
-    
 }
 
 class SlidingSyncBuilder(
@@ -3302,116 +3046,129 @@ class SlidingSyncBuilder(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SlidingSyncBuilder_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SlidingSyncBuilder_object_free(this.pointer, status)
         }
     }
 
     
-    @Throws(ClientException::class)override fun `homeserver`(`url`: String): SlidingSyncBuilder =
+        @Throws(ClientException::class)override fun `homeserver`(`url`: String): SlidingSyncBuilder =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncBuilder_homeserver(it, FfiConverterString.lower(`url`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncBuilder_homeserver(it, FfiConverterString.lower(`url`),  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `build`(): SlidingSync =
+    
+        @Throws(ClientException::class)override fun `build`(): SlidingSync =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncBuilder_build(it,  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncBuilder_build(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSync.lift(it)
         }
-    override fun `addFullsyncView`(): SlidingSyncBuilder =
+    
+    override fun `addFullsyncList`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_fullsync_view_fcaa(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_fullsync_list_7e8a(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
-    override fun `addView`(`v`: SlidingSyncView): SlidingSyncBuilder =
+    
+    override fun `addList`(`v`: SlidingSyncList): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_view_3018(it, FfiConverterTypeSlidingSyncView.lower(`v`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_add_list_2044(it, FfiConverterTypeSlidingSyncList.lower(`v`),  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `coldCache`(`name`: String): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_cold_cache_7814(it, FfiConverterString.lower(`name`),  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_cold_cache_b320(it, FfiConverterString.lower(`name`),  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
-    override fun `noViews`(): SlidingSyncBuilder =
+    
+    override fun `noLists`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_no_views_68d8(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_no_lists_8e92(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withAllExtensions`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_all_extensions_a54(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_all_extensions_7e0f(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withCommonExtensions`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_common_extensions_f2da(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_with_common_extensions_e90d(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withoutAccountDataExtension`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_account_data_extension_5a9d(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_account_data_extension_d3f5(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withoutE2eeExtension`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_e2ee_extension_6ff7(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_e2ee_extension_bc03(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withoutReceiptExtension`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_receipt_extension_9fb2(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_receipt_extension_ea21(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withoutToDeviceExtension`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_to_device_extension_29f5(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_to_device_extension_2502(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     override fun `withoutTypingExtension`(): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_typing_extension_f1c8(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncBuilder_without_typing_extension_96fe(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncBuilder.lift(it)
         }
+    
     
 
     
@@ -3442,32 +3199,394 @@ public object FfiConverterTypeSlidingSyncBuilder: FfiConverter<SlidingSyncBuilde
 
 
 
+public interface SlidingSyncListInterface {
+    
+    fun `observeRoomList`(`observer`: SlidingSyncListRoomListObserver): TaskHandle
+    fun `observeRoomsCount`(`observer`: SlidingSyncListRoomsCountObserver): TaskHandle
+    fun `observeState`(`observer`: SlidingSyncListStateObserver): TaskHandle
+    fun `observeRoomItems`(`observer`: SlidingSyncListRoomItemsObserver): TaskHandle
+    fun `addRange`(`start`: UInt, `end`: UInt)
+    fun `currentRoomCount`(): UInt?
+    fun `currentRoomsList`(): List<RoomListEntry>
+    fun `getTimelineLimit`(): UInt?
+    fun `resetRanges`()
+    fun `setRange`(`start`: UInt, `end`: UInt)
+    fun `setTimelineLimit`(`value`: UInt)
+    fun `unsetTimelineLimit`()
+}
+
+class SlidingSyncList(
+    pointer: Pointer
+) : FFIObject(pointer), SlidingSyncListInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SlidingSyncList_object_free(this.pointer, status)
+        }
+    }
+
+    override fun `observeRoomList`(`observer`: SlidingSyncListRoomListObserver): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncList_observe_room_list(it, FfiConverterTypeSlidingSyncListRoomListObserver.lower(`observer`),  _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
+    override fun `observeRoomsCount`(`observer`: SlidingSyncListRoomsCountObserver): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncList_observe_rooms_count(it, FfiConverterTypeSlidingSyncListRoomsCountObserver.lower(`observer`),  _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
+    override fun `observeState`(`observer`: SlidingSyncListStateObserver): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncList_observe_state(it, FfiConverterTypeSlidingSyncListStateObserver.lower(`observer`),  _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
+    override fun `observeRoomItems`(`observer`: SlidingSyncListRoomItemsObserver): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncList_observe_room_items(it, FfiConverterTypeSlidingSyncListRoomItemsObserver.lower(`observer`),  _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
+    override fun `addRange`(`start`: UInt, `end`: UInt) =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_add_range_8f7c(it, FfiConverterUInt.lower(`start`), FfiConverterUInt.lower(`end`),  _status)
+}
+        }
+    
+    
+    override fun `currentRoomCount`(): UInt? =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_current_room_count_8e0(it,  _status)
+}
+        }.let {
+            FfiConverterOptionalUInt.lift(it)
+        }
+    
+    override fun `currentRoomsList`(): List<RoomListEntry> =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_current_rooms_list_e121(it,  _status)
+}
+        }.let {
+            FfiConverterSequenceTypeRoomListEntry.lift(it)
+        }
+    
+    override fun `getTimelineLimit`(): UInt? =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_get_timeline_limit_486f(it,  _status)
+}
+        }.let {
+            FfiConverterOptionalUInt.lift(it)
+        }
+    
+    override fun `resetRanges`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_reset_ranges_ddb(it,  _status)
+}
+        }
+    
+    
+    override fun `setRange`(`start`: UInt, `end`: UInt) =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_set_range_bc4c(it, FfiConverterUInt.lower(`start`), FfiConverterUInt.lower(`end`),  _status)
+}
+        }
+    
+    
+    override fun `setTimelineLimit`(`value`: UInt) =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_set_timeline_limit_17e1(it, FfiConverterUInt.lower(`value`),  _status)
+}
+        }
+    
+    
+    override fun `unsetTimelineLimit`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncList_unset_timeline_limit_336e(it,  _status)
+}
+        }
+    
+    
+    
+
+    
+}
+
+public object FfiConverterTypeSlidingSyncList: FfiConverter<SlidingSyncList, Pointer> {
+    override fun lower(value: SlidingSyncList): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): SlidingSyncList {
+        return SlidingSyncList(value)
+    }
+
+    override fun read(buf: ByteBuffer): SlidingSyncList {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SlidingSyncList) = 8
+
+    override fun write(value: SlidingSyncList, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface SlidingSyncListBuilderInterface {
+    
+    fun `syncMode`(`mode`: SlidingSyncMode): SlidingSyncListBuilder
+    fun `sendUpdatesForItems`(`enable`: Boolean): SlidingSyncListBuilder@Throws(ClientException::class)
+    fun `build`(): SlidingSyncList
+    fun `addRange`(`from`: UInt, `to`: UInt): SlidingSyncListBuilder
+    fun `batchSize`(`batchSize`: UInt): SlidingSyncListBuilder
+    fun `filters`(`filters`: SlidingSyncRequestListFilters): SlidingSyncListBuilder
+    fun `name`(`name`: String): SlidingSyncListBuilder
+    fun `noFilters`(): SlidingSyncListBuilder
+    fun `noRoomLimit`(): SlidingSyncListBuilder
+    fun `noTimelineLimit`(): SlidingSyncListBuilder
+    fun `requiredState`(`requiredState`: List<RequiredState>): SlidingSyncListBuilder
+    fun `resetRanges`(): SlidingSyncListBuilder
+    fun `roomLimit`(`limit`: UInt): SlidingSyncListBuilder
+    fun `sort`(`sort`: List<String>): SlidingSyncListBuilder
+    fun `timelineLimit`(`limit`: UInt): SlidingSyncListBuilder
+}
+
+class SlidingSyncListBuilder(
+    pointer: Pointer
+) : FFIObject(pointer), SlidingSyncListBuilderInterface {
+    constructor() :
+        this(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncListBuilder_new( _status)
+})
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SlidingSyncListBuilder_object_free(this.pointer, status)
+        }
+    }
+
+    override fun `syncMode`(`mode`: SlidingSyncMode): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncListBuilder_sync_mode(it, FfiConverterTypeSlidingSyncMode.lower(`mode`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `sendUpdatesForItems`(`enable`: Boolean): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncListBuilder_send_updates_for_items(it, FfiConverterBoolean.lower(`enable`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    
+        @Throws(ClientException::class)override fun `build`(): SlidingSyncList =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncListBuilder_build(it,  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncList.lift(it)
+        }
+    
+    override fun `addRange`(`from`: UInt, `to`: UInt): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_add_range_2f2d(it, FfiConverterUInt.lower(`from`), FfiConverterUInt.lower(`to`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `batchSize`(`batchSize`: UInt): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_batch_size_2b78(it, FfiConverterUInt.lower(`batchSize`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `filters`(`filters`: SlidingSyncRequestListFilters): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_filters_3274(it, FfiConverterTypeSlidingSyncRequestListFilters.lower(`filters`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `name`(`name`: String): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_name_dfb(it, FfiConverterString.lower(`name`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `noFilters`(): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_no_filters_3d7b(it,  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `noRoomLimit`(): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_no_room_limit_9ab4(it,  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `noTimelineLimit`(): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_no_timeline_limit_1d0d(it,  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `requiredState`(`requiredState`: List<RequiredState>): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_required_state_827b(it, FfiConverterSequenceTypeRequiredState.lower(`requiredState`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `resetRanges`(): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_reset_ranges_5b71(it,  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `roomLimit`(`limit`: UInt): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_room_limit_d39c(it, FfiConverterUInt.lower(`limit`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `sort`(`sort`: List<String>): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_sort_1272(it, FfiConverterSequenceString.lower(`sort`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `timelineLimit`(`limit`: UInt): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncListBuilder_timeline_limit_554d(it, FfiConverterUInt.lower(`limit`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    
+
+    
+}
+
+public object FfiConverterTypeSlidingSyncListBuilder: FfiConverter<SlidingSyncListBuilder, Pointer> {
+    override fun lower(value: SlidingSyncListBuilder): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): SlidingSyncListBuilder {
+        return SlidingSyncListBuilder(value)
+    }
+
+    override fun read(buf: ByteBuffer): SlidingSyncListBuilder {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SlidingSyncListBuilder) = 8
+
+    override fun write(value: SlidingSyncListBuilder, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
 public interface SlidingSyncRoomInterface {
-    
     @Throws(ClientException::class)
-    fun `subscribeAndAddTimelineListener`(`listener`: TimelineListener, `settings`: RoomSubscription?): SlidingSyncSubscribeResult
-    
-    @Throws(ClientException::class)
+    fun `subscribeAndAddTimelineListener`(`listener`: TimelineListener, `settings`: RoomSubscription?): SlidingSyncSubscribeResult@Throws(ClientException::class)
     fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncSubscribeResult
-    
     fun `fullRoom`(): Room?
-    
     fun `hasUnreadNotifications`(): Boolean
-    
     fun `isDm`(): Boolean?
-    
     fun `isInitial`(): Boolean?
-    
     fun `isLoadingMore`(): Boolean
-    
     fun `latestRoomMessage`(): EventTimelineItem?
-    
     fun `name`(): String?
-    
     fun `roomId`(): String
-    
     fun `unreadNotifications`(): UnreadNotificationsCount
-    
 }
 
 class SlidingSyncRoom(
@@ -3484,100 +3603,111 @@ class SlidingSyncRoom(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SlidingSyncRoom_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_SlidingSyncRoom_object_free(this.pointer, status)
         }
     }
 
     
-    @Throws(ClientException::class)override fun `subscribeAndAddTimelineListener`(`listener`: TimelineListener, `settings`: RoomSubscription?): SlidingSyncSubscribeResult =
+        @Throws(ClientException::class)override fun `subscribeAndAddTimelineListener`(`listener`: TimelineListener, `settings`: RoomSubscription?): SlidingSyncSubscribeResult =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncRoom_subscribe_and_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncRoom_subscribe_and_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncSubscribeResult.lift(it)
         }
     
-    @Throws(ClientException::class)override fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncSubscribeResult =
+    
+        @Throws(ClientException::class)override fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncSubscribeResult =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncRoom_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`),  _status)
+    _UniFFILib.INSTANCE.matrix_sdk_ffi_d61b_SlidingSyncRoom_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`),  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncSubscribeResult.lift(it)
         }
+    
     override fun `fullRoom`(): Room? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_full_room_1d93(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_full_room_6ee7(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeRoom.lift(it)
         }
+    
     override fun `hasUnreadNotifications`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_has_unread_notifications_d5da(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_has_unread_notifications_aad9(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `isDm`(): Boolean? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_dm_8b22(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_dm_8047(it,  _status)
 }
         }.let {
             FfiConverterOptionalBoolean.lift(it)
         }
+    
     override fun `isInitial`(): Boolean? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_initial_3e73(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_initial_b79c(it,  _status)
 }
         }.let {
             FfiConverterOptionalBoolean.lift(it)
         }
+    
     override fun `isLoadingMore`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_loading_more_f939(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_is_loading_more_98c9(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `latestRoomMessage`(): EventTimelineItem? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_latest_room_message_747b(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_latest_room_message_d69d(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeEventTimelineItem.lift(it)
         }
+    
     override fun `name`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_name_59a7(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_name_6a4c(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
         }
+    
     override fun `roomId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_room_id_b25f(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_room_id_a4da(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     override fun `unreadNotifications`(): UnreadNotificationsCount =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_unread_notifications_21b0(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncRoom_unread_notifications_4c16(it,  _status)
 }
         }.let {
             FfiConverterTypeUnreadNotificationsCount.lift(it)
         }
+    
     
 
     
@@ -3608,388 +3738,10 @@ public object FfiConverterTypeSlidingSyncRoom: FfiConverter<SlidingSyncRoom, Poi
 
 
 
-public interface SlidingSyncViewInterface {
-    
-    fun `observeRoomList`(`observer`: SlidingSyncViewRoomListObserver): TaskHandle
-    
-    fun `observeRoomsCount`(`observer`: SlidingSyncViewRoomsCountObserver): TaskHandle
-    
-    fun `observeState`(`observer`: SlidingSyncViewStateObserver): TaskHandle
-    
-    fun `observeRoomItems`(`observer`: SlidingSyncViewRoomItemsObserver): TaskHandle
-    
-    fun `addRange`(`start`: UInt, `end`: UInt)
-    
-    fun `currentRoomCount`(): UInt?
-    
-    fun `currentRoomsList`(): List<RoomListEntry>
-    
-    fun `getTimelineLimit`(): UInt?
-    
-    fun `resetRanges`()
-    
-    fun `setRange`(`start`: UInt, `end`: UInt)
-    
-    fun `setTimelineLimit`(`value`: UInt)
-    
-    fun `unsetTimelineLimit`()
-    
-}
-
-class SlidingSyncView(
-    pointer: Pointer
-) : FFIObject(pointer), SlidingSyncViewInterface {
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SlidingSyncView_object_free(this.pointer, status)
-        }
-    }
-
-    override fun `observeRoomList`(`observer`: SlidingSyncViewRoomListObserver): TaskHandle =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncView_observe_room_list(it, FfiConverterTypeSlidingSyncViewRoomListObserver.lower(`observer`),  _status)
-}
-        }.let {
-            FfiConverterTypeTaskHandle.lift(it)
-        }
-    override fun `observeRoomsCount`(`observer`: SlidingSyncViewRoomsCountObserver): TaskHandle =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncView_observe_rooms_count(it, FfiConverterTypeSlidingSyncViewRoomsCountObserver.lower(`observer`),  _status)
-}
-        }.let {
-            FfiConverterTypeTaskHandle.lift(it)
-        }
-    override fun `observeState`(`observer`: SlidingSyncViewStateObserver): TaskHandle =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncView_observe_state(it, FfiConverterTypeSlidingSyncViewStateObserver.lower(`observer`),  _status)
-}
-        }.let {
-            FfiConverterTypeTaskHandle.lift(it)
-        }
-    override fun `observeRoomItems`(`observer`: SlidingSyncViewRoomItemsObserver): TaskHandle =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncView_observe_room_items(it, FfiConverterTypeSlidingSyncViewRoomItemsObserver.lower(`observer`),  _status)
-}
-        }.let {
-            FfiConverterTypeTaskHandle.lift(it)
-        }
-    override fun `addRange`(`start`: UInt, `end`: UInt) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_add_range_9502(it, FfiConverterUInt.lower(`start`), FfiConverterUInt.lower(`end`),  _status)
-}
-        }
-    
-    override fun `currentRoomCount`(): UInt? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_current_room_count_5194(it,  _status)
-}
-        }.let {
-            FfiConverterOptionalUInt.lift(it)
-        }
-    override fun `currentRoomsList`(): List<RoomListEntry> =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_current_rooms_list_946a(it,  _status)
-}
-        }.let {
-            FfiConverterSequenceTypeRoomListEntry.lift(it)
-        }
-    override fun `getTimelineLimit`(): UInt? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_get_timeline_limit_f84c(it,  _status)
-}
-        }.let {
-            FfiConverterOptionalUInt.lift(it)
-        }
-    override fun `resetRanges`() =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_reset_ranges_d194(it,  _status)
-}
-        }
-    
-    override fun `setRange`(`start`: UInt, `end`: UInt) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_set_range_afda(it, FfiConverterUInt.lower(`start`), FfiConverterUInt.lower(`end`),  _status)
-}
-        }
-    
-    override fun `setTimelineLimit`(`value`: UInt) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_set_timeline_limit_e983(it, FfiConverterUInt.lower(`value`),  _status)
-}
-        }
-    
-    override fun `unsetTimelineLimit`() =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncView_unset_timeline_limit_5cad(it,  _status)
-}
-        }
-    
-    
-
-    
-}
-
-public object FfiConverterTypeSlidingSyncView: FfiConverter<SlidingSyncView, Pointer> {
-    override fun lower(value: SlidingSyncView): Pointer = value.callWithPointer { it }
-
-    override fun lift(value: Pointer): SlidingSyncView {
-        return SlidingSyncView(value)
-    }
-
-    override fun read(buf: ByteBuffer): SlidingSyncView {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: SlidingSyncView) = 8
-
-    override fun write(value: SlidingSyncView, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
-public interface SlidingSyncViewBuilderInterface {
-    
-    fun `syncMode`(`mode`: SlidingSyncMode): SlidingSyncViewBuilder
-    
-    fun `sendUpdatesForItems`(`enable`: Boolean): SlidingSyncViewBuilder
-    
-    @Throws(ClientException::class)
-    fun `build`(): SlidingSyncView
-    
-    fun `addRange`(`from`: UInt, `to`: UInt): SlidingSyncViewBuilder
-    
-    fun `batchSize`(`batchSize`: UInt): SlidingSyncViewBuilder
-    
-    fun `filters`(`filters`: SlidingSyncRequestListFilters): SlidingSyncViewBuilder
-    
-    fun `name`(`name`: String): SlidingSyncViewBuilder
-    
-    fun `noFilters`(): SlidingSyncViewBuilder
-    
-    fun `noRoomLimit`(): SlidingSyncViewBuilder
-    
-    fun `noTimelineLimit`(): SlidingSyncViewBuilder
-    
-    fun `requiredState`(`requiredState`: List<RequiredState>): SlidingSyncViewBuilder
-    
-    fun `resetRanges`(): SlidingSyncViewBuilder
-    
-    fun `roomLimit`(`limit`: UInt): SlidingSyncViewBuilder
-    
-    fun `sort`(`sort`: List<String>): SlidingSyncViewBuilder
-    
-    fun `timelineLimit`(`limit`: UInt): SlidingSyncViewBuilder
-    
-}
-
-class SlidingSyncViewBuilder(
-    pointer: Pointer
-) : FFIObject(pointer), SlidingSyncViewBuilderInterface {
-    constructor() :
-        this(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_new( _status)
-})
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_object_free(this.pointer, status)
-        }
-    }
-
-    override fun `syncMode`(`mode`: SlidingSyncMode): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_sync_mode(it, FfiConverterTypeSlidingSyncMode.lower(`mode`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `sendUpdatesForItems`(`enable`: Boolean): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_send_updates_for_items(it, FfiConverterBoolean.lower(`enable`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    
-    @Throws(ClientException::class)override fun `build`(): SlidingSyncView =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_ffi_2b85_SlidingSyncViewBuilder_build(it,  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncView.lift(it)
-        }
-    override fun `addRange`(`from`: UInt, `to`: UInt): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_add_range_2a36(it, FfiConverterUInt.lower(`from`), FfiConverterUInt.lower(`to`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `batchSize`(`batchSize`: UInt): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_batch_size_83(it, FfiConverterUInt.lower(`batchSize`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `filters`(`filters`: SlidingSyncRequestListFilters): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_filters_877d(it, FfiConverterTypeSlidingSyncRequestListFilters.lower(`filters`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `name`(`name`: String): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_name_e7be(it, FfiConverterString.lower(`name`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `noFilters`(): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_no_filters_b021(it,  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `noRoomLimit`(): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_no_room_limit_7b9c(it,  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `noTimelineLimit`(): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_no_timeline_limit_2cc7(it,  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `requiredState`(`requiredState`: List<RequiredState>): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_required_state_49c8(it, FfiConverterSequenceTypeRequiredState.lower(`requiredState`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `resetRanges`(): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_reset_ranges_d2bc(it,  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `roomLimit`(`limit`: UInt): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_room_limit_e8f3(it, FfiConverterUInt.lower(`limit`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `sort`(`sort`: List<String>): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_sort_4b00(it, FfiConverterSequenceString.lower(`sort`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    override fun `timelineLimit`(`limit`: UInt): SlidingSyncViewBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_SlidingSyncViewBuilder_timeline_limit_29e6(it, FfiConverterUInt.lower(`limit`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncViewBuilder.lift(it)
-        }
-    
-
-    
-}
-
-public object FfiConverterTypeSlidingSyncViewBuilder: FfiConverter<SlidingSyncViewBuilder, Pointer> {
-    override fun lower(value: SlidingSyncViewBuilder): Pointer = value.callWithPointer { it }
-
-    override fun lift(value: Pointer): SlidingSyncViewBuilder {
-        return SlidingSyncViewBuilder(value)
-    }
-
-    override fun read(buf: ByteBuffer): SlidingSyncViewBuilder {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: SlidingSyncViewBuilder) = 8
-
-    override fun write(value: SlidingSyncViewBuilder, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-
-
 public interface TaskHandleInterface {
     
     fun `cancel`()
-    
     fun `isFinished`(): Boolean
-    
 }
 
 class TaskHandle(
@@ -4006,25 +3758,27 @@ class TaskHandle(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_TaskHandle_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_TaskHandle_object_free(this.pointer, status)
         }
     }
 
     override fun `cancel`() =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TaskHandle_cancel_32dd(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TaskHandle_cancel_a65c(it,  _status)
 }
         }
+    
     
     override fun `isFinished`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TaskHandle_is_finished_d441(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TaskHandle_is_finished_56b2(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     
 
     
@@ -4058,21 +3812,13 @@ public object FfiConverterTypeTaskHandle: FfiConverter<TaskHandle, Pointer> {
 public interface TimelineDiffInterface {
     
     fun `append`(): List<TimelineItem>?
-    
     fun `change`(): TimelineChange
-    
     fun `insert`(): InsertData?
-    
     fun `pushBack`(): TimelineItem?
-    
     fun `pushFront`(): TimelineItem?
-    
     fun `remove`(): UInt?
-    
     fun `reset`(): List<TimelineItem>?
-    
     fun `set`(): SetData?
-    
 }
 
 class TimelineDiff(
@@ -4089,74 +3835,82 @@ class TimelineDiff(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_TimelineDiff_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_TimelineDiff_object_free(this.pointer, status)
         }
     }
 
     override fun `append`(): List<TimelineItem>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_append_d860(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_append_c24b(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceTypeTimelineItem.lift(it)
         }
+    
     override fun `change`(): TimelineChange =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_change_95d6(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_change_6a6d(it,  _status)
 }
         }.let {
             FfiConverterTypeTimelineChange.lift(it)
         }
+    
     override fun `insert`(): InsertData? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_insert_9db8(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_insert_b007(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeInsertData.lift(it)
         }
+    
     override fun `pushBack`(): TimelineItem? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_back_78c(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_back_3aff(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeTimelineItem.lift(it)
         }
+    
     override fun `pushFront`(): TimelineItem? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_front_e1(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_push_front_96a0(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeTimelineItem.lift(it)
         }
+    
     override fun `remove`(): UInt? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_remove_d332(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_remove_d74f(it,  _status)
 }
         }.let {
             FfiConverterOptionalUInt.lift(it)
         }
+    
     override fun `reset`(): List<TimelineItem>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_reset_13cf(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_reset_6b55(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceTypeTimelineItem.lift(it)
         }
+    
     override fun `set`(): SetData? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_set_a568(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineDiff_set_3cf2(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeSetData.lift(it)
         }
+    
     
 
     
@@ -4190,11 +3944,8 @@ public object FfiConverterTypeTimelineDiff: FfiConverter<TimelineDiff, Pointer> 
 public interface TimelineItemInterface {
     
     fun `asEvent`(): EventTimelineItem?
-    
     fun `asVirtual`(): VirtualTimelineItem?
-    
     fun `fmtDebug`(): String
-    
 }
 
 class TimelineItem(
@@ -4211,34 +3962,37 @@ class TimelineItem(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_2b85_TimelineItem_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_d61b_TimelineItem_object_free(this.pointer, status)
         }
     }
 
     override fun `asEvent`(): EventTimelineItem? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItem_as_event_bdd4(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItem_as_event_9e04(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeEventTimelineItem.lift(it)
         }
+    
     override fun `asVirtual`(): VirtualTimelineItem? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItem_as_virtual_c1a3(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItem_as_virtual_d72c(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeVirtualTimelineItem.lift(it)
         }
+    
     override fun `fmtDebug`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItem_fmt_debug_9284(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItem_fmt_debug_6d42(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
         }
+    
     
 
     
@@ -4272,9 +4026,7 @@ public object FfiConverterTypeTimelineItem: FfiConverter<TimelineItem, Pointer> 
 public interface TimelineItemContentInterface {
     
     fun `asMessage`(): Message?
-    
     fun `kind`(): TimelineItemContentKind
-    
 }
 
 class TimelineItemContent(
@@ -4298,19 +4050,21 @@ class TimelineItemContent(
     override fun `asMessage`(): Message? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItemContent_as_message_667f(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItemContent_as_message_31df(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeMessage.lift(it)
         }
+    
     override fun `kind`(): TimelineItemContentKind =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItemContent_kind_9185(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_TimelineItemContent_kind_4894(it,  _status)
 }
         }.let {
             FfiConverterTypeTimelineItemContentKind.lift(it)
         }
+    
     
 
     
@@ -4344,11 +4098,8 @@ public object FfiConverterTypeTimelineItemContent: FfiConverter<TimelineItemCont
 public interface UnreadNotificationsCountInterface {
     
     fun `hasNotifications`(): Boolean
-    
     fun `highlightCount`(): UInt
-    
     fun `notificationCount`(): UInt
-    
 }
 
 class UnreadNotificationsCount(
@@ -4372,27 +4123,30 @@ class UnreadNotificationsCount(
     override fun `hasNotifications`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_has_notifications_727e(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_has_notifications_72(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
         }
+    
     override fun `highlightCount`(): UInt =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_highlight_count_67f9(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_highlight_count_41b0(it,  _status)
 }
         }.let {
             FfiConverterUInt.lift(it)
         }
+    
     override fun `notificationCount`(): UInt =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_notification_count_808c(it,  _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_impl_UnreadNotificationsCount_notification_count_1e7d(it,  _status)
 }
         }.let {
             FfiConverterUInt.lift(it)
         }
+    
     
 
     
@@ -4488,6 +4242,59 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
             FfiConverterString.write(value.`body`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeAudioInfo.write(value.`info`, buf)
+    }
+}
+
+
+
+
+data class CreateRoomParameters (
+    var `name`: String, 
+    var `topic`: String? = null, 
+    var `isEncrypted`: Boolean, 
+    var `isDirect`: Boolean = false, 
+    var `visibility`: RoomVisibility, 
+    var `preset`: RoomPreset, 
+    var `invite`: List<String>? = null, 
+    var `avatar`: String? = null
+) {
+    
+}
+
+public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<CreateRoomParameters> {
+    override fun read(buf: ByteBuffer): CreateRoomParameters {
+        return CreateRoomParameters(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeRoomVisibility.read(buf),
+            FfiConverterTypeRoomPreset.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: CreateRoomParameters) = (
+            FfiConverterString.allocationSize(value.`name`) +
+            FfiConverterOptionalString.allocationSize(value.`topic`) +
+            FfiConverterBoolean.allocationSize(value.`isEncrypted`) +
+            FfiConverterBoolean.allocationSize(value.`isDirect`) +
+            FfiConverterTypeRoomVisibility.allocationSize(value.`visibility`) +
+            FfiConverterTypeRoomPreset.allocationSize(value.`preset`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`invite`) +
+            FfiConverterOptionalString.allocationSize(value.`avatar`)
+    )
+
+    override fun write(value: CreateRoomParameters, buf: ByteBuffer) {
+            FfiConverterString.write(value.`name`, buf)
+            FfiConverterOptionalString.write(value.`topic`, buf)
+            FfiConverterBoolean.write(value.`isEncrypted`, buf)
+            FfiConverterBoolean.write(value.`isDirect`, buf)
+            FfiConverterTypeRoomVisibility.write(value.`visibility`, buf)
+            FfiConverterTypeRoomPreset.write(value.`preset`, buf)
+            FfiConverterOptionalSequenceString.write(value.`invite`, buf)
+            FfiConverterOptionalString.write(value.`avatar`, buf)
     }
 }
 
@@ -4982,7 +4789,6 @@ data class Session (
     var `userId`: String, 
     var `deviceId`: String, 
     var `homeserverUrl`: String, 
-    var `isSoftLogout`: Boolean, 
     var `slidingSyncProxy`: String?
 ) {
     
@@ -4996,7 +4802,6 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
-            FfiConverterBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
@@ -5007,7 +4812,6 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.allocationSize(value.`userId`) +
             FfiConverterString.allocationSize(value.`deviceId`) +
             FfiConverterString.allocationSize(value.`homeserverUrl`) +
-            FfiConverterBoolean.allocationSize(value.`isSoftLogout`) +
             FfiConverterOptionalString.allocationSize(value.`slidingSyncProxy`)
     )
 
@@ -5017,7 +4821,6 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.write(value.`userId`, buf)
             FfiConverterString.write(value.`deviceId`, buf)
             FfiConverterString.write(value.`homeserverUrl`, buf)
-            FfiConverterBoolean.write(value.`isSoftLogout`, buf)
             FfiConverterOptionalString.write(value.`slidingSyncProxy`, buf)
     }
 }
@@ -5227,7 +5030,7 @@ public object FfiConverterTypeThumbnailInfo: FfiConverterRustBuffer<ThumbnailInf
 
 
 data class UpdateSummary (
-    var `views`: List<String>, 
+    var `lists`: List<String>, 
     var `rooms`: List<String>
 ) {
     
@@ -5242,12 +5045,12 @@ public object FfiConverterTypeUpdateSummary: FfiConverterRustBuffer<UpdateSummar
     }
 
     override fun allocationSize(value: UpdateSummary) = (
-            FfiConverterSequenceString.allocationSize(value.`views`) +
+            FfiConverterSequenceString.allocationSize(value.`lists`) +
             FfiConverterSequenceString.allocationSize(value.`rooms`)
     )
 
     override fun write(value: UpdateSummary, buf: ByteBuffer) {
-            FfiConverterSequenceString.write(value.`views`, buf)
+            FfiConverterSequenceString.write(value.`lists`, buf)
             FfiConverterSequenceString.write(value.`rooms`, buf)
     }
 }
@@ -6374,6 +6177,252 @@ public object FfiConverterTypeRoomListEntry : FfiConverterRustBuffer<RoomListEnt
 
 
 
+enum class RoomPreset {
+    PRIVATE_CHAT,PUBLIC_CHAT,TRUSTED_PRIVATE_CHAT;
+}
+
+public object FfiConverterTypeRoomPreset: FfiConverterRustBuffer<RoomPreset> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomPreset.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomPreset) = 4
+
+    override fun write(value: RoomPreset, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+enum class RoomVisibility {
+    PUBLIC,PRIVATE;
+}
+
+public object FfiConverterTypeRoomVisibility: FfiConverterRustBuffer<RoomVisibility> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomVisibility.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomVisibility) = 4
+
+    override fun write(value: RoomVisibility, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+sealed class SlidingSyncListRoomsListDiff {
+    data class Append(
+        val `values`: List<RoomListEntry>
+        ) : SlidingSyncListRoomsListDiff()
+    data class Insert(
+        val `index`: UInt, 
+        val `value`: RoomListEntry
+        ) : SlidingSyncListRoomsListDiff()
+    data class Set(
+        val `index`: UInt, 
+        val `value`: RoomListEntry
+        ) : SlidingSyncListRoomsListDiff()
+    data class Remove(
+        val `index`: UInt
+        ) : SlidingSyncListRoomsListDiff()
+    data class PushBack(
+        val `value`: RoomListEntry
+        ) : SlidingSyncListRoomsListDiff()
+    data class PushFront(
+        val `value`: RoomListEntry
+        ) : SlidingSyncListRoomsListDiff()
+    object PopBack : SlidingSyncListRoomsListDiff()
+    
+    object PopFront : SlidingSyncListRoomsListDiff()
+    
+    object Clear : SlidingSyncListRoomsListDiff()
+    
+    data class Reset(
+        val `values`: List<RoomListEntry>
+        ) : SlidingSyncListRoomsListDiff()
+    
+
+    
+}
+
+public object FfiConverterTypeSlidingSyncListRoomsListDiff : FfiConverterRustBuffer<SlidingSyncListRoomsListDiff>{
+    override fun read(buf: ByteBuffer): SlidingSyncListRoomsListDiff {
+        return when(buf.getInt()) {
+            1 -> SlidingSyncListRoomsListDiff.Append(
+                FfiConverterSequenceTypeRoomListEntry.read(buf),
+                )
+            2 -> SlidingSyncListRoomsListDiff.Insert(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeRoomListEntry.read(buf),
+                )
+            3 -> SlidingSyncListRoomsListDiff.Set(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeRoomListEntry.read(buf),
+                )
+            4 -> SlidingSyncListRoomsListDiff.Remove(
+                FfiConverterUInt.read(buf),
+                )
+            5 -> SlidingSyncListRoomsListDiff.PushBack(
+                FfiConverterTypeRoomListEntry.read(buf),
+                )
+            6 -> SlidingSyncListRoomsListDiff.PushFront(
+                FfiConverterTypeRoomListEntry.read(buf),
+                )
+            7 -> SlidingSyncListRoomsListDiff.PopBack
+            8 -> SlidingSyncListRoomsListDiff.PopFront
+            9 -> SlidingSyncListRoomsListDiff.Clear
+            10 -> SlidingSyncListRoomsListDiff.Reset(
+                FfiConverterSequenceTypeRoomListEntry.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SlidingSyncListRoomsListDiff) = when(value) {
+        is SlidingSyncListRoomsListDiff.Append -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`values`)
+            )
+        }
+        is SlidingSyncListRoomsListDiff.Insert -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+            )
+        }
+        is SlidingSyncListRoomsListDiff.Set -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+            )
+        }
+        is SlidingSyncListRoomsListDiff.Remove -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`index`)
+            )
+        }
+        is SlidingSyncListRoomsListDiff.PushBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+            )
+        }
+        is SlidingSyncListRoomsListDiff.PushFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+            )
+        }
+        is SlidingSyncListRoomsListDiff.PopBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is SlidingSyncListRoomsListDiff.PopFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is SlidingSyncListRoomsListDiff.Clear -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is SlidingSyncListRoomsListDiff.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`values`)
+            )
+        }
+    }
+
+    override fun write(value: SlidingSyncListRoomsListDiff, buf: ByteBuffer) {
+        when(value) {
+            is SlidingSyncListRoomsListDiff.Append -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.Insert -> {
+                buf.putInt(2)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.Set -> {
+                buf.putInt(3)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.Remove -> {
+                buf.putInt(4)
+                FfiConverterUInt.write(value.`index`, buf)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.PushBack -> {
+                buf.putInt(5)
+                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.PushFront -> {
+                buf.putInt(6)
+                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.PopBack -> {
+                buf.putInt(7)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.PopFront -> {
+                buf.putInt(8)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.Clear -> {
+                buf.putInt(9)
+                Unit
+            }
+            is SlidingSyncListRoomsListDiff.Reset -> {
+                buf.putInt(10)
+                FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
 enum class SlidingSyncMode {
     PAGING_FULL_SYNC,GROWING_FULL_SYNC,SELECTIVE;
 }
@@ -6412,206 +6461,6 @@ public object FfiConverterTypeSlidingSyncState: FfiConverterRustBuffer<SlidingSy
 
     override fun write(value: SlidingSyncState, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-
-sealed class SlidingSyncViewRoomsListDiff {
-    data class Append(
-        val `values`: List<RoomListEntry>
-        ) : SlidingSyncViewRoomsListDiff()
-    data class Insert(
-        val `index`: UInt, 
-        val `value`: RoomListEntry
-        ) : SlidingSyncViewRoomsListDiff()
-    data class Set(
-        val `index`: UInt, 
-        val `value`: RoomListEntry
-        ) : SlidingSyncViewRoomsListDiff()
-    data class Remove(
-        val `index`: UInt
-        ) : SlidingSyncViewRoomsListDiff()
-    data class PushBack(
-        val `value`: RoomListEntry
-        ) : SlidingSyncViewRoomsListDiff()
-    data class PushFront(
-        val `value`: RoomListEntry
-        ) : SlidingSyncViewRoomsListDiff()
-    object PopBack : SlidingSyncViewRoomsListDiff()
-    
-    object PopFront : SlidingSyncViewRoomsListDiff()
-    
-    object Clear : SlidingSyncViewRoomsListDiff()
-    
-    data class Reset(
-        val `values`: List<RoomListEntry>
-        ) : SlidingSyncViewRoomsListDiff()
-    
-
-    
-}
-
-public object FfiConverterTypeSlidingSyncViewRoomsListDiff : FfiConverterRustBuffer<SlidingSyncViewRoomsListDiff>{
-    override fun read(buf: ByteBuffer): SlidingSyncViewRoomsListDiff {
-        return when(buf.getInt()) {
-            1 -> SlidingSyncViewRoomsListDiff.Append(
-                FfiConverterSequenceTypeRoomListEntry.read(buf),
-                )
-            2 -> SlidingSyncViewRoomsListDiff.Insert(
-                FfiConverterUInt.read(buf),
-                FfiConverterTypeRoomListEntry.read(buf),
-                )
-            3 -> SlidingSyncViewRoomsListDiff.Set(
-                FfiConverterUInt.read(buf),
-                FfiConverterTypeRoomListEntry.read(buf),
-                )
-            4 -> SlidingSyncViewRoomsListDiff.Remove(
-                FfiConverterUInt.read(buf),
-                )
-            5 -> SlidingSyncViewRoomsListDiff.PushBack(
-                FfiConverterTypeRoomListEntry.read(buf),
-                )
-            6 -> SlidingSyncViewRoomsListDiff.PushFront(
-                FfiConverterTypeRoomListEntry.read(buf),
-                )
-            7 -> SlidingSyncViewRoomsListDiff.PopBack
-            8 -> SlidingSyncViewRoomsListDiff.PopFront
-            9 -> SlidingSyncViewRoomsListDiff.Clear
-            10 -> SlidingSyncViewRoomsListDiff.Reset(
-                FfiConverterSequenceTypeRoomListEntry.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: SlidingSyncViewRoomsListDiff) = when(value) {
-        is SlidingSyncViewRoomsListDiff.Append -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`values`)
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.Insert -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterUInt.allocationSize(value.`index`)
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.Set -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterUInt.allocationSize(value.`index`)
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.Remove -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterUInt.allocationSize(value.`index`)
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.PushBack -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.PushFront -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.PopBack -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.PopFront -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.Clear -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-            )
-        }
-        is SlidingSyncViewRoomsListDiff.Reset -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`values`)
-            )
-        }
-    }
-
-    override fun write(value: SlidingSyncViewRoomsListDiff, buf: ByteBuffer) {
-        when(value) {
-            is SlidingSyncViewRoomsListDiff.Append -> {
-                buf.putInt(1)
-                FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.Insert -> {
-                buf.putInt(2)
-                FfiConverterUInt.write(value.`index`, buf)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.Set -> {
-                buf.putInt(3)
-                FfiConverterUInt.write(value.`index`, buf)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.Remove -> {
-                buf.putInt(4)
-                FfiConverterUInt.write(value.`index`, buf)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.PushBack -> {
-                buf.putInt(5)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.PushFront -> {
-                buf.putInt(6)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.PopBack -> {
-                buf.putInt(7)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.PopFront -> {
-                buf.putInt(8)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.Clear -> {
-                buf.putInt(9)
-                Unit
-            }
-            is SlidingSyncViewRoomsListDiff.Reset -> {
-                buf.putInt(10)
-                FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -7206,9 +7055,7 @@ public abstract class FfiConverterCallbackInterface<CallbackInterface>(
 // Declaration and FfiConverters for ClientDelegate Callback Interface
 
 public interface ClientDelegate {
-    fun `didReceiveSyncUpdate`()
     fun `didReceiveAuthError`(`isSoftLogout`: Boolean)
-    fun `didUpdateRestoreToken`()
     
 }
 
@@ -7228,45 +7075,7 @@ internal class ForeignCallbackTypeClientDelegate : ForeignCallback {
                 // Call the method, write to outBuf and return a status code
                 // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    val buffer = this.`invokeDidReceiveSyncUpdate`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    -1
-                }
-            }
-            2 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
-                try {
                     val buffer = this.`invokeDidReceiveAuthError`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    -1
-                }
-            }
-            3 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    val buffer = this.`invokeDidUpdateRestoreToken`(cb, args)
                     // Success
                     outBuf.setValue(buffer)
                     1
@@ -7297,34 +7106,12 @@ internal class ForeignCallbackTypeClientDelegate : ForeignCallback {
     }
 
     
-    private fun `invokeDidReceiveSyncUpdate`(kotlinCallbackInterface: ClientDelegate, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            kotlinCallbackInterface.`didReceiveSyncUpdate`()
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
-        }
-
-    
     private fun `invokeDidReceiveAuthError`(kotlinCallbackInterface: ClientDelegate, args: RustBuffer.ByValue): RustBuffer.ByValue =
         try {
             val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
             kotlinCallbackInterface.`didReceiveAuthError`(
                     FfiConverterBoolean.read(buf)
                     )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
-        }
-
-    
-    private fun `invokeDidUpdateRestoreToken`(kotlinCallbackInterface: ClientDelegate, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            kotlinCallbackInterface.`didUpdateRestoreToken`()
             .let { RustBuffer.ByValue() }
                 // TODO catch errors and report them back to Rust.
                 // https://github.com/mozilla/uniffi-rs/issues/351
@@ -7341,7 +7128,7 @@ public object FfiConverterTypeClientDelegate: FfiConverterCallbackInterface<Clie
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_ClientDelegate_init_callback(this.foreignCallback, status)
+            lib.ffi_matrix_sdk_ffi_d61b_ClientDelegate_init_callback(this.foreignCallback, status)
         }
     }
 }
@@ -7582,7 +7369,348 @@ public object FfiConverterTypeSessionVerificationControllerDelegate: FfiConverte
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_SessionVerificationControllerDelegate_init_callback(this.foreignCallback, status)
+            lib.ffi_matrix_sdk_ffi_d61b_SessionVerificationControllerDelegate_init_callback(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for SlidingSyncListRoomItemsObserver Callback Interface
+
+public interface SlidingSyncListRoomItemsObserver {
+    fun `didReceiveUpdate`()
+    
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeSlidingSyncListRoomItemsObserver : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeSlidingSyncListRoomItemsObserver.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeSlidingSyncListRoomItemsObserver.drop(handle)
+                // No return value.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                0
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
+                    // Success
+                    outBuf.setValue(buffer)
+                    1
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    -1
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                -1
+            }
+        }
+    }
+
+    
+    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncListRoomItemsObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
+        try {
+            kotlinCallbackInterface.`didReceiveUpdate`()
+            .let { RustBuffer.ByValue() }
+                // TODO catch errors and report them back to Rust.
+                // https://github.com/mozilla/uniffi-rs/issues/351
+        } finally {
+            RustBuffer.free(args)
+        }
+
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeSlidingSyncListRoomItemsObserver: FfiConverterCallbackInterface<SlidingSyncListRoomItemsObserver>(
+    foreignCallback = ForeignCallbackTypeSlidingSyncListRoomItemsObserver()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.ffi_matrix_sdk_ffi_d61b_SlidingSyncListRoomItemsObserver_init_callback(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for SlidingSyncListRoomListObserver Callback Interface
+
+public interface SlidingSyncListRoomListObserver {
+    fun `didReceiveUpdate`(`diff`: SlidingSyncListRoomsListDiff)
+    
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeSlidingSyncListRoomListObserver : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeSlidingSyncListRoomListObserver.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeSlidingSyncListRoomListObserver.drop(handle)
+                // No return value.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                0
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
+                    // Success
+                    outBuf.setValue(buffer)
+                    1
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    -1
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                -1
+            }
+        }
+    }
+
+    
+    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncListRoomListObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
+        try {
+            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
+            kotlinCallbackInterface.`didReceiveUpdate`(
+                    FfiConverterTypeSlidingSyncListRoomsListDiff.read(buf)
+                    )
+            .let { RustBuffer.ByValue() }
+                // TODO catch errors and report them back to Rust.
+                // https://github.com/mozilla/uniffi-rs/issues/351
+        } finally {
+            RustBuffer.free(args)
+        }
+
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeSlidingSyncListRoomListObserver: FfiConverterCallbackInterface<SlidingSyncListRoomListObserver>(
+    foreignCallback = ForeignCallbackTypeSlidingSyncListRoomListObserver()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.ffi_matrix_sdk_ffi_d61b_SlidingSyncListRoomListObserver_init_callback(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for SlidingSyncListRoomsCountObserver Callback Interface
+
+public interface SlidingSyncListRoomsCountObserver {
+    fun `didReceiveUpdate`(`count`: UInt)
+    
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeSlidingSyncListRoomsCountObserver : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeSlidingSyncListRoomsCountObserver.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeSlidingSyncListRoomsCountObserver.drop(handle)
+                // No return value.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                0
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
+                    // Success
+                    outBuf.setValue(buffer)
+                    1
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    -1
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                -1
+            }
+        }
+    }
+
+    
+    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncListRoomsCountObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
+        try {
+            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
+            kotlinCallbackInterface.`didReceiveUpdate`(
+                    FfiConverterUInt.read(buf)
+                    )
+            .let { RustBuffer.ByValue() }
+                // TODO catch errors and report them back to Rust.
+                // https://github.com/mozilla/uniffi-rs/issues/351
+        } finally {
+            RustBuffer.free(args)
+        }
+
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeSlidingSyncListRoomsCountObserver: FfiConverterCallbackInterface<SlidingSyncListRoomsCountObserver>(
+    foreignCallback = ForeignCallbackTypeSlidingSyncListRoomsCountObserver()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.ffi_matrix_sdk_ffi_d61b_SlidingSyncListRoomsCountObserver_init_callback(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for SlidingSyncListStateObserver Callback Interface
+
+public interface SlidingSyncListStateObserver {
+    fun `didReceiveUpdate`(`newState`: SlidingSyncState)
+    
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeSlidingSyncListStateObserver : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeSlidingSyncListStateObserver.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeSlidingSyncListStateObserver.drop(handle)
+                // No return value.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                0
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
+                    // Success
+                    outBuf.setValue(buffer)
+                    1
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    -1
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                -1
+            }
+        }
+    }
+
+    
+    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncListStateObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
+        try {
+            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
+            kotlinCallbackInterface.`didReceiveUpdate`(
+                    FfiConverterTypeSlidingSyncState.read(buf)
+                    )
+            .let { RustBuffer.ByValue() }
+                // TODO catch errors and report them back to Rust.
+                // https://github.com/mozilla/uniffi-rs/issues/351
+        } finally {
+            RustBuffer.free(args)
+        }
+
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeSlidingSyncListStateObserver: FfiConverterCallbackInterface<SlidingSyncListStateObserver>(
+    foreignCallback = ForeignCallbackTypeSlidingSyncListStateObserver()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.ffi_matrix_sdk_ffi_d61b_SlidingSyncListStateObserver_init_callback(this.foreignCallback, status)
         }
     }
 }
@@ -7668,348 +7796,7 @@ public object FfiConverterTypeSlidingSyncObserver: FfiConverterCallbackInterface
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_SlidingSyncObserver_init_callback(this.foreignCallback, status)
-        }
-    }
-}
-
-
-
-
-
-
-// Declaration and FfiConverters for SlidingSyncViewRoomItemsObserver Callback Interface
-
-public interface SlidingSyncViewRoomItemsObserver {
-    fun `didReceiveUpdate`()
-    
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeSlidingSyncViewRoomItemsObserver : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeSlidingSyncViewRoomItemsObserver.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeSlidingSyncViewRoomItemsObserver.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    -1
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                -1
-            }
-        }
-    }
-
-    
-    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncViewRoomItemsObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            kotlinCallbackInterface.`didReceiveUpdate`()
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
-        }
-
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeSlidingSyncViewRoomItemsObserver: FfiConverterCallbackInterface<SlidingSyncViewRoomItemsObserver>(
-    foreignCallback = ForeignCallbackTypeSlidingSyncViewRoomItemsObserver()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_SlidingSyncViewRoomItemsObserver_init_callback(this.foreignCallback, status)
-        }
-    }
-}
-
-
-
-
-
-
-// Declaration and FfiConverters for SlidingSyncViewRoomListObserver Callback Interface
-
-public interface SlidingSyncViewRoomListObserver {
-    fun `didReceiveUpdate`(`diff`: SlidingSyncViewRoomsListDiff)
-    
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeSlidingSyncViewRoomListObserver : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeSlidingSyncViewRoomListObserver.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeSlidingSyncViewRoomListObserver.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    -1
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                -1
-            }
-        }
-    }
-
-    
-    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncViewRoomListObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`didReceiveUpdate`(
-                    FfiConverterTypeSlidingSyncViewRoomsListDiff.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
-        }
-
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeSlidingSyncViewRoomListObserver: FfiConverterCallbackInterface<SlidingSyncViewRoomListObserver>(
-    foreignCallback = ForeignCallbackTypeSlidingSyncViewRoomListObserver()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_SlidingSyncViewRoomListObserver_init_callback(this.foreignCallback, status)
-        }
-    }
-}
-
-
-
-
-
-
-// Declaration and FfiConverters for SlidingSyncViewRoomsCountObserver Callback Interface
-
-public interface SlidingSyncViewRoomsCountObserver {
-    fun `didReceiveUpdate`(`count`: UInt)
-    
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeSlidingSyncViewRoomsCountObserver : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeSlidingSyncViewRoomsCountObserver.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeSlidingSyncViewRoomsCountObserver.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    -1
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                -1
-            }
-        }
-    }
-
-    
-    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncViewRoomsCountObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`didReceiveUpdate`(
-                    FfiConverterUInt.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
-        }
-
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeSlidingSyncViewRoomsCountObserver: FfiConverterCallbackInterface<SlidingSyncViewRoomsCountObserver>(
-    foreignCallback = ForeignCallbackTypeSlidingSyncViewRoomsCountObserver()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_SlidingSyncViewRoomsCountObserver_init_callback(this.foreignCallback, status)
-        }
-    }
-}
-
-
-
-
-
-
-// Declaration and FfiConverters for SlidingSyncViewStateObserver Callback Interface
-
-public interface SlidingSyncViewStateObserver {
-    fun `didReceiveUpdate`(`newState`: SlidingSyncState)
-    
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeSlidingSyncViewStateObserver : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeSlidingSyncViewStateObserver.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeSlidingSyncViewStateObserver.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    val buffer = this.`invokeDidReceiveUpdate`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    -1
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                -1
-            }
-        }
-    }
-
-    
-    private fun `invokeDidReceiveUpdate`(kotlinCallbackInterface: SlidingSyncViewStateObserver, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`didReceiveUpdate`(
-                    FfiConverterTypeSlidingSyncState.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
-        }
-
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeSlidingSyncViewStateObserver: FfiConverterCallbackInterface<SlidingSyncViewStateObserver>(
-    foreignCallback = ForeignCallbackTypeSlidingSyncViewStateObserver()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_SlidingSyncViewStateObserver_init_callback(this.foreignCallback, status)
+            lib.ffi_matrix_sdk_ffi_d61b_SlidingSyncObserver_init_callback(this.foreignCallback, status)
         }
     }
 }
@@ -8095,36 +7882,7 @@ public object FfiConverterTypeTimelineListener: FfiConverterCallbackInterface<Ti
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_ffi_2b85_TimelineListener_init_callback(this.foreignCallback, status)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalUShort: FfiConverterRustBuffer<UShort?> {
-    override fun read(buf: ByteBuffer): UShort? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterUShort.read(buf)
-    }
-
-    override fun allocationSize(value: UShort?): Int {
-        if (value == null) {
-            return 1
-        } else {
-            return 1 + FfiConverterUShort.allocationSize(value)
-        }
-    }
-
-    override fun write(value: UShort?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterUShort.write(value, buf)
+            lib.ffi_matrix_sdk_ffi_d61b_TimelineListener_init_callback(this.foreignCallback, status)
         }
     }
 }
@@ -8422,6 +8180,35 @@ public object FfiConverterOptionalTypeRoom: FfiConverterRustBuffer<Room?> {
 
 
 
+public object FfiConverterOptionalTypeSlidingSyncList: FfiConverterRustBuffer<SlidingSyncList?> {
+    override fun read(buf: ByteBuffer): SlidingSyncList? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeSlidingSyncList.read(buf)
+    }
+
+    override fun allocationSize(value: SlidingSyncList?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeSlidingSyncList.allocationSize(value)
+        }
+    }
+
+    override fun write(value: SlidingSyncList?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeSlidingSyncList.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeSlidingSyncRoom: FfiConverterRustBuffer<SlidingSyncRoom?> {
     override fun read(buf: ByteBuffer): SlidingSyncRoom? {
         if (buf.get().toInt() == 0) {
@@ -8444,35 +8231,6 @@ public object FfiConverterOptionalTypeSlidingSyncRoom: FfiConverterRustBuffer<Sl
         } else {
             buf.put(1)
             FfiConverterTypeSlidingSyncRoom.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeSlidingSyncView: FfiConverterRustBuffer<SlidingSyncView?> {
-    override fun read(buf: ByteBuffer): SlidingSyncView? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeSlidingSyncView.read(buf)
-    }
-
-    override fun allocationSize(value: SlidingSyncView?): Int {
-        if (value == null) {
-            return 1
-        } else {
-            return 1 + FfiConverterTypeSlidingSyncView.allocationSize(value)
-        }
-    }
-
-    override fun write(value: SlidingSyncView?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeSlidingSyncView.write(value, buf)
         }
     }
 }
@@ -8973,6 +8731,35 @@ public object FfiConverterOptionalTypeSlidingSyncObserver: FfiConverterRustBuffe
 
 
 
+public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<String>?> {
+    override fun read(buf: ByteBuffer): List<String>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceString.read(buf)
+    }
+
+    override fun allocationSize(value: List<String>?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterSequenceString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<String>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceString.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalSequenceTypeTimelineItem: FfiConverterRustBuffer<List<TimelineItem>?> {
     override fun read(buf: ByteBuffer): List<TimelineItem>? {
         if (buf.get().toInt() == 0) {
@@ -9307,45 +9094,43 @@ public object FfiConverterSequenceOptionalTypeSlidingSyncRoom: FfiConverterRustB
     }
 }
 
-fun `genTransactionId`(): String {
-    return FfiConverterString.lift(
+        fun `genTransactionId`(): String {
+            return FfiConverterString.lift(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_gen_transaction_id_2d4f( _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_gen_transaction_id_4593( _status)
 })
-}
-
-
-
-fun `mediaSourceFromUrl`(`url`: String): MediaSource {
-    return FfiConverterTypeMediaSource.lift(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_media_source_from_url_55aa(FfiConverterString.lower(`url`), _status)
-})
-}
-
-
-
-fun `messageEventContentFromMarkdown`(`md`: String): RoomMessageEventContent {
-    return FfiConverterTypeRoomMessageEventContent.lift(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_message_event_content_from_markdown_c8db(FfiConverterString.lower(`md`), _status)
-})
-}
-
-
-
-fun `setupOtlpTracing`(`filter`: String, `clientName`: String, `user`: String, `password`: String, `otlpEndpoint`: String) =
+        }
     
+
+        fun `mediaSourceFromUrl`(`url`: String): MediaSource {
+            return FfiConverterTypeMediaSource.lift(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_setup_otlp_tracing_bc07(FfiConverterString.lower(`filter`), FfiConverterString.lower(`clientName`), FfiConverterString.lower(`user`), FfiConverterString.lower(`password`), FfiConverterString.lower(`otlpEndpoint`), _status)
-}
-
-
-fun `setupTracing`(`filter`: String) =
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_media_source_from_url_3a26(FfiConverterString.lower(`url`), _status)
+})
+        }
     
+
+        fun `messageEventContentFromMarkdown`(`md`: String): RoomMessageEventContent {
+            return FfiConverterTypeRoomMessageEventContent.lift(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_setup_tracing_62d6(FfiConverterString.lower(`filter`), _status)
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_message_event_content_from_markdown_df5b(FfiConverterString.lower(`md`), _status)
+})
+        }
+    
+
+        fun `setupOtlpTracing`(`filter`: String, `clientName`: String, `user`: String, `password`: String, `otlpEndpoint`: String) =
+            
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_setup_otlp_tracing_5801(FfiConverterString.lower(`filter`), FfiConverterString.lower(`clientName`), FfiConverterString.lower(`user`), FfiConverterString.lower(`password`), FfiConverterString.lower(`otlpEndpoint`), _status)
 }
 
+    
 
+        fun `setupTracing`(`filter`: String) =
+            
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE._uniffi_matrix_sdk_ffi_setup_tracing_ac08(FfiConverterString.lower(`filter`), _status)
+}
+
+    
 
