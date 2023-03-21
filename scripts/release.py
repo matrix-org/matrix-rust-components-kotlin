@@ -5,6 +5,7 @@ import os
 import re
 import requests
 import subprocess
+import time
 from enum import Enum, auto
 
 
@@ -119,6 +120,7 @@ def commit_and_push_changes(directory: str, message: str):
 
 
 def upload_asset_to_github_release(upload_url: str, asset_path: str, asset_name: str):
+    print(f"Uploading {asset_name} to github release..")
     # Build headers with token and content type
     headers = {
         "Authorization": f"token {github_token}",
@@ -176,9 +178,9 @@ def create_github_release(repo_url: str, tag_name: str, release_name: str, relea
 
 def get_asset_name(module: Module) -> str:
     if module == Module.SDK:
-        return "sdk-android-release.aar"
+        return "matrix-android-sdk.aar"
     elif module == Module.CRYPTO:
-        return "crypto-android-release.aar"
+        return "matrix-android-crypto.aar"
     else:
         raise ValueError(f"Unknown module: {module}")
 
@@ -186,32 +188,27 @@ def get_asset_name(module: Module) -> str:
 def get_asset_path(root_project_dir: str, module: Module) -> str:
     if module == Module.SDK:
         return os.path.join(root_project_dir, "sdk/sdk-android/build/outputs/aar",
-                            get_asset_name(module))
+                            "sdk-android-release.aar")
     elif module == Module.CRYPTO:
         return os.path.join(root_project_dir, "crypto/crypto-android/build/outputs/aar",
-                            get_asset_name(module))
+                            "crypto-android-release.aar")
     else:
         raise ValueError(f"Unknown module: {module}")
 
-def get_gradle_module_dir(module: Module, root_project_dir: str) -> str:
+
+def get_publish_task(module: Module) -> str:
     if module == Module.SDK:
-        return os.path.join(root_project_dir, "sdk")
+        return ":sdk:sdk-android:publishToSonatype"
     elif module == Module.CRYPTO:
-        return os.path.join(root_project_dir, "crypto")
+        return ":crypto:crypto-android:publishToSonatype"
     else:
         raise ValueError(f"Unknown module: {module}")
 
-def run_gradle_task(module_dir: str, task_name: str):
-    # Build Gradle command
-    gradle_command = f"cd {module_dir} && ./gradlew {task_name}"
-
-    # Run Gradle command
-    result = subprocess.run(gradle_command, shell=True)
-    if result.returncode == 0:
-        print(f"Gradle task '{task_name}' completed successfully.")
-    else:
-        print(f"Failed to run Gradle task '{task_name}'.")
-
+def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
+    gradle_command = f"./gradlew {publish_task} closeAndReleaseStagingRepository"
+    result = subprocess.run(gradle_command, shell=True, cwd=root_project_dir, text=True)
+    if result.returncode != 0:
+        raise Exception(f"Gradle tasks failed with return code {result.returncode}")
 
 github_token = os.environ['GITHUB_API_TOKEN']
 
@@ -254,12 +251,14 @@ commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rus
 commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
-release_notes = f"{release_name} using matrix-rust-sdk {sdk_commit_hash}"
+release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{sdk_commit_hash}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
 
 create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
                       release_name, release_name, release_notes)
 
-run_gradle_task(get_gradle_module_dir(args.module, project_root), "publishReleasePublicationToSonatypeRepository")
-run_gradle_task(project_root, "closeAndReleaseSonatypeStagingRepository")
+run_publish_close_and_release_tasks(
+    project_root,
+    get_publish_task(args.module),
+)
