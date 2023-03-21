@@ -6,7 +6,7 @@ plugins {
 ext {
     PUBLISH_GROUP_ID = ConfigurationData.publishGroupId
     PUBLISH_ARTIFACT_ID = 'sdk-android'
-    PUBLISH_VERSION = ConfigurationData.versionName
+    PUBLISH_VERSION = ConfigurationData.versionNameSdk
     PUBLISH_DESCRIPTION = 'Android Bindings to the Matrix Rust SDK'
 }
 
@@ -22,7 +22,7 @@ android {
 
         minSdk ConfigurationData.minSdk
         targetSdk ConfigurationData.targetSdk
-        versionName ConfigurationData.versionName
+        versionName ConfigurationData.versionNameCrypto
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"

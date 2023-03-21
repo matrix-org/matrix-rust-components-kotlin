@@ -19,7 +19,6 @@ artifacts {
 }
 
 group = PUBLISH_GROUP_ID
-version = rootVersionName
 
 afterEvaluate {
     publishing {
