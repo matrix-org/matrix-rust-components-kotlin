@@ -251,9 +251,9 @@ override_version_in_build_version_file(build_version_file_path, args.version)
 
 sdk_commit_hash = get_git_hash(sdk_path)
 commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk {sdk_commit_hash})"
-commit_and_push_changes(args.sdk_path, commit_message)
+commit_and_push_changes(project_root, commit_message)
 
-release_name = f"{args.module.name.upper()} {args.version}"
+release_name = f"{args.module.name.lower()}-v{args.version}"
 release_notes = f"{release_name} using matrix-rust-sdk {sdk_commit_hash}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
