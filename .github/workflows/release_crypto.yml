@@ -123,4 +123,4 @@ jobs:
           ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
           CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto_sdk_version }}
           GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-        run: python3 release.py --version $CRYPTO_SDK_VERSION --sdk_path rust-sdk --module CRYPTO
+        run: python3 ./main/scripts/release.py --version $CRYPTO_SDK_VERSION --sdk_path rust-sdk --module CRYPTO
