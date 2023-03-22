@@ -104,6 +104,10 @@ jobs:
         with:
           command: install
           args: uniffi_bindgen    
+          
+      - name: Install cargo-ndk
+        continue-on-error: true
+        run: cargo install cargo-ndk --version 2.11.0
 
       - name: Configure gradle
         uses: gradle/gradle-build-action@v2
