@@ -15,3 +15,6 @@
 .cxx
 local.properties
 */so
+.idea/
+
+*.so
