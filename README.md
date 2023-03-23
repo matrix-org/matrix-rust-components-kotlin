@@ -8,7 +8,7 @@ This is done with the release script found in the scripts directory. It'll also 
 
 Usage : 
 
-`python3 release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk`
+`python3 release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk --module SDK`
 
 
 ## Testing locally
