@@ -22,7 +22,7 @@ Usage :
 ## Prerequisites
 
 * the Rust toolchain
-* cargo-ndk < 2.12.0 `cargo install cargo-ndk --version 2.11.0`
+* cargo-ndk
 * android targets (e.g. `rustup target add \
   aarch64-linux-android \
   armv7-linux-androideabi \
