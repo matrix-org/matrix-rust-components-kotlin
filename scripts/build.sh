@@ -51,7 +51,9 @@ else
 fi
 
 if ${is_release}; then
-  release_command="--release"
+  profile="release"
+else
+  profile="dev"
 fi
 
 if [ "$gradle_module" = "crypto" ]; then
@@ -64,7 +66,7 @@ fi
 
 pushd "$sdk_path" || exit
 
-cargo xtask kotlin build-android-library ${release_command:+"$release_command"} "${target_command[@]}" --src-dir "$src_dir" --package "$package"
+cargo xtask kotlin build-android-library --profile "$profile" "${target_command[@]}" --src-dir "$src_dir" --package "$package"
 
 pushd "$scripts_dir/.." || exit
 
