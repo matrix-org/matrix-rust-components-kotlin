@@ -100,7 +100,7 @@ jobs:
       
       - name: Install cargo-ndk
         continue-on-error: true
-        run: cargo install cargo-ndk --version 2.12.6
+        run: cargo install cargo-ndk
 
       - name: Configure gradle
         uses: gradle/gradle-build-action@v2
