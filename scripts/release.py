@@ -9,6 +9,8 @@ import time
 from enum import Enum, auto
 
 
+print("START OF FILE")
+
 class Module(Enum):
     SDK = auto()
     CRYPTO = auto()
@@ -209,6 +211,8 @@ def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
     result = subprocess.run(gradle_command, shell=True, cwd=root_project_dir, text=True)
     if result.returncode != 0:
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
+
+print("BEFORE GITHUB TOKEN")
 
 github_token = os.environ['GITHUB_API_TOKEN']
 

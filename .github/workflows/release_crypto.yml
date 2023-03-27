@@ -116,10 +116,24 @@ jobs:
           pip install argparse
           pip install requests
 
+      - name: Run test python
+        run: |
+          python3 ./main/scripts/hello_world.py
+
+      - name: Run test python 2
+        env:
+          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
+          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
+          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
+          RUST_LOG: "trace"
+        run: |
+          python3 ./main/scripts/hello_world.py
+
       - name: Run publish script
         env:
           ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
           CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
           GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
           RUST_LOG: "trace"
-        run: python3 ./main/scripts/release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path rust-sdk --module CRYPTO
+        run: |
+          python3 ./main/scripts/release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk --module CRYPTO
