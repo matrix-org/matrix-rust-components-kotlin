@@ -8,7 +8,7 @@ This is done with the release script found in the scripts directory. It'll also 
 
 Usage : 
 
-`python3 release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk --module SDK`
+`python3 ./scripts/release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk --module SDK`
 
 
 ## Testing locally
@@ -17,7 +17,7 @@ You can use the build script to generate the aar for testing. Be sure to have ch
 
 Usage :
 
-`./build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android`
+`./scripts/build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android`
 
 ## Prerequisites
 
