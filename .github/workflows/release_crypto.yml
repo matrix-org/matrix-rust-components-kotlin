@@ -113,17 +113,24 @@ jobs:
       - name: Find all .aar files
         run: find . -name "*.aar"
 
-#      - name: Set up Python 3
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: '3.x'
-#
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          pip install argparse
-#          pip install requests
-#
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install argparse
+          pip install requests
+
+      - name: Run publish script
+        env:
+          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
+          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: |
+          python3 ./main/scripts/release_crypto.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk
+
 #      - name: Run test python
 #        run: |
 #          python3 ./main/scripts/hello_world.py
