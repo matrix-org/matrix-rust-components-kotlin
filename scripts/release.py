@@ -199,7 +199,7 @@ print("BEFORE GITHUB TOKEN")
 github_token = os.environ['GITHUB_API_TOKEN']
 
 if github_token is None:
-    print("Please set GITHUB_TOKEN environment variable")
+    print("Please set GITHUB_API_TOKEN environment variable")
     exit(1)
 
 parser = argparse.ArgumentParser()
