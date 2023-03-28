@@ -75,21 +75,21 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
 
-#      - name: Create cargo config
-#        run: |
-#          echo [target.aarch64-linux-android] > $HOME/.cargo/config.toml
-#          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-#          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang\"  >> $HOME/.cargo/config.toml
-#
-#          echo [target.i686-linux-android] >> $HOME/.cargo/config.toml
-#          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-#          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android30-clang\"  >> $HOME/.cargo/config.toml
-#
-#          echo [target.armv7-linux-androideabi] >> $HOME/.cargo/config.toml
-#          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-#          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/armv7a-linux-androideabi30-clang\"  >> $HOME/.cargo/config.toml
-#
-#          cat $HOME/.cargo/config.toml
+      - name: Create cargo config
+        run: |
+          echo [target.aarch64-linux-android] > $HOME/.cargo/config.toml
+          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
+          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang\"  >> $HOME/.cargo/config.toml
+
+          echo [target.i686-linux-android] >> $HOME/.cargo/config.toml
+          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
+          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android30-clang\"  >> $HOME/.cargo/config.toml
+
+          echo [target.armv7-linux-androideabi] >> $HOME/.cargo/config.toml
+          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
+          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/armv7a-linux-androideabi30-clang\"  >> $HOME/.cargo/config.toml
+
+          cat $HOME/.cargo/config.toml
 
       - name: Add Rust targets
         run: |
@@ -105,35 +105,43 @@ jobs:
       - name: Configure gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install argparse
-          pip install requests
-
-      - name: Run test python
-        run: |
-          python3 ./main/scripts/hello_world.py
-
-      - name: Run test python 2
+      - name: Run build script
         env:
           ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
-          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-          RUST_LOG: "trace"
-        run: |
-          python3 ./main/scripts/hello_world.py
+        run: ./main/scripts/build.sh -r -m crypto -p rust-sdk
 
-      - name: Run publish script
-        env:
-          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
-          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-          RUST_LOG: "trace"
-        run: |
-          python3 ./main/scripts/release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk --module CRYPTO
+      - name: Find all .aar files
+        run: find . -name "*.aar"
+
+#      - name: Set up Python 3
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: '3.x'
+#
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install argparse
+#          pip install requests
+#
+#      - name: Run test python
+#        run: |
+#          python3 ./main/scripts/hello_world.py
+#
+#      - name: Run test python 2
+#        env:
+#          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
+#          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
+#          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
+#          RUST_LOG: "trace"
+#        run: |
+#          python3 ./main/scripts/hello_world.py
+#
+#      - name: Run publish script
+#        env:
+#          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
+#          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
+#          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
+#          RUST_LOG: "trace"
+#        run: |
+#          python3 ./main/scripts/release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk --module CRYPTO
