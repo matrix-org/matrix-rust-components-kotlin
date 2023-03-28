@@ -89,18 +89,6 @@ def get_git_hash(directory: str) -> str:
                             text=True)
     return result.stdout.strip()
 
-def get_tag_or_hash(directory: str, commit_hash):
-    result = subprocess.run(
-        ["git", "tag", "--points-at", commit_hash],
-        cwd=directory,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode == 0 and result.stdout.strip():
-        return result.stdout.strip().split('\n')[0]  # Return the first tag, if multiple tags exist
-    else:
-        return commit_hash
-
 def commit_and_push_changes(directory: str, message: str):
     try:
         subprocess.run(["git", "add", "."], cwd=directory, check=True)
@@ -245,12 +233,11 @@ execute_build_script(current_dir, sdk_path, args.module)
 override_version_in_build_version_file(build_version_file_path, args.version)
 
 sdk_commit_hash = get_git_hash(sdk_path)
-sdk_tag_or_hash = get_tag_or_hash(sdk_commit_hash)
-commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {sdk_tag_or_hash})"
+commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {sdk_commit_hash})"
 commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
-release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{sdk_tag_or_hash}"
+release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{sdk_commit_hash}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
 
