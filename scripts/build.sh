@@ -64,11 +64,17 @@ else
   package="full-sdk"
 fi
 
-pushd "$sdk_path" || exit
+echo "Launching build script with following params:"
+echo "sdk_path = $sdk_path"
+echo "profile = $profile"
+echo "gradle_module = $gradle_module"
+echo "src-dir = $src_dir"
+
+pushd "$sdk_path" || exit 1
 
 cargo xtask kotlin build-android-library --profile "$profile" "${target_command[@]}" --src-dir "$src_dir" --package "$package"
 
-pushd "$scripts_dir/.." || exit
+pushd "$scripts_dir/.." || exit 1
 
 shift $((OPTIND - 1))
 
