@@ -64,6 +64,12 @@ else
   package="full-sdk"
 fi
 
+echo "Launch build script..."
+echo "SDK_PATH = $sdk_path"
+echo "profile = $profile"
+exit
+
+
 pushd "$sdk_path" || exit
 
 cargo xtask kotlin build-android-library --profile "$profile" "${target_command[@]}" --src-dir "$src_dir" --package "$package"

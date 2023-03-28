@@ -5,11 +5,10 @@ import os
 import re
 import requests
 import subprocess
-import time
 from enum import Enum, auto
 
-
 print("START OF FILE")
+
 
 class Module(Enum):
     SDK = auto()
@@ -59,27 +58,13 @@ def is_provided_version_higher(major: int, minor: int, patch: int, provided_vers
 def execute_build_script(script_directory: str, sdk_path: str, module: Module):
     print("Execute build script...")
     build_script_path = os.path.join(script_directory, "build.sh")
-    process = subprocess.Popen(
-        ["bash", build_script_path, "-p", sdk_path, "-m", module.name.lower(), "-r"],
+
+    subprocess.run(
+        ["/bin/bash", build_script_path, "-p", sdk_path, "-m", module.name.lower(), "-r"],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True)
-
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            print(output.strip())
-
-    exit_code = process.poll()
-    if exit_code == 0:
-        print("Build script executed successfully.")
-    else:
-        print("Build script execution failed.")
-        print("Error:")
-        print(process.stderr.read())
-        exit(1)
+        stderr=subprocess.STDOUT,
+        check = True
+    ).stdout.decode('utf-8')
 
 
 def override_version_in_build_version_file(file_path: str, new_version: str):
@@ -206,11 +191,13 @@ def get_publish_task(module: Module) -> str:
     else:
         raise ValueError(f"Unknown module: {module}")
 
+
 def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
     gradle_command = f"./gradlew {publish_task} closeAndReleaseStagingRepository"
     result = subprocess.run(gradle_command, shell=True, cwd=root_project_dir, text=True)
     if result.returncode != 0:
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
+
 
 print("BEFORE GITHUB TOKEN")
 
