@@ -3,12 +3,17 @@
 This repository is used for distributing kotlin releases of the Matrix Rust SDK. It'll provide the corresponding aar and also publish them on maven.
 
 ## Releasing
+
+You need to set GITHUB_API_TOKEN in your env to let the script be able to commit and push, with this configuration:
+- Content: Read and Write;
+- Metadata: Read only.
+
 Whenever a new release of the underlying components is available, we need to tag a new release in this repo to make them available. 
 This is done with the release script found in the scripts directory. It'll also push the release to the maven repository.
 
 Usage : 
 
-`python3 release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk --module SDK`
+`python3 ./scripts/release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk --module SDK`
 
 
 ## Testing locally
@@ -17,12 +22,12 @@ You can use the build script to generate the aar for testing. Be sure to have ch
 
 Usage :
 
-`./build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android`
+`./scripts/build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android`
 
 ## Prerequisites
 
 * the Rust toolchain
-* cargo-ndk
+* cargo-ndk `cargo install cargo-ndk`
 * android targets (e.g. `rustup target add \
   aarch64-linux-android \
   armv7-linux-androideabi \
