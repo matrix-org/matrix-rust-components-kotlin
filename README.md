@@ -8,12 +8,14 @@ You need to set GITHUB_API_TOKEN in your env to let the script be able to commit
 - Content: Read and Write;
 - Metadata: Read only.
 
+Make sures to also have setup the maven credentials and gpg key in your [env](scripts/publish-root.gradle) 
+
 Whenever a new release of the underlying components is available, we need to tag a new release in this repo to make them available. 
 This is done with the release script found in the scripts directory. It'll also push the release to the maven repository.
 
 Usage : 
 
-`python3 ./scripts/release.py --version 0.1.3 --sdk_path /Users/user/Documents/dev/matrix-rust-sdk --module SDK`
+`python3 ./scripts/release.py --version 0.1.3 --ref main --module SDK`
 
 
 ## Testing locally
