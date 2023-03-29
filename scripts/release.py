@@ -8,6 +8,7 @@ import subprocess
 from enum import Enum, auto
 from tempfile import TemporaryDirectory
 
+
 class Module(Enum):
     SDK = auto()
     CRYPTO = auto()
@@ -92,6 +93,7 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
 
     with open(file_path, 'w') as file:
         file.write(content)
+
 
 def commit_and_push_changes(directory: str, message: str):
     try:
