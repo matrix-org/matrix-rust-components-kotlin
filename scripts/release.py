@@ -6,8 +6,7 @@ import re
 import requests
 import subprocess
 from enum import Enum, auto
-
-print("START OF FILE")
+from tempfile import TemporaryDirectory
 
 
 class Module(Enum):
@@ -41,6 +40,22 @@ def read_version_numbers_from_kotlin_file(file_path):
     patch_version = int(re.search(r"patchVersion\s*=\s*(\d+)", content).group(1))
 
     return major_version, minor_version, patch_version
+
+
+def clone_repo_and_checkout_ref(directory, git_url, ref):
+    # Clone the repo
+    subprocess.run(
+        ["git", "clone", git_url, directory],
+        check=True,
+        text=True,
+    )
+    # Checkout the specified ref (commit hash, tag, or branch)
+    subprocess.run(
+        ["git", "checkout", ref],
+        cwd=directory,
+        check=True,
+        text=True,
+    )
 
 
 def is_provided_version_higher(major: int, minor: int, patch: int, provided_version: str) -> bool:
@@ -79,15 +94,6 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
     with open(file_path, 'w') as file:
         file.write(content)
 
-
-def get_git_hash(directory: str) -> str:
-    result = subprocess.run(["git", "rev-parse", "HEAD"],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd=directory,
-                            check=True,
-                            text=True)
-    return result.stdout.strip()
 
 def commit_and_push_changes(directory: str, message: str):
     try:
@@ -194,10 +200,7 @@ def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
 
 
-print("BEFORE GITHUB TOKEN")
-
 github_token = os.environ['GITHUB_API_TOKEN']
-
 if github_token is None:
     print("Please set GITHUB_API_TOKEN environment variable")
     exit(1)
@@ -207,17 +210,19 @@ parser.add_argument("-m", "--module", type=module_type, required=True,
                     help="Choose a module (SDK or CRYPTO)")
 parser.add_argument("-v", "--version", type=str, required=True,
                     help="Version as a string (e.g. '1.0.0')")
-parser.add_argument("-p", "--sdk_path", type=str, required=True, help="Path to the SDK")
+parser.add_argument("-r", "--ref", type=str, required=True,
+                    help="Ref to the git matrix-rust-sdk (branch name, commit or tag)")
 
 args = parser.parse_args()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir).rstrip(os.sep)
-sdk_path = args.sdk_path.rstrip(os.sep)
+sdk_git_url = "https://github.com/matrix-org/matrix-rust-sdk.git"
+
 print(f"Project Root Directory: {project_root}")
 print(f"Selected module: {args.module}")
 print(f"Version: {args.version}")
-print(f"SDK Path: {sdk_path}")
+print(f"SDK git ref: {args.ref}")
 
 build_version_file_path = get_build_version_file_path(args.module, project_root)
 major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
@@ -229,15 +234,17 @@ else:
         f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
     exit(0)
 
-execute_build_script(current_dir, sdk_path, args.module)
+with TemporaryDirectory() as sdk_path:
+    clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
+    execute_build_script(current_dir, sdk_path, args.module)
+
 override_version_in_build_version_file(build_version_file_path, args.version)
 
-sdk_commit_hash = get_git_hash(sdk_path)
-commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {sdk_commit_hash})"
+commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.ref})"
 commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
-release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{sdk_commit_hash}"
+release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.ref}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
 
