@@ -57,6 +57,20 @@ def clone_repo_and_checkout_ref(directory, git_url, ref):
         text=True,
     )
 
+def get_linkable_ref(directory, ref):
+    result = subprocess.run(
+        ["git", "show-ref", "--verify", f"refs/heads/{ref}"],
+        cwd=directory,
+        capture_output=True,
+        text=True
+    )
+    if result.returncode == 0:
+        # The reference is a valid branch name, return the corresponding commit hash
+        return result.stdout.strip().split()[0]
+
+    # The reference is not a valid branch name, return the reference itself
+    return ref
+
 
 def is_provided_version_higher(major: int, minor: int, patch: int, provided_version: str) -> bool:
     provided_major, provided_minor, provided_patch = map(int, provided_version.split('.'))
@@ -236,15 +250,16 @@ else:
 
 with TemporaryDirectory() as sdk_path:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
+    linkable_ref = get_linkable_ref(sdk_path, args.ref)
     execute_build_script(current_dir, sdk_path, args.module)
 
 override_version_in_build_version_file(build_version_file_path, args.version)
 
-commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.ref})"
+commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {linkable_ref})"
 commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
-release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.ref}"
+release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{linkable_ref}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
 
