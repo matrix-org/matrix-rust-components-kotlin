@@ -30,6 +30,7 @@ Usage :
 
 * the Rust toolchain
 * cargo-ndk `cargo install cargo-ndk`
+* protoc `brew install protobuf` or downloading [here](https://github.com/protocolbuffers/protobuf/releases)
 * android targets (e.g. `rustup target add \
   aarch64-linux-android \
   armv7-linux-androideabi \
