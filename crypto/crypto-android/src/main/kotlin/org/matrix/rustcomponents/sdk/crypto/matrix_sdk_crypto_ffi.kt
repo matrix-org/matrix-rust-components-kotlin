@@ -4802,12 +4802,16 @@ internal class ConcurrentHandleMap<T>(
 }
 
 interface ForeignCallback : com.sun.jna.Callback {
-    public fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int
+    public fun invoke(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int
 }
 
 // Magic number for the Rust proxy to call using the same mechanism as every other method,
 // to free the callback once it's dropped by Rust.
 internal const val IDX_CALLBACK_FREE = 0
+// Callback return codes
+internal const val UNIFFI_CALLBACK_SUCCESS = 0
+internal const val UNIFFI_CALLBACK_ERROR = 1
+internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
 
 public abstract class FfiConverterCallbackInterface<CallbackInterface>(
     protected val foreignCallback: ForeignCallback
@@ -4850,23 +4854,20 @@ public interface Logger {
 // The ForeignCallback that is passed to Rust.
 internal class ForeignCallbackTypeLogger : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+    override fun invoke(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
         val cb = FfiConverterTypeLogger.lift(handle)
         return when (method) {
             IDX_CALLBACK_FREE -> {
                 FfiConverterTypeLogger.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
             }
             1 -> {
                 // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    val buffer = this.`invokeLog`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
+                    this.`invokeLog`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -4875,38 +4876,40 @@ internal class ForeignCallbackTypeLogger : ForeignCallback {
                     } catch (e: Throwable) {
                         // If that fails, then it's time to give up and just return
                     }
-                    -1
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
                 }
             }
             
             else -> {
                 // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
                 try {
                     // Try to serialize the error into a string
                     outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
                 } catch (e: Throwable) {
                     // If that fails, then it's time to give up and just return
                 }
-                -1
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
             }
         }
     }
 
     
-    private fun `invokeLog`(kotlinCallbackInterface: Logger, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`log`(
-                    FfiConverterString.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeLog`(kotlinCallbackInterface: Logger, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
         }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`log`(
+                FfiConverterString.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
 
+        return makeCallAndHandleError()
+    }
     
 }
 
@@ -4936,23 +4939,20 @@ public interface ProgressListener {
 // The ForeignCallback that is passed to Rust.
 internal class ForeignCallbackTypeProgressListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+    override fun invoke(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
         val cb = FfiConverterTypeProgressListener.lift(handle)
         return when (method) {
             IDX_CALLBACK_FREE -> {
                 FfiConverterTypeProgressListener.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
             }
             1 -> {
                 // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    val buffer = this.`invokeOnProgress`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
+                    this.`invokeOnProgress`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -4961,39 +4961,41 @@ internal class ForeignCallbackTypeProgressListener : ForeignCallback {
                     } catch (e: Throwable) {
                         // If that fails, then it's time to give up and just return
                     }
-                    -1
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
                 }
             }
             
             else -> {
                 // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
                 try {
                     // Try to serialize the error into a string
                     outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
                 } catch (e: Throwable) {
                     // If that fails, then it's time to give up and just return
                 }
-                -1
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
             }
         }
     }
 
     
-    private fun `invokeOnProgress`(kotlinCallbackInterface: ProgressListener, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`onProgress`(
-                    FfiConverterInt.read(buf), 
-                    FfiConverterInt.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnProgress`(kotlinCallbackInterface: ProgressListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
         }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onProgress`(
+                FfiConverterInt.read(argsBuf), 
+                FfiConverterInt.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
 
+        return makeCallAndHandleError()
+    }
     
 }
 
@@ -5023,23 +5025,20 @@ public interface QrCodeListener {
 // The ForeignCallback that is passed to Rust.
 internal class ForeignCallbackTypeQrCodeListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+    override fun invoke(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
         val cb = FfiConverterTypeQrCodeListener.lift(handle)
         return when (method) {
             IDX_CALLBACK_FREE -> {
                 FfiConverterTypeQrCodeListener.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
             }
             1 -> {
                 // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    val buffer = this.`invokeOnChange`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
+                    this.`invokeOnChange`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -5048,38 +5047,40 @@ internal class ForeignCallbackTypeQrCodeListener : ForeignCallback {
                     } catch (e: Throwable) {
                         // If that fails, then it's time to give up and just return
                     }
-                    -1
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
                 }
             }
             
             else -> {
                 // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
                 try {
                     // Try to serialize the error into a string
                     outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
                 } catch (e: Throwable) {
                     // If that fails, then it's time to give up and just return
                 }
-                -1
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
             }
         }
     }
 
     
-    private fun `invokeOnChange`(kotlinCallbackInterface: QrCodeListener, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`onChange`(
-                    FfiConverterTypeQrCodeState.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnChange`(kotlinCallbackInterface: QrCodeListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
         }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onChange`(
+                FfiConverterTypeQrCodeState.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
 
+        return makeCallAndHandleError()
+    }
     
 }
 
@@ -5109,23 +5110,20 @@ public interface SasListener {
 // The ForeignCallback that is passed to Rust.
 internal class ForeignCallbackTypeSasListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+    override fun invoke(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
         val cb = FfiConverterTypeSasListener.lift(handle)
         return when (method) {
             IDX_CALLBACK_FREE -> {
                 FfiConverterTypeSasListener.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
             }
             1 -> {
                 // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    val buffer = this.`invokeOnChange`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
+                    this.`invokeOnChange`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -5134,38 +5132,40 @@ internal class ForeignCallbackTypeSasListener : ForeignCallback {
                     } catch (e: Throwable) {
                         // If that fails, then it's time to give up and just return
                     }
-                    -1
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
                 }
             }
             
             else -> {
                 // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
                 try {
                     // Try to serialize the error into a string
                     outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
                 } catch (e: Throwable) {
                     // If that fails, then it's time to give up and just return
                 }
-                -1
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
             }
         }
     }
 
     
-    private fun `invokeOnChange`(kotlinCallbackInterface: SasListener, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`onChange`(
-                    FfiConverterTypeSasState.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnChange`(kotlinCallbackInterface: SasListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
         }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onChange`(
+                FfiConverterTypeSasState.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
 
+        return makeCallAndHandleError()
+    }
     
 }
 
@@ -5195,23 +5195,20 @@ public interface VerificationRequestListener {
 // The ForeignCallback that is passed to Rust.
 internal class ForeignCallbackTypeVerificationRequestListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: Handle, method: Int, args: RustBuffer.ByValue, outBuf: RustBufferByReference): Int {
+    override fun invoke(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
         val cb = FfiConverterTypeVerificationRequestListener.lift(handle)
         return when (method) {
             IDX_CALLBACK_FREE -> {
                 FfiConverterTypeVerificationRequestListener.drop(handle)
-                // No return value.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
-                0
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
             }
             1 -> {
                 // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs` for info
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    val buffer = this.`invokeOnChange`(cb, args)
-                    // Success
-                    outBuf.setValue(buffer)
-                    1
+                    this.`invokeOnChange`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -5220,38 +5217,40 @@ internal class ForeignCallbackTypeVerificationRequestListener : ForeignCallback 
                     } catch (e: Throwable) {
                         // If that fails, then it's time to give up and just return
                     }
-                    -1
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
                 }
             }
             
             else -> {
                 // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi/src/ffi/foreigncallbacks.rs`
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
                 try {
                     // Try to serialize the error into a string
                     outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
                 } catch (e: Throwable) {
                     // If that fails, then it's time to give up and just return
                 }
-                -1
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
             }
         }
     }
 
     
-    private fun `invokeOnChange`(kotlinCallbackInterface: VerificationRequestListener, args: RustBuffer.ByValue): RustBuffer.ByValue =
-        try {
-            val buf = args.asByteBuffer() ?: throw InternalException("No ByteBuffer in RustBuffer; this is a Uniffi bug")
-            kotlinCallbackInterface.`onChange`(
-                    FfiConverterTypeVerificationRequestState.read(buf)
-                    )
-            .let { RustBuffer.ByValue() }
-                // TODO catch errors and report them back to Rust.
-                // https://github.com/mozilla/uniffi-rs/issues/351
-        } finally {
-            RustBuffer.free(args)
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnChange`(kotlinCallbackInterface: VerificationRequestListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
         }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onChange`(
+                FfiConverterTypeVerificationRequestState.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
 
+        return makeCallAndHandleError()
+    }
     
 }
 
