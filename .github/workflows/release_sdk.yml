@@ -1,9 +1,8 @@
 name: Release SDK Library
 
 on:
-  pull_request:
-    types: [opened, reopened]
-    
+  pull_request: {}
+
 #  workflow_dispatch:
 #    inputs:
 #      rust-checkout-ref:
