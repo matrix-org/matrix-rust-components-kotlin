@@ -73,6 +73,8 @@ def get_linkable_ref(directory, ref):
 
 
 def is_provided_version_higher(major: int, minor: int, patch: int, provided_version: str) -> bool:
+    if "SNAPSHOT" in provided_version:
+        return True
     provided_major, provided_minor, provided_patch = map(int, provided_version.split('.'))
     if provided_major > major:
         return True
@@ -99,7 +101,7 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
     with open(file_path, 'r') as file:
         content = file.read()
 
-    new_major, new_minor, new_patch = map(int, new_version.split('.'))
+    new_major, new_minor, new_patch = new_version.split('.')
 
     content = re.sub(r"(majorVersion\s*=\s*)(\d+)", rf"\g<1>{new_major}", content)
     content = re.sub(r"(minorVersion\s*=\s*)(\d+)", rf"\g<1>{new_minor}", content)
