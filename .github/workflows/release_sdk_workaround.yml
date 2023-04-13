@@ -1,0 +1,100 @@
+name: Release SDK Library - Workaround
+
+# This is a copy of `release.py` with a workaround for an issue with x86_64 binaries.
+# https://github.com/bbqsrc/cargo-ndk/issues/94
+
+on:
+  workflow_dispatch:
+    inputs:
+      rust-checkout-ref:
+        description: 'The branch, tag or SHA to checkout on the rust sdk.'
+        required: true
+        default: 'main'
+      sdk-version:
+        description: 'The new version for the sdk library.'
+        required: true
+
+
+jobs:
+  build_native:
+    name: Build and generate sdk aar
+    runs-on: macos-latest
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.job }}
+      cancel-in-progress: true
+
+    steps:
+
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Install android sdk
+        uses: malinskiy/action-android/install-sdk@release/0.1.2
+
+      - name: Install android ndk
+        uses: nttld/setup-ndk@v1
+        id: install-ndk
+        with:
+          ndk-version: r22b
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: 1.67.0
+          targets: x86_64-linux-android,aarch64-linux-android,armv7-linux-androideabi,i686-linux-android
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cargo-ndk
+        continue-on-error: true
+        run: cargo install cargo-ndk --version 2.11.0 --force # needed to use a previous version of cargo-ndk
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install argparse
+          pip install requests
+
+      - name: Run release script
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANDROID_NDK_HOME: ${{ steps.install-ndk.outputs.ndk-path }}
+        run: |
+          python3 ./scripts/release-workaround.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }}
+
+      - name: Archive built versions
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-sdk-aar
+          path: sdk/sdk-android/build/outputs/aar/sdk-android-release.aar
