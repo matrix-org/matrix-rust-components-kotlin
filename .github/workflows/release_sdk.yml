@@ -70,7 +70,7 @@ jobs:
 
       - name: Install cargo-ndk
         continue-on-error: true
-        run: cargo install cargo-ndk --version 2.11.0
+        run: cargo install cargo-ndk --version 2.11.0 --force # needed to use a previous version of cargo-ndk
 
       - name: Set up Python 3
         uses: actions/setup-python@v2
