@@ -41,7 +41,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         id: install-ndk
         with:
-          ndk-version: r23c
+          ndk-version: r22b
 
       - uses: actions/cache@v2
         with:
@@ -70,7 +70,7 @@ jobs:
 
       - name: Install cargo-ndk
         continue-on-error: true
-        run: cargo install cargo-ndk
+        run: cargo install cargo-ndk --version 2.11.0
 
       - name: Set up Python 3
         uses: actions/setup-python@v2
@@ -95,3 +95,9 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.install-ndk.outputs.ndk-path }}
         run: |
           python3 ./scripts/release.py --module SDK --version 0.1.7-SNAPSHOT --ref main
+
+      - name: Archive built versions
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-sdk-aar
+          path: sdk/sdk-android/build/outputs/aar/sdk-android-debug.aar
