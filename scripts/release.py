@@ -257,9 +257,9 @@ with TemporaryDirectory() as sdk_path:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
     linkable_ref = get_linkable_ref(sdk_path, args.ref)
     # Call the build script in debug mode first to workaround a bug in cargo-ndk
-    execute_build_script(current_dir, sdk_path, args.module, false)
+    execute_build_script(current_dir, sdk_path, args.module, False)
     # Then use the proper release mode one
-    execute_build_script(current_dir, sdk_path, args.module, true)
+    execute_build_script(current_dir, sdk_path, args.module, True)
 
 # override_version_in_build_version_file(build_version_file_path, args.version)
 #

@@ -96,4 +96,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: rust-sdk-aar
-          path: sdk/sdk-android/build/outputs/aar/sdk-android-debug.aar
+          path: sdk/sdk-android/build/outputs/aar/sdk-android-release.aar
