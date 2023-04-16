@@ -79,6 +79,14 @@ jobs:
           pip install argparse
           pip install requests
 
+      - name: Create out dirs
+        continue-on-error: true
+        run: |
+          mkdir -p sdk/sdk-android/src/main/jniLibs/arm64-v8a
+          mkdir -p sdk/sdk-android/src/main/jniLibs/armeabi-v7a
+          mkdir -p sdk/sdk-android/src/main/jniLibs/x86
+          mkdir -p sdk/sdk-android/src/main/jniLibs/x86_64
+
       - name: Run release script
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
