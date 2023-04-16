@@ -86,11 +86,14 @@ def is_provided_version_higher(major: int, minor: int, patch: int, provided_vers
     return False
 
 
-def execute_build_script(script_directory: str, sdk_path: str, module: Module):
+def execute_build_script(script_directory: str, sdk_path: str, module: Module, release: bool):
     print("Execute build script...")
     build_script_path = os.path.join(script_directory, "build.sh")
+    command = ["/bin/bash", build_script_path, "-p", sdk_path, "-m", module.name.lower()]
+    if release:
+        command.append("-r")
     subprocess.run(
-        ["/bin/bash", build_script_path, "-p", sdk_path, "-m", module.name.lower(), "-r"],
+        command,
         check=True,
         text=True
     )
@@ -253,7 +256,10 @@ else:
 with TemporaryDirectory() as sdk_path:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
     linkable_ref = get_linkable_ref(sdk_path, args.ref)
-    execute_build_script(current_dir, sdk_path, args.module)
+    # Call the build script in debug mode first to workaround a bug in cargo-ndk
+    execute_build_script(current_dir, sdk_path, args.module, false)
+    # Then use the proper release mode one
+    execute_build_script(current_dir, sdk_path, args.module, true)
 
 # override_version_in_build_version_file(build_version_file_path, args.version)
 #
