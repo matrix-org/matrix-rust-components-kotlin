@@ -57,7 +57,7 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           toolchain: 1.67.0
-          targets: x86_64-linux-android, aarch64-linux-android, armv7-linux-androideabi, i686-linux-android
+          targets: x86_64-linux-android,aarch64-linux-android,armv7-linux-androideabi,i686-linux-android
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
@@ -98,7 +98,7 @@ jobs:
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANDROID_NDK_HOME: ${{ steps.install-ndk.outputs.ndk-path }}
         run: |
-          python3 ./scripts/release.py --module SDK --version 0.1.7-SNAPSHOT --ref main
+          python3 ./scripts/release.py --module SDK --version 0.1.8 --ref main
 
       - name: Archive built versions
         uses: actions/upload-artifact@v3
