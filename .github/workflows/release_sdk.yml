@@ -55,18 +55,14 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: 1.67.0
+          targets: x86_64-linux-android, aarch64-linux-android, armv7-linux-androideabi, i686-linux-android
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Add Rust targets
-        run: |
-          rustup target add x86_64-linux-android
-          rustup target add aarch64-linux-android
-          rustup target add armv7-linux-androideabi
-          rustup target add i686-linux-android
 
       - name: Install cargo-ndk
         continue-on-error: true
