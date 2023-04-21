@@ -46,7 +46,7 @@ open class RustBuffer : Structure() {
 
     companion object {
         internal fun alloc(size: Int = 0) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_rustbuffer_alloc(size, status).also {
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(size, status).also {
                 if(it.data == null) {
                    throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
                }
@@ -54,7 +54,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_rustbuffer_free(buf, status)
+            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_free(buf, status)
         }
     }
 
@@ -274,422 +274,899 @@ internal interface _UniFFILib : Library {
         internal val INSTANCE: _UniFFILib by lazy {
             loadIndirect<_UniFFILib>(componentName = "matrix_sdk_crypto_ffi")
             .also { lib: _UniFFILib ->
+                uniffiCheckContractApiVersion(lib)
+                uniffiCheckApiChecksums(lib)
                 FfiConverterTypeLogger.register(lib)
                 FfiConverterTypeProgressListener.register(lib)
                 FfiConverterTypeQrCodeListener.register(lib)
                 FfiConverterTypeSasListener.register(lib)
                 FfiConverterTypeVerificationRequestListener.register(lib)
                 }
-            
         }
     }
 
     
-    fun ffi_matrix_sdk_crypto_ffi_f611_Sas_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_sas(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_Sas_other_user_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_other_device_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_flow_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_room_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_we_started(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_Sas_is_done(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_Sas_accept(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_confirm(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_get_emoji_indices(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_get_decimals(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Sas_set_changes_listener(`ptr`: Pointer,`listener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_Sas_state(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_QrCode_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_QrCode_other_user_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_other_device_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_flow_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_room_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_we_started(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_QrCode_is_done(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_QrCode_is_cancelled(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_QrCode_cancel_info(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_reciprocated(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_QrCode_has_been_scanned(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_QrCode_confirm(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_generate_qr_code(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_QrCode_set_changes_listener(`ptr`: Pointer,`listener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_QrCode_state(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_VerificationRequest_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_other_user_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_other_device_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_flow_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_room_id(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_we_started(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_is_ready(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_is_done(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_is_passive(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_is_cancelled(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_cancel_info(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_their_supported_methods(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_our_supported_methods(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_accept(`ptr`: Pointer,`methods`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(`ptr`: Pointer,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_start_sas_verification(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_start_qr_verification(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_scan_qr_code(`ptr`: Pointer,`data`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(`ptr`: Pointer,`data`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_cancel(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_set_changes_listener(`ptr`: Pointer,`listener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_VerificationRequest_state(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_Verification_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_Verification_as_qr(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_Verification_as_sas(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_OlmMachine_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_new(`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_new(`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_outgoing_requests(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_mark_request_as_sent(`ptr`: Pointer,`requestId`: RustBuffer.ByValue,`requestType`: RustBuffer.ByValue,`response`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(`ptr`: Pointer,`requestId`: RustBuffer.ByValue,`requestType`: RustBuffer.ByValue,`response`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_get_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_verify_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_get_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_set_local_trust(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`trustState`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`trustState`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_verify_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_get_user_devices(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_import_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_import_decrypted_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`progressListener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_is_identity_verified(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_sign(`ptr`: Pointer,`message`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(`ptr`: Pointer,`message`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun matrix_sdk_crypto_ffi_f611_OlmMachine_verify_backup(`ptr`: Pointer,`authData`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(`ptr`: Pointer,`authData`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_backup_enabled_18b9(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_backup_room_keys_e0d8(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_bootstrap_cross_signing_379(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_cross_signing_status_e4ae(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_decrypt_room_event_4f4f(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`handleVerificationEvents`: Byte,`strictShields`: Byte,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`handleVerificationEvents`: Byte,`strictShields`: Byte,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_device_id_efde(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_disable_backup_ac9f(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_discard_room_key_ac56(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_enable_backup_v1_a0a2(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_encrypt_63b1(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_export_cross_signing_keys_47bf(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_export_room_keys_937c(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,`rounds`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,`rounds`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_backup_keys_d873(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_missing_sessions_e0ed(`ptr`: Pointer,`users`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(`ptr`: Pointer,`users`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_only_allow_trusted_devices_4c8(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_room_settings_2ef3(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_verification_18fa(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_verification_request_a81d(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_verification_requests_9571(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_identity_keys_705c(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_import_cross_signing_keys_7223(`ptr`: Pointer,`export`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(`ptr`: Pointer,`export`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_is_user_tracked_fa20(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_receive_sync_changes_a0bf(`ptr`: Pointer,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(`ptr`: Pointer,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_receive_unencrypted_verification_event_1ccd(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_receive_verification_event_8215(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_room_key_85db(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_self_verification_8b29(`ptr`: Pointer,`methods`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(`ptr`: Pointer,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_verification_32bd(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_verification_with_device_11bb(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_room_key_counts_de1b(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_save_recovery_key_c6c9(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_set_only_allow_trusted_devices_279e(`ptr`: Pointer,`onlyAllowTrustedDevices`: Byte,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(`ptr`: Pointer,`onlyAllowTrustedDevices`: Byte,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_set_room_algorithm_6f69(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`algorithm`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`algorithm`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_set_room_only_allow_trusted_devices_adfe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`onlyAllowTrustedDevices`: Byte,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`onlyAllowTrustedDevices`: Byte,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_share_room_key_11c0(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`users`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`users`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_start_sas_with_device_1aae(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_update_tracked_users_408f(`ptr`: Pointer,`users`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(`ptr`: Pointer,`users`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_user_id_4573(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_verification_request_content_7099(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_object_free(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_new(
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_new(_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_from_passphrase(`passphrase`: RustBuffer.ByValue,`salt`: RustBuffer.ByValue,`rounds`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_from_passphrase(`passphrase`: RustBuffer.ByValue,`salt`: RustBuffer.ByValue,`rounds`: Int,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_new_from_passphrase(`passphrase`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_new_from_passphrase(`passphrase`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_from_base64(`key`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_from_base64(`key`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_from_base58(`key`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_from_base58(`key`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_decrypt_v1_9754(`ptr`: Pointer,`ephemeralKey`: RustBuffer.ByValue,`mac`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(`ptr`: Pointer,`ephemeralKey`: RustBuffer.ByValue,`mac`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_megolm_v1_public_key_1d77(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_to_base58_3fbd(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_to_base64_8861(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_object_free_BackupKeys_7ad1(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_BackupKeys_backup_version_6a86(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_impl_BackupKeys_recovery_key_2567(`ptr`: Pointer,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun ffi_matrix_sdk_crypto_ffi_f611_Logger_init_callback(`callbackStub`: ForeignCallback,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_logger(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_f611_ProgressListener_init_callback(`callbackStub`: ForeignCallback,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_progresslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_f611_SasListener_init_callback(`callbackStub`: ForeignCallback,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_saslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_f611_QrCodeListener_init_callback(`callbackStub`: ForeignCallback,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_qrcodelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_f611_VerificationRequestListener_init_callback(`callbackStub`: ForeignCallback,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_verificationrequestlistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_set_logger(`logger`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(`logger`: Long,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_migrate(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_migrate_sessions(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun matrix_sdk_crypto_ffi_f611_migrate_room_settings(`roomSettings`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(`roomSettings`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun _uniffi_matrix_sdk_crypto_ffi_version_364(
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun _uniffi_matrix_sdk_crypto_ffi_vodozemac_version_48d4(
-    _uniffi_out_err: RustCallStatus
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_rustbuffer_alloc(`size`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_f611_rustbuffer_free(`buf`: RustBuffer.ByValue,
-    _uniffi_out_err: RustCallStatus
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_f611_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,
-    _uniffi_out_err: RustCallStatus
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_crypto_ffi_uniffi_contract_version(
+    ): Int
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_version(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_new(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_new(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_from_passphrase(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_new_from_passphrase(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_from_base64(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_from_base58(
+    ): Short
+}
+
+private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
+    // Get the bindings contract version from our ComponentInterface
+    val bindings_contract_version = 22
+    // Get the scaffolding contract version by calling the into the dylib
+    val scaffolding_contract_version = lib.ffi_matrix_sdk_crypto_ffi_uniffi_contract_version()
+    if (bindings_contract_version != scaffolding_contract_version) {
+        throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
+    }
+}
+
+@Suppress("UNUSED_PARAMETER")
+private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger() != 57341.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate() != 26346.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions() != 3652.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings() != 25488.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_version() != 3558.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version() != 57553.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id() != 42780.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id() != 40485.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id() != 61313.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id() != 19959.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started() != 22758.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done() != 28953.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept() != 32033.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm() != 52174.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel() != 13455.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices() != 32944.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals() != 26845.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 18547.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state() != 61636.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id() != 18732.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id() != 16237.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id() != 5962.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id() != 45209.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started() != 2290.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done() != 5435.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled() != 41071.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info() != 65112.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated() != 41443.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned() != 13179.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm() != 26395.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel() != 25875.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code() != 46137.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener() != 23508.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state() != 61749.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id() != 29467.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id() != 32081.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id() != 19402.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id() != 4441.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started() != 65470.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready() != 40362.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done() != 32110.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive() != 51621.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled() != 59012.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info() != 58594.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods() != 46215.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods() != 53078.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept() != 16538.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification() != 2310.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification() != 49271.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code() != 45119.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel() != 63396.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener() != 3080.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state() != 60776.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr() != 15430.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas() != 60267.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests() != 49262.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent() != 26664.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity() != 32528.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity() != 64990.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device() != 59062.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust() != 61542.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device() != 16908.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices() != 58540.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys() != 27363.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys() != 53977.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified() != 38284.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign() != 660.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup() != 24922.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled() != 56538.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys() != 11187.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing() != 47345.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status() != 2958.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event() != 43891.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id() != 42401.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup() != 35592.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key() != 14835.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1() != 58841.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt() != 23117.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys() != 8177.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 27982.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 34494.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions() != 26952.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices() != 40381.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings() != 10641.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification() != 23265.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request() != 7249.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests() != 15962.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys() != 51817.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys() != 60649.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked() != 15095.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes() != 63744.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event() != 38804.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event() != 40521.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key() != 35094.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification() != 25740.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification() != 188.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device() != 15697.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts() != 20421.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key() != 59811.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices() != 27276.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm() != 39035.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices() != 16989.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key() != 35505.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device() != 49975.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users() != 60393.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id() != 22260.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content() != 26831.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1() != 40429.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key() != 18186.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58() != 12924.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64() != 20586.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version() != 20065.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key() != 15348.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_new() != 14932.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_new() != 3154.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_from_passphrase() != 27299.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_new_from_passphrase() != 5358.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_from_base64() != 59102.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_from_base58() != 3846.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
 }
 
 // Public interface members begin here.
@@ -1044,14 +1521,14 @@ class BackupKeys(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_object_free_BackupKeys_7ad1(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(this.pointer, status)
         }
     }
 
     override fun `backupVersion`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_BackupKeys_backup_version_6a86(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1060,7 +1537,7 @@ class BackupKeys(
     override fun `recoveryKey`(): BackupRecoveryKey =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_BackupKeys_recovery_key_2567(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(it,  _status)
 }
         }.let {
             FfiConverterTypeBackupRecoveryKey.lift(it)
@@ -1110,7 +1587,7 @@ class BackupRecoveryKey(
     constructor() :
         this(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_new( _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_new( _status)
 })
 
     /**
@@ -1123,7 +1600,7 @@ class BackupRecoveryKey(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(this.pointer, status)
         }
     }
 
@@ -1131,7 +1608,7 @@ class BackupRecoveryKey(
         @Throws(PkDecryptionException::class)override fun `decryptV1`(`ephemeralKey`: String, `mac`: String, `ciphertext`: String): String =
         callWithPointer {
     rustCallWithError(PkDecryptionException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_decrypt_v1_9754(it, FfiConverterString.lower(`ephemeralKey`), FfiConverterString.lower(`mac`), FfiConverterString.lower(`ciphertext`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(it, FfiConverterString.lower(`ephemeralKey`), FfiConverterString.lower(`mac`), FfiConverterString.lower(`ciphertext`),  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1140,7 +1617,7 @@ class BackupRecoveryKey(
     override fun `megolmV1PublicKey`(): MegolmV1BackupKey =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_megolm_v1_public_key_1d77(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(it,  _status)
 }
         }.let {
             FfiConverterTypeMegolmV1BackupKey.lift(it)
@@ -1149,7 +1626,7 @@ class BackupRecoveryKey(
     override fun `toBase58`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_to_base58_3fbd(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1158,7 +1635,7 @@ class BackupRecoveryKey(
     override fun `toBase64`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_BackupRecoveryKey_to_base64_8861(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1170,22 +1647,22 @@ class BackupRecoveryKey(
         fun `fromPassphrase`(`passphrase`: String, `salt`: String, `rounds`: Int): BackupRecoveryKey =
             BackupRecoveryKey(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_from_passphrase(FfiConverterString.lower(`passphrase`), FfiConverterString.lower(`salt`), FfiConverterInt.lower(`rounds`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_from_passphrase(FfiConverterString.lower(`passphrase`), FfiConverterString.lower(`salt`), FfiConverterInt.lower(`rounds`), _status)
 })
         fun `newFromPassphrase`(`passphrase`: String): BackupRecoveryKey =
             BackupRecoveryKey(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_new_from_passphrase(FfiConverterString.lower(`passphrase`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_new_from_passphrase(FfiConverterString.lower(`passphrase`), _status)
 })
         fun `fromBase64`(`key`: String): BackupRecoveryKey =
             BackupRecoveryKey(
     rustCallWithError(DecodeException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_from_base64(FfiConverterString.lower(`key`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_from_base64(FfiConverterString.lower(`key`), _status)
 })
         fun `fromBase58`(`key`: String): BackupRecoveryKey =
             BackupRecoveryKey(
     rustCallWithError(DecodeException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_BackupRecoveryKey_from_base58(FfiConverterString.lower(`key`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_from_base58(FfiConverterString.lower(`key`), _status)
 })
         
     }
@@ -1279,7 +1756,7 @@ class OlmMachine(
     constructor(`userId`: String, `deviceId`: String, `path`: String, `passphrase`: String?) :
         this(
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_new(FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_new(FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), _status)
 })
 
     /**
@@ -1292,7 +1769,7 @@ class OlmMachine(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_OlmMachine_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(this.pointer, status)
         }
     }
 
@@ -1300,7 +1777,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `outgoingRequests`(): List<Request> =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_outgoing_requests(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(it,  _status)
 }
         }.let {
             FfiConverterSequenceTypeRequest.lift(it)
@@ -1310,7 +1787,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `markRequestAsSent`(`requestId`: String, `requestType`: RequestType, `response`: String) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_mark_request_as_sent(it, FfiConverterString.lower(`requestId`), FfiConverterTypeRequestType.lower(`requestType`), FfiConverterString.lower(`response`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(it, FfiConverterString.lower(`requestId`), FfiConverterTypeRequestType.lower(`requestType`), FfiConverterString.lower(`response`),  _status)
 }
         }
     
@@ -1319,7 +1796,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getIdentity`(`userId`: String, `timeout`: UInt): UserIdentity? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_get_identity(it, FfiConverterString.lower(`userId`), FfiConverterUInt.lower(`timeout`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(it, FfiConverterString.lower(`userId`), FfiConverterUInt.lower(`timeout`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeUserIdentity.lift(it)
@@ -1329,7 +1806,7 @@ class OlmMachine(
         @Throws(SignatureException::class)override fun `verifyIdentity`(`userId`: String): SignatureUploadRequest =
         callWithPointer {
     rustCallWithError(SignatureException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_verify_identity(it, FfiConverterString.lower(`userId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(it, FfiConverterString.lower(`userId`),  _status)
 }
         }.let {
             FfiConverterTypeSignatureUploadRequest.lift(it)
@@ -1339,7 +1816,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getDevice`(`userId`: String, `deviceId`: String, `timeout`: UInt): Device? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_get_device(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterUInt.lower(`timeout`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterUInt.lower(`timeout`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeDevice.lift(it)
@@ -1349,7 +1826,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `setLocalTrust`(`userId`: String, `deviceId`: String, `trustState`: LocalTrust) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_set_local_trust(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterTypeLocalTrust.lower(`trustState`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterTypeLocalTrust.lower(`trustState`),  _status)
 }
         }
     
@@ -1358,7 +1835,7 @@ class OlmMachine(
         @Throws(SignatureException::class)override fun `verifyDevice`(`userId`: String, `deviceId`: String): SignatureUploadRequest =
         callWithPointer {
     rustCallWithError(SignatureException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_verify_device(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`),  _status)
 }
         }.let {
             FfiConverterTypeSignatureUploadRequest.lift(it)
@@ -1368,7 +1845,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getUserDevices`(`userId`: String, `timeout`: UInt): List<Device> =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_get_user_devices(it, FfiConverterString.lower(`userId`), FfiConverterUInt.lower(`timeout`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(it, FfiConverterString.lower(`userId`), FfiConverterUInt.lower(`timeout`),  _status)
 }
         }.let {
             FfiConverterSequenceTypeDevice.lift(it)
@@ -1378,7 +1855,7 @@ class OlmMachine(
         @Throws(KeyImportException::class)override fun `importRoomKeys`(`keys`: String, `passphrase`: String, `progressListener`: ProgressListener): KeysImportResult =
         callWithPointer {
     rustCallWithError(KeyImportException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_import_room_keys(it, FfiConverterString.lower(`keys`), FfiConverterString.lower(`passphrase`), FfiConverterTypeProgressListener.lower(`progressListener`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(it, FfiConverterString.lower(`keys`), FfiConverterString.lower(`passphrase`), FfiConverterTypeProgressListener.lower(`progressListener`),  _status)
 }
         }.let {
             FfiConverterTypeKeysImportResult.lift(it)
@@ -1388,7 +1865,7 @@ class OlmMachine(
         @Throws(KeyImportException::class)override fun `importDecryptedRoomKeys`(`keys`: String, `progressListener`: ProgressListener): KeysImportResult =
         callWithPointer {
     rustCallWithError(KeyImportException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_import_decrypted_room_keys(it, FfiConverterString.lower(`keys`), FfiConverterTypeProgressListener.lower(`progressListener`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(it, FfiConverterString.lower(`keys`), FfiConverterTypeProgressListener.lower(`progressListener`),  _status)
 }
         }.let {
             FfiConverterTypeKeysImportResult.lift(it)
@@ -1398,7 +1875,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `isIdentityVerified`(`userId`: String): Boolean =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_is_identity_verified(it, FfiConverterString.lower(`userId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(it, FfiConverterString.lower(`userId`),  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1407,7 +1884,7 @@ class OlmMachine(
     override fun `sign`(`message`: String): Map<String, Map<String, String>> =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_sign(it, FfiConverterString.lower(`message`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(it, FfiConverterString.lower(`message`),  _status)
 }
         }.let {
             FfiConverterMapStringMapStringString.lift(it)
@@ -1417,7 +1894,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `verifyBackup`(`authData`: String): SignatureVerification =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_OlmMachine_verify_backup(it, FfiConverterString.lower(`authData`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(it, FfiConverterString.lower(`authData`),  _status)
 }
         }.let {
             FfiConverterTypeSignatureVerification.lift(it)
@@ -1426,7 +1903,7 @@ class OlmMachine(
     override fun `backupEnabled`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_backup_enabled_18b9(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1436,7 +1913,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `backupRoomKeys`(): Request? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_backup_room_keys_e0d8(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeRequest.lift(it)
@@ -1446,7 +1923,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `bootstrapCrossSigning`(): BootstrapCrossSigningResult =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_bootstrap_cross_signing_379(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(it,  _status)
 }
         }.let {
             FfiConverterTypeBootstrapCrossSigningResult.lift(it)
@@ -1455,7 +1932,7 @@ class OlmMachine(
     override fun `crossSigningStatus`(): CrossSigningStatus =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_cross_signing_status_e4ae(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(it,  _status)
 }
         }.let {
             FfiConverterTypeCrossSigningStatus.lift(it)
@@ -1465,7 +1942,7 @@ class OlmMachine(
         @Throws(DecryptionException::class)override fun `decryptRoomEvent`(`event`: String, `roomId`: String, `handleVerificationEvents`: Boolean, `strictShields`: Boolean): DecryptedEvent =
         callWithPointer {
     rustCallWithError(DecryptionException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_decrypt_room_event_4f4f(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`), FfiConverterBoolean.lower(`handleVerificationEvents`), FfiConverterBoolean.lower(`strictShields`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`), FfiConverterBoolean.lower(`handleVerificationEvents`), FfiConverterBoolean.lower(`strictShields`),  _status)
 }
         }.let {
             FfiConverterTypeDecryptedEvent.lift(it)
@@ -1474,7 +1951,7 @@ class OlmMachine(
     override fun `deviceId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_device_id_efde(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1484,7 +1961,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `disableBackup`() =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_disable_backup_ac9f(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(it,  _status)
 }
         }
     
@@ -1493,7 +1970,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `discardRoomKey`(`roomId`: String) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_discard_room_key_ac56(it, FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(it, FfiConverterString.lower(`roomId`),  _status)
 }
         }
     
@@ -1502,7 +1979,7 @@ class OlmMachine(
         @Throws(DecodeException::class)override fun `enableBackupV1`(`key`: MegolmV1BackupKey, `version`: String) =
         callWithPointer {
     rustCallWithError(DecodeException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_enable_backup_v1_a0a2(it, FfiConverterTypeMegolmV1BackupKey.lower(`key`), FfiConverterString.lower(`version`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(it, FfiConverterTypeMegolmV1BackupKey.lower(`key`), FfiConverterString.lower(`version`),  _status)
 }
         }
     
@@ -1511,7 +1988,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `encrypt`(`roomId`: String, `eventType`: String, `content`: String): String =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_encrypt_63b1(it, FfiConverterString.lower(`roomId`), FfiConverterString.lower(`eventType`), FfiConverterString.lower(`content`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(it, FfiConverterString.lower(`roomId`), FfiConverterString.lower(`eventType`), FfiConverterString.lower(`content`),  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1520,7 +1997,7 @@ class OlmMachine(
     override fun `exportCrossSigningKeys`(): CrossSigningKeyExport? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_export_cross_signing_keys_47bf(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeCrossSigningKeyExport.lift(it)
@@ -1530,7 +2007,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `exportRoomKeys`(`passphrase`: String, `rounds`: Int): String =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_export_room_keys_937c(it, FfiConverterString.lower(`passphrase`), FfiConverterInt.lower(`rounds`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(it, FfiConverterString.lower(`passphrase`), FfiConverterInt.lower(`rounds`),  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1540,7 +2017,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getBackupKeys`(): BackupKeys? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_backup_keys_d873(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeBackupKeys.lift(it)
@@ -1550,7 +2027,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getMissingSessions`(`users`: List<String>): Request? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_missing_sessions_e0ed(it, FfiConverterSequenceString.lower(`users`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(it, FfiConverterSequenceString.lower(`users`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeRequest.lift(it)
@@ -1560,7 +2037,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getOnlyAllowTrustedDevices`(): Boolean =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_only_allow_trusted_devices_4c8(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1570,7 +2047,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `getRoomSettings`(`roomId`: String): RoomSettings? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_room_settings_2ef3(it, FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(it, FfiConverterString.lower(`roomId`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeRoomSettings.lift(it)
@@ -1579,7 +2056,7 @@ class OlmMachine(
     override fun `getVerification`(`userId`: String, `flowId`: String): Verification? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_verification_18fa(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`flowId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`flowId`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeVerification.lift(it)
@@ -1588,7 +2065,7 @@ class OlmMachine(
     override fun `getVerificationRequest`(`userId`: String, `flowId`: String): VerificationRequest? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_verification_request_a81d(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`flowId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`flowId`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeVerificationRequest.lift(it)
@@ -1597,7 +2074,7 @@ class OlmMachine(
     override fun `getVerificationRequests`(`userId`: String): List<VerificationRequest> =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_get_verification_requests_9571(it, FfiConverterString.lower(`userId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(it, FfiConverterString.lower(`userId`),  _status)
 }
         }.let {
             FfiConverterSequenceTypeVerificationRequest.lift(it)
@@ -1606,7 +2083,7 @@ class OlmMachine(
     override fun `identityKeys`(): Map<String, String> =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_identity_keys_705c(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(it,  _status)
 }
         }.let {
             FfiConverterMapStringString.lift(it)
@@ -1616,7 +2093,7 @@ class OlmMachine(
         @Throws(SecretImportException::class)override fun `importCrossSigningKeys`(`export`: CrossSigningKeyExport) =
         callWithPointer {
     rustCallWithError(SecretImportException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_import_cross_signing_keys_7223(it, FfiConverterTypeCrossSigningKeyExport.lower(`export`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(it, FfiConverterTypeCrossSigningKeyExport.lower(`export`),  _status)
 }
         }
     
@@ -1625,7 +2102,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `isUserTracked`(`userId`: String): Boolean =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_is_user_tracked_fa20(it, FfiConverterString.lower(`userId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(it, FfiConverterString.lower(`userId`),  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1635,7 +2112,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `receiveSyncChanges`(`events`: String, `deviceChanges`: DeviceLists, `keyCounts`: Map<String, Int>, `unusedFallbackKeys`: List<String>?): String =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_receive_sync_changes_a0bf(it, FfiConverterString.lower(`events`), FfiConverterTypeDeviceLists.lower(`deviceChanges`), FfiConverterMapStringInt.lower(`keyCounts`), FfiConverterOptionalSequenceString.lower(`unusedFallbackKeys`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(it, FfiConverterString.lower(`events`), FfiConverterTypeDeviceLists.lower(`deviceChanges`), FfiConverterMapStringInt.lower(`keyCounts`), FfiConverterOptionalSequenceString.lower(`unusedFallbackKeys`),  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1645,7 +2122,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `receiveUnencryptedVerificationEvent`(`event`: String, `roomId`: String) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_receive_unencrypted_verification_event_1ccd(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`),  _status)
 }
         }
     
@@ -1654,7 +2131,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `receiveVerificationEvent`(`event`: String, `roomId`: String) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_receive_verification_event_8215(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`),  _status)
 }
         }
     
@@ -1663,7 +2140,7 @@ class OlmMachine(
         @Throws(DecryptionException::class)override fun `requestRoomKey`(`event`: String, `roomId`: String): KeyRequestPair =
         callWithPointer {
     rustCallWithError(DecryptionException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_room_key_85db(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(it, FfiConverterString.lower(`event`), FfiConverterString.lower(`roomId`),  _status)
 }
         }.let {
             FfiConverterTypeKeyRequestPair.lift(it)
@@ -1673,7 +2150,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `requestSelfVerification`(`methods`: List<String>): RequestVerificationResult? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_self_verification_8b29(it, FfiConverterSequenceString.lower(`methods`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(it, FfiConverterSequenceString.lower(`methods`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeRequestVerificationResult.lift(it)
@@ -1683,7 +2160,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `requestVerification`(`userId`: String, `roomId`: String, `eventId`: String, `methods`: List<String>): VerificationRequest? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_verification_32bd(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`roomId`), FfiConverterString.lower(`eventId`), FfiConverterSequenceString.lower(`methods`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`roomId`), FfiConverterString.lower(`eventId`), FfiConverterSequenceString.lower(`methods`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeVerificationRequest.lift(it)
@@ -1693,7 +2170,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `requestVerificationWithDevice`(`userId`: String, `deviceId`: String, `methods`: List<String>): RequestVerificationResult? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_request_verification_with_device_11bb(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterSequenceString.lower(`methods`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`), FfiConverterSequenceString.lower(`methods`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeRequestVerificationResult.lift(it)
@@ -1703,7 +2180,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `roomKeyCounts`(): RoomKeyCounts =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_room_key_counts_de1b(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(it,  _status)
 }
         }.let {
             FfiConverterTypeRoomKeyCounts.lift(it)
@@ -1713,7 +2190,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `saveRecoveryKey`(`key`: BackupRecoveryKey?, `version`: String?) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_save_recovery_key_c6c9(it, FfiConverterOptionalTypeBackupRecoveryKey.lower(`key`), FfiConverterOptionalString.lower(`version`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(it, FfiConverterOptionalTypeBackupRecoveryKey.lower(`key`), FfiConverterOptionalString.lower(`version`),  _status)
 }
         }
     
@@ -1722,7 +2199,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `setOnlyAllowTrustedDevices`(`onlyAllowTrustedDevices`: Boolean) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_set_only_allow_trusted_devices_279e(it, FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(it, FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),  _status)
 }
         }
     
@@ -1731,7 +2208,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `setRoomAlgorithm`(`roomId`: String, `algorithm`: EventEncryptionAlgorithm) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_set_room_algorithm_6f69(it, FfiConverterString.lower(`roomId`), FfiConverterTypeEventEncryptionAlgorithm.lower(`algorithm`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(it, FfiConverterString.lower(`roomId`), FfiConverterTypeEventEncryptionAlgorithm.lower(`algorithm`),  _status)
 }
         }
     
@@ -1740,7 +2217,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `setRoomOnlyAllowTrustedDevices`(`roomId`: String, `onlyAllowTrustedDevices`: Boolean) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_set_room_only_allow_trusted_devices_adfe(it, FfiConverterString.lower(`roomId`), FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(it, FfiConverterString.lower(`roomId`), FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),  _status)
 }
         }
     
@@ -1749,7 +2226,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `shareRoomKey`(`roomId`: String, `users`: List<String>, `settings`: EncryptionSettings): List<Request> =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_share_room_key_11c0(it, FfiConverterString.lower(`roomId`), FfiConverterSequenceString.lower(`users`), FfiConverterTypeEncryptionSettings.lower(`settings`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(it, FfiConverterString.lower(`roomId`), FfiConverterSequenceString.lower(`users`), FfiConverterTypeEncryptionSettings.lower(`settings`),  _status)
 }
         }.let {
             FfiConverterSequenceTypeRequest.lift(it)
@@ -1759,7 +2236,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `startSasWithDevice`(`userId`: String, `deviceId`: String): StartSasResult? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_start_sas_with_device_1aae(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(it, FfiConverterString.lower(`userId`), FfiConverterString.lower(`deviceId`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeStartSasResult.lift(it)
@@ -1769,7 +2246,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `updateTrackedUsers`(`users`: List<String>) =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_update_tracked_users_408f(it, FfiConverterSequenceString.lower(`users`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(it, FfiConverterSequenceString.lower(`users`),  _status)
 }
         }
     
@@ -1777,7 +2254,7 @@ class OlmMachine(
     override fun `userId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_user_id_4573(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1787,7 +2264,7 @@ class OlmMachine(
         @Throws(CryptoStoreException::class)override fun `verificationRequestContent`(`userId`: String, `methods`: List<String>): String? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_impl_OlmMachine_verification_request_content_7099(it, FfiConverterString.lower(`userId`), FfiConverterSequenceString.lower(`methods`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(it, FfiConverterString.lower(`userId`), FfiConverterSequenceString.lower(`methods`),  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
@@ -1856,14 +2333,14 @@ class QrCode(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_QrCode_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(this.pointer, status)
         }
     }
 
     override fun `otherUserId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_other_user_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1872,7 +2349,7 @@ class QrCode(
     override fun `otherDeviceId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_other_device_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1881,7 +2358,7 @@ class QrCode(
     override fun `flowId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_flow_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -1890,7 +2367,7 @@ class QrCode(
     override fun `roomId`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_room_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
@@ -1899,7 +2376,7 @@ class QrCode(
     override fun `weStarted`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_we_started(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1908,7 +2385,7 @@ class QrCode(
     override fun `isDone`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_is_done(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1917,7 +2394,7 @@ class QrCode(
     override fun `isCancelled`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_is_cancelled(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1926,7 +2403,7 @@ class QrCode(
     override fun `cancelInfo`(): CancelInfo? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_cancel_info(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeCancelInfo.lift(it)
@@ -1935,7 +2412,7 @@ class QrCode(
     override fun `reciprocated`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_reciprocated(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1944,7 +2421,7 @@ class QrCode(
     override fun `hasBeenScanned`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_has_been_scanned(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -1953,7 +2430,7 @@ class QrCode(
     override fun `confirm`(): ConfirmVerificationResult? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_confirm(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeConfirmVerificationResult.lift(it)
@@ -1962,7 +2439,7 @@ class QrCode(
     override fun `cancel`(`cancelCode`: String): OutgoingVerificationRequest? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_cancel(it, FfiConverterString.lower(`cancelCode`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(it, FfiConverterString.lower(`cancelCode`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
@@ -1971,7 +2448,7 @@ class QrCode(
     override fun `generateQrCode`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_generate_qr_code(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
@@ -1980,7 +2457,7 @@ class QrCode(
     override fun `setChangesListener`(`listener`: QrCodeListener) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_set_changes_listener(it, FfiConverterTypeQrCodeListener.lower(`listener`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(it, FfiConverterTypeQrCodeListener.lower(`listener`),  _status)
 }
         }
     
@@ -1988,7 +2465,7 @@ class QrCode(
     override fun `state`(): QrCodeState =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_QrCode_state(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(it,  _status)
 }
         }.let {
             FfiConverterTypeQrCodeState.lift(it)
@@ -2055,14 +2532,14 @@ class Sas(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_Sas_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_sas(this.pointer, status)
         }
     }
 
     override fun `otherUserId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_other_user_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -2071,7 +2548,7 @@ class Sas(
     override fun `otherDeviceId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_other_device_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -2080,7 +2557,7 @@ class Sas(
     override fun `flowId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_flow_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -2089,7 +2566,7 @@ class Sas(
     override fun `roomId`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_room_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
@@ -2098,7 +2575,7 @@ class Sas(
     override fun `weStarted`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_we_started(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2107,7 +2584,7 @@ class Sas(
     override fun `isDone`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_is_done(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2116,7 +2593,7 @@ class Sas(
     override fun `accept`(): OutgoingVerificationRequest? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_accept(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
@@ -2126,7 +2603,7 @@ class Sas(
         @Throws(CryptoStoreException::class)override fun `confirm`(): ConfirmVerificationResult? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_confirm(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeConfirmVerificationResult.lift(it)
@@ -2135,7 +2612,7 @@ class Sas(
     override fun `cancel`(`cancelCode`: String): OutgoingVerificationRequest? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_cancel(it, FfiConverterString.lower(`cancelCode`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(it, FfiConverterString.lower(`cancelCode`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
@@ -2144,7 +2621,7 @@ class Sas(
     override fun `getEmojiIndices`(): List<Int>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_get_emoji_indices(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceInt.lift(it)
@@ -2153,7 +2630,7 @@ class Sas(
     override fun `getDecimals`(): List<Int>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_get_decimals(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceInt.lift(it)
@@ -2162,7 +2639,7 @@ class Sas(
     override fun `setChangesListener`(`listener`: SasListener) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_set_changes_listener(it, FfiConverterTypeSasListener.lower(`listener`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(it, FfiConverterTypeSasListener.lower(`listener`),  _status)
 }
         }
     
@@ -2170,7 +2647,7 @@ class Sas(
     override fun `state`(): SasState =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Sas_state(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(it,  _status)
 }
         }.let {
             FfiConverterTypeSasState.lift(it)
@@ -2226,14 +2703,14 @@ class Verification(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_Verification_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verification(this.pointer, status)
         }
     }
 
     override fun `asQr`(): QrCode? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Verification_as_qr(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeQrCode.lift(it)
@@ -2242,7 +2719,7 @@ class Verification(
     override fun `asSas`(): Sas? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_Verification_as_sas(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeSas.lift(it)
@@ -2315,14 +2792,14 @@ class VerificationRequest(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_f611_VerificationRequest_object_free(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(this.pointer, status)
         }
     }
 
     override fun `otherUserId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_other_user_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -2331,7 +2808,7 @@ class VerificationRequest(
     override fun `otherDeviceId`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_other_device_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
@@ -2340,7 +2817,7 @@ class VerificationRequest(
     override fun `flowId`(): String =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_flow_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(it,  _status)
 }
         }.let {
             FfiConverterString.lift(it)
@@ -2349,7 +2826,7 @@ class VerificationRequest(
     override fun `roomId`(): String? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_room_id(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(it,  _status)
 }
         }.let {
             FfiConverterOptionalString.lift(it)
@@ -2358,7 +2835,7 @@ class VerificationRequest(
     override fun `weStarted`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_we_started(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2367,7 +2844,7 @@ class VerificationRequest(
     override fun `isReady`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_is_ready(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2376,7 +2853,7 @@ class VerificationRequest(
     override fun `isDone`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_is_done(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2385,7 +2862,7 @@ class VerificationRequest(
     override fun `isPassive`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_is_passive(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2394,7 +2871,7 @@ class VerificationRequest(
     override fun `isCancelled`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_is_cancelled(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(it,  _status)
 }
         }.let {
             FfiConverterBoolean.lift(it)
@@ -2403,7 +2880,7 @@ class VerificationRequest(
     override fun `cancelInfo`(): CancelInfo? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_cancel_info(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeCancelInfo.lift(it)
@@ -2412,7 +2889,7 @@ class VerificationRequest(
     override fun `theirSupportedMethods`(): List<String>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_their_supported_methods(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceString.lift(it)
@@ -2421,7 +2898,7 @@ class VerificationRequest(
     override fun `ourSupportedMethods`(): List<String>? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_our_supported_methods(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(it,  _status)
 }
         }.let {
             FfiConverterOptionalSequenceString.lift(it)
@@ -2430,7 +2907,7 @@ class VerificationRequest(
     override fun `accept`(`methods`: List<String>): OutgoingVerificationRequest? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_accept(it, FfiConverterSequenceString.lower(`methods`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(it, FfiConverterSequenceString.lower(`methods`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
@@ -2440,7 +2917,7 @@ class VerificationRequest(
         @Throws(CryptoStoreException::class)override fun `startSasVerification`(): StartSasResult? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_start_sas_verification(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeStartSasResult.lift(it)
@@ -2450,7 +2927,7 @@ class VerificationRequest(
         @Throws(CryptoStoreException::class)override fun `startQrVerification`(): QrCode? =
         callWithPointer {
     rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_start_qr_verification(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeQrCode.lift(it)
@@ -2459,7 +2936,7 @@ class VerificationRequest(
     override fun `scanQrCode`(`data`: String): ScanResult? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_scan_qr_code(it, FfiConverterString.lower(`data`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(it, FfiConverterString.lower(`data`),  _status)
 }
         }.let {
             FfiConverterOptionalTypeScanResult.lift(it)
@@ -2468,7 +2945,7 @@ class VerificationRequest(
     override fun `cancel`(): OutgoingVerificationRequest? =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_cancel(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(it,  _status)
 }
         }.let {
             FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
@@ -2477,7 +2954,7 @@ class VerificationRequest(
     override fun `setChangesListener`(`listener`: VerificationRequestListener) =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_set_changes_listener(it, FfiConverterTypeVerificationRequestListener.lower(`listener`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(it, FfiConverterTypeVerificationRequestListener.lower(`listener`),  _status)
 }
         }
     
@@ -2485,7 +2962,7 @@ class VerificationRequest(
     override fun `state`(): VerificationRequestState =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_VerificationRequest_state(it,  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(it,  _status)
 }
         }.let {
             FfiConverterTypeVerificationRequestState.lift(it)
@@ -4444,59 +4921,135 @@ public object FfiConverterTypeDecodeError : FfiConverterRustBuffer<DecodeExcepti
 
 
 
-sealed class DecryptionException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
-        class Identifier(message: String) : DecryptionException(message)
-        class Serialization(message: String) : DecryptionException(message)
-        class Megolm(message: String) : DecryptionException(message)
-        class MissingRoomKey(message: String) : DecryptionException(message)
-        class Store(message: String) : DecryptionException(message)
-        
+sealed class DecryptionException: Exception() {
+    // Each variant is a nested class
+    
+    class Identifier(
+        val `error`: String
+        ) : DecryptionException() {
+        override val message
+            get() = "error=${ `error` }"
+    }
+    
+    class Serialization(
+        val `error`: String
+        ) : DecryptionException() {
+        override val message
+            get() = "error=${ `error` }"
+    }
+    
+    class Megolm(
+        val `error`: String
+        ) : DecryptionException() {
+        override val message
+            get() = "error=${ `error` }"
+    }
+    
+    class MissingRoomKey(
+        val `error`: String, 
+        val `withheldCode`: String?
+        ) : DecryptionException() {
+        override val message
+            get() = "error=${ `error` }, withheldCode=${ `withheldCode` }"
+    }
+    
+    class Store(
+        val `error`: String
+        ) : DecryptionException() {
+        override val message
+            get() = "error=${ `error` }"
+    }
+    
 
     companion object ErrorHandler : CallStatusErrorHandler<DecryptionException> {
         override fun lift(error_buf: RustBuffer.ByValue): DecryptionException = FfiConverterTypeDecryptionError.lift(error_buf)
     }
+
+    
 }
 
 public object FfiConverterTypeDecryptionError : FfiConverterRustBuffer<DecryptionException> {
     override fun read(buf: ByteBuffer): DecryptionException {
         
-            return when(buf.getInt()) {
-            1 -> DecryptionException.Identifier(FfiConverterString.read(buf))
-            2 -> DecryptionException.Serialization(FfiConverterString.read(buf))
-            3 -> DecryptionException.Megolm(FfiConverterString.read(buf))
-            4 -> DecryptionException.MissingRoomKey(FfiConverterString.read(buf))
-            5 -> DecryptionException.Store(FfiConverterString.read(buf))
+
+        return when(buf.getInt()) {
+            1 -> DecryptionException.Identifier(
+                FfiConverterString.read(buf),
+                )
+            2 -> DecryptionException.Serialization(
+                FfiConverterString.read(buf),
+                )
+            3 -> DecryptionException.Megolm(
+                FfiConverterString.read(buf),
+                )
+            4 -> DecryptionException.MissingRoomKey(
+                FfiConverterString.read(buf),
+                FfiConverterOptionalString.read(buf),
+                )
+            5 -> DecryptionException.Store(
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
-        
     }
 
     override fun allocationSize(value: DecryptionException): Int {
-        return 4
+        return when(value) {
+            is DecryptionException.Identifier -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+            is DecryptionException.Serialization -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+            is DecryptionException.Megolm -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+            is DecryptionException.MissingRoomKey -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`error`)
+                + FfiConverterOptionalString.allocationSize(value.`withheldCode`)
+            )
+            is DecryptionException.Store -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+        }
     }
 
     override fun write(value: DecryptionException, buf: ByteBuffer) {
         when(value) {
             is DecryptionException.Identifier -> {
                 buf.putInt(1)
+                FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is DecryptionException.Serialization -> {
                 buf.putInt(2)
+                FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is DecryptionException.Megolm -> {
                 buf.putInt(3)
+                FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is DecryptionException.MissingRoomKey -> {
                 buf.putInt(4)
+                FfiConverterString.write(value.`error`, buf)
+                FfiConverterOptionalString.write(value.`withheldCode`, buf)
                 Unit
             }
             is DecryptionException.Store -> {
                 buf.putInt(5)
+                FfiConverterString.write(value.`error`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -4919,7 +5472,7 @@ public object FfiConverterTypeLogger: FfiConverterCallbackInterface<Logger>(
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_crypto_ffi_f611_Logger_init_callback(this.foreignCallback, status)
+            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_logger(this.foreignCallback, status)
         }
     }
 }
@@ -5005,7 +5558,7 @@ public object FfiConverterTypeProgressListener: FfiConverterCallbackInterface<Pr
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_crypto_ffi_f611_ProgressListener_init_callback(this.foreignCallback, status)
+            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_progresslistener(this.foreignCallback, status)
         }
     }
 }
@@ -5090,7 +5643,7 @@ public object FfiConverterTypeQrCodeListener: FfiConverterCallbackInterface<QrCo
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_crypto_ffi_f611_QrCodeListener_init_callback(this.foreignCallback, status)
+            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_qrcodelistener(this.foreignCallback, status)
         }
     }
 }
@@ -5175,7 +5728,7 @@ public object FfiConverterTypeSasListener: FfiConverterCallbackInterface<SasList
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_crypto_ffi_f611_SasListener_init_callback(this.foreignCallback, status)
+            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_saslistener(this.foreignCallback, status)
         }
     }
 }
@@ -5260,7 +5813,7 @@ public object FfiConverterTypeVerificationRequestListener: FfiConverterCallbackI
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.ffi_matrix_sdk_crypto_ffi_f611_VerificationRequestListener_init_callback(this.foreignCallback, status)
+            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_verificationrequestlistener(this.foreignCallback, status)
         }
     }
 }
@@ -6383,7 +6936,7 @@ public object FfiConverterMapStringMapStringListString: FfiConverterRustBuffer<M
         fun `setLogger`(`logger`: Logger) =
             
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_set_logger(FfiConverterTypeLogger.lower(`logger`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(FfiConverterTypeLogger.lower(`logger`), _status)
 }
 
     
@@ -6392,7 +6945,7 @@ public object FfiConverterMapStringMapStringListString: FfiConverterRustBuffer<M
         fun `migrate`(`data`: MigrationData, `path`: String, `passphrase`: String?, `progressListener`: ProgressListener) =
             
     rustCallWithError(MigrationException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_migrate(FfiConverterTypeMigrationData.lower(`data`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), FfiConverterTypeProgressListener.lower(`progressListener`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(FfiConverterTypeMigrationData.lower(`data`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), FfiConverterTypeProgressListener.lower(`progressListener`), _status)
 }
 
     
@@ -6401,7 +6954,7 @@ public object FfiConverterMapStringMapStringListString: FfiConverterRustBuffer<M
         fun `migrateSessions`(`data`: SessionMigrationData, `path`: String, `passphrase`: String?, `progressListener`: ProgressListener) =
             
     rustCallWithError(MigrationException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_migrate_sessions(FfiConverterTypeSessionMigrationData.lower(`data`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), FfiConverterTypeProgressListener.lower(`progressListener`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(FfiConverterTypeSessionMigrationData.lower(`data`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), FfiConverterTypeProgressListener.lower(`progressListener`), _status)
 }
 
     
@@ -6410,7 +6963,7 @@ public object FfiConverterMapStringMapStringListString: FfiConverterRustBuffer<M
         fun `migrateRoomSettings`(`roomSettings`: Map<String, RoomSettings>, `path`: String, `passphrase`: String?) =
             
     rustCallWithError(MigrationException) { _status ->
-    _UniFFILib.INSTANCE.matrix_sdk_crypto_ffi_f611_migrate_room_settings(FfiConverterMapStringRoomSettings.lower(`roomSettings`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(FfiConverterMapStringRoomSettings.lower(`roomSettings`), FfiConverterString.lower(`path`), FfiConverterOptionalString.lower(`passphrase`), _status)
 }
 
     
@@ -6418,7 +6971,7 @@ public object FfiConverterMapStringMapStringListString: FfiConverterRustBuffer<M
         fun `version`(): String {
             return FfiConverterString.lift(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_version_364( _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version( _status)
 })
         }
     
@@ -6426,7 +6979,7 @@ public object FfiConverterMapStringMapStringListString: FfiConverterRustBuffer<M
         fun `vodozemacVersion`(): String {
             return FfiConverterString.lift(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE._uniffi_matrix_sdk_crypto_ffi_vodozemac_version_48d4( _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version( _status)
 })
         }
     
