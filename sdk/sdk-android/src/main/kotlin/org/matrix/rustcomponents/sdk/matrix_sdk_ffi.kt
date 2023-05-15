@@ -641,6 +641,8 @@ internal interface _UniFFILib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_members(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -1154,6 +1156,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_member(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_members(
     ): Short
@@ -1793,6 +1797,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 32484.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() != 63311.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_members() != 28201.toShort()) {
@@ -3523,6 +3530,7 @@ public interface RoomInterface {
     fun `isTombstoned`(): Boolean
     fun `joinedMembersCount`(): ULong@Throws(ClientException::class)
     fun `leave`()@Throws(ClientException::class)
+    fun `member`(`userId`: String): RoomMember@Throws(ClientException::class)
     fun `members`(): List<RoomMember>
     fun `membership`(): Membership@Throws(ClientException::class)
     fun `memberAvatarUrl`(`userId`: String): String?@Throws(ClientException::class)
@@ -3765,6 +3773,16 @@ class Room(
 }
         }
     
+    
+    
+        @Throws(ClientException::class)override fun `member`(`userId`: String): RoomMember =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_member(it, FfiConverterString.lower(`userId`),  _status)
+}
+        }.let {
+            FfiConverterTypeRoomMember.lift(it)
+        }
     
     
         @Throws(ClientException::class)override fun `members`(): List<RoomMember> =
