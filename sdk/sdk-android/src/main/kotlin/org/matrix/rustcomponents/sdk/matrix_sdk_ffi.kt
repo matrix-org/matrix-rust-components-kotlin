@@ -445,13 +445,9 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_add_range(`ptr`: Pointer,`from`: Int,`toIncluded`: Int,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_batch_size(`ptr`: Pointer,`batchSize`: Int,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_filters(`ptr`: Pointer,`filters`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_no_filters(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_no_room_limit(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_no_timeline_limit(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -461,11 +457,13 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_reset_ranges(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_room_limit(`ptr`: Pointer,`limit`: Int,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sort(`ptr`: Pointer,`sort`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode(`ptr`: Pointer,`mode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode_growing(`ptr`: Pointer,`batchSize`: Int,`maximumNumberOfRoomsToFetch`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode_paging(`ptr`: Pointer,`batchSize`: Int,`maximumNumberOfRoomsToFetch`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode_selective(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_timeline_limit(`ptr`: Pointer,`limit`: Int,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -685,6 +683,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_video(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_set_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Pointer,`topic`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_topic(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -709,10 +709,12 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_slidingsync(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_add_cached_list(`ptr`: Pointer,`listBuilder`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_add_common_extensions(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_add_list(`ptr`: Pointer,`listBuilder`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_get_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_get_rooms(`ptr`: Pointer,`roomIds`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -721,14 +723,16 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_set_observer(`ptr`: Pointer,`observer`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_subscribe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_subscribe_to_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_sync(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_unsubscribe(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsync_unsubscribe_from_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_slidingsyncbuilder(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_add_cached_list(`ptr`: Pointer,`listBuilder`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_add_list(`ptr`: Pointer,`listBuilder`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_build(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -773,9 +777,11 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_subscribe_and_add_timeline_listener(`ptr`: Pointer,`listener`: Long,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_subscribe_to_room(`ptr`: Pointer,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_unread_notifications(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_unsubscribe_from_room(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_taskhandle(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -979,13 +985,9 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_add_range(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_batch_size(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_filters(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_no_filters(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_no_room_limit(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_no_timeline_limit(
     ): Short
@@ -995,11 +997,13 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_reset_ranges(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_room_limit(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sort(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode(
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode_growing(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode_paging(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode_selective(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_timeline_limit(
     ): Short
@@ -1201,6 +1205,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_video(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_topic(
@@ -1221,6 +1227,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_cached_list(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_common_extensions(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_list(
@@ -1233,11 +1241,13 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_set_observer(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_subscribe(
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_subscribe_to_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_sync(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_unsubscribe(
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsync_unsubscribe_from_room(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_add_cached_list(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_add_list(
     ): Short
@@ -1281,9 +1291,11 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_room_id(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_subscribe_and_add_timeline_listener(
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_subscribe_to_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_unread_notifications(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_unsubscribe_from_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
     ): Short
@@ -1532,16 +1544,10 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_add_range() != 31001.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_batch_size() != 18730.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_filters() != 29583.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_no_filters() != 29534.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_no_room_limit() != 41973.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_no_timeline_limit() != 21616.toShort()) {
@@ -1556,13 +1562,16 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_reset_ranges() != 31691.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_room_limit() != 23246.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sort() != 50198.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode() != 11241.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode_growing() != 16525.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode_paging() != 34951.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_sync_mode_selective() != 48936.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsynclistbuilder_timeline_limit() != 28972.toShort()) {
@@ -1865,6 +1874,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_video() != 33883.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 35415.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() != 9114.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1895,10 +1907,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification() != 22085.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_cached_list() != 57064.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_common_extensions() != 62767.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_list() != 22753.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_add_list() != 41315.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_get_room() != 60249.toShort()) {
@@ -1913,13 +1928,16 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_set_observer() != 53265.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_subscribe() != 52937.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_subscribe_to_room() != 48253.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_sync() != 20224.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_unsubscribe() != 61859.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsync_unsubscribe_from_room() != 58275.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_add_cached_list() != 49932.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_add_list() != 61859.toShort()) {
@@ -1958,7 +1976,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_with_common_extensions() != 65139.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_add_timeline_listener() != 31138.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_add_timeline_listener() != 32754.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_avatar_url() != 47248.toShort()) {
@@ -1985,10 +2003,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_room_id() != 37051.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_subscribe_and_add_timeline_listener() != 30415.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_subscribe_to_room() != 28121.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_unread_notifications() != 44389.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncroom_unsubscribe_from_room() != 47022.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel() != 3024.toShort()) {
@@ -3552,6 +3573,7 @@ public interface RoomInterface {
     fun `sendReadReceipt`(`eventId`: String)@Throws(ClientException::class)
     fun `sendReply`(`msg`: String, `inReplyToEventId`: String, `txnId`: String?)@Throws(RoomException::class)
     fun `sendVideo`(`url`: String, `thumbnailUrl`: String, `videoInfo`: VideoInfo)@Throws(ClientException::class)
+    fun `setName`(`name`: String?)@Throws(ClientException::class)
     fun `setTopic`(`topic`: String)
     fun `topic`(): String?@Throws(ClientException::class)
     fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>)
@@ -3969,6 +3991,15 @@ class Room(
         callWithPointer {
     rustCallWithError(RoomException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_video(it, FfiConverterString.lower(`url`), FfiConverterString.lower(`thumbnailUrl`), FfiConverterTypeVideoInfo.lower(`videoInfo`),  _status)
+}
+        }
+    
+    
+    
+        @Throws(ClientException::class)override fun `setName`(`name`: String?) =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_name(it, FfiConverterOptionalString.lower(`name`),  _status)
 }
         }
     
@@ -4508,16 +4539,17 @@ public object FfiConverterTypeSessionVerificationEmoji: FfiConverter<SessionVeri
 
 
 public interface SlidingSyncInterface {
-    
+    @Throws(ClientException::class)
+    fun `addCachedList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncList?
     fun `addCommonExtensions`()
-    fun `addList`(`listBuilder`: SlidingSyncListBuilder)@Throws(ClientException::class)
+    fun `addList`(`listBuilder`: SlidingSyncListBuilder): TaskHandle@Throws(ClientException::class)
     fun `getRoom`(`roomId`: String): SlidingSyncRoom?@Throws(ClientException::class)
     fun `getRooms`(`roomIds`: List<String>): List<SlidingSyncRoom?>@Throws(SlidingSyncException::class)
     fun `resetLists`()
     fun `setObserver`(`observer`: SlidingSyncObserver?)@Throws(ClientException::class)
-    fun `subscribe`(`roomId`: String, `settings`: RoomSubscription?)
+    fun `subscribeToRoom`(`roomId`: String, `settings`: RoomSubscription?): TaskHandle
     fun `sync`(): TaskHandle@Throws(ClientException::class)
-    fun `unsubscribe`(`roomId`: String)
+    fun `unsubscribeFromRoom`(`roomId`: String): TaskHandle
 }
 
 class SlidingSync(
@@ -4538,6 +4570,16 @@ class SlidingSync(
         }
     }
 
+    
+        @Throws(ClientException::class)override fun `addCachedList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncList? =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsync_add_cached_list(it, FfiConverterTypeSlidingSyncListBuilder.lower(`listBuilder`),  _status)
+}
+        }.let {
+            FfiConverterOptionalTypeSlidingSyncList.lift(it)
+        }
+    
     override fun `addCommonExtensions`() =
         callWithPointer {
     rustCall() { _status ->
@@ -4546,13 +4588,14 @@ class SlidingSync(
         }
     
     
-    override fun `addList`(`listBuilder`: SlidingSyncListBuilder) =
+    override fun `addList`(`listBuilder`: SlidingSyncListBuilder): TaskHandle =
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsync_add_list(it, FfiConverterTypeSlidingSyncListBuilder.lower(`listBuilder`),  _status)
 }
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
         }
-    
     
     
         @Throws(ClientException::class)override fun `getRoom`(`roomId`: String): SlidingSyncRoom? =
@@ -4592,13 +4635,14 @@ class SlidingSync(
     
     
     
-        @Throws(ClientException::class)override fun `subscribe`(`roomId`: String, `settings`: RoomSubscription?) =
+        @Throws(ClientException::class)override fun `subscribeToRoom`(`roomId`: String, `settings`: RoomSubscription?): TaskHandle =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsync_subscribe(it, FfiConverterString.lower(`roomId`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsync_subscribe_to_room(it, FfiConverterString.lower(`roomId`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
 }
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
         }
-    
     
     override fun `sync`(): TaskHandle =
         callWithPointer {
@@ -4610,13 +4654,14 @@ class SlidingSync(
         }
     
     
-        @Throws(ClientException::class)override fun `unsubscribe`(`roomId`: String) =
+        @Throws(ClientException::class)override fun `unsubscribeFromRoom`(`roomId`: String): TaskHandle =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsync_unsubscribe(it, FfiConverterString.lower(`roomId`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsync_unsubscribe_from_room(it, FfiConverterString.lower(`roomId`),  _status)
 }
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
         }
-    
     
     
 
@@ -4649,7 +4694,8 @@ public object FfiConverterTypeSlidingSync: FfiConverter<SlidingSync, Pointer> {
 
 
 public interface SlidingSyncBuilderInterface {
-    
+    @Throws(ClientException::class)
+    fun `addCachedList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncBuilder
     fun `addList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncBuilder@Throws(ClientException::class)
     fun `build`(): SlidingSync
     fun `bumpEventTypes`(`bumpEventTypes`: List<String>): SlidingSyncBuilder@Throws(ClientException::class)
@@ -4682,6 +4728,16 @@ class SlidingSyncBuilder(
         }
     }
 
+    
+        @Throws(ClientException::class)override fun `addCachedList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncBuilder =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_add_cached_list(it, FfiConverterTypeSlidingSyncListBuilder.lower(`listBuilder`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncBuilder.lift(it)
+        }
+    
     override fun `addList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncBuilder =
         callWithPointer {
     rustCall() { _status ->
@@ -4985,17 +5041,16 @@ public object FfiConverterTypeSlidingSyncList: FfiConverter<SlidingSyncList, Poi
 public interface SlidingSyncListBuilderInterface {
     
     fun `addRange`(`from`: UInt, `toIncluded`: UInt): SlidingSyncListBuilder
-    fun `batchSize`(`batchSize`: UInt): SlidingSyncListBuilder
     fun `filters`(`filters`: SlidingSyncRequestListFilters): SlidingSyncListBuilder
     fun `noFilters`(): SlidingSyncListBuilder
-    fun `noRoomLimit`(): SlidingSyncListBuilder
     fun `noTimelineLimit`(): SlidingSyncListBuilder
     fun `onceBuilt`(`callback`: SlidingSyncListOnceBuilt): SlidingSyncListBuilder
     fun `requiredState`(`requiredState`: List<RequiredState>): SlidingSyncListBuilder
     fun `resetRanges`(): SlidingSyncListBuilder
-    fun `roomLimit`(`limit`: UInt): SlidingSyncListBuilder
     fun `sort`(`sort`: List<String>): SlidingSyncListBuilder
-    fun `syncMode`(`mode`: SlidingSyncMode): SlidingSyncListBuilder
+    fun `syncModeGrowing`(`batchSize`: UInt, `maximumNumberOfRoomsToFetch`: UInt?): SlidingSyncListBuilder
+    fun `syncModePaging`(`batchSize`: UInt, `maximumNumberOfRoomsToFetch`: UInt?): SlidingSyncListBuilder
+    fun `syncModeSelective`(): SlidingSyncListBuilder
     fun `timelineLimit`(`limit`: UInt): SlidingSyncListBuilder
 }
 
@@ -5031,15 +5086,6 @@ class SlidingSyncListBuilder(
             FfiConverterTypeSlidingSyncListBuilder.lift(it)
         }
     
-    override fun `batchSize`(`batchSize`: UInt): SlidingSyncListBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_batch_size(it, FfiConverterUInt.lower(`batchSize`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncListBuilder.lift(it)
-        }
-    
     override fun `filters`(`filters`: SlidingSyncRequestListFilters): SlidingSyncListBuilder =
         callWithPointer {
     rustCall() { _status ->
@@ -5053,15 +5099,6 @@ class SlidingSyncListBuilder(
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_no_filters(it,  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncListBuilder.lift(it)
-        }
-    
-    override fun `noRoomLimit`(): SlidingSyncListBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_no_room_limit(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncListBuilder.lift(it)
@@ -5103,15 +5140,6 @@ class SlidingSyncListBuilder(
             FfiConverterTypeSlidingSyncListBuilder.lift(it)
         }
     
-    override fun `roomLimit`(`limit`: UInt): SlidingSyncListBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_room_limit(it, FfiConverterUInt.lower(`limit`),  _status)
-}
-        }.let {
-            FfiConverterTypeSlidingSyncListBuilder.lift(it)
-        }
-    
     override fun `sort`(`sort`: List<String>): SlidingSyncListBuilder =
         callWithPointer {
     rustCall() { _status ->
@@ -5121,10 +5149,28 @@ class SlidingSyncListBuilder(
             FfiConverterTypeSlidingSyncListBuilder.lift(it)
         }
     
-    override fun `syncMode`(`mode`: SlidingSyncMode): SlidingSyncListBuilder =
+    override fun `syncModeGrowing`(`batchSize`: UInt, `maximumNumberOfRoomsToFetch`: UInt?): SlidingSyncListBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode(it, FfiConverterTypeSlidingSyncMode.lower(`mode`),  _status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode_growing(it, FfiConverterUInt.lower(`batchSize`), FfiConverterOptionalUInt.lower(`maximumNumberOfRoomsToFetch`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `syncModePaging`(`batchSize`: UInt, `maximumNumberOfRoomsToFetch`: UInt?): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode_paging(it, FfiConverterUInt.lower(`batchSize`), FfiConverterOptionalUInt.lower(`maximumNumberOfRoomsToFetch`),  _status)
+}
+        }.let {
+            FfiConverterTypeSlidingSyncListBuilder.lift(it)
+        }
+    
+    override fun `syncModeSelective`(): SlidingSyncListBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsynclistbuilder_sync_mode_selective(it,  _status)
 }
         }.let {
             FfiConverterTypeSlidingSyncListBuilder.lift(it)
@@ -5171,7 +5217,7 @@ public object FfiConverterTypeSlidingSyncListBuilder: FfiConverter<SlidingSyncLi
 
 public interface SlidingSyncRoomInterface {
     @Throws(ClientException::class)
-    fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncSubscribeResult
+    fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncAddTimelineListenerResult
     fun `avatarUrl`(): String?
     fun `fullRoom`(): Room?
     fun `hasUnreadNotifications`(): Boolean
@@ -5179,9 +5225,10 @@ public interface SlidingSyncRoomInterface {
     fun `isInitial`(): Boolean?
     fun `latestRoomMessage`(): EventTimelineItem?
     fun `name`(): String?
-    fun `roomId`(): String@Throws(ClientException::class)
-    fun `subscribeAndAddTimelineListener`(`listener`: TimelineListener, `settings`: RoomSubscription?): SlidingSyncSubscribeResult
+    fun `roomId`(): String
+    fun `subscribeToRoom`(`settings`: RoomSubscription?): TaskHandle
     fun `unreadNotifications`(): UnreadNotificationsCount
+    fun `unsubscribeFromRoom`(): TaskHandle
 }
 
 class SlidingSyncRoom(
@@ -5203,13 +5250,13 @@ class SlidingSyncRoom(
     }
 
     
-        @Throws(ClientException::class)override fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncSubscribeResult =
+        @Throws(ClientException::class)override fun `addTimelineListener`(`listener`: TimelineListener): SlidingSyncAddTimelineListenerResult =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`),  _status)
 }
         }.let {
-            FfiConverterTypeSlidingSyncSubscribeResult.lift(it)
+            FfiConverterTypeSlidingSyncAddTimelineListenerResult.lift(it)
         }
     
     override fun `avatarUrl`(): String? =
@@ -5284,14 +5331,13 @@ class SlidingSyncRoom(
             FfiConverterString.lift(it)
         }
     
-    
-        @Throws(ClientException::class)override fun `subscribeAndAddTimelineListener`(`listener`: TimelineListener, `settings`: RoomSubscription?): SlidingSyncSubscribeResult =
+    override fun `subscribeToRoom`(`settings`: RoomSubscription?): TaskHandle =
         callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_subscribe_and_add_timeline_listener(it, FfiConverterTypeTimelineListener.lower(`listener`), FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_subscribe_to_room(it, FfiConverterOptionalTypeRoomSubscription.lower(`settings`),  _status)
 }
         }.let {
-            FfiConverterTypeSlidingSyncSubscribeResult.lift(it)
+            FfiConverterTypeTaskHandle.lift(it)
         }
     
     override fun `unreadNotifications`(): UnreadNotificationsCount =
@@ -5301,6 +5347,15 @@ class SlidingSyncRoom(
 }
         }.let {
             FfiConverterTypeUnreadNotificationsCount.lift(it)
+        }
+    
+    override fun `unsubscribeFromRoom`(): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncroom_unsubscribe_from_room(it,  _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
         }
     
     
@@ -6864,6 +6919,43 @@ public object FfiConverterTypeSetData: FfiConverterRustBuffer<SetData> {
 
 
 
+data class SlidingSyncAddTimelineListenerResult (
+    var `items`: List<TimelineItem>, 
+    var `taskHandle`: TaskHandle
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`items`, 
+        this.`taskHandle`)
+    }
+    
+}
+
+public object FfiConverterTypeSlidingSyncAddTimelineListenerResult: FfiConverterRustBuffer<SlidingSyncAddTimelineListenerResult> {
+    override fun read(buf: ByteBuffer): SlidingSyncAddTimelineListenerResult {
+        return SlidingSyncAddTimelineListenerResult(
+            FfiConverterSequenceTypeTimelineItem.read(buf),
+            FfiConverterTypeTaskHandle.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SlidingSyncAddTimelineListenerResult) = (
+            FfiConverterSequenceTypeTimelineItem.allocationSize(value.`items`) +
+            FfiConverterTypeTaskHandle.allocationSize(value.`taskHandle`)
+    )
+
+    override fun write(value: SlidingSyncAddTimelineListenerResult, buf: ByteBuffer) {
+            FfiConverterSequenceTypeTimelineItem.write(value.`items`, buf)
+            FfiConverterTypeTaskHandle.write(value.`taskHandle`, buf)
+    }
+}
+
+
+
+
 data class SlidingSyncRequestListFilters (
     var `isDm`: Boolean?, 
     var `spaces`: List<String>, 
@@ -6919,43 +7011,6 @@ public object FfiConverterTypeSlidingSyncRequestListFilters: FfiConverterRustBuf
             FfiConverterOptionalString.write(value.`roomNameLike`, buf)
             FfiConverterSequenceString.write(value.`tags`, buf)
             FfiConverterSequenceString.write(value.`notTags`, buf)
-    }
-}
-
-
-
-
-data class SlidingSyncSubscribeResult (
-    var `items`: List<TimelineItem>, 
-    var `taskHandle`: TaskHandle
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-    Disposable.destroy(
-        this.`items`, 
-        this.`taskHandle`)
-    }
-    
-}
-
-public object FfiConverterTypeSlidingSyncSubscribeResult: FfiConverterRustBuffer<SlidingSyncSubscribeResult> {
-    override fun read(buf: ByteBuffer): SlidingSyncSubscribeResult {
-        return SlidingSyncSubscribeResult(
-            FfiConverterSequenceTypeTimelineItem.read(buf),
-            FfiConverterTypeTaskHandle.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: SlidingSyncSubscribeResult) = (
-            FfiConverterSequenceTypeTimelineItem.allocationSize(value.`items`) +
-            FfiConverterTypeTaskHandle.allocationSize(value.`taskHandle`)
-    )
-
-    override fun write(value: SlidingSyncSubscribeResult, buf: ByteBuffer) {
-            FfiConverterSequenceTypeTimelineItem.write(value.`items`, buf)
-            FfiConverterTypeTaskHandle.write(value.`taskHandle`, buf)
     }
 }
 
@@ -7276,7 +7331,7 @@ public object FfiConverterTypeEncryptedMessage : FfiConverterRustBuffer<Encrypte
 
 
 sealed class EventSendState {
-    object NotSendYet : EventSendState()
+    object NotSentYet : EventSendState()
     
     data class SendingFailed(
         val `error`: String
@@ -7292,7 +7347,7 @@ sealed class EventSendState {
 public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendState>{
     override fun read(buf: ByteBuffer): EventSendState {
         return when(buf.getInt()) {
-            1 -> EventSendState.NotSendYet
+            1 -> EventSendState.NotSentYet
             2 -> EventSendState.SendingFailed(
                 FfiConverterString.read(buf),
                 )
@@ -7304,7 +7359,7 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
     }
 
     override fun allocationSize(value: EventSendState) = when(value) {
-        is EventSendState.NotSendYet -> {
+        is EventSendState.NotSentYet -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
@@ -7328,7 +7383,7 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
 
     override fun write(value: EventSendState, buf: ByteBuffer) {
         when(value) {
-            is EventSendState.NotSendYet -> {
+            is EventSendState.NotSentYet -> {
                 buf.putInt(1)
                 Unit
             }
@@ -8986,29 +9041,6 @@ public object FfiConverterTypeSlidingSyncListRoomsListDiff : FfiConverterRustBuf
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-
-enum class SlidingSyncMode {
-    PAGING,GROWING,SELECTIVE;
-}
-
-public object FfiConverterTypeSlidingSyncMode: FfiConverterRustBuffer<SlidingSyncMode> {
-    override fun read(buf: ByteBuffer) = try {
-        SlidingSyncMode.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: SlidingSyncMode) = 4
-
-    override fun write(value: SlidingSyncMode, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -11628,6 +11660,35 @@ public object FfiConverterOptionalTypeRoomMember: FfiConverterRustBuffer<RoomMem
         } else {
             buf.put(1)
             FfiConverterTypeRoomMember.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeSlidingSyncList: FfiConverterRustBuffer<SlidingSyncList?> {
+    override fun read(buf: ByteBuffer): SlidingSyncList? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeSlidingSyncList.read(buf)
+    }
+
+    override fun allocationSize(value: SlidingSyncList?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeSlidingSyncList.allocationSize(value)
+        }
+    }
+
+    override fun write(value: SlidingSyncList?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeSlidingSyncList.write(value, buf)
         }
     }
 }
