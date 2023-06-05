@@ -20,7 +20,7 @@ Usage :
 
 ## Testing locally
 As the package vendors a pre-built binary of the SDK, all local development is done via the SDK's repo instead of this one.
-You can use the build script to generate the aar for testing. Be sure to have checkout the matrix-rust-sdk first.
+You can use the build script to generate the AAR file for testing. Be sure to have checkout the matrix-rust-sdk first.
 
 Usage:
 
@@ -33,6 +33,8 @@ To build just the crypto crate, use this instead:
 ```
 ./scripts/build.sh -p matrix-rust-sdk-path -m crypto -t aarch64-linux-android
 ```
+
+To control where the AAR file will be written to, you can use the `-o output_path` option.
 
 ## Prerequisites
 
