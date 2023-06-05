@@ -34,7 +34,10 @@ To build just the crypto crate, use this instead:
 ./scripts/build.sh -p matrix-rust-sdk-path -m crypto -t aarch64-linux-android
 ```
 
-To control where the AAR file will be written to, you can use the `-o output_path` option.
+Other useful flags:
+
+- `-o OUTPUT_DIR`: Writes the output AAR file to the dir `OUTPUT_DIR`.
+- `-r`: Produces a release build instead of a development one.
 
 ## Prerequisites
 
