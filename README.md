@@ -22,9 +22,17 @@ Usage :
 As the package vendors a pre-built binary of the SDK, all local development is done via the SDK's repo instead of this one.
 You can use the build script to generate the aar for testing. Be sure to have checkout the matrix-rust-sdk first.
 
-Usage :
+Usage:
 
-`./scripts/build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android`
+```
+./scripts/build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android
+```
+
+To build just the crypto crate, use this instead:
+
+```
+./scripts/build.sh -p matrix-rust-sdk-path -m crypto -t aarch64-linux-android
+```
 
 ## Prerequisites
 
