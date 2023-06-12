@@ -8,7 +8,6 @@ import subprocess
 from enum import Enum, auto
 from tempfile import TemporaryDirectory
 
-
 class Module(Enum):
     SDK = auto()
     CRYPTO = auto()
@@ -226,12 +225,19 @@ parser.add_argument("-v", "--version", type=str, required=True,
                     help="Version as a string (e.g. '1.0.0')")
 parser.add_argument("-r", "--ref", type=str, required=True,
                     help="Ref to the git matrix-rust-sdk (branch name, commit or tag)")
+parser.add_argument("-c", "--clone-to", type=str, required=False,
+                    help="Choose a module (SDK or CRYPTO)")
 
 args = parser.parse_args()
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir).rstrip(os.sep)
 sdk_git_url = "https://github.com/matrix-org/matrix-rust-sdk.git"
+
+if args.clone_to:
+    sdk_path = args.clone_to
+else:
+    sdk_path = TemporaryDirectory().name
 
 print(f"Project Root Directory: {project_root}")
 print(f"Selected module: {args.module}")
@@ -248,10 +254,9 @@ else:
         f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
     exit(0)
 
-with TemporaryDirectory() as sdk_path:
-    clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
-    linkable_ref = get_linkable_ref(sdk_path, args.ref)
-    execute_build_script(current_dir, sdk_path, args.module)
+clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
+linkable_ref = get_linkable_ref(sdk_path, args.ref)
+execute_build_script(current_dir, sdk_path, args.module)
 
 override_version_in_build_version_file(build_version_file_path, args.version)
 
