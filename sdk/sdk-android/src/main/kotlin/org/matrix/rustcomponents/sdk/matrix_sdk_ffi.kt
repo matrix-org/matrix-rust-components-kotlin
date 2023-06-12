@@ -665,6 +665,8 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_timestamp(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_transaction_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_unique_identifier(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -761,6 +763,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_retry_decryption(`ptr`: Pointer,`sessionIds`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_retry_send(`ptr`: Pointer,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send(`ptr`: Pointer,`msg`: Pointer,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -833,7 +837,7 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_enable_caching(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_homeserver(`ptr`: Pointer,`url`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_sliding_sync_proxy(`ptr`: Pointer,`url`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_without_account_data_extension(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -1185,6 +1189,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_timestamp(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_unique_identifier(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_authentication_issuer(
@@ -1273,6 +1279,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_retry_decryption(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_retry_send(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_audio(
@@ -1339,7 +1347,7 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_enable_caching(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_homeserver(
+    fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_sliding_sync_proxy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_without_account_data_extension(
     ): Short
@@ -1798,6 +1806,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_timestamp() != 40228.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id() != 43677.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_unique_identifier() != 18285.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1930,6 +1941,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_retry_decryption() != 17743.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_retry_send() != 33250.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send() != 60271.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2029,7 +2043,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_enable_caching() != 52585.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_homeserver() != 62399.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_sliding_sync_proxy() != 53975.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_slidingsyncbuilder_without_account_data_extension() != 2317.toShort()) {
@@ -3201,6 +3215,7 @@ public interface EventTimelineItemInterface {
     fun `sender`(): String
     fun `senderProfile`(): ProfileDetails
     fun `timestamp`(): ULong
+    fun `transactionId`(): String?
     fun `uniqueIdentifier`(): String
 }
 
@@ -3363,6 +3378,17 @@ class EventTimelineItem(
 }
         }.let {
             FfiConverterULong.lift(it)
+        }
+    
+    override fun `transactionId`(): String? =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_transaction_id(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterOptionalString.lift(it)
         }
     
     override fun `uniqueIdentifier`(): String =
@@ -3779,6 +3805,7 @@ public interface RoomInterface {
     fun `removeTimeline`()@Throws(ClientException::class)
     fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)
     fun `retryDecryption`(`sessionIds`: List<String>)
+    fun `retrySend`(`txnId`: String)
     fun `send`(`msg`: RoomMessageEventContent, `txnId`: String?)@Throws(RoomException::class)
     fun `sendAudio`(`url`: String, `audioInfo`: AudioInfo)@Throws(RoomException::class)
     fun `sendFile`(`url`: String, `fileInfo`: FileInfo)@Throws(RoomException::class)
@@ -4195,6 +4222,16 @@ class Room(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_retry_decryption(it,
         FfiConverterSequenceString.lower(`sessionIds`),
+        _status)
+}
+        }
+    
+    
+    override fun `retrySend`(`txnId`: String) =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_retry_send(it,
+        FfiConverterString.lower(`txnId`),
         _status)
 }
         }
@@ -5186,7 +5223,7 @@ public interface SlidingSyncBuilderInterface {
     fun `addList`(`listBuilder`: SlidingSyncListBuilder): SlidingSyncBuilder@Throws(ClientException::class)
     fun `build`(): SlidingSync@Throws(ClientException::class)
     fun `enableCaching`(): SlidingSyncBuilder@Throws(ClientException::class)
-    fun `homeserver`(`url`: String): SlidingSyncBuilder
+    fun `slidingSyncProxy`(`url`: String): SlidingSyncBuilder
     fun `withoutAccountDataExtension`(): SlidingSyncBuilder
     fun `withoutE2eeExtension`(): SlidingSyncBuilder
     fun `withoutReceiptExtension`(): SlidingSyncBuilder
@@ -5262,10 +5299,10 @@ class SlidingSyncBuilder(
         }
     
     
-    @Throws(ClientException::class)override fun `homeserver`(`url`: String): SlidingSyncBuilder =
+    @Throws(ClientException::class)override fun `slidingSyncProxy`(`url`: String): SlidingSyncBuilder =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_homeserver(it,
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_slidingsyncbuilder_sliding_sync_proxy(it,
         FfiConverterString.lower(`url`),
         _status)
 }
@@ -9077,11 +9114,13 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
 
 sealed class PaginationOptions {
     data class SingleRequest(
-        val `eventLimit`: UShort
+        val `eventLimit`: UShort, 
+        val `waitForToken`: Boolean
         ) : PaginationOptions()
     data class UntilNumItems(
         val `eventLimit`: UShort, 
-        val `items`: UShort
+        val `items`: UShort, 
+        val `waitForToken`: Boolean
         ) : PaginationOptions()
     
 
@@ -9093,10 +9132,12 @@ public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<Paginat
         return when(buf.getInt()) {
             1 -> PaginationOptions.SingleRequest(
                 FfiConverterUShort.read(buf),
+                FfiConverterBoolean.read(buf),
                 )
             2 -> PaginationOptions.UntilNumItems(
                 FfiConverterUShort.read(buf),
                 FfiConverterUShort.read(buf),
+                FfiConverterBoolean.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -9108,6 +9149,7 @@ public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<Paginat
             (
                 4
                 + FfiConverterUShort.allocationSize(value.`eventLimit`)
+                + FfiConverterBoolean.allocationSize(value.`waitForToken`)
             )
         }
         is PaginationOptions.UntilNumItems -> {
@@ -9116,6 +9158,7 @@ public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<Paginat
                 4
                 + FfiConverterUShort.allocationSize(value.`eventLimit`)
                 + FfiConverterUShort.allocationSize(value.`items`)
+                + FfiConverterBoolean.allocationSize(value.`waitForToken`)
             )
         }
     }
@@ -9125,12 +9168,14 @@ public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<Paginat
             is PaginationOptions.SingleRequest -> {
                 buf.putInt(1)
                 FfiConverterUShort.write(value.`eventLimit`, buf)
+                FfiConverterBoolean.write(value.`waitForToken`, buf)
                 Unit
             }
             is PaginationOptions.UntilNumItems -> {
                 buf.putInt(2)
                 FfiConverterUShort.write(value.`eventLimit`, buf)
                 FfiConverterUShort.write(value.`items`, buf)
+                FfiConverterBoolean.write(value.`waitForToken`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
