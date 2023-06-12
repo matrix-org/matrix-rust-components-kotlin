@@ -30,7 +30,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/head/main' }}
+          save-if: true
           cache-on-failure: true # necessary for the 1st build
           workspaces: |
             ${{ env.TEMP_DIR }} -> target
