@@ -34,6 +34,13 @@ jobs:
       - name: Create temp dir
         run: echo "TEMP_DIR=$(mktemp -d)" >> $GITHUB_ENV
 
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/head/main' }}
+          cache-on-failure: true # necessary for the 1st build
+          workspaces: |
+            ${{ env.TEMP_DIR }} -> target
+
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
@@ -48,13 +55,6 @@ jobs:
         id: install-ndk
         with:
           ndk-version: r25c
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          save-if: ${{ github.ref == 'refs/head/main' }}
-          cache-on-failure: true # necessary for the 1st build
-          workspaces: |
-            $TEMP_DIR -> target
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
