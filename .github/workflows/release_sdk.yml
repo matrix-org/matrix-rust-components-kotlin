@@ -3,10 +3,6 @@ name: Release SDK Library
 on:
   workflow_dispatch:
     inputs:
-      checkout-ref:
-        description: 'The branch, tag or SHA to checkout on this repo.'
-        required: true
-        default: 'main'
       rust-checkout-ref:
         description: 'The branch, tag or SHA to checkout on the rust sdk.'
         required: true
@@ -28,8 +24,6 @@ jobs:
 
       - name: Checkout this repo
         uses: actions/checkout@v3
-        with:
-          ref: main
 
       - name: Create temp dir
         run: echo "TEMP_DIR=$(mktemp -d)" >> $GITHUB_ENV
