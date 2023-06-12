@@ -40,6 +40,11 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
+      - name: Configure gradle
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'main' }}
+
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.2
 
