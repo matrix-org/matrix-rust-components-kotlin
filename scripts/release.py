@@ -258,7 +258,7 @@ else:
         f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
     exit(0)
 
-if (!skip_clone):
+if skip_clone is False:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
 
 linkable_ref = get_linkable_ref(sdk_path, args.ref)
