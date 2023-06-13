@@ -32,7 +32,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: "matrix-org/matrix-rust-sdk"
-          ref: '${{ github.event.inputs.rust-checkout-ref }}'
+          ref: ${{ github.event.inputs.rust-checkout-ref }}
+          path: ${{ env.RUST_SDK_PATH }}
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -46,11 +47,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-
-      - name: Configure gradle
-        uses: gradle/gradle-build-action@v2.4.2
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'main' }}
 
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.2
