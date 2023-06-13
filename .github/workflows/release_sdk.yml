@@ -28,6 +28,12 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v3
 
+      - name: Checkout matrix rust sdk repo
+        uses: actions/checkout@v3
+        with:
+          repository: "matrix-org/matrix-rust-sdk"
+          ref: '${{ github.event.inputs.rust-checkout-ref }}'
+
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
@@ -95,4 +101,4 @@ jobs:
           SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./scripts/release.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --clone-to $RUST_SDK_PATH
+          python3 ./scripts/release.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --path-to-sdk $RUST_SDK_PATH --skip-clone

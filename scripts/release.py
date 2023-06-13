@@ -225,8 +225,10 @@ parser.add_argument("-v", "--version", type=str, required=True,
                     help="Version as a string (e.g. '1.0.0')")
 parser.add_argument("-r", "--ref", type=str, required=True,
                     help="Ref to the git matrix-rust-sdk (branch name, commit or tag)")
-parser.add_argument("-c", "--clone-to", type=str, required=False,
+parser.add_argument("-p", "--path-to-sdk", type=str, required=False,
                     help="Choose a module (SDK or CRYPTO)")
+parser.add_argument("-s", "--skip-clone", action="store_true", required=False,
+                    help="Skip cloning the Rust SDK repository")
 
 args = parser.parse_args()
 
@@ -234,10 +236,12 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir).rstrip(os.sep)
 sdk_git_url = "https://github.com/matrix-org/matrix-rust-sdk.git"
 
-if args.clone_to:
-    sdk_path = args.clone_to
+if args.path_to_sdk:
+    sdk_path = args.path_to_sdk
 else:
     sdk_path = TemporaryDirectory().name
+
+skip_clone = args.skip_clone
 
 print(f"Project Root Directory: {project_root}")
 print(f"Selected module: {args.module}")
@@ -254,7 +258,9 @@ else:
         f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
     exit(0)
 
-clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
+if (!skip_clone):
+    clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
+
 linkable_ref = get_linkable_ref(sdk_path, args.ref)
 execute_build_script(current_dir, sdk_path, args.module)
 
