@@ -37,8 +37,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
+          save-if: true
           cache-on-failure: true
+          cache-all-crates: true
           workspaces: |
             ${{ env.RUST_SDK_PATH }} -> target
 
