@@ -21,7 +21,7 @@ jobs:
       cancel-in-progress: true
 
     env:
-      RUST_SDK_PATH: "./matrix-rust-sdk"
+      RUST_SDK_PATH: "../matrix-rust-sdk"
 
     steps:
 
