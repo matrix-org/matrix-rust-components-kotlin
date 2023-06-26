@@ -20,27 +20,27 @@ jobs:
       group: ${{ github.ref }}-${{ github.job }}
       cancel-in-progress: true
 
-    env:
-      RUST_SDK_PATH: "../matrix-rust-sdk"
+#    env:
+#      RUST_SDK_PATH: "./matrix-rust-sdk"
 
     steps:
 
       - name: Checkout this repo
         uses: actions/checkout@v3
 
-      - name: Checkout matrix rust sdk repo
-        uses: actions/checkout@v3
-        with:
-          repository: "matrix-org/matrix-rust-sdk"
-          ref: ${{ github.event.inputs.rust-checkout-ref }}
-          path: ${{ env.RUST_SDK_PATH }}
-
+#      - name: Checkout matrix rust sdk repo
+#        uses: actions/checkout@v3
+#        with:
+#          repository: "matrix-org/matrix-rust-sdk"
+#          ref: ${{ github.event.inputs.rust-checkout-ref }}
+#          path: ${{ env.RUST_SDK_PATH }}
+#
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
           cache-on-failure: true
-          workspaces: |
-            ${{ env.RUST_SDK_PATH }} -> target
+#          workspaces: |
+#            ${{ env.RUST_SDK_PATH }} -> target
 
       - name: Set up JDK 11
         uses: actions/setup-java@v2
@@ -97,4 +97,5 @@ jobs:
           SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./scripts/release.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --path-to-sdk $RUST_SDK_PATH --skip-clone
+          python3 ./scripts/release.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }}
+        # Add '--path-to-sdk $RUST_SDK_PATH --skip-clone' above to restore cache
