@@ -14,7 +14,7 @@ on:
 jobs:
   build_native:
     name: Build and generate sdk aar
-    runs-on: ubuntu-20.04
+    runs-on: macos-latest
 
     concurrency:
       group: ${{ github.ref }}-${{ github.job }}
