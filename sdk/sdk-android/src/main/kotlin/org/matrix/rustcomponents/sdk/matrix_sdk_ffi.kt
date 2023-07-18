@@ -595,8 +595,6 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_room(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_accept_invitation(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
@@ -653,6 +651,8 @@ internal interface _UniFFILib : Library {
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_tombstoned(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_room_join(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_joined_members_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -674,8 +674,6 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_paginate_backwards(`ptr`: Pointer,`opts`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_redact(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_reject_invitation(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_remove_avatar(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1151,8 +1149,6 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_accept_invitation(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener(
@@ -1209,6 +1205,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_is_tombstoned(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_join(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
@@ -1230,8 +1228,6 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_paginate_backwards(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_redact(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_reject_invitation(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar(
     ): Short
@@ -1782,9 +1778,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() != 58029.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_accept_invitation() != 25703.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() != 62367.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1869,6 +1862,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_tombstoned() != 55887.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_join() != 4883.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count() != 44345.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1900,9 +1896,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_redact() != 61747.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_reject_invitation() != 16778.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar() != 24698.toShort()) {
@@ -4599,8 +4592,7 @@ public object FfiConverterTypeNotificationSettings: FfiConverter<NotificationSet
 
 
 public interface RoomInterface {
-    @Throws(ClientException::class)
-    fun `acceptInvitation`()
+    
     fun `activeMembersCount`(): ULong
     suspend fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
     fun `alternativeAliases`(): List<String>
@@ -4628,7 +4620,8 @@ public interface RoomInterface {
     fun `isEncrypted`(): Boolean
     fun `isPublic`(): Boolean
     fun `isSpace`(): Boolean
-    fun `isTombstoned`(): Boolean
+    fun `isTombstoned`(): Boolean@Throws(ClientException::class)
+    fun `join`()
     fun `joinedMembersCount`(): ULong@Throws(ClientException::class)
     fun `leave`()@Throws(ClientException::class)
     fun `member`(`userId`: String): RoomMember@Throws(ClientException::class)
@@ -4640,7 +4633,6 @@ public interface RoomInterface {
     fun `ownUserId`(): String@Throws(ClientException::class)
     fun `paginateBackwards`(`opts`: PaginationOptions)@Throws(ClientException::class)
     fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?)@Throws(ClientException::class)
-    fun `rejectInvitation`()@Throws(ClientException::class)
     fun `removeAvatar`()
     fun `removeTimeline`()@Throws(ClientException::class)
     fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)
@@ -4681,17 +4673,6 @@ class Room(
         }
     }
 
-    
-    @Throws(ClientException::class)override fun `acceptInvitation`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_accept_invitation(it,
-        
-        _status)
-}
-        }
-    
-    
     override fun `activeMembersCount`(): ULong =
         callWithPointer {
     rustCall() { _status ->
@@ -5184,6 +5165,17 @@ class Room(
             FfiConverterBoolean.lift(it)
         }
     
+    
+    @Throws(ClientException::class)override fun `join`() =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_join(it,
+        
+        _status)
+}
+        }
+    
+    
     override fun `joinedMembersCount`(): ULong =
         callWithPointer {
     rustCall() { _status ->
@@ -5304,17 +5296,6 @@ class Room(
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_redact(it,
         FfiConverterString.lower(`eventId`),FfiConverterOptionalString.lower(`reason`),FfiConverterOptionalString.lower(`txnId`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(ClientException::class)override fun `rejectInvitation`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_reject_invitation(it,
-        
         _status)
 }
         }
