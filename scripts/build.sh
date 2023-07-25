@@ -48,7 +48,7 @@ fi
 if ${is_release}; then
   profile="release"
 else
-  profile="dev"
+  profile="reldbg"
 fi
 
 if [ "$gradle_module" = "crypto" ]; then
