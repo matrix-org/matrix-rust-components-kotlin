@@ -628,7 +628,7 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_details_for_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -1826,7 +1826,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_details_for_event() != 23233.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members() != 22527.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members() != 63440.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_timeline_event_content_by_event_id() != 14169.toShort()) {
@@ -4608,8 +4608,8 @@ public interface RoomInterface {
     fun `canonicalAlias`(): String?@Throws(ClientException::class)
     fun `displayName`(): String@Throws(ClientException::class)
     fun `edit`(`newMsg`: String, `originalEventId`: String, `txnId`: String?)@Throws(ClientException::class)
-    fun `fetchDetailsForEvent`(`eventId`: String)
-    fun `fetchMembers`()@Throws(ClientException::class)
+    fun `fetchDetailsForEvent`(`eventId`: String)@Throws(ClientException::class)
+    fun `fetchMembers`(): TaskHandle@Throws(ClientException::class)
     fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContent
     fun `id`(): String@Throws(ClientException::class)
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
@@ -5032,15 +5032,17 @@ class Room(
         }
     
     
-    override fun `fetchMembers`() =
+    
+    @Throws(ClientException::class)override fun `fetchMembers`(): TaskHandle =
         callWithPointer {
-    rustCall() { _status ->
+    rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(it,
         
         _status)
 }
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
         }
-    
     
     
     @Throws(ClientException::class)override fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContent =
@@ -10866,7 +10868,7 @@ sealed class RepliedToEventDetails: Disposable  {
     object Pending : RepliedToEventDetails()
     
     data class Ready(
-        val `message`: Message, 
+        val `content`: TimelineItemContent, 
         val `sender`: String, 
         val `senderProfile`: ProfileDetails
         ) : RepliedToEventDetails()
@@ -10886,7 +10888,7 @@ sealed class RepliedToEventDetails: Disposable  {
             is RepliedToEventDetails.Ready -> {
                 
     Disposable.destroy(
-        this.`message`, 
+        this.`content`, 
         this.`sender`, 
         this.`senderProfile`)
                 
@@ -10908,7 +10910,7 @@ public object FfiConverterTypeRepliedToEventDetails : FfiConverterRustBuffer<Rep
             1 -> RepliedToEventDetails.Unavailable
             2 -> RepliedToEventDetails.Pending
             3 -> RepliedToEventDetails.Ready(
-                FfiConverterTypeMessage.read(buf),
+                FfiConverterTypeTimelineItemContent.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterTypeProfileDetails.read(buf),
                 )
@@ -10936,7 +10938,7 @@ public object FfiConverterTypeRepliedToEventDetails : FfiConverterRustBuffer<Rep
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
-                + FfiConverterTypeMessage.allocationSize(value.`message`)
+                + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
                 + FfiConverterString.allocationSize(value.`sender`)
                 + FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`)
             )
@@ -10962,7 +10964,7 @@ public object FfiConverterTypeRepliedToEventDetails : FfiConverterRustBuffer<Rep
             }
             is RepliedToEventDetails.Ready -> {
                 buf.putInt(3)
-                FfiConverterTypeMessage.write(value.`message`, buf)
+                FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
                 FfiConverterString.write(value.`sender`, buf)
                 FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
                 Unit
