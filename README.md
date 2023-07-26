@@ -41,6 +41,7 @@ Other useful flags:
 
 ## Prerequisites
 
+* Android NDK
 * the Rust toolchain
 * cargo-ndk `cargo install cargo-ndk`
 * protoc `brew install protobuf` or downloading [here](https://github.com/protocolbuffers/protobuf/releases)
