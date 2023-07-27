@@ -497,8 +497,6 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(`ptr`: Pointer,`username`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_memory_state_store(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_eventtimelineitem(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_content(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -555,7 +553,11 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_notificationclient(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_context(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_sliding_sync(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_legacy_get_notification(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_notificationclientbuilder(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -597,8 +599,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_avatar_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -801,7 +803,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_cancel(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1067,8 +1069,6 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_memory_state_store(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_content(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_debug_info(
@@ -1115,7 +1115,11 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_msgtype(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_context(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_sliding_sync(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_legacy_get_notification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_filter_by_push_rules(
     ): Short
@@ -1583,7 +1587,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 37421.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 38148.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 43839.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() != 19558.toShort()) {
@@ -1655,9 +1659,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username() != 64379.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_memory_state_store() != 20432.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_content() != 1802.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1727,7 +1728,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_msgtype() != 50686.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 9907.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_context() != 64399.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_sliding_sync() != 45569.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_legacy_get_notification() != 12969.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_filter_by_push_rules() != 10529.toShort()) {
@@ -1781,7 +1788,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() != 62367.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener() != 43137.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener() != 2158.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases() != 25219.toShort()) {
@@ -2072,7 +2079,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 58929.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 25237.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 31788.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() != 468.toShort()) {
@@ -2228,7 +2235,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress() != 12165.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update() != 58533.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update() != 36351.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistloadingstatelistener_on_update() != 53567.toShort()) {
@@ -2778,7 +2785,7 @@ public interface ClientInterface {
     fun `homeserver`(): String@Throws(ClientException::class)
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
     fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?)@Throws(ClientException::class)
-    fun `logout`()
+    fun `logout`()@Throws(ClientException::class)
     fun `notificationClient`(): NotificationClientBuilder@Throws(ClientException::class)
     fun `restoreSession`(`session`: Session)
     fun `rooms`(): List<Room>@Throws(ClientException::class)
@@ -3011,9 +3018,10 @@ class Client(
         }
     
     
-    override fun `notificationClient`(): NotificationClientBuilder =
+    
+    @Throws(ClientException::class)override fun `notificationClient`(): NotificationClientBuilder =
         callWithPointer {
-    rustCall() { _status ->
+    rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_notification_client(it,
         
         _status)
@@ -3200,7 +3208,6 @@ public interface ClientBuilderInterface {
     fun `slidingSyncProxy`(`slidingSyncProxy`: String?): ClientBuilder
     fun `userAgent`(`userAgent`: String): ClientBuilder
     fun `username`(`username`: String): ClientBuilder
-    fun `withMemoryStateStore`(): ClientBuilder
 }
 
 class ClientBuilder(
@@ -3342,17 +3349,6 @@ class ClientBuilder(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(it,
         FfiConverterString.lower(`username`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeClientBuilder.lift(it)
-        }
-    
-    override fun `withMemoryStateStore`(): ClientBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_memory_state_store(it,
-        
         _status)
 }
         }.let {
@@ -3959,7 +3955,9 @@ public object FfiConverterTypeMessage: FfiConverter<Message, Pointer> {
 
 public interface NotificationClientInterface {
     @Throws(ClientException::class)
-    fun `getNotification`(`roomId`: String, `eventId`: String): NotificationItem?
+    fun `getNotificationWithContext`(`roomId`: String, `eventId`: String): NotificationItem?@Throws(ClientException::class)
+    fun `getNotificationWithSlidingSync`(`roomId`: String, `eventId`: String): NotificationItem?@Throws(ClientException::class)
+    fun `legacyGetNotification`(`roomId`: String, `eventId`: String): NotificationItem?
 }
 
 class NotificationClient(
@@ -3981,10 +3979,34 @@ class NotificationClient(
     }
 
     
-    @Throws(ClientException::class)override fun `getNotification`(`roomId`: String, `eventId`: String): NotificationItem? =
+    @Throws(ClientException::class)override fun `getNotificationWithContext`(`roomId`: String, `eventId`: String): NotificationItem? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(it,
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_context(it,
+        FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
+        _status)
+}
+        }.let {
+            FfiConverterOptionalTypeNotificationItem.lift(it)
+        }
+    
+    
+    @Throws(ClientException::class)override fun `getNotificationWithSlidingSync`(`roomId`: String, `eventId`: String): NotificationItem? =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_sliding_sync(it,
+        FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
+        _status)
+}
+        }.let {
+            FfiConverterOptionalTypeNotificationItem.lift(it)
+        }
+    
+    
+    @Throws(ClientException::class)override fun `legacyGetNotification`(`roomId`: String, `eventId`: String): NotificationItem? =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_legacy_get_notification(it,
         FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
         _status)
 }
@@ -4594,7 +4616,7 @@ public object FfiConverterTypeNotificationSettings: FfiConverter<NotificationSet
 public interface RoomInterface {
     
     fun `activeMembersCount`(): ULong
-    suspend fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
+    fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
     fun `alternativeAliases`(): List<String>
     fun `avatarUrl`(): String?@Throws(ClientException::class)
     suspend fun `canUserBan`(`userId`: String): Boolean@Throws(ClientException::class)
@@ -4684,39 +4706,17 @@ class Room(
             FfiConverterULong.lift(it)
         }
     
-    
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `addTimelineListener`(`listener`: TimelineListener) : RoomTimelineListenerResult {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
-        var callbackHolder: UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult? = null
-        return coroutineScope {
-            val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
-                try {
-                    val callback = UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult(continuation)
-                    callbackHolder = callback
-                    callWithPointer { thisPtr ->
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(
-                                thisPtr,
-                                FfiConverterTypeTimelineListener.lower(`listener`),
-                                FfiConverterForeignExecutor.lower(scope),
-                                callback,
-                                USize(0),
-                                status,
-                            )
-                        }
-                    }
-                } catch (e: Exception) {
-                    continuation.resumeWithException(e)
-                }
-            }
+    override fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(it,
+        FfiConverterTypeTimelineListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeRoomTimelineListenerResult.lift(it)
         }
-    }
+    
     override fun `alternativeAliases`(): List<String> =
         callWithPointer {
     rustCall() { _status ->
@@ -6349,7 +6349,7 @@ public object FfiConverterTypeRoomMessageEventContent: FfiConverter<RoomMessageE
 public interface SendAttachmentJoinHandleInterface {
     
     fun `cancel`()@Throws(RoomException::class)
-    suspend fun `join`()
+    fun `join`()
 }
 
 class SendAttachmentJoinHandle(
@@ -6381,39 +6381,16 @@ class SendAttachmentJoinHandle(
     
     
     
-    @Throws(RoomException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `join`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
-        var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeRoomError? = null
-        return coroutineScope {
-            val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
-                try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeRoomError(continuation)
-                    callbackHolder = callback
-                    callWithPointer { thisPtr ->
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(
-                                thisPtr,
-                                
-                                FfiConverterForeignExecutor.lower(scope),
-                                callback,
-                                USize(0),
-                                status,
-                            )
-                        }
-                    }
-                } catch (e: Exception) {
-                    continuation.resumeWithException(e)
-                }
-            }
+    @Throws(RoomException::class)override fun `join`() =
+        callWithPointer {
+    rustCallWithError(RoomException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(it,
+        
+        _status)
+}
         }
-    }
+    
+    
     
 
     
@@ -8348,10 +8325,10 @@ public object FfiConverterTypeNoticeMessageContent: FfiConverterRustBuffer<Notic
 
 
 data class NotificationItem (
-    var `event`: TimelineEvent, 
+    var `event`: NotificationEvent, 
     var `senderInfo`: NotificationSenderInfo, 
     var `roomInfo`: NotificationRoomInfo, 
-    var `isNoisy`: Boolean
+    var `isNoisy`: Boolean?
 ) : Disposable {
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -8369,25 +8346,25 @@ data class NotificationItem (
 public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<NotificationItem> {
     override fun read(buf: ByteBuffer): NotificationItem {
         return NotificationItem(
-            FfiConverterTypeTimelineEvent.read(buf),
+            FfiConverterTypeNotificationEvent.read(buf),
             FfiConverterTypeNotificationSenderInfo.read(buf),
             FfiConverterTypeNotificationRoomInfo.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: NotificationItem) = (
-            FfiConverterTypeTimelineEvent.allocationSize(value.`event`) +
+            FfiConverterTypeNotificationEvent.allocationSize(value.`event`) +
             FfiConverterTypeNotificationSenderInfo.allocationSize(value.`senderInfo`) +
             FfiConverterTypeNotificationRoomInfo.allocationSize(value.`roomInfo`) +
-            FfiConverterBoolean.allocationSize(value.`isNoisy`)
+            FfiConverterOptionalBoolean.allocationSize(value.`isNoisy`)
     )
 
     override fun write(value: NotificationItem, buf: ByteBuffer) {
-            FfiConverterTypeTimelineEvent.write(value.`event`, buf)
+            FfiConverterTypeNotificationEvent.write(value.`event`, buf)
             FfiConverterTypeNotificationSenderInfo.write(value.`senderInfo`, buf)
             FfiConverterTypeNotificationRoomInfo.write(value.`roomInfo`, buf)
-            FfiConverterBoolean.write(value.`isNoisy`, buf)
+            FfiConverterOptionalBoolean.write(value.`isNoisy`, buf)
     }
 }
 
@@ -8440,6 +8417,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
 
 
 data class NotificationSenderInfo (
+    var `userId`: String, 
     var `displayName`: String?, 
     var `avatarUrl`: String?
 ) {
@@ -8449,19 +8427,51 @@ data class NotificationSenderInfo (
 public object FfiConverterTypeNotificationSenderInfo: FfiConverterRustBuffer<NotificationSenderInfo> {
     override fun read(buf: ByteBuffer): NotificationSenderInfo {
         return NotificationSenderInfo(
+            FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
 
     override fun allocationSize(value: NotificationSenderInfo) = (
+            FfiConverterString.allocationSize(value.`userId`) +
             FfiConverterOptionalString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`)
     )
 
     override fun write(value: NotificationSenderInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`userId`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+    }
+}
+
+
+
+
+data class PollAnswer (
+    var `id`: String, 
+    var `text`: String
+) {
+    
+}
+
+public object FfiConverterTypePollAnswer: FfiConverterRustBuffer<PollAnswer> {
+    override fun read(buf: ByteBuffer): PollAnswer {
+        return PollAnswer(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: PollAnswer) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`text`)
+    )
+
+    override fun write(value: PollAnswer, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`text`, buf)
     }
 }
 
@@ -10202,6 +10212,87 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
 
 
 
+sealed class NotificationEvent: Disposable  {
+    data class Timeline(
+        val `event`: TimelineEvent
+        ) : NotificationEvent()
+    data class Invite(
+        val `senderId`: String
+        ) : NotificationEvent()
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is NotificationEvent.Timeline -> {
+                
+    Disposable.destroy(
+        this.`event`)
+                
+            }
+            is NotificationEvent.Invite -> {
+                
+    Disposable.destroy(
+        this.`senderId`)
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+}
+
+public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<NotificationEvent>{
+    override fun read(buf: ByteBuffer): NotificationEvent {
+        return when(buf.getInt()) {
+            1 -> NotificationEvent.Timeline(
+                FfiConverterTypeTimelineEvent.read(buf),
+                )
+            2 -> NotificationEvent.Invite(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: NotificationEvent) = when(value) {
+        is NotificationEvent.Timeline -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeTimelineEvent.allocationSize(value.`event`)
+            )
+        }
+        is NotificationEvent.Invite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`senderId`)
+            )
+        }
+    }
+
+    override fun write(value: NotificationEvent, buf: ByteBuffer) {
+        when(value) {
+            is NotificationEvent.Timeline -> {
+                buf.putInt(1)
+                FfiConverterTypeTimelineEvent.write(value.`event`, buf)
+                Unit
+            }
+            is NotificationEvent.Invite -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`senderId`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
 
 sealed class NotificationSettingsException(message: String): Exception(message) {
         // Each variant is a nested class
@@ -10676,6 +10767,29 @@ public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<Paginat
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class PollKind {
+    DISCLOSED,UNDISCLOSED;
+}
+
+public object FfiConverterTypePollKind: FfiConverterRustBuffer<PollKind> {
+    override fun read(buf: ByteBuffer) = try {
+        PollKind.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: PollKind) = 4
+
+    override fun write(value: PollKind, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -12164,6 +12278,17 @@ sealed class TimelineItemContentKind: Disposable  {
         val `info`: ImageInfo, 
         val `url`: String
         ) : TimelineItemContentKind()
+    data class Poll(
+        val `question`: String, 
+        val `kind`: PollKind, 
+        val `maxSelections`: ULong, 
+        val `answers`: List<PollAnswer>, 
+        val `votes`: Map<String, List<String>>, 
+        val `endTime`: ULong?
+        ) : TimelineItemContentKind()
+    data class PollEnd(
+        val `startEventId`: String
+        ) : TimelineItemContentKind()
     data class UnableToDecrypt(
         val `msg`: EncryptedMessage
         ) : TimelineItemContentKind()
@@ -12206,6 +12331,23 @@ sealed class TimelineItemContentKind: Disposable  {
         this.`body`, 
         this.`info`, 
         this.`url`)
+                
+            }
+            is TimelineItemContentKind.Poll -> {
+                
+    Disposable.destroy(
+        this.`question`, 
+        this.`kind`, 
+        this.`maxSelections`, 
+        this.`answers`, 
+        this.`votes`, 
+        this.`endTime`)
+                
+            }
+            is TimelineItemContentKind.PollEnd -> {
+                
+    Disposable.destroy(
+        this.`startEventId`)
                 
             }
             is TimelineItemContentKind.UnableToDecrypt -> {
@@ -12267,28 +12409,39 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterTypeImageInfo.read(buf),
                 FfiConverterString.read(buf),
                 )
-            4 -> TimelineItemContentKind.UnableToDecrypt(
+            4 -> TimelineItemContentKind.Poll(
+                FfiConverterString.read(buf),
+                FfiConverterTypePollKind.read(buf),
+                FfiConverterULong.read(buf),
+                FfiConverterSequenceTypePollAnswer.read(buf),
+                FfiConverterMapStringSequenceString.read(buf),
+                FfiConverterOptionalULong.read(buf),
+                )
+            5 -> TimelineItemContentKind.PollEnd(
+                FfiConverterString.read(buf),
+                )
+            6 -> TimelineItemContentKind.UnableToDecrypt(
                 FfiConverterTypeEncryptedMessage.read(buf),
                 )
-            5 -> TimelineItemContentKind.RoomMembership(
+            7 -> TimelineItemContentKind.RoomMembership(
                 FfiConverterString.read(buf),
                 FfiConverterOptionalTypeMembershipChange.read(buf),
                 )
-            6 -> TimelineItemContentKind.ProfileChange(
+            8 -> TimelineItemContentKind.ProfileChange(
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 )
-            7 -> TimelineItemContentKind.State(
+            9 -> TimelineItemContentKind.State(
                 FfiConverterString.read(buf),
                 FfiConverterTypeOtherState.read(buf),
                 )
-            8 -> TimelineItemContentKind.FailedToParseMessageLike(
+            10 -> TimelineItemContentKind.FailedToParseMessageLike(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 )
-            9 -> TimelineItemContentKind.FailedToParseState(
+            11 -> TimelineItemContentKind.FailedToParseState(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
@@ -12317,6 +12470,25 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterString.allocationSize(value.`body`)
                 + FfiConverterTypeImageInfo.allocationSize(value.`info`)
                 + FfiConverterString.allocationSize(value.`url`)
+            )
+        }
+        is TimelineItemContentKind.Poll -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`question`)
+                + FfiConverterTypePollKind.allocationSize(value.`kind`)
+                + FfiConverterULong.allocationSize(value.`maxSelections`)
+                + FfiConverterSequenceTypePollAnswer.allocationSize(value.`answers`)
+                + FfiConverterMapStringSequenceString.allocationSize(value.`votes`)
+                + FfiConverterOptionalULong.allocationSize(value.`endTime`)
+            )
+        }
+        is TimelineItemContentKind.PollEnd -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`startEventId`)
             )
         }
         is TimelineItemContentKind.UnableToDecrypt -> {
@@ -12388,19 +12560,34 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterString.write(value.`url`, buf)
                 Unit
             }
-            is TimelineItemContentKind.UnableToDecrypt -> {
+            is TimelineItemContentKind.Poll -> {
                 buf.putInt(4)
+                FfiConverterString.write(value.`question`, buf)
+                FfiConverterTypePollKind.write(value.`kind`, buf)
+                FfiConverterULong.write(value.`maxSelections`, buf)
+                FfiConverterSequenceTypePollAnswer.write(value.`answers`, buf)
+                FfiConverterMapStringSequenceString.write(value.`votes`, buf)
+                FfiConverterOptionalULong.write(value.`endTime`, buf)
+                Unit
+            }
+            is TimelineItemContentKind.PollEnd -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`startEventId`, buf)
+                Unit
+            }
+            is TimelineItemContentKind.UnableToDecrypt -> {
+                buf.putInt(6)
                 FfiConverterTypeEncryptedMessage.write(value.`msg`, buf)
                 Unit
             }
             is TimelineItemContentKind.RoomMembership -> {
-                buf.putInt(5)
+                buf.putInt(7)
                 FfiConverterString.write(value.`userId`, buf)
                 FfiConverterOptionalTypeMembershipChange.write(value.`change`, buf)
                 Unit
             }
             is TimelineItemContentKind.ProfileChange -> {
-                buf.putInt(6)
+                buf.putInt(8)
                 FfiConverterOptionalString.write(value.`displayName`, buf)
                 FfiConverterOptionalString.write(value.`prevDisplayName`, buf)
                 FfiConverterOptionalString.write(value.`avatarUrl`, buf)
@@ -12408,19 +12595,19 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 Unit
             }
             is TimelineItemContentKind.State -> {
-                buf.putInt(7)
+                buf.putInt(9)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterTypeOtherState.write(value.`content`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseMessageLike -> {
-                buf.putInt(8)
+                buf.putInt(10)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseState -> {
-                buf.putInt(9)
+                buf.putInt(11)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterString.write(value.`error`, buf)
@@ -12911,7 +13098,7 @@ public object FfiConverterTypeProgressWatcher: FfiConverterCallbackInterface<Pro
 // Declaration and FfiConverters for RoomListEntriesListener Callback Interface
 
 public interface RoomListEntriesListener {
-    fun `onUpdate`(`roomEntriesUpdate`: RoomListEntriesUpdate)
+    fun `onUpdate`(`roomEntriesUpdate`: List<RoomListEntriesUpdate>)
     
 }
 
@@ -12966,7 +13153,7 @@ internal class ForeignCallbackTypeRoomListEntriesListener : ForeignCallback {
         }
         fun makeCall() : Int {
             kotlinCallbackInterface.`onUpdate`(
-                FfiConverterTypeRoomListEntriesUpdate.read(argsBuf)
+                FfiConverterSequenceTypeRoomListEntriesUpdate.read(argsBuf)
             )
             return UNIFFI_CALLBACK_SUCCESS
         }
@@ -14842,6 +15029,31 @@ public object FfiConverterSequenceTypeTimelineItem: FfiConverterRustBuffer<List<
 
 
 
+public object FfiConverterSequenceTypePollAnswer: FfiConverterRustBuffer<List<PollAnswer>> {
+    override fun read(buf: ByteBuffer): List<PollAnswer> {
+        val len = buf.getInt()
+        return List<PollAnswer>(len) {
+            FfiConverterTypePollAnswer.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<PollAnswer>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypePollAnswer.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<PollAnswer>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypePollAnswer.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeReaction: FfiConverterRustBuffer<List<Reaction>> {
     override fun read(buf: ByteBuffer): List<Reaction> {
         val len = buf.getInt()
@@ -14967,6 +15179,31 @@ public object FfiConverterSequenceTypeUserProfile: FfiConverterRustBuffer<List<U
 
 
 
+public object FfiConverterSequenceTypeRoomListEntriesUpdate: FfiConverterRustBuffer<List<RoomListEntriesUpdate>> {
+    override fun read(buf: ByteBuffer): List<RoomListEntriesUpdate> {
+        val len = buf.getInt()
+        return List<RoomListEntriesUpdate>(len) {
+            FfiConverterTypeRoomListEntriesUpdate.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomListEntriesUpdate>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeRoomListEntriesUpdate.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomListEntriesUpdate>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypeRoomListEntriesUpdate.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeRoomListEntry: FfiConverterRustBuffer<List<RoomListEntry>> {
     override fun read(buf: ByteBuffer): List<RoomListEntry> {
         val len = buf.getInt()
@@ -15021,6 +15258,42 @@ public object FfiConverterMapStringTypeReceipt: FfiConverterRustBuffer<Map<Strin
         value.forEach { (k, v) ->
             FfiConverterString.write(k, buf)
             FfiConverterTypeReceipt.write(v, buf)
+        }
+    }
+}
+
+
+
+public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<String, List<String>>> {
+    override fun read(buf: ByteBuffer): Map<String, List<String>> {
+        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
+        val items : MutableMap<String, List<String>> = mutableMapOf()
+        val len = buf.getInt()
+        repeat(len) {
+            val k = FfiConverterString.read(buf)
+            val v = FfiConverterSequenceString.read(buf)
+            items[k] = v
+        }
+        return items
+    }
+
+    override fun allocationSize(value: Map<String, List<String>>): Int {
+        val spaceForMapSize = 4
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterSequenceString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<String, List<String>>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterSequenceString.write(v, buf)
         }
     }
 }
@@ -15335,6 +15608,18 @@ internal class UniFfiFutureCallbackHandlerTypeNotificationClientBuilder(val cont
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
+            continuation.resume(FfiConverterTypeNotificationClientBuilder.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
+internal class UniFfiFutureCallbackHandlerTypeNotificationClientBuilder_TypeClientError(val continuation: Continuation<NotificationClientBuilder>)
+    : UniFfiFutureCallbackPointer {
+    override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
+        try {
+            checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeNotificationClientBuilder.lift(returnValue!!))
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
