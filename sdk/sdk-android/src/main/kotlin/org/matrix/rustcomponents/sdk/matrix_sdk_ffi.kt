@@ -553,11 +553,7 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_notificationclient(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_context(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_sliding_sync(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_legacy_get_notification(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_notificationclientbuilder(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1115,11 +1111,7 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_msgtype(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_context(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_sliding_sync(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_legacy_get_notification(
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_filter_by_push_rules(
     ): Short
@@ -1728,13 +1720,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_msgtype() != 50686.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_context() != 64399.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification_with_sliding_sync() != 45569.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_legacy_get_notification() != 12969.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 9907.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_filter_by_push_rules() != 10529.toShort()) {
@@ -3955,9 +3941,7 @@ public object FfiConverterTypeMessage: FfiConverter<Message, Pointer> {
 
 public interface NotificationClientInterface {
     @Throws(ClientException::class)
-    fun `getNotificationWithContext`(`roomId`: String, `eventId`: String): NotificationItem?@Throws(ClientException::class)
-    fun `getNotificationWithSlidingSync`(`roomId`: String, `eventId`: String): NotificationItem?@Throws(ClientException::class)
-    fun `legacyGetNotification`(`roomId`: String, `eventId`: String): NotificationItem?
+    fun `getNotification`(`roomId`: String, `eventId`: String): NotificationItem?
 }
 
 class NotificationClient(
@@ -3979,34 +3963,10 @@ class NotificationClient(
     }
 
     
-    @Throws(ClientException::class)override fun `getNotificationWithContext`(`roomId`: String, `eventId`: String): NotificationItem? =
+    @Throws(ClientException::class)override fun `getNotification`(`roomId`: String, `eventId`: String): NotificationItem? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_context(it,
-        FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeNotificationItem.lift(it)
-        }
-    
-    
-    @Throws(ClientException::class)override fun `getNotificationWithSlidingSync`(`roomId`: String, `eventId`: String): NotificationItem? =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification_with_sliding_sync(it,
-        FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeNotificationItem.lift(it)
-        }
-    
-    
-    @Throws(ClientException::class)override fun `legacyGetNotification`(`roomId`: String, `eventId`: String): NotificationItem? =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_legacy_get_notification(it,
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(it,
         FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
         _status)
 }
@@ -8417,7 +8377,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
 
 
 data class NotificationSenderInfo (
-    var `userId`: String, 
+    var `senderId`: String, 
     var `displayName`: String?, 
     var `avatarUrl`: String?
 ) {
@@ -8434,13 +8394,13 @@ public object FfiConverterTypeNotificationSenderInfo: FfiConverterRustBuffer<Not
     }
 
     override fun allocationSize(value: NotificationSenderInfo) = (
-            FfiConverterString.allocationSize(value.`userId`) +
+            FfiConverterString.allocationSize(value.`senderId`) +
             FfiConverterOptionalString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`)
     )
 
     override fun write(value: NotificationSenderInfo, buf: ByteBuffer) {
-            FfiConverterString.write(value.`userId`, buf)
+            FfiConverterString.write(value.`senderId`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
     }
@@ -10214,11 +10174,10 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
 
 sealed class NotificationEvent: Disposable  {
     data class Timeline(
-        val `event`: TimelineEvent
+        val `event`: TimelineEventType
         ) : NotificationEvent()
-    data class Invite(
-        val `senderId`: String
-        ) : NotificationEvent()
+    object Invite : NotificationEvent()
+    
     
 
     
@@ -10231,11 +10190,7 @@ sealed class NotificationEvent: Disposable  {
         this.`event`)
                 
             }
-            is NotificationEvent.Invite -> {
-                
-    Disposable.destroy(
-        this.`senderId`)
-                
+            is NotificationEvent.Invite -> {// Nothing to destroy
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
@@ -10246,11 +10201,9 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
     override fun read(buf: ByteBuffer): NotificationEvent {
         return when(buf.getInt()) {
             1 -> NotificationEvent.Timeline(
-                FfiConverterTypeTimelineEvent.read(buf),
+                FfiConverterTypeTimelineEventType.read(buf),
                 )
-            2 -> NotificationEvent.Invite(
-                FfiConverterString.read(buf),
-                )
+            2 -> NotificationEvent.Invite
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -10260,14 +10213,13 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
-                + FfiConverterTypeTimelineEvent.allocationSize(value.`event`)
+                + FfiConverterTypeTimelineEventType.allocationSize(value.`event`)
             )
         }
         is NotificationEvent.Invite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
-                + FfiConverterString.allocationSize(value.`senderId`)
             )
         }
     }
@@ -10276,12 +10228,11 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
         when(value) {
             is NotificationEvent.Timeline -> {
                 buf.putInt(1)
-                FfiConverterTypeTimelineEvent.write(value.`event`, buf)
+                FfiConverterTypeTimelineEventType.write(value.`event`, buf)
                 Unit
             }
             is NotificationEvent.Invite -> {
                 buf.putInt(2)
-                FfiConverterString.write(value.`senderId`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
