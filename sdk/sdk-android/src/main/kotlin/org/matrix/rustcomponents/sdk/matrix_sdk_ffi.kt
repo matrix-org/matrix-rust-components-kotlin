@@ -26,19 +26,23 @@ import com.sun.jna.Callback
 import com.sun.jna.ptr.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.CharBuffer
+import java.nio.charset.CodingErrorAction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -269,6 +273,7 @@ private inline fun <U> rustCall(callback: (RustCallStatus) -> U): U {
 public class USize(value: Long = 0) : IntegerType(Native.SIZE_T_SIZE, value, true) {
     // This is needed to fill in the gaps of IntegerType's implementation of Number for Kotlin.
     override fun toByte() = toInt().toByte()
+    @Deprecated("`toInt().toChar()` is deprecated")
     override fun toChar() = toInt().toChar()
     override fun toShort() = toInt().toShort()
 
@@ -566,54 +571,94 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_notificationsettings(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(`ptr`: Pointer,`isEncrypted`: Byte,`activeMembersCount`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`activeMembersCount`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(`ptr`: Pointer,`enabled`: Byte,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(`ptr`: Pointer,`enabled`: Byte,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`mode`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled(`ptr`: Pointer,`enabled`: Byte,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`membersCount`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_room(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_avatar_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`stateEvent`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_cancel_send(`ptr`: Pointer,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -736,6 +781,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_is_direct(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_latest_event(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_latest_event_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_name(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -748,10 +795,16 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input(`ptr`: Pointer,`input`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -799,23 +852,35 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_cancel(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationemoji(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -844,12 +909,16 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_room_list_service(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_state(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_syncservicebuilder(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_encryption_sync(`ptr`: Pointer,`withCrossProcessLock`: Byte,`appIdentifier`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -1774,7 +1843,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() != 62367.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener() != 2158.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener() != 43137.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases() != 25219.toShort()) {
@@ -2065,7 +2134,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 58929.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 31788.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 25237.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() != 468.toShort()) {
@@ -2251,7 +2320,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update() != 52830.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() != 30798.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() != 974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -2420,17 +2489,25 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         return byteArr.toString(Charsets.UTF_8)
     }
 
+    fun toUtf8(value: String): ByteBuffer {
+        // Make sure we don't have invalid UTF-16, check for lone surrogates.
+        return Charsets.UTF_8.newEncoder().run {
+            onMalformedInput(CodingErrorAction.REPORT)
+            encode(CharBuffer.wrap(value))
+        }
+    }
+
     override fun lower(value: String): RustBuffer.ByValue {
-        val byteArr = value.toByteArray(Charsets.UTF_8)
+        val byteBuf = toUtf8(value)
         // Ideally we'd pass these bytes to `ffi_bytebuffer_from_bytes`, but doing so would require us
         // to copy them into a JNA `Memory`. So we might as well directly copy them into a `RustBuffer`.
-        val rbuf = RustBuffer.alloc(byteArr.size)
-        rbuf.asByteBuffer()!!.put(byteArr)
+        val rbuf = RustBuffer.alloc(byteBuf.limit())
+        rbuf.asByteBuffer()!!.put(byteBuf)
         return rbuf
     }
 
     // We aren't sure exactly how many bytes our string will be once it's UTF-8
-    // encoded.  Allocate 3 bytes per unicode codepoint which will always be
+    // encoded.  Allocate 3 bytes per UTF-16 code unit which will always be
     // enough.
     override fun allocationSize(value: String): Int {
         val sizeForLength = 4
@@ -2439,9 +2516,9 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     }
 
     override fun write(value: String, buf: ByteBuffer) {
-        val byteArr = value.toByteArray(Charsets.UTF_8)
-        buf.putInt(byteArr.size)
-        buf.put(byteArr)
+        val byteBuf = toUtf8(value)
+        buf.putInt(byteBuf.limit())
+        buf.put(byteBuf)
     }
 }
 
@@ -4130,19 +4207,25 @@ class NotificationSettings(
     
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `containsKeywordsRules`() : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(
                                 thisPtr,
@@ -4156,6 +4239,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4163,19 +4247,25 @@ class NotificationSettings(
     
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `getDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `activeMembersCount`: ULong) : RoomNotificationMode {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerTypeRoomNotificationMode? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerTypeRoomNotificationMode(continuation)
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomNotificationMode(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(
                                 thisPtr,
@@ -4189,6 +4279,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4197,19 +4288,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `getRoomNotificationSettings`(`roomId`: String, `isEncrypted`: Boolean, `activeMembersCount`: ULong) : RoomNotificationSettings {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerTypeRoomNotificationSettings_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerTypeRoomNotificationSettings_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomNotificationSettings_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(
                                 thisPtr,
@@ -4223,6 +4320,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4231,19 +4329,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isCallEnabled`() : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled(
                                 thisPtr,
@@ -4257,6 +4361,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4265,19 +4370,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isRoomMentionEnabled`() : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled(
                                 thisPtr,
@@ -4291,6 +4402,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4299,19 +4411,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isUserMentionEnabled`() : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled(
                                 thisPtr,
@@ -4325,6 +4443,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4333,19 +4452,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `restoreDefaultRoomNotificationMode`(`roomId`: String) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(
                                 thisPtr,
@@ -4359,6 +4484,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4367,19 +4493,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setCallEnabled`(`enabled`: Boolean) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(
                                 thisPtr,
@@ -4393,6 +4525,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4411,19 +4544,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setRoomMentionEnabled`(`enabled`: Boolean) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(
                                 thisPtr,
@@ -4437,6 +4576,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4445,19 +4585,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setRoomNotificationMode`(`roomId`: String, `mode`: RoomNotificationMode) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode(
                                 thisPtr,
@@ -4471,6 +4617,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4479,19 +4626,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setUserMentionEnabled`(`enabled`: Boolean) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled(
                                 thisPtr,
@@ -4505,6 +4658,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4513,19 +4667,25 @@ class NotificationSettings(
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `unmuteRoom`(`roomId`: String, `isEncrypted`: Boolean, `membersCount`: ULong) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(
                                 thisPtr,
@@ -4539,6 +4699,7 @@ class NotificationSettings(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4576,7 +4737,7 @@ public object FfiConverterTypeNotificationSettings: FfiConverter<NotificationSet
 public interface RoomInterface {
     
     fun `activeMembersCount`(): ULong
-    fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
+    suspend fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
     fun `alternativeAliases`(): List<String>
     fun `avatarUrl`(): String?@Throws(ClientException::class)
     suspend fun `canUserBan`(`userId`: String): Boolean@Throws(ClientException::class)
@@ -4666,17 +4827,46 @@ class Room(
             FfiConverterULong.lift(it)
         }
     
-    override fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(it,
-        FfiConverterTypeTimelineListener.lower(`listener`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomTimelineListenerResult.lift(it)
-        }
     
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `addTimelineListener`(`listener`: TimelineListener) : RoomTimelineListenerResult {
+        
+        var callbackHolder: UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult? = null
+        return coroutineScope {
+            val scope = this
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult(continuation, completionHandler)
+                    callbackHolder = callback
+                    rustFuturePtr = callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(
+                                thisPtr,
+                                FfiConverterTypeTimelineListener.lower(`listener`),
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                    completionHandler(null)
+                }
+            }
+        }
+    }
     override fun `alternativeAliases`(): List<String> =
         callWithPointer {
     rustCall() { _status ->
@@ -4703,19 +4893,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserBan`(`userId`: String) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban(
                                 thisPtr,
@@ -4729,6 +4925,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4737,19 +4934,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserInvite`(`userId`: String) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite(
                                 thisPtr,
@@ -4763,6 +4966,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4771,19 +4975,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserKick`(`userId`: String) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick(
                                 thisPtr,
@@ -4797,6 +5007,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4805,19 +5016,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserRedact`(`userId`: String) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact(
                                 thisPtr,
@@ -4831,6 +5048,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4839,19 +5057,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserSendMessage`(`userId`: String, `message`: MessageLikeEventType) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message(
                                 thisPtr,
@@ -4865,6 +5089,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4873,19 +5098,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserSendState`(`userId`: String, `stateEvent`: StateEventType) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state(
                                 thisPtr,
@@ -4899,6 +5130,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -4907,19 +5139,25 @@ class Room(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserTriggerRoomNotification`(`userId`: String) : Boolean {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerBoolean_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification(
                                 thisPtr,
@@ -4933,6 +5171,7 @@ class Room(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -5702,19 +5941,25 @@ class RoomListItem(
     
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `latestEvent`() : EventTimelineItem? {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerOptionalTypeEventTimelineItem? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_latest_event_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerOptionalTypeEventTimelineItem(continuation)
+                    val callback = UniFfiFutureCallbackHandlerOptionalTypeEventTimelineItem(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_latest_event(
                                 thisPtr,
@@ -5728,6 +5973,7 @@ class RoomListItem(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -5835,19 +6081,25 @@ class RoomListService(
     @Throws(RoomListException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `allRooms`() : RoomList {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms(
                                 thisPtr,
@@ -5861,6 +6113,7 @@ class RoomListService(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -5869,19 +6122,25 @@ class RoomListService(
     @Throws(RoomListException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `applyInput`(`input`: RoomListInput) {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeRoomListError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeRoomListError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeRoomListError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input(
                                 thisPtr,
@@ -5895,6 +6154,7 @@ class RoomListService(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -5903,19 +6163,25 @@ class RoomListService(
     @Throws(RoomListException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `invites`() : RoomList {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites(
                                 thisPtr,
@@ -5929,6 +6195,7 @@ class RoomListService(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6309,7 +6576,7 @@ public object FfiConverterTypeRoomMessageEventContent: FfiConverter<RoomMessageE
 public interface SendAttachmentJoinHandleInterface {
     
     fun `cancel`()@Throws(RoomException::class)
-    fun `join`()
+    suspend fun `join`()
 }
 
 class SendAttachmentJoinHandle(
@@ -6341,16 +6608,46 @@ class SendAttachmentJoinHandle(
     
     
     
-    @Throws(RoomException::class)override fun `join`() =
-        callWithPointer {
-    rustCallWithError(RoomException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(it,
+    @Throws(RoomException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `join`() {
         
-        _status)
-}
+        var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeRoomError? = null
+        return coroutineScope {
+            val scope = this
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeRoomError(continuation, completionHandler)
+                    callbackHolder = callback
+                    rustFuturePtr = callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(
+                                thisPtr,
+                                
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                    completionHandler(null)
+                }
+            }
         }
-    
-    
+    }
     
 
     
@@ -6414,19 +6711,25 @@ class SessionVerificationController(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `approveVerification`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification(
                                 thisPtr,
@@ -6440,6 +6743,7 @@ class SessionVerificationController(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6448,19 +6752,25 @@ class SessionVerificationController(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `cancelVerification`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification(
                                 thisPtr,
@@ -6474,6 +6784,7 @@ class SessionVerificationController(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6482,19 +6793,25 @@ class SessionVerificationController(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `declineVerification`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(
                                 thisPtr,
@@ -6508,6 +6825,7 @@ class SessionVerificationController(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6527,19 +6845,25 @@ class SessionVerificationController(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `requestVerification`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(
                                 thisPtr,
@@ -6553,6 +6877,7 @@ class SessionVerificationController(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6571,19 +6896,25 @@ class SessionVerificationController(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `startSasVerification`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification(
                                 thisPtr,
@@ -6597,6 +6928,7 @@ class SessionVerificationController(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6870,19 +7202,25 @@ class SyncService(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `start`() {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_start_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_start(
                                 thisPtr,
@@ -6896,6 +7234,7 @@ class SyncService(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -6969,19 +7308,25 @@ class SyncServiceBuilder(
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `finish`() : SyncService {
-        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-        //
-        // Make sure to retain a reference to the callback handler to ensure that it's not GCed before
-        // it's invoked
+        
         var callbackHolder: UniFfiFutureCallbackHandlerTypeSyncService_TypeClientError? = null
         return coroutineScope {
             val scope = this
-            return@coroutineScope suspendCoroutine { continuation ->
+            var rustFuturePtr: Pointer? = null
+            val completionHandler: CompletionHandler = { _ ->
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish_uniffi_drop(
+                        rustFuturePtr!!,
+                        status,
+                    )
+                }
+                callbackHolder = null
+            }
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
                 try {
-                    val callback = UniFfiFutureCallbackHandlerTypeSyncService_TypeClientError(continuation)
+                    val callback = UniFfiFutureCallbackHandlerTypeSyncService_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
-                    callWithPointer { thisPtr ->
+                    rustFuturePtr = callWithPointer { thisPtr ->
                         rustCall { status ->
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(
                                 thisPtr,
@@ -6995,6 +7340,7 @@ class SyncServiceBuilder(
                     }
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
+                    completionHandler(null)
                 }
             }
         }
@@ -8377,7 +8723,6 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
 
 
 data class NotificationSenderInfo (
-    var `senderId`: String, 
     var `displayName`: String?, 
     var `avatarUrl`: String?
 ) {
@@ -8387,20 +8732,17 @@ data class NotificationSenderInfo (
 public object FfiConverterTypeNotificationSenderInfo: FfiConverterRustBuffer<NotificationSenderInfo> {
     override fun read(buf: ByteBuffer): NotificationSenderInfo {
         return NotificationSenderInfo(
-            FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
 
     override fun allocationSize(value: NotificationSenderInfo) = (
-            FfiConverterString.allocationSize(value.`senderId`) +
             FfiConverterOptionalString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`)
     )
 
     override fun write(value: NotificationSenderInfo, buf: ByteBuffer) {
-            FfiConverterString.write(value.`senderId`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
     }
@@ -10174,10 +10516,11 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
 
 sealed class NotificationEvent: Disposable  {
     data class Timeline(
-        val `event`: TimelineEventType
+        val `event`: TimelineEvent
         ) : NotificationEvent()
-    object Invite : NotificationEvent()
-    
+    data class Invite(
+        val `sender`: String
+        ) : NotificationEvent()
     
 
     
@@ -10190,7 +10533,11 @@ sealed class NotificationEvent: Disposable  {
         this.`event`)
                 
             }
-            is NotificationEvent.Invite -> {// Nothing to destroy
+            is NotificationEvent.Invite -> {
+                
+    Disposable.destroy(
+        this.`sender`)
+                
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
@@ -10201,9 +10548,11 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
     override fun read(buf: ByteBuffer): NotificationEvent {
         return when(buf.getInt()) {
             1 -> NotificationEvent.Timeline(
-                FfiConverterTypeTimelineEventType.read(buf),
+                FfiConverterTypeTimelineEvent.read(buf),
                 )
-            2 -> NotificationEvent.Invite
+            2 -> NotificationEvent.Invite(
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -10213,13 +10562,14 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
-                + FfiConverterTypeTimelineEventType.allocationSize(value.`event`)
+                + FfiConverterTypeTimelineEvent.allocationSize(value.`event`)
             )
         }
         is NotificationEvent.Invite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
+                + FfiConverterString.allocationSize(value.`sender`)
             )
         }
     }
@@ -10228,11 +10578,12 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
         when(value) {
             is NotificationEvent.Timeline -> {
                 buf.putInt(1)
-                FfiConverterTypeTimelineEventType.write(value.`event`, buf)
+                FfiConverterTypeTimelineEvent.write(value.`event`, buf)
                 Unit
             }
             is NotificationEvent.Invite -> {
                 buf.putInt(2)
+                FfiConverterString.write(value.`sender`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -13619,7 +13970,7 @@ public object FfiConverterTypeSyncServiceStateObserver: FfiConverterCallbackInte
 // Declaration and FfiConverters for TimelineListener Callback Interface
 
 public interface TimelineListener {
-    fun `onUpdate`(`diff`: TimelineDiff)
+    fun `onUpdate`(`diff`: List<TimelineDiff>)
     
 }
 
@@ -13674,7 +14025,7 @@ internal class ForeignCallbackTypeTimelineListener : ForeignCallback {
         }
         fun makeCall() : Int {
             kotlinCallbackInterface.`onUpdate`(
-                FfiConverterTypeTimelineDiff.read(argsBuf)
+                FfiConverterSequenceTypeTimelineDiff.read(argsBuf)
             )
             return UNIFFI_CALLBACK_SUCCESS
         }
@@ -14955,6 +15306,31 @@ public object FfiConverterSequenceTypeSessionVerificationEmoji: FfiConverterRust
 
 
 
+public object FfiConverterSequenceTypeTimelineDiff: FfiConverterRustBuffer<List<TimelineDiff>> {
+    override fun read(buf: ByteBuffer): List<TimelineDiff> {
+        val len = buf.getInt()
+        return List<TimelineDiff>(len) {
+            FfiConverterTypeTimelineDiff.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<TimelineDiff>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeTimelineDiff.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<TimelineDiff>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypeTimelineDiff.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeTimelineItem: FfiConverterRustBuffer<List<TimelineItem>> {
     override fun read(buf: ByteBuffer): List<TimelineItem> {
         val len = buf.getInt()
@@ -15258,6 +15634,8 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<St
 
 
 
+// 
+
 
 
 // FFI type for callback handlers
@@ -15290,974 +15668,1379 @@ internal interface UniFfiFutureCallbackRustBuffer : com.sun.jna.Callback {
 // Callback handlers for an async call.  These are invoked by Rust when the future is ready.  They
 // lift the return value or error and resume the suspended function.
 
-internal class UniFfiFutureCallbackHandlerVoid(val continuation: Continuation<Unit>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerVoid(
+    val continuation: CancellableContinuation<Unit>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(Unit)
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerVoid_TypeAuthenticationError(val continuation: Continuation<Unit>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerVoid_TypeAuthenticationError(
+    val continuation: CancellableContinuation<Unit>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(AuthenticationException, callStatus)
             continuation.resume(Unit)
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerVoid_TypeClientError(val continuation: Continuation<Unit>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerVoid_TypeClientError(
+    val continuation: CancellableContinuation<Unit>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(Unit)
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(val continuation: Continuation<Unit>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(
+    val continuation: CancellableContinuation<Unit>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NotificationSettingsException, callStatus)
             continuation.resume(Unit)
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerVoid_TypeRoomError(val continuation: Continuation<Unit>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerVoid_TypeRoomError(
+    val continuation: CancellableContinuation<Unit>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(RoomException, callStatus)
             continuation.resume(Unit)
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerVoid_TypeRoomListError(val continuation: Continuation<Unit>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerVoid_TypeRoomListError(
+    val continuation: CancellableContinuation<Unit>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(RoomListException, callStatus)
             continuation.resume(Unit)
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerUInt(val continuation: Continuation<UInt>)
-    : UniFfiFutureCallbackInt {
+internal class UniFfiFutureCallbackHandlerUInt(
+    val continuation: CancellableContinuation<UInt>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackInt
+{
     override fun invoke(_callbackData: USize, returnValue: Int?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterUInt.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerULong(val continuation: Continuation<ULong>)
-    : UniFfiFutureCallbackLong {
+internal class UniFfiFutureCallbackHandlerULong(
+    val continuation: CancellableContinuation<ULong>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackLong
+{
     override fun invoke(_callbackData: USize, returnValue: Long?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterULong.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerLong(val continuation: Continuation<Long>)
-    : UniFfiFutureCallbackLong {
+internal class UniFfiFutureCallbackHandlerLong(
+    val continuation: CancellableContinuation<Long>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackLong
+{
     override fun invoke(_callbackData: USize, returnValue: Long?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterLong.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerBoolean(val continuation: Continuation<Boolean>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerBoolean(
+    val continuation: CancellableContinuation<Boolean>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterBoolean.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerBoolean_TypeClientError(val continuation: Continuation<Boolean>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerBoolean_TypeClientError(
+    val continuation: CancellableContinuation<Boolean>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterBoolean.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(val continuation: Continuation<Boolean>)
-    : UniFfiFutureCallbackByte {
+internal class UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(
+    val continuation: CancellableContinuation<Boolean>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackByte
+{
     override fun invoke(_callbackData: USize, returnValue: Byte?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NotificationSettingsException, callStatus)
             continuation.resume(FfiConverterBoolean.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerString(val continuation: Continuation<String>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerString(
+    val continuation: CancellableContinuation<String>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterString.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerString_TypeClientError(val continuation: Continuation<String>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerString_TypeClientError(
+    val continuation: CancellableContinuation<String>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterString.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeAuthenticationService(val continuation: Continuation<AuthenticationService>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeAuthenticationService(
+    val continuation: CancellableContinuation<AuthenticationService>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeAuthenticationService.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeClient_TypeAuthenticationError(val continuation: Continuation<Client>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeClient_TypeAuthenticationError(
+    val continuation: CancellableContinuation<Client>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(AuthenticationException, callStatus)
             continuation.resume(FfiConverterTypeClient.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeClient_TypeClientError(val continuation: Continuation<Client>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeClient_TypeClientError(
+    val continuation: CancellableContinuation<Client>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeClient.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeClientBuilder(val continuation: Continuation<ClientBuilder>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeClientBuilder(
+    val continuation: CancellableContinuation<ClientBuilder>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeClientBuilder.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeMediaFileHandle_TypeClientError(val continuation: Continuation<MediaFileHandle>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeMediaFileHandle_TypeClientError(
+    val continuation: CancellableContinuation<MediaFileHandle>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeMediaFileHandle.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeMediaSource(val continuation: Continuation<MediaSource>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeMediaSource(
+    val continuation: CancellableContinuation<MediaSource>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeMediaSource.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeMediaSource_TypeClientError(val continuation: Continuation<MediaSource>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeMediaSource_TypeClientError(
+    val continuation: CancellableContinuation<MediaSource>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeMediaSource.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeNotificationClient(val continuation: Continuation<NotificationClient>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeNotificationClient(
+    val continuation: CancellableContinuation<NotificationClient>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeNotificationClient.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeNotificationClientBuilder(val continuation: Continuation<NotificationClientBuilder>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeNotificationClientBuilder(
+    val continuation: CancellableContinuation<NotificationClientBuilder>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeNotificationClientBuilder.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeNotificationClientBuilder_TypeClientError(val continuation: Continuation<NotificationClientBuilder>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeNotificationClientBuilder_TypeClientError(
+    val continuation: CancellableContinuation<NotificationClientBuilder>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeNotificationClientBuilder.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeNotificationSettings(val continuation: Continuation<NotificationSettings>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeNotificationSettings(
+    val continuation: CancellableContinuation<NotificationSettings>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeNotificationSettings.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoom(val continuation: Continuation<Room>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoom(
+    val continuation: CancellableContinuation<Room>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeRoom.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(val continuation: Continuation<RoomList>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(
+    val continuation: CancellableContinuation<RoomList>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(RoomListException, callStatus)
             continuation.resume(FfiConverterTypeRoomList.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomListItem_TypeRoomListError(val continuation: Continuation<RoomListItem>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoomListItem_TypeRoomListError(
+    val continuation: CancellableContinuation<RoomListItem>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(RoomListException, callStatus)
             continuation.resume(FfiConverterTypeRoomListItem.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomListService(val continuation: Continuation<RoomListService>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoomListService(
+    val continuation: CancellableContinuation<RoomListService>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeRoomListService.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomMember_TypeClientError(val continuation: Continuation<RoomMember>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoomMember_TypeClientError(
+    val continuation: CancellableContinuation<RoomMember>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeRoomMember.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomMessageEventContent(val continuation: Continuation<RoomMessageEventContent>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoomMessageEventContent(
+    val continuation: CancellableContinuation<RoomMessageEventContent>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeRoomMessageEventContent.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomMessageEventContent_TypeClientError(val continuation: Continuation<RoomMessageEventContent>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeRoomMessageEventContent_TypeClientError(
+    val continuation: CancellableContinuation<RoomMessageEventContent>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeRoomMessageEventContent.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSendAttachmentJoinHandle(val continuation: Continuation<SendAttachmentJoinHandle>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeSendAttachmentJoinHandle(
+    val continuation: CancellableContinuation<SendAttachmentJoinHandle>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeSendAttachmentJoinHandle.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSessionVerificationController_TypeClientError(val continuation: Continuation<SessionVerificationController>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeSessionVerificationController_TypeClientError(
+    val continuation: CancellableContinuation<SessionVerificationController>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeSessionVerificationController.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSpan(val continuation: Continuation<Span>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeSpan(
+    val continuation: CancellableContinuation<Span>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeSpan.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSyncService_TypeClientError(val continuation: Continuation<SyncService>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeSyncService_TypeClientError(
+    val continuation: CancellableContinuation<SyncService>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeSyncService.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSyncServiceBuilder(val continuation: Continuation<SyncServiceBuilder>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeSyncServiceBuilder(
+    val continuation: CancellableContinuation<SyncServiceBuilder>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeSyncServiceBuilder.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeTaskHandle(val continuation: Continuation<TaskHandle>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeTaskHandle(
+    val continuation: CancellableContinuation<TaskHandle>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeTaskHandle.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeTaskHandle_TypeClientError(val continuation: Continuation<TaskHandle>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeTaskHandle_TypeClientError(
+    val continuation: CancellableContinuation<TaskHandle>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeTaskHandle.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeTimelineItemContent(val continuation: Continuation<TimelineItemContent>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeTimelineItemContent(
+    val continuation: CancellableContinuation<TimelineItemContent>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeTimelineItemContent.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeUnreadNotificationsCount(val continuation: Continuation<UnreadNotificationsCount>)
-    : UniFfiFutureCallbackPointer {
+internal class UniFfiFutureCallbackHandlerTypeUnreadNotificationsCount(
+    val continuation: CancellableContinuation<UnreadNotificationsCount>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackPointer
+{
     override fun invoke(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeUnreadNotificationsCount.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeEventTimelineItemDebugInfo(val continuation: Continuation<EventTimelineItemDebugInfo>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeEventTimelineItemDebugInfo(
+    val continuation: CancellableContinuation<EventTimelineItemDebugInfo>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeEventTimelineItemDebugInfo.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomListEntriesResult_TypeRoomListError(val continuation: Continuation<RoomListEntriesResult>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeRoomListEntriesResult_TypeRoomListError(
+    val continuation: CancellableContinuation<RoomListEntriesResult>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(RoomListException, callStatus)
             continuation.resume(FfiConverterTypeRoomListEntriesResult.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomListLoadingStateResult_TypeRoomListError(val continuation: Continuation<RoomListLoadingStateResult>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeRoomListLoadingStateResult_TypeRoomListError(
+    val continuation: CancellableContinuation<RoomListLoadingStateResult>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(RoomListException, callStatus)
             continuation.resume(FfiConverterTypeRoomListLoadingStateResult.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomNotificationSettings_TypeNotificationSettingsError(val continuation: Continuation<RoomNotificationSettings>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeRoomNotificationSettings_TypeNotificationSettingsError(
+    val continuation: CancellableContinuation<RoomNotificationSettings>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NotificationSettingsException, callStatus)
             continuation.resume(FfiConverterTypeRoomNotificationSettings.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult(val continuation: Continuation<RoomTimelineListenerResult>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult(
+    val continuation: CancellableContinuation<RoomTimelineListenerResult>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeRoomTimelineListenerResult.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSearchUsersResults_TypeClientError(val continuation: Continuation<SearchUsersResults>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeSearchUsersResults_TypeClientError(
+    val continuation: CancellableContinuation<SearchUsersResults>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeSearchUsersResults.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSession_TypeClientError(val continuation: Continuation<Session>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeSession_TypeClientError(
+    val continuation: CancellableContinuation<Session>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeSession.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeUserProfile_TypeClientError(val continuation: Continuation<UserProfile>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeUserProfile_TypeClientError(
+    val continuation: CancellableContinuation<UserProfile>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeUserProfile.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeMembership(val continuation: Continuation<Membership>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeMembership(
+    val continuation: CancellableContinuation<Membership>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeMembership.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeMembershipState(val continuation: Continuation<MembershipState>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeMembershipState(
+    val continuation: CancellableContinuation<MembershipState>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeMembershipState.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeProfileDetails(val continuation: Continuation<ProfileDetails>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeProfileDetails(
+    val continuation: CancellableContinuation<ProfileDetails>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeProfileDetails.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomNotificationMode(val continuation: Continuation<RoomNotificationMode>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeRoomNotificationMode(
+    val continuation: CancellableContinuation<RoomNotificationMode>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeRoomNotificationMode.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeSyncServiceState(val continuation: Continuation<SyncServiceState>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeSyncServiceState(
+    val continuation: CancellableContinuation<SyncServiceState>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeSyncServiceState.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeTimelineChange(val continuation: Continuation<TimelineChange>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeTimelineChange(
+    val continuation: CancellableContinuation<TimelineChange>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeTimelineChange.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeTimelineEventType_TypeClientError(val continuation: Continuation<TimelineEventType>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeTimelineEventType_TypeClientError(
+    val continuation: CancellableContinuation<TimelineEventType>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterTypeTimelineEventType.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeTimelineItemContentKind(val continuation: Continuation<TimelineItemContentKind>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerTypeTimelineItemContentKind(
+    val continuation: CancellableContinuation<TimelineItemContentKind>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeTimelineItemContentKind.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalUInt(val continuation: Continuation<UInt?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalUInt(
+    val continuation: CancellableContinuation<UInt?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalUInt.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalString(val continuation: Continuation<String?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalString(
+    val continuation: CancellableContinuation<String?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalString.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalString_TypeClientError(val continuation: Continuation<String?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalString_TypeClientError(
+    val continuation: CancellableContinuation<String?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterOptionalString.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeEventTimelineItem(val continuation: Continuation<EventTimelineItem?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeEventTimelineItem(
+    val continuation: CancellableContinuation<EventTimelineItem?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeEventTimelineItem.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeHomeserverLoginDetails(val continuation: Continuation<HomeserverLoginDetails?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeHomeserverLoginDetails(
+    val continuation: CancellableContinuation<HomeserverLoginDetails?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeHomeserverLoginDetails.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeMessage(val continuation: Continuation<Message?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeMessage(
+    val continuation: CancellableContinuation<Message?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeMessage.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeRoom_TypeClientError(val continuation: Continuation<Room?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeRoom_TypeClientError(
+    val continuation: CancellableContinuation<Room?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterOptionalTypeRoom.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeRoomMember(val continuation: Continuation<RoomMember?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeRoomMember(
+    val continuation: CancellableContinuation<RoomMember?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeRoomMember.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeTimelineItem(val continuation: Continuation<TimelineItem?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeTimelineItem(
+    val continuation: CancellableContinuation<TimelineItem?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeTimelineItem.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeInReplyToDetails(val continuation: Continuation<InReplyToDetails?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeInReplyToDetails(
+    val continuation: CancellableContinuation<InReplyToDetails?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeInReplyToDetails.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeInsertData(val continuation: Continuation<InsertData?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeInsertData(
+    val continuation: CancellableContinuation<InsertData?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeInsertData.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeNotificationItem_TypeClientError(val continuation: Continuation<NotificationItem?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeNotificationItem_TypeClientError(
+    val continuation: CancellableContinuation<NotificationItem?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterOptionalTypeNotificationItem.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeSetData(val continuation: Continuation<SetData?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeSetData(
+    val continuation: CancellableContinuation<SetData?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeSetData.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeEventItemOrigin(val continuation: Continuation<EventItemOrigin?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeEventItemOrigin(
+    val continuation: CancellableContinuation<EventItemOrigin?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeEventItemOrigin.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeEventSendState(val continuation: Continuation<EventSendState?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeEventSendState(
+    val continuation: CancellableContinuation<EventSendState?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeEventSendState.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeMessageType(val continuation: Continuation<MessageType?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeMessageType(
+    val continuation: CancellableContinuation<MessageType?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeMessageType.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalTypeVirtualTimelineItem(val continuation: Continuation<VirtualTimelineItem?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalTypeVirtualTimelineItem(
+    val continuation: CancellableContinuation<VirtualTimelineItem?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalTypeVirtualTimelineItem.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerOptionalSequenceTypeTimelineItem(val continuation: Continuation<List<TimelineItem>?>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerOptionalSequenceTypeTimelineItem(
+    val continuation: CancellableContinuation<List<TimelineItem>?>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterOptionalSequenceTypeTimelineItem.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerSequenceUByte_TypeClientError(val continuation: Continuation<List<UByte>>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerSequenceUByte_TypeClientError(
+    val continuation: CancellableContinuation<List<UByte>>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterSequenceUByte.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerSequenceString(val continuation: Continuation<List<String>>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerSequenceString(
+    val continuation: CancellableContinuation<List<String>>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterSequenceString.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerSequenceTypeRoom(val continuation: Continuation<List<Room>>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerSequenceTypeRoom(
+    val continuation: CancellableContinuation<List<Room>>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterSequenceTypeRoom.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerSequenceTypeRoomMember_TypeClientError(val continuation: Continuation<List<RoomMember>>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerSequenceTypeRoomMember_TypeClientError(
+    val continuation: CancellableContinuation<List<RoomMember>>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(ClientException, callStatus)
             continuation.resume(FfiConverterSequenceTypeRoomMember.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerSequenceTypeReaction(val continuation: Continuation<List<Reaction>>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerSequenceTypeReaction(
+    val continuation: CancellableContinuation<List<Reaction>>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterSequenceTypeReaction.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
 
-internal class UniFfiFutureCallbackHandlerMapStringTypeReceipt(val continuation: Continuation<Map<String, Receipt>>)
-    : UniFfiFutureCallbackRustBuffer {
+internal class UniFfiFutureCallbackHandlerMapStringTypeReceipt(
+    val continuation: CancellableContinuation<Map<String, Receipt>>,
+    val completionHandler: CompletionHandler
+) : UniFfiFutureCallbackRustBuffer
+{
     override fun invoke(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterMapStringTypeReceipt.lift(returnValue!!))
+            completionHandler(null)
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
+            completionHandler(null)
         }
     }
 }
