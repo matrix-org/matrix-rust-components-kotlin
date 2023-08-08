@@ -604,6 +604,10 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,`mode`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode_uniffi_drop(`uniffiFuturePtr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(`ptr`: Pointer,`enabled`: Byte,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
@@ -1014,9 +1018,9 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_func_setup_otlp_tracing(`filter`: RustBuffer.ByValue,`clientName`: RustBuffer.ByValue,`user`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`otlpEndpoint`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_func_setup_otlp_tracing(`config`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_func_setup_tracing(`filter`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_func_setup_tracing(`config`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun ffi_matrix_sdk_ffi_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -1205,6 +1209,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate(
     ): Short
@@ -1575,10 +1581,10 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha() != 11183.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_setup_otlp_tracing() != 53941.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_setup_otlp_tracing() != 57774.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_setup_tracing() != 13500.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_setup_tracing() != 48899.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json() != 2998.toShort()) {
@@ -1825,6 +1831,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled() != 61774.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode() != 64886.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate() != 22622.toShort()) {
@@ -4180,7 +4189,8 @@ public interface NotificationSettingsInterface {
     suspend fun `isRoomMentionEnabled`(): Boolean@Throws(NotificationSettingsException::class)
     suspend fun `isUserMentionEnabled`(): Boolean@Throws(NotificationSettingsException::class)
     suspend fun `restoreDefaultRoomNotificationMode`(`roomId`: String)@Throws(NotificationSettingsException::class)
-    suspend fun `setCallEnabled`(`enabled`: Boolean)
+    suspend fun `setCallEnabled`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
+    suspend fun `setDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode)
     fun `setDelegate`(`delegate`: NotificationSettingsDelegate?)@Throws(NotificationSettingsException::class)
     suspend fun `setRoomMentionEnabled`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
     suspend fun `setRoomNotificationMode`(`roomId`: String, `mode`: RoomNotificationMode)@Throws(NotificationSettingsException::class)
@@ -4219,11 +4229,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4232,9 +4244,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4271,11 +4283,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4284,9 +4298,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerTypeRoomNotificationMode(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4324,11 +4338,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4337,9 +4353,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerTypeRoomNotificationSettings_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4377,11 +4393,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4390,9 +4408,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4430,11 +4448,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4443,9 +4463,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4483,11 +4503,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4496,9 +4518,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4536,11 +4558,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4549,9 +4573,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4589,11 +4613,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4602,9 +4628,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4612,6 +4638,61 @@ class NotificationSettings(
                             _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(
                                 thisPtr,
                                 FfiConverterBoolean.lower(`enabled`),
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                    
+                } finally {
+                    completionHandlerLock.unlock()
+                }
+            }
+        }
+    }
+    
+    @Throws(NotificationSettingsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode) {
+        
+        var callbackHolder: UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError? = null
+        var rustFuturePtr: Pointer? = null
+        val completionHandlerLock = Mutex(locked = true)
+
+        return coroutineScope {
+            val scope = this
+            val completionHandler: CompletionHandler = { _ ->
+                runBlocking {
+                    completionHandlerLock.withLock {
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
+                        }
+                        callbackHolder = null
+                        rustFuturePtr = null
+                    }
+                }
+            }
+
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    continuation.invokeOnCancellation(completionHandler)
+
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
+                    callbackHolder = callback
+                    rustFuturePtr = callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(
+                                thisPtr,
+                                FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),FfiConverterTypeRoomNotificationMode.lower(`mode`),
                                 FfiConverterForeignExecutor.lower(scope),
                                 callback,
                                 USize(0),
@@ -4652,11 +4733,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4665,9 +4748,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4705,11 +4788,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4718,9 +4803,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4758,11 +4843,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4771,9 +4858,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4811,11 +4898,13 @@ class NotificationSettings(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4824,9 +4913,9 @@ class NotificationSettings(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeNotificationSettingsError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -4986,11 +5075,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -4999,9 +5090,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerTypeRoomTimelineListenerResult(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5061,11 +5152,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5074,9 +5167,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5114,11 +5207,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5127,9 +5222,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5167,11 +5262,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5180,9 +5277,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5220,11 +5317,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5233,9 +5332,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5273,11 +5372,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5286,9 +5387,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5326,11 +5427,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5339,9 +5442,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -5379,11 +5482,13 @@ class Room(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -5392,9 +5497,9 @@ class Room(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerBoolean_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -6193,11 +6298,13 @@ class RoomListItem(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_latest_event_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_latest_event_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -6206,9 +6313,9 @@ class RoomListItem(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerOptionalTypeEventTimelineItem(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -6345,11 +6452,13 @@ class RoomListService(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -6358,9 +6467,9 @@ class RoomListService(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -6398,11 +6507,13 @@ class RoomListService(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -6411,9 +6522,9 @@ class RoomListService(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeRoomListError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -6451,11 +6562,13 @@ class RoomListService(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -6464,9 +6577,9 @@ class RoomListService(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerTypeRoomList_TypeRoomListError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -6911,11 +7024,13 @@ class SendAttachmentJoinHandle(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -6924,9 +7039,9 @@ class SendAttachmentJoinHandle(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeRoomError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7023,11 +7138,13 @@ class SessionVerificationController(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7036,9 +7153,9 @@ class SessionVerificationController(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7076,11 +7193,13 @@ class SessionVerificationController(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7089,9 +7208,9 @@ class SessionVerificationController(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7129,11 +7248,13 @@ class SessionVerificationController(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7142,9 +7263,9 @@ class SessionVerificationController(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7193,11 +7314,13 @@ class SessionVerificationController(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7206,9 +7329,9 @@ class SessionVerificationController(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7256,11 +7379,13 @@ class SessionVerificationController(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7269,9 +7394,9 @@ class SessionVerificationController(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7574,11 +7699,13 @@ class SyncService(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_start_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_start_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7587,9 +7714,9 @@ class SyncService(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -7692,11 +7819,13 @@ class SyncServiceBuilder(
             val completionHandler: CompletionHandler = { _ ->
                 runBlocking {
                     completionHandlerLock.withLock {
-                        rustCall { status ->
-                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish_uniffi_drop(
-                                rustFuturePtr!!,
-                                status,
-                            )
+                        rustFuturePtr?.let { rustFuturePtr ->
+                            rustCall { status ->
+                                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish_uniffi_drop(
+                                    rustFuturePtr,
+                                    status,
+                                )
+                            }
                         }
                         callbackHolder = null
                         rustFuturePtr = null
@@ -7705,9 +7834,9 @@ class SyncServiceBuilder(
             }
 
             return@coroutineScope suspendCancellableCoroutine { continuation ->
-                continuation.invokeOnCancellation(completionHandler)
-
                 try {
+                    continuation.invokeOnCancellation(completionHandler)
+
                     val callback = UniFfiFutureCallbackHandlerTypeSyncService_TypeClientError(continuation, completionHandler)
                     callbackHolder = callback
                     rustFuturePtr = callWithPointer { thisPtr ->
@@ -9137,6 +9266,55 @@ public object FfiConverterTypeNotificationSenderInfo: FfiConverterRustBuffer<Not
 
 
 
+data class OtlpTracingConfiguration (
+    var `clientName`: String, 
+    var `user`: String, 
+    var `password`: String, 
+    var `otlpEndpoint`: String, 
+    var `filter`: String, 
+    var `writeToStdoutOrSystem`: Boolean, 
+    var `writeToFiles`: TracingFileConfiguration?
+) {
+    
+}
+
+public object FfiConverterTypeOtlpTracingConfiguration: FfiConverterRustBuffer<OtlpTracingConfiguration> {
+    override fun read(buf: ByteBuffer): OtlpTracingConfiguration {
+        return OtlpTracingConfiguration(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeTracingFileConfiguration.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: OtlpTracingConfiguration) = (
+            FfiConverterString.allocationSize(value.`clientName`) +
+            FfiConverterString.allocationSize(value.`user`) +
+            FfiConverterString.allocationSize(value.`password`) +
+            FfiConverterString.allocationSize(value.`otlpEndpoint`) +
+            FfiConverterString.allocationSize(value.`filter`) +
+            FfiConverterBoolean.allocationSize(value.`writeToStdoutOrSystem`) +
+            FfiConverterOptionalTypeTracingFileConfiguration.allocationSize(value.`writeToFiles`)
+    )
+
+    override fun write(value: OtlpTracingConfiguration, buf: ByteBuffer) {
+            FfiConverterString.write(value.`clientName`, buf)
+            FfiConverterString.write(value.`user`, buf)
+            FfiConverterString.write(value.`password`, buf)
+            FfiConverterString.write(value.`otlpEndpoint`, buf)
+            FfiConverterString.write(value.`filter`, buf)
+            FfiConverterBoolean.write(value.`writeToStdoutOrSystem`, buf)
+            FfiConverterOptionalTypeTracingFileConfiguration.write(value.`writeToFiles`, buf)
+    }
+}
+
+
+
+
 data class PollAnswer (
     var `id`: String, 
     var `text`: String
@@ -9680,6 +9858,68 @@ public object FfiConverterTypeThumbnailInfo: FfiConverterRustBuffer<ThumbnailInf
             FfiConverterOptionalULong.write(value.`width`, buf)
             FfiConverterOptionalString.write(value.`mimetype`, buf)
             FfiConverterOptionalULong.write(value.`size`, buf)
+    }
+}
+
+
+
+
+data class TracingConfiguration (
+    var `filter`: String, 
+    var `writeToStdoutOrSystem`: Boolean, 
+    var `writeToFiles`: TracingFileConfiguration?
+) {
+    
+}
+
+public object FfiConverterTypeTracingConfiguration: FfiConverterRustBuffer<TracingConfiguration> {
+    override fun read(buf: ByteBuffer): TracingConfiguration {
+        return TracingConfiguration(
+            FfiConverterString.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeTracingFileConfiguration.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TracingConfiguration) = (
+            FfiConverterString.allocationSize(value.`filter`) +
+            FfiConverterBoolean.allocationSize(value.`writeToStdoutOrSystem`) +
+            FfiConverterOptionalTypeTracingFileConfiguration.allocationSize(value.`writeToFiles`)
+    )
+
+    override fun write(value: TracingConfiguration, buf: ByteBuffer) {
+            FfiConverterString.write(value.`filter`, buf)
+            FfiConverterBoolean.write(value.`writeToStdoutOrSystem`, buf)
+            FfiConverterOptionalTypeTracingFileConfiguration.write(value.`writeToFiles`, buf)
+    }
+}
+
+
+
+
+data class TracingFileConfiguration (
+    var `path`: String, 
+    var `filePrefix`: String
+) {
+    
+}
+
+public object FfiConverterTypeTracingFileConfiguration: FfiConverterRustBuffer<TracingFileConfiguration> {
+    override fun read(buf: ByteBuffer): TracingFileConfiguration {
+        return TracingFileConfiguration(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TracingFileConfiguration) = (
+            FfiConverterString.allocationSize(value.`path`) +
+            FfiConverterString.allocationSize(value.`filePrefix`)
+    )
+
+    override fun write(value: TracingFileConfiguration, buf: ByteBuffer) {
+            FfiConverterString.write(value.`path`, buf)
+            FfiConverterString.write(value.`filePrefix`, buf)
     }
 }
 
@@ -15132,6 +15372,35 @@ public object FfiConverterOptionalTypeThumbnailInfo: FfiConverterRustBuffer<Thum
 
 
 
+public object FfiConverterOptionalTypeTracingFileConfiguration: FfiConverterRustBuffer<TracingFileConfiguration?> {
+    override fun read(buf: ByteBuffer): TracingFileConfiguration? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeTracingFileConfiguration.read(buf)
+    }
+
+    override fun allocationSize(value: TracingFileConfiguration?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeTracingFileConfiguration.allocationSize(value)
+        }
+    }
+
+    override fun write(value: TracingFileConfiguration?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeTracingFileConfiguration.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeVideoInfo: FfiConverterRustBuffer<VideoInfo?> {
     override fun read(buf: ByteBuffer): VideoInfo? {
         if (buf.get().toInt() == 0) {
@@ -17481,18 +17750,18 @@ fun `sdkGitSha`(): String {
 }
 
 
-fun `setupOtlpTracing`(`filter`: String, `clientName`: String, `user`: String, `password`: String, `otlpEndpoint`: String) =
+fun `setupOtlpTracing`(`config`: OtlpTracingConfiguration) =
     
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_setup_otlp_tracing(FfiConverterString.lower(`filter`),FfiConverterString.lower(`clientName`),FfiConverterString.lower(`user`),FfiConverterString.lower(`password`),FfiConverterString.lower(`otlpEndpoint`),_status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_setup_otlp_tracing(FfiConverterTypeOtlpTracingConfiguration.lower(`config`),_status)
 }
 
 
 
-fun `setupTracing`(`filter`: String) =
+fun `setupTracing`(`config`: TracingConfiguration) =
     
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_setup_tracing(FfiConverterString.lower(`filter`),_status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_setup_tracing(FfiConverterTypeTracingConfiguration.lower(`config`),_status)
 }
 
 
