@@ -956,6 +956,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_media_source_from_url(`url`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown(`md`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -979,6 +981,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown(
     ): Short
@@ -1524,6 +1528,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url() != 28929.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html() != 20283.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown() != 14647.toShort()) {
@@ -8879,7 +8886,6 @@ data class RoomInfo (
     var `topic`: String?, 
     var `avatarUrl`: String?, 
     var `isDirect`: Boolean, 
-    var `isEncrypted`: Boolean?, 
     var `isPublic`: Boolean, 
     var `isSpace`: Boolean, 
     var `isTombstoned`: Boolean, 
@@ -8904,7 +8910,6 @@ data class RoomInfo (
         this.`topic`, 
         this.`avatarUrl`, 
         this.`isDirect`, 
-        this.`isEncrypted`, 
         this.`isPublic`, 
         this.`isSpace`, 
         this.`isTombstoned`, 
@@ -8930,7 +8935,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterBoolean.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
@@ -8953,7 +8957,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.allocationSize(value.`topic`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
             FfiConverterBoolean.allocationSize(value.`isDirect`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`isEncrypted`) +
             FfiConverterBoolean.allocationSize(value.`isPublic`) +
             FfiConverterBoolean.allocationSize(value.`isSpace`) +
             FfiConverterBoolean.allocationSize(value.`isTombstoned`) +
@@ -8975,7 +8978,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.write(value.`topic`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
             FfiConverterBoolean.write(value.`isDirect`, buf)
-            FfiConverterOptionalBoolean.write(value.`isEncrypted`, buf)
             FfiConverterBoolean.write(value.`isPublic`, buf)
             FfiConverterBoolean.write(value.`isSpace`, buf)
             FfiConverterBoolean.write(value.`isTombstoned`, buf)
@@ -11635,6 +11637,9 @@ public object FfiConverterTypeRoomError : FfiConverterRustBuffer<RoomException> 
 sealed class RoomListEntriesDynamicFilterKind {
     object All : RoomListEntriesDynamicFilterKind()
     
+    data class NormalizedMatchRoomName(
+        val `pattern`: String
+        ) : RoomListEntriesDynamicFilterKind()
     data class FuzzyMatchRoomName(
         val `pattern`: String
         ) : RoomListEntriesDynamicFilterKind()
@@ -11647,7 +11652,10 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
     override fun read(buf: ByteBuffer): RoomListEntriesDynamicFilterKind {
         return when(buf.getInt()) {
             1 -> RoomListEntriesDynamicFilterKind.All
-            2 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            2 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+                FfiConverterString.read(buf),
+                )
+            3 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -11659,6 +11667,13 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`pattern`)
             )
         }
         is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
@@ -11676,8 +11691,13 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(1)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
+            is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
                 buf.putInt(2)
+                FfiConverterString.write(value.`pattern`, buf)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
+                buf.putInt(3)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
@@ -12201,7 +12221,7 @@ public object FfiConverterTypeRoomListLoadingState : FfiConverterRustBuffer<Room
 
 
 enum class RoomListServiceState {
-    INIT,SETTING_UP,RUNNING,ERROR,TERMINATED;
+    INITIAL,SETTING_UP,RUNNING,ERROR,TERMINATED;
 }
 
 public object FfiConverterTypeRoomListServiceState: FfiConverterRustBuffer<RoomListServiceState> {
@@ -17053,6 +17073,14 @@ fun `mediaSourceFromUrl`(`url`: String): MediaSource {
     return FfiConverterTypeMediaSource.lift(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_media_source_from_url(FfiConverterString.lower(`url`),_status)
+})
+}
+
+
+fun `messageEventContentFromHtml`(`body`: String, `htmlBody`: String): RoomMessageEventContent {
+    return FfiConverterTypeRoomMessageEventContent.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(FfiConverterString.lower(`body`),FfiConverterString.lower(`htmlBody`),_status)
 })
 }
 
