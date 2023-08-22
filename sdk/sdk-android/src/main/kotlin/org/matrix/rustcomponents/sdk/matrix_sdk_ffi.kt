@@ -404,7 +404,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_authenticationservice(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -412,11 +412,15 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_restore_with_access_token(`ptr`: Pointer,`token`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login_with_oidc_callback(`ptr`: Pointer,`authenticationData`: Pointer,`callbackUrl`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_url_for_oidc_login(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_client(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_avatar_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -449,7 +453,7 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -483,6 +487,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_base_path(`ptr`: Pointer,`path`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -536,8 +542,8 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_authentication_issuer(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_password_login(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -602,6 +608,10 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_free_oidcauthenticationdata(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_oidcauthenticationdata_login_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_room(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -1004,9 +1014,13 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_restore_with_access_token(
+    fun uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login_with_oidc_callback(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_url_for_oidc_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_account_data(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_account_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url(
     ): Short
@@ -1070,6 +1084,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url(
@@ -1118,7 +1134,7 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_authentication_issuer(
+    fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login(
     ): Short
@@ -1173,6 +1189,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_oidcauthenticationdata_login_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
     ): Short
@@ -1476,6 +1494,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_refresh_tokens(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress(
@@ -1563,10 +1583,16 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login() != 4340.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_restore_with_access_token() != 25167.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login_with_oidc_callback() != 25443.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_url_for_oidc_login() != 6390.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_data() != 37263.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_url() != 29423.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url() != 13474.toShort()) {
@@ -1614,7 +1640,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 62785.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 37421.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 16841.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 43839.toShort()) {
@@ -1660,6 +1686,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 56797.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh() != 50220.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification() != 1510.toShort()) {
@@ -1734,7 +1763,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id() != 36352.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_authentication_issuer() != 29919.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login() != 51854.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login() != 6028.toShort()) {
@@ -1816,6 +1845,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() != 33146.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_oidcauthenticationdata_login_url() != 2455.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() != 62367.toShort()) {
@@ -2253,7 +2285,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json() != 31512.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new() != 38984.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new() != 62706.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new() != 53567.toShort()) {
@@ -2269,6 +2301,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error() != 54393.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_refresh_tokens() != 32841.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 4921.toShort()) {
@@ -2715,16 +2750,17 @@ public interface AuthenticationServiceInterface {
     fun `configureHomeserver`(`serverNameOrHomeserverUrl`: String)
     fun `homeserverDetails`(): HomeserverLoginDetails?@Throws(AuthenticationException::class)
     fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?): Client@Throws(AuthenticationException::class)
-    fun `restoreWithAccessToken`(`token`: String, `deviceId`: String): Client
+    fun `loginWithOidcCallback`(`authenticationData`: OidcAuthenticationData, `callbackUrl`: String): Client@Throws(AuthenticationException::class)
+    fun `urlForOidcLogin`(): OidcAuthenticationData
 }
 
 class AuthenticationService(
     pointer: Pointer
 ) : FFIObject(pointer), AuthenticationServiceInterface {
-    constructor(`basePath`: String, `passphrase`: String?, `userAgent`: String?, `customSlidingSyncProxy`: String?) :
+    constructor(`basePath`: String, `passphrase`: String?, `userAgent`: String?, `oidcConfiguration`: OidcConfiguration?, `customSlidingSyncProxy`: String?) :
         this(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(FfiConverterString.lower(`basePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`userAgent`),FfiConverterOptionalString.lower(`customSlidingSyncProxy`),_status)
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(FfiConverterString.lower(`basePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`userAgent`),FfiConverterOptionalTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalString.lower(`customSlidingSyncProxy`),_status)
 })
 
     /**
@@ -2776,15 +2812,27 @@ class AuthenticationService(
         }
     
     
-    @Throws(AuthenticationException::class)override fun `restoreWithAccessToken`(`token`: String, `deviceId`: String): Client =
+    @Throws(AuthenticationException::class)override fun `loginWithOidcCallback`(`authenticationData`: OidcAuthenticationData, `callbackUrl`: String): Client =
         callWithPointer {
     rustCallWithError(AuthenticationException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_restore_with_access_token(it,
-        FfiConverterString.lower(`token`),FfiConverterString.lower(`deviceId`),
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login_with_oidc_callback(it,
+        FfiConverterTypeOidcAuthenticationData.lower(`authenticationData`),FfiConverterString.lower(`callbackUrl`),
         _status)
 }
         }.let {
             FfiConverterTypeClient.lift(it)
+        }
+    
+    
+    @Throws(AuthenticationException::class)override fun `urlForOidcLogin`(): OidcAuthenticationData =
+        callWithPointer {
+    rustCallWithError(AuthenticationException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_url_for_oidc_login(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeOidcAuthenticationData.lift(it)
         }
     
     
@@ -2819,7 +2867,8 @@ public object FfiConverterTypeAuthenticationService: FfiConverter<Authentication
 
 public interface ClientInterface {
     @Throws(ClientException::class)
-    fun `accountData`(`eventType`: String): String?@Throws(ClientException::class)
+    fun `accountData`(`eventType`: String): String?
+    fun `accountUrl`(): String?@Throws(ClientException::class)
     fun `avatarUrl`(): String?@Throws(ClientException::class)
     fun `cachedAvatarUrl`(): String?@Throws(ClientException::class)
     fun `createRoom`(`request`: CreateRoomParameters): String@Throws(ClientException::class)
@@ -2835,7 +2884,7 @@ public interface ClientInterface {
     fun `homeserver`(): String@Throws(ClientException::class)
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
     fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?)@Throws(ClientException::class)
-    fun `logout`()@Throws(ClientException::class)
+    fun `logout`(): String?@Throws(ClientException::class)
     fun `notificationClient`(): NotificationClientBuilder@Throws(ClientException::class)
     fun `restoreSession`(`session`: Session)
     fun `rooms`(): List<Room>@Throws(ClientException::class)
@@ -2875,6 +2924,17 @@ class Client(
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_account_data(it,
         FfiConverterString.lower(`eventType`),
+        _status)
+}
+        }.let {
+            FfiConverterOptionalString.lift(it)
+        }
+    
+    override fun `accountUrl`(): String? =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_account_url(it,
+        
         _status)
 }
         }.let {
@@ -3058,15 +3118,16 @@ class Client(
     
     
     
-    @Throws(ClientException::class)override fun `logout`() =
+    @Throws(ClientException::class)override fun `logout`(): String? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_logout(it,
         
         _status)
 }
+        }.let {
+            FfiConverterOptionalString.lift(it)
         }
-    
     
     
     @Throws(ClientException::class)override fun `notificationClient`(): NotificationClientBuilder =
@@ -3249,6 +3310,7 @@ public interface ClientBuilderInterface {
     
     fun `basePath`(`path`: String): ClientBuilder@Throws(ClientException::class)
     fun `build`(): Client
+    fun `disableAutomaticTokenRefresh`(): ClientBuilder
     fun `disableSslVerification`(): ClientBuilder
     fun `homeserverUrl`(`url`: String): ClientBuilder
     fun `passphrase`(`passphrase`: String?): ClientBuilder
@@ -3304,6 +3366,17 @@ class ClientBuilder(
 }
         }.let {
             FfiConverterTypeClient.lift(it)
+        }
+    
+    override fun `disableAutomaticTokenRefresh`(): ClientBuilder =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeClientBuilder.lift(it)
         }
     
     override fun `disableSslVerification`(): ClientBuilder =
@@ -3669,7 +3742,7 @@ public object FfiConverterTypeEventTimelineItem: FfiConverter<EventTimelineItem,
 
 public interface HomeserverLoginDetailsInterface {
     
-    fun `authenticationIssuer`(): String?
+    fun `supportsOidcLogin`(): Boolean
     fun `supportsPasswordLogin`(): Boolean
     fun `url`(): String
 }
@@ -3692,15 +3765,15 @@ class HomeserverLoginDetails(
         }
     }
 
-    override fun `authenticationIssuer`(): String? =
+    override fun `supportsOidcLogin`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_authentication_issuer(it,
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(it,
         
         _status)
 }
         }.let {
-            FfiConverterOptionalString.lift(it)
+            FfiConverterBoolean.lift(it)
         }
     
     override fun `supportsPasswordLogin`(): Boolean =
@@ -4687,6 +4760,70 @@ public object FfiConverterTypeNotificationSettings: FfiConverter<NotificationSet
     override fun allocationSize(value: NotificationSettings) = 8
 
     override fun write(value: NotificationSettings, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface OidcAuthenticationDataInterface {
+    
+    fun `loginUrl`(): String
+}
+
+class OidcAuthenticationData(
+    pointer: Pointer
+) : FFIObject(pointer), OidcAuthenticationDataInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_oidcauthenticationdata(this.pointer, status)
+        }
+    }
+
+    override fun `loginUrl`(): String =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_oidcauthenticationdata_login_url(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+
+    
+}
+
+public object FfiConverterTypeOidcAuthenticationData: FfiConverter<OidcAuthenticationData, Pointer> {
+    override fun lower(value: OidcAuthenticationData): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): OidcAuthenticationData {
+        return OidcAuthenticationData(value)
+    }
+
+    override fun read(buf: ByteBuffer): OidcAuthenticationData {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: OidcAuthenticationData) = 8
+
+    override fun write(value: OidcAuthenticationData, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -8657,6 +8794,51 @@ public object FfiConverterTypeNotificationSenderInfo: FfiConverterRustBuffer<Not
 
 
 
+data class OidcConfiguration (
+    var `clientName`: String, 
+    var `redirectUri`: String, 
+    var `clientUri`: String, 
+    var `tosUri`: String, 
+    var `policyUri`: String, 
+    var `staticRegistrations`: Map<String, String>
+) {
+    
+}
+
+public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConfiguration> {
+    override fun read(buf: ByteBuffer): OidcConfiguration {
+        return OidcConfiguration(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterMapStringString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: OidcConfiguration) = (
+            FfiConverterString.allocationSize(value.`clientName`) +
+            FfiConverterString.allocationSize(value.`redirectUri`) +
+            FfiConverterString.allocationSize(value.`clientUri`) +
+            FfiConverterString.allocationSize(value.`tosUri`) +
+            FfiConverterString.allocationSize(value.`policyUri`) +
+            FfiConverterMapStringString.allocationSize(value.`staticRegistrations`)
+    )
+
+    override fun write(value: OidcConfiguration, buf: ByteBuffer) {
+            FfiConverterString.write(value.`clientName`, buf)
+            FfiConverterString.write(value.`redirectUri`, buf)
+            FfiConverterString.write(value.`clientUri`, buf)
+            FfiConverterString.write(value.`tosUri`, buf)
+            FfiConverterString.write(value.`policyUri`, buf)
+            FfiConverterMapStringString.write(value.`staticRegistrations`, buf)
+    }
+}
+
+
+
+
 data class OtlpTracingConfiguration (
     var `clientName`: String, 
     var `user`: String, 
@@ -9267,6 +9449,7 @@ data class Session (
     var `userId`: String, 
     var `deviceId`: String, 
     var `homeserverUrl`: String, 
+    var `oidcData`: String?, 
     var `slidingSyncProxy`: String?
 ) {
     
@@ -9281,6 +9464,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -9290,6 +9474,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.allocationSize(value.`userId`) +
             FfiConverterString.allocationSize(value.`deviceId`) +
             FfiConverterString.allocationSize(value.`homeserverUrl`) +
+            FfiConverterOptionalString.allocationSize(value.`oidcData`) +
             FfiConverterOptionalString.allocationSize(value.`slidingSyncProxy`)
     )
 
@@ -9299,6 +9484,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.write(value.`userId`, buf)
             FfiConverterString.write(value.`deviceId`, buf)
             FfiConverterString.write(value.`homeserverUrl`, buf)
+            FfiConverterOptionalString.write(value.`oidcData`, buf)
             FfiConverterOptionalString.write(value.`slidingSyncProxy`, buf)
     }
 }
@@ -9673,6 +9859,13 @@ sealed class AuthenticationException(message: String): Exception(message) {
         class InvalidServerName(message: String) : AuthenticationException(message)
         class SlidingSyncNotAvailable(message: String) : AuthenticationException(message)
         class SessionMissing(message: String) : AuthenticationException(message)
+        class InvalidBasePath(message: String) : AuthenticationException(message)
+        class OidcNotSupported(message: String) : AuthenticationException(message)
+        class OidcMetadataMissing(message: String) : AuthenticationException(message)
+        class OidcMetadataInvalid(message: String) : AuthenticationException(message)
+        class OidcCallbackUrlInvalid(message: String) : AuthenticationException(message)
+        class OidcCancelled(message: String) : AuthenticationException(message)
+        class OidcException(message: String) : AuthenticationException(message)
         class Generic(message: String) : AuthenticationException(message)
         
 
@@ -9689,7 +9882,14 @@ public object FfiConverterTypeAuthenticationError : FfiConverterRustBuffer<Authe
             2 -> AuthenticationException.InvalidServerName(FfiConverterString.read(buf))
             3 -> AuthenticationException.SlidingSyncNotAvailable(FfiConverterString.read(buf))
             4 -> AuthenticationException.SessionMissing(FfiConverterString.read(buf))
-            5 -> AuthenticationException.Generic(FfiConverterString.read(buf))
+            5 -> AuthenticationException.InvalidBasePath(FfiConverterString.read(buf))
+            6 -> AuthenticationException.OidcNotSupported(FfiConverterString.read(buf))
+            7 -> AuthenticationException.OidcMetadataMissing(FfiConverterString.read(buf))
+            8 -> AuthenticationException.OidcMetadataInvalid(FfiConverterString.read(buf))
+            9 -> AuthenticationException.OidcCallbackUrlInvalid(FfiConverterString.read(buf))
+            10 -> AuthenticationException.OidcCancelled(FfiConverterString.read(buf))
+            11 -> AuthenticationException.OidcException(FfiConverterString.read(buf))
+            12 -> AuthenticationException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -9717,8 +9917,36 @@ public object FfiConverterTypeAuthenticationError : FfiConverterRustBuffer<Authe
                 buf.putInt(4)
                 Unit
             }
-            is AuthenticationException.Generic -> {
+            is AuthenticationException.InvalidBasePath -> {
                 buf.putInt(5)
+                Unit
+            }
+            is AuthenticationException.OidcNotSupported -> {
+                buf.putInt(6)
+                Unit
+            }
+            is AuthenticationException.OidcMetadataMissing -> {
+                buf.putInt(7)
+                Unit
+            }
+            is AuthenticationException.OidcMetadataInvalid -> {
+                buf.putInt(8)
+                Unit
+            }
+            is AuthenticationException.OidcCallbackUrlInvalid -> {
+                buf.putInt(9)
+                Unit
+            }
+            is AuthenticationException.OidcCancelled -> {
+                buf.putInt(10)
+                Unit
+            }
+            is AuthenticationException.OidcException -> {
+                buf.putInt(11)
+                Unit
+            }
+            is AuthenticationException.Generic -> {
+                buf.putInt(12)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -13397,6 +13625,7 @@ public object FfiConverterTypeBackPaginationStatusListener: FfiConverterCallback
 
 public interface ClientDelegate {
     fun `didReceiveAuthError`(`isSoftLogout`: Boolean)
+    fun `didRefreshTokens`()
     
 }
 
@@ -13417,6 +13646,22 @@ internal class ForeignCallbackTypeClientDelegate : ForeignCallback {
                 // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
                     this.`invokeDidReceiveAuthError`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            2 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeDidRefreshTokens`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -13452,6 +13697,18 @@ internal class ForeignCallbackTypeClientDelegate : ForeignCallback {
         fun makeCall() : Int {
             kotlinCallbackInterface.`didReceiveAuthError`(
                 FfiConverterBoolean.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeDidRefreshTokens`(kotlinCallbackInterface: ClientDelegate, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`didRefreshTokens`(
             )
             return UNIFFI_CALLBACK_SUCCESS
         }
@@ -14906,6 +15163,35 @@ public object FfiConverterOptionalTypeNotificationItem: FfiConverterRustBuffer<N
 
 
 
+public object FfiConverterOptionalTypeOidcConfiguration: FfiConverterRustBuffer<OidcConfiguration?> {
+    override fun read(buf: ByteBuffer): OidcConfiguration? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeOidcConfiguration.read(buf)
+    }
+
+    override fun allocationSize(value: OidcConfiguration?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeOidcConfiguration.allocationSize(value)
+        }
+    }
+
+    override fun write(value: OidcConfiguration?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeOidcConfiguration.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeRoomSubscription: FfiConverterRustBuffer<RoomSubscription?> {
     override fun read(buf: ByteBuffer): RoomSubscription? {
         if (buf.get().toInt() == 0) {
@@ -15860,6 +16146,42 @@ public object FfiConverterSequenceTypeRoomListEntry: FfiConverterRustBuffer<List
 
 
 
+public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<String, String>> {
+    override fun read(buf: ByteBuffer): Map<String, String> {
+        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
+        val items : MutableMap<String, String> = mutableMapOf()
+        val len = buf.getInt()
+        repeat(len) {
+            val k = FfiConverterString.read(buf)
+            val v = FfiConverterString.read(buf)
+            items[k] = v
+        }
+        return items
+    }
+
+    override fun allocationSize(value: Map<String, String>): Int {
+        val spaceForMapSize = 4
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<String, String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterString.write(v, buf)
+        }
+    }
+}
+
+
+
 public object FfiConverterMapStringTypeReceipt: FfiConverterRustBuffer<Map<String, Receipt>> {
     override fun read(buf: ByteBuffer): Map<String, Receipt> {
         // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
@@ -16293,6 +16615,19 @@ internal class UniFfiFutureCallbackHandlerTypeNotificationSettings(val continuat
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeNotificationSettings.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
+internal class UniFfiFutureCallbackHandlerTypeOidcAuthenticationData_TypeAuthenticationError(val continuation: Continuation<OidcAuthenticationData>)
+    : UniFfiFutureCallbackPointer {
+    override fun callback(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(AuthenticationException, callStatus)
+            continuation.resume(FfiConverterTypeOidcAuthenticationData.lift(returnValue!!))
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
         }
