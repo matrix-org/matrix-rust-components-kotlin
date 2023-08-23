@@ -13063,9 +13063,6 @@ sealed class TimelineItemContentKind: Disposable  {
         val `votes`: Map<String, List<String>>, 
         val `endTime`: ULong?
         ) : TimelineItemContentKind()
-    data class PollEnd(
-        val `startEventId`: String
-        ) : TimelineItemContentKind()
     data class UnableToDecrypt(
         val `msg`: EncryptedMessage
         ) : TimelineItemContentKind()
@@ -13119,12 +13116,6 @@ sealed class TimelineItemContentKind: Disposable  {
         this.`answers`, 
         this.`votes`, 
         this.`endTime`)
-                
-            }
-            is TimelineItemContentKind.PollEnd -> {
-                
-    Disposable.destroy(
-        this.`startEventId`)
                 
             }
             is TimelineItemContentKind.UnableToDecrypt -> {
@@ -13194,31 +13185,28 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterMapStringSequenceString.read(buf),
                 FfiConverterOptionalULong.read(buf),
                 )
-            5 -> TimelineItemContentKind.PollEnd(
-                FfiConverterString.read(buf),
-                )
-            6 -> TimelineItemContentKind.UnableToDecrypt(
+            5 -> TimelineItemContentKind.UnableToDecrypt(
                 FfiConverterTypeEncryptedMessage.read(buf),
                 )
-            7 -> TimelineItemContentKind.RoomMembership(
+            6 -> TimelineItemContentKind.RoomMembership(
                 FfiConverterString.read(buf),
                 FfiConverterOptionalTypeMembershipChange.read(buf),
                 )
-            8 -> TimelineItemContentKind.ProfileChange(
+            7 -> TimelineItemContentKind.ProfileChange(
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 )
-            9 -> TimelineItemContentKind.State(
+            8 -> TimelineItemContentKind.State(
                 FfiConverterString.read(buf),
                 FfiConverterTypeOtherState.read(buf),
                 )
-            10 -> TimelineItemContentKind.FailedToParseMessageLike(
+            9 -> TimelineItemContentKind.FailedToParseMessageLike(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 )
-            11 -> TimelineItemContentKind.FailedToParseState(
+            10 -> TimelineItemContentKind.FailedToParseState(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
@@ -13259,13 +13247,6 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterSequenceTypePollAnswer.allocationSize(value.`answers`)
                 + FfiConverterMapStringSequenceString.allocationSize(value.`votes`)
                 + FfiConverterOptionalULong.allocationSize(value.`endTime`)
-            )
-        }
-        is TimelineItemContentKind.PollEnd -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterString.allocationSize(value.`startEventId`)
             )
         }
         is TimelineItemContentKind.UnableToDecrypt -> {
@@ -13347,24 +13328,19 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterOptionalULong.write(value.`endTime`, buf)
                 Unit
             }
-            is TimelineItemContentKind.PollEnd -> {
-                buf.putInt(5)
-                FfiConverterString.write(value.`startEventId`, buf)
-                Unit
-            }
             is TimelineItemContentKind.UnableToDecrypt -> {
-                buf.putInt(6)
+                buf.putInt(5)
                 FfiConverterTypeEncryptedMessage.write(value.`msg`, buf)
                 Unit
             }
             is TimelineItemContentKind.RoomMembership -> {
-                buf.putInt(7)
+                buf.putInt(6)
                 FfiConverterString.write(value.`userId`, buf)
                 FfiConverterOptionalTypeMembershipChange.write(value.`change`, buf)
                 Unit
             }
             is TimelineItemContentKind.ProfileChange -> {
-                buf.putInt(8)
+                buf.putInt(7)
                 FfiConverterOptionalString.write(value.`displayName`, buf)
                 FfiConverterOptionalString.write(value.`prevDisplayName`, buf)
                 FfiConverterOptionalString.write(value.`avatarUrl`, buf)
@@ -13372,19 +13348,19 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 Unit
             }
             is TimelineItemContentKind.State -> {
-                buf.putInt(9)
+                buf.putInt(8)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterTypeOtherState.write(value.`content`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseMessageLike -> {
-                buf.putInt(10)
+                buf.putInt(9)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseState -> {
-                buf.putInt(11)
+                buf.putInt(10)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterString.write(value.`error`, buf)
