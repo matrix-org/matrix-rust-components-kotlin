@@ -456,7 +456,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Pointer,`processSetup`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -573,8 +573,6 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_notificationclientbuilder_filter_by_push_rules(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_notificationclientbuilder_finish(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationclientbuilder_retry_decryption(`ptr`: Pointer,`withCrossProcessLock`: Byte,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_notificationsettings(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -890,7 +888,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_encryption_sync(`ptr`: Pointer,`withCrossProcessLock`: Byte,`appIdentifier`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(`ptr`: Pointer,`appIdentifier`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_taskhandle(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1176,8 +1174,6 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_finish(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_retry_decryption(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode(
@@ -1460,7 +1456,7 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_encryption_sync(
+    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
     ): Short
@@ -1678,7 +1674,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 16841.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 43839.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 16860.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() != 19558.toShort()) {
@@ -1829,9 +1825,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_finish() != 12382.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_retry_decryption() != 12777.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules() != 42972.toShort()) {
@@ -2257,7 +2250,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish() != 61604.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_encryption_sync() != 35198.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock() != 29139.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel() != 59047.toShort()) {
@@ -2938,7 +2931,7 @@ public interface ClientInterface {
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
     fun `login`(`username`: String, `password`: String, `initialDeviceName`: String?, `deviceId`: String?)@Throws(ClientException::class)
     fun `logout`(): String?@Throws(ClientException::class)
-    fun `notificationClient`(): NotificationClientBuilder@Throws(ClientException::class)
+    fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClientBuilder@Throws(ClientException::class)
     fun `restoreSession`(`session`: Session)
     fun `rooms`(): List<Room>@Throws(ClientException::class)
     fun `searchUsers`(`searchTerm`: String, `limit`: ULong): SearchUsersResults@Throws(ClientException::class)
@@ -3183,11 +3176,11 @@ class Client(
         }
     
     
-    @Throws(ClientException::class)override fun `notificationClient`(): NotificationClientBuilder =
+    @Throws(ClientException::class)override fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClientBuilder =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_notification_client(it,
-        
+        FfiConverterTypeNotificationProcessSetup.lower(`processSetup`),
         _status)
 }
         }.let {
@@ -4198,7 +4191,6 @@ public interface NotificationClientBuilderInterface {
     
     fun `filterByPushRules`(): NotificationClientBuilder
     fun `finish`(): NotificationClient
-    fun `retryDecryption`(`withCrossProcessLock`: Boolean): NotificationClientBuilder
 }
 
 class NotificationClientBuilder(
@@ -4239,17 +4231,6 @@ class NotificationClientBuilder(
 }
         }.let {
             FfiConverterTypeNotificationClient.lift(it)
-        }
-    
-    override fun `retryDecryption`(`withCrossProcessLock`: Boolean): NotificationClientBuilder =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclientbuilder_retry_decryption(it,
-        FfiConverterBoolean.lower(`withCrossProcessLock`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeNotificationClientBuilder.lift(it)
         }
     
     
@@ -7439,7 +7420,7 @@ public object FfiConverterTypeSyncService: FfiConverter<SyncService, Pointer> {
 public interface SyncServiceBuilderInterface {
     @Throws(ClientException::class)
     suspend fun `finish`(): SyncService
-    fun `withEncryptionSync`(`withCrossProcessLock`: Boolean, `appIdentifier`: String?): SyncServiceBuilder
+    fun `withCrossProcessLock`(`appIdentifier`: String?): SyncServiceBuilder
 }
 
 class SyncServiceBuilder(
@@ -7491,11 +7472,11 @@ class SyncServiceBuilder(
             }
         }
     }
-    override fun `withEncryptionSync`(`withCrossProcessLock`: Boolean, `appIdentifier`: String?): SyncServiceBuilder =
+    override fun `withCrossProcessLock`(`appIdentifier`: String?): SyncServiceBuilder =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_encryption_sync(it,
-        FfiConverterBoolean.lower(`withCrossProcessLock`),FfiConverterOptionalString.lower(`appIdentifier`),
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(it,
+        FfiConverterOptionalString.lower(`appIdentifier`),
         _status)
 }
         }.let {
@@ -10011,7 +9992,7 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
 
 
 data class Widget (
-    var `info`: WidgetInfo, 
+    var `settings`: WidgetSettings, 
     var `comm`: WidgetComm
 ) : Disposable {
     
@@ -10019,7 +10000,7 @@ data class Widget (
     override fun destroy() {
         
     Disposable.destroy(
-        this.`info`, 
+        this.`settings`, 
         this.`comm`)
     }
     
@@ -10028,48 +10009,19 @@ data class Widget (
 public object FfiConverterTypeWidget: FfiConverterRustBuffer<Widget> {
     override fun read(buf: ByteBuffer): Widget {
         return Widget(
-            FfiConverterTypeWidgetInfo.read(buf),
+            FfiConverterTypeWidgetSettings.read(buf),
             FfiConverterTypeWidgetComm.read(buf),
         )
     }
 
     override fun allocationSize(value: Widget) = (
-            FfiConverterTypeWidgetInfo.allocationSize(value.`info`) +
+            FfiConverterTypeWidgetSettings.allocationSize(value.`settings`) +
             FfiConverterTypeWidgetComm.allocationSize(value.`comm`)
     )
 
     override fun write(value: Widget, buf: ByteBuffer) {
-            FfiConverterTypeWidgetInfo.write(value.`info`, buf)
+            FfiConverterTypeWidgetSettings.write(value.`settings`, buf)
             FfiConverterTypeWidgetComm.write(value.`comm`, buf)
-    }
-}
-
-
-
-
-data class WidgetInfo (
-    var `id`: String, 
-    var `initOnLoad`: Boolean
-) {
-    
-}
-
-public object FfiConverterTypeWidgetInfo: FfiConverterRustBuffer<WidgetInfo> {
-    override fun read(buf: ByteBuffer): WidgetInfo {
-        return WidgetInfo(
-            FfiConverterString.read(buf),
-            FfiConverterBoolean.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: WidgetInfo) = (
-            FfiConverterString.allocationSize(value.`id`) +
-            FfiConverterBoolean.allocationSize(value.`initOnLoad`)
-    )
-
-    override fun write(value: WidgetInfo, buf: ByteBuffer) {
-            FfiConverterString.write(value.`id`, buf)
-            FfiConverterBoolean.write(value.`initOnLoad`, buf)
     }
 }
 
@@ -10099,6 +10051,35 @@ public object FfiConverterTypeWidgetPermissions: FfiConverterRustBuffer<WidgetPe
     override fun write(value: WidgetPermissions, buf: ByteBuffer) {
             FfiConverterSequenceTypeWidgetEventFilter.write(value.`read`, buf)
             FfiConverterSequenceTypeWidgetEventFilter.write(value.`send`, buf)
+    }
+}
+
+
+
+
+data class WidgetSettings (
+    var `id`: String, 
+    var `initOnLoad`: Boolean
+) {
+    
+}
+
+public object FfiConverterTypeWidgetSettings: FfiConverterRustBuffer<WidgetSettings> {
+    override fun read(buf: ByteBuffer): WidgetSettings {
+        return WidgetSettings(
+            FfiConverterString.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: WidgetSettings) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterBoolean.allocationSize(value.`initOnLoad`)
+    )
+
+    override fun write(value: WidgetSettings, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterBoolean.write(value.`initOnLoad`, buf)
     }
 }
 
@@ -11260,6 +11241,78 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
             is NotificationEvent.Invite -> {
                 buf.putInt(2)
                 FfiConverterString.write(value.`sender`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+sealed class NotificationProcessSetup: Disposable  {
+    object MultipleProcesses : NotificationProcessSetup()
+    
+    data class SingleProcess(
+        val `syncService`: SyncService
+        ) : NotificationProcessSetup()
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is NotificationProcessSetup.MultipleProcesses -> {// Nothing to destroy
+            }
+            is NotificationProcessSetup.SingleProcess -> {
+                
+    Disposable.destroy(
+        this.`syncService`)
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+}
+
+public object FfiConverterTypeNotificationProcessSetup : FfiConverterRustBuffer<NotificationProcessSetup>{
+    override fun read(buf: ByteBuffer): NotificationProcessSetup {
+        return when(buf.getInt()) {
+            1 -> NotificationProcessSetup.MultipleProcesses
+            2 -> NotificationProcessSetup.SingleProcess(
+                FfiConverterTypeSyncService.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: NotificationProcessSetup) = when(value) {
+        is NotificationProcessSetup.MultipleProcesses -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is NotificationProcessSetup.SingleProcess -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeSyncService.allocationSize(value.`syncService`)
+            )
+        }
+    }
+
+    override fun write(value: NotificationProcessSetup, buf: ByteBuffer) {
+        when(value) {
+            is NotificationProcessSetup.MultipleProcesses -> {
+                buf.putInt(1)
+                Unit
+            }
+            is NotificationProcessSetup.SingleProcess -> {
+                buf.putInt(2)
+                FfiConverterTypeSyncService.write(value.`syncService`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -12726,7 +12779,7 @@ public object FfiConverterTypeRoomListLoadingState : FfiConverterRustBuffer<Room
 
 
 enum class RoomListServiceState {
-    INITIAL,SETTING_UP,RUNNING,ERROR,TERMINATED;
+    INITIAL,SETTING_UP,RECOVERING,RUNNING,ERROR,TERMINATED;
 }
 
 public object FfiConverterTypeRoomListServiceState: FfiConverterRustBuffer<RoomListServiceState> {
@@ -13711,13 +13764,18 @@ public object FfiConverterTypeVirtualTimelineItem : FfiConverterRustBuffer<Virtu
 
 
 sealed class WidgetEventFilter {
-    data class MessageLike(
-        val `eventType`: String, 
-        val `msgtype`: String?
+    data class MessageLikeWithType(
+        val `eventType`: String
         ) : WidgetEventFilter()
-    data class State(
+    data class RoomMessageWithMsgtype(
+        val `msgtype`: String
+        ) : WidgetEventFilter()
+    data class StateWithType(
+        val `eventType`: String
+        ) : WidgetEventFilter()
+    data class StateWithTypeAndStateKey(
         val `eventType`: String, 
-        val `stateKey`: String?
+        val `stateKey`: String
         ) : WidgetEventFilter()
     
 
@@ -13727,49 +13785,76 @@ sealed class WidgetEventFilter {
 public object FfiConverterTypeWidgetEventFilter : FfiConverterRustBuffer<WidgetEventFilter>{
     override fun read(buf: ByteBuffer): WidgetEventFilter {
         return when(buf.getInt()) {
-            1 -> WidgetEventFilter.MessageLike(
+            1 -> WidgetEventFilter.MessageLikeWithType(
                 FfiConverterString.read(buf),
-                FfiConverterOptionalString.read(buf),
                 )
-            2 -> WidgetEventFilter.State(
+            2 -> WidgetEventFilter.RoomMessageWithMsgtype(
                 FfiConverterString.read(buf),
-                FfiConverterOptionalString.read(buf),
+                )
+            3 -> WidgetEventFilter.StateWithType(
+                FfiConverterString.read(buf),
+                )
+            4 -> WidgetEventFilter.StateWithTypeAndStateKey(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
 
     override fun allocationSize(value: WidgetEventFilter) = when(value) {
-        is WidgetEventFilter.MessageLike -> {
+        is WidgetEventFilter.MessageLikeWithType -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
                 + FfiConverterString.allocationSize(value.`eventType`)
-                + FfiConverterOptionalString.allocationSize(value.`msgtype`)
             )
         }
-        is WidgetEventFilter.State -> {
+        is WidgetEventFilter.RoomMessageWithMsgtype -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`msgtype`)
+            )
+        }
+        is WidgetEventFilter.StateWithType -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
                 + FfiConverterString.allocationSize(value.`eventType`)
-                + FfiConverterOptionalString.allocationSize(value.`stateKey`)
+            )
+        }
+        is WidgetEventFilter.StateWithTypeAndStateKey -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`eventType`)
+                + FfiConverterString.allocationSize(value.`stateKey`)
             )
         }
     }
 
     override fun write(value: WidgetEventFilter, buf: ByteBuffer) {
         when(value) {
-            is WidgetEventFilter.MessageLike -> {
+            is WidgetEventFilter.MessageLikeWithType -> {
                 buf.putInt(1)
                 FfiConverterString.write(value.`eventType`, buf)
-                FfiConverterOptionalString.write(value.`msgtype`, buf)
                 Unit
             }
-            is WidgetEventFilter.State -> {
+            is WidgetEventFilter.RoomMessageWithMsgtype -> {
                 buf.putInt(2)
+                FfiConverterString.write(value.`msgtype`, buf)
+                Unit
+            }
+            is WidgetEventFilter.StateWithType -> {
+                buf.putInt(3)
                 FfiConverterString.write(value.`eventType`, buf)
-                FfiConverterOptionalString.write(value.`stateKey`, buf)
+                Unit
+            }
+            is WidgetEventFilter.StateWithTypeAndStateKey -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`eventType`, buf)
+                FfiConverterString.write(value.`stateKey`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
