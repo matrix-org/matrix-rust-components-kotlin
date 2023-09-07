@@ -386,6 +386,7 @@ internal interface _UniFFILib : Library {
                 FfiConverterTypeRoomListEntriesListener.register(lib)
                 FfiConverterTypeRoomListLoadingStateListener.register(lib)
                 FfiConverterTypeRoomListServiceStateListener.register(lib)
+                FfiConverterTypeRoomListServiceSyncIndicatorListener.register(lib)
                 FfiConverterTypeSessionVerificationControllerDelegate.register(lib)
                 FfiConverterTypeSyncServiceStateObserver.register(lib)
                 FfiConverterTypeTimelineListener.register(lib)
@@ -796,6 +797,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roommember(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roommember_avatar_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -965,6 +968,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_roomlistloadingstatelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_roomlistservicestatelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_roomlistservicesyncindicatorlistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_sessionverificationcontrollerdelegate(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1382,6 +1387,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommember_avatar_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommember_can_ban(
@@ -1531,6 +1538,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistloadingstatelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request(
     ): Short
@@ -2139,6 +2148,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state() != 7038.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator() != 1112.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommember_avatar_url() != 9148.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2362,6 +2374,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update() != 27905.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update() != 63691.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() != 59777.toShort()) {
@@ -6287,6 +6302,7 @@ public interface RoomListServiceInterface {
     suspend fun `invites`(): RoomList@Throws(RoomListException::class)
     fun `room`(`roomId`: String): RoomListItem
     fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
+    fun `syncIndicator`(`listener`: RoomListServiceSyncIndicatorListener): TaskHandle
 }
 
 class RoomListService(
@@ -6417,6 +6433,17 @@ class RoomListService(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(it,
         FfiConverterTypeRoomListServiceStateListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
+    override fun `syncIndicator`(`listener`: RoomListServiceSyncIndicatorListener): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(it,
+        FfiConverterTypeRoomListServiceSyncIndicatorListener.lower(`listener`),
         _status)
 }
         }.let {
@@ -12801,6 +12828,29 @@ public object FfiConverterTypeRoomListServiceState: FfiConverterRustBuffer<RoomL
 
 
 
+enum class RoomListServiceSyncIndicator {
+    SHOW,HIDE;
+}
+
+public object FfiConverterTypeRoomListServiceSyncIndicator: FfiConverterRustBuffer<RoomListServiceSyncIndicator> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomListServiceSyncIndicator.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomListServiceSyncIndicator) = 4
+
+    override fun write(value: RoomListServiceSyncIndicator, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
 enum class RoomNotificationMode {
     ALL_MESSAGES,MENTIONS_AND_KEYWORDS_ONLY,MUTE;
 }
@@ -14641,6 +14691,91 @@ public object FfiConverterTypeRoomListServiceStateListener: FfiConverterCallback
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
             lib.uniffi_matrix_sdk_ffi_fn_init_callback_roomlistservicestatelistener(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for RoomListServiceSyncIndicatorListener Callback Interface
+
+public interface RoomListServiceSyncIndicatorListener {
+    fun `onUpdate`(`syncIndicator`: RoomListServiceSyncIndicator)
+    
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeRoomListServiceSyncIndicatorListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeRoomListServiceSyncIndicatorListener.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeRoomListServiceSyncIndicatorListener.drop(handle)
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeOnUpdate`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnUpdate`(kotlinCallbackInterface: RoomListServiceSyncIndicatorListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onUpdate`(
+                FfiConverterTypeRoomListServiceSyncIndicator.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeRoomListServiceSyncIndicatorListener: FfiConverterCallbackInterface<RoomListServiceSyncIndicatorListener>(
+    foreignCallback = ForeignCallbackTypeRoomListServiceSyncIndicatorListener()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.uniffi_matrix_sdk_ffi_fn_init_callback_roomlistservicesyncindicatorlistener(this.foreignCallback, status)
         }
     }
 }
