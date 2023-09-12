@@ -479,6 +479,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_upload_media(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -562,6 +564,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_message_in_reply_to(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_message_is_edited(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_message_is_threaded(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_message_msgtype(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -1099,6 +1103,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_media(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id(
@@ -1170,6 +1176,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_message_in_reply_to(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_is_edited(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_message_is_threaded(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_msgtype(
     ): Short
@@ -1716,6 +1724,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user() != 6043.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar() != 65133.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_media() != 20769.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1822,6 +1833,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_is_edited() != 3402.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_is_threaded() != 29945.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_msgtype() != 50686.toShort()) {
@@ -2957,6 +2971,7 @@ public interface ClientInterface {
     fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: String, `deviceDisplayName`: String, `profileTag`: String?, `lang`: String)
     fun `syncService`(): SyncServiceBuilder@Throws(ClientException::class)
     fun `unignoreUser`(`userId`: String)@Throws(ClientException::class)
+    fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>)@Throws(ClientException::class)
     fun `uploadMedia`(`mimeType`: String, `data`: List<UByte>, `progressWatcher`: ProgressWatcher?): String@Throws(ClientException::class)
     fun `userId`(): String
 }
@@ -3308,6 +3323,17 @@ class Client(
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(it,
         FfiConverterString.lower(`userId`),
+        _status)
+}
+        }
+    
+    
+    
+    @Throws(ClientException::class)override fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>) =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(it,
+        FfiConverterString.lower(`mimeType`),FfiConverterSequenceUByte.lower(`data`),
         _status)
 }
         }
@@ -4042,6 +4068,7 @@ public interface MessageInterface {
     fun `body`(): String
     fun `inReplyTo`(): InReplyToDetails?
     fun `isEdited`(): Boolean
+    fun `isThreaded`(): Boolean
     fun `msgtype`(): MessageType?
 }
 
@@ -4089,6 +4116,17 @@ class Message(
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_is_edited(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterBoolean.lift(it)
+        }
+    
+    override fun `isThreaded`(): Boolean =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_is_threaded(it,
         
         _status)
 }
@@ -8982,6 +9020,7 @@ data class OidcConfiguration (
     var `logoUri`: String?, 
     var `tosUri`: String?, 
     var `policyUri`: String?, 
+    var `contacts`: List<String>?, 
     var `staticRegistrations`: Map<String, String>
 ) {
     
@@ -8996,6 +9035,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
             FfiConverterMapStringString.read(buf),
         )
     }
@@ -9007,6 +9047,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterOptionalString.allocationSize(value.`logoUri`) +
             FfiConverterOptionalString.allocationSize(value.`tosUri`) +
             FfiConverterOptionalString.allocationSize(value.`policyUri`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`contacts`) +
             FfiConverterMapStringString.allocationSize(value.`staticRegistrations`)
     )
 
@@ -9017,6 +9058,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterOptionalString.write(value.`logoUri`, buf)
             FfiConverterOptionalString.write(value.`tosUri`, buf)
             FfiConverterOptionalString.write(value.`policyUri`, buf)
+            FfiConverterOptionalSequenceString.write(value.`contacts`, buf)
             FfiConverterMapStringString.write(value.`staticRegistrations`, buf)
     }
 }
