@@ -423,7 +423,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Pointer,`action`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_avatar_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -1640,7 +1640,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_data() != 37263.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_url() != 29423.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_url() != 57664.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url() != 13474.toShort()) {
@@ -2942,8 +2942,8 @@ public object FfiConverterTypeAuthenticationService: FfiConverter<Authentication
 
 public interface ClientInterface {
     @Throws(ClientException::class)
-    fun `accountData`(`eventType`: String): String?
-    fun `accountUrl`(): String?@Throws(ClientException::class)
+    fun `accountData`(`eventType`: String): String?@Throws(ClientException::class)
+    fun `accountUrl`(`action`: AccountManagementAction?): String?@Throws(ClientException::class)
     fun `avatarUrl`(): String?@Throws(ClientException::class)
     fun `cachedAvatarUrl`(): String?@Throws(ClientException::class)
     fun `createRoom`(`request`: CreateRoomParameters): String@Throws(ClientException::class)
@@ -3006,11 +3006,12 @@ class Client(
             FfiConverterOptionalString.lift(it)
         }
     
-    override fun `accountUrl`(): String? =
+    
+    @Throws(ClientException::class)override fun `accountUrl`(`action`: AccountManagementAction?): String? =
         callWithPointer {
-    rustCall() { _status ->
+    rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_account_url(it,
-        
+        FfiConverterOptionalTypeAccountManagementAction.lower(`action`),
         _status)
 }
         }.let {
@@ -10155,6 +10156,95 @@ public object FfiConverterTypeWidgetSettings: FfiConverterRustBuffer<WidgetSetti
 
 
 
+sealed class AccountManagementAction {
+    object Profile : AccountManagementAction()
+    
+    object SessionsList : AccountManagementAction()
+    
+    data class SessionView(
+        val `deviceId`: String
+        ) : AccountManagementAction()
+    data class SessionEnd(
+        val `deviceId`: String
+        ) : AccountManagementAction()
+    
+
+    
+}
+
+public object FfiConverterTypeAccountManagementAction : FfiConverterRustBuffer<AccountManagementAction>{
+    override fun read(buf: ByteBuffer): AccountManagementAction {
+        return when(buf.getInt()) {
+            1 -> AccountManagementAction.Profile
+            2 -> AccountManagementAction.SessionsList
+            3 -> AccountManagementAction.SessionView(
+                FfiConverterString.read(buf),
+                )
+            4 -> AccountManagementAction.SessionEnd(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: AccountManagementAction) = when(value) {
+        is AccountManagementAction.Profile -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is AccountManagementAction.SessionsList -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is AccountManagementAction.SessionView -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`deviceId`)
+            )
+        }
+        is AccountManagementAction.SessionEnd -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`deviceId`)
+            )
+        }
+    }
+
+    override fun write(value: AccountManagementAction, buf: ByteBuffer) {
+        when(value) {
+            is AccountManagementAction.Profile -> {
+                buf.putInt(1)
+                Unit
+            }
+            is AccountManagementAction.SessionsList -> {
+                buf.putInt(2)
+                Unit
+            }
+            is AccountManagementAction.SessionView -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`deviceId`, buf)
+                Unit
+            }
+            is AccountManagementAction.SessionEnd -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`deviceId`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
 enum class AssetType {
     SENDER,PIN;
 }
@@ -16088,6 +16178,35 @@ public object FfiConverterOptionalTypeVideoInfo: FfiConverterRustBuffer<VideoInf
         } else {
             buf.put(1)
             FfiConverterTypeVideoInfo.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeAccountManagementAction: FfiConverterRustBuffer<AccountManagementAction?> {
+    override fun read(buf: ByteBuffer): AccountManagementAction? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeAccountManagementAction.read(buf)
+    }
+
+    override fun allocationSize(value: AccountManagementAction?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeAccountManagementAction.allocationSize(value)
+        }
+    }
+
+    override fun write(value: AccountManagementAction?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeAccountManagementAction.write(value, buf)
         }
     }
 }
