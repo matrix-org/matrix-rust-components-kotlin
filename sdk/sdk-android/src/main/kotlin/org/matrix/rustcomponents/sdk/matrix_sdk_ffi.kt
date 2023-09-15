@@ -760,15 +760,19 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_filter(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(`ptr`: Pointer,`pageSize`: Int,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_free_roomlistentriesdynamicfilter(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_free_roomlistdynamicentriescontroller(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistentriesdynamicfilter_set(`ptr`: Pointer,`kind`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_add_one_page(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_reset_to_one_page(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_set_filter(`ptr`: Pointer,`kind`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_free_roomlistitem(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1370,13 +1374,17 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_filter(
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_room(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentriesdynamicfilter_set(
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_add_one_page(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_reset_to_one_page(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_avatar_url(
     ): Short
@@ -2131,7 +2139,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries() != 27911.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_filter() != 18327.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() != 30316.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state() != 54823.toShort()) {
@@ -2140,7 +2148,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_room() != 60000.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentriesdynamicfilter_set() != 41193.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_add_one_page() != 1980.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_reset_to_one_page() != 48285.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter() != 20071.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_avatar_url() != 23609.toShort()) {
@@ -6015,7 +6029,7 @@ public object FfiConverterTypeRoom: FfiConverter<Room, Pointer> {
 public interface RoomListInterface {
     
     fun `entries`(`listener`: RoomListEntriesListener): RoomListEntriesResult
-    fun `entriesWithDynamicFilter`(`listener`: RoomListEntriesListener): RoomListEntriesWithDynamicFilterResult@Throws(RoomListException::class)
+    fun `entriesWithDynamicAdapters`(`pageSize`: UInt, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult@Throws(RoomListException::class)
     fun `loadingState`(`listener`: RoomListLoadingStateListener): RoomListLoadingStateResult@Throws(RoomListException::class)
     fun `room`(`roomId`: String): RoomListItem
 }
@@ -6049,15 +6063,15 @@ class RoomList(
             FfiConverterTypeRoomListEntriesResult.lift(it)
         }
     
-    override fun `entriesWithDynamicFilter`(`listener`: RoomListEntriesListener): RoomListEntriesWithDynamicFilterResult =
+    override fun `entriesWithDynamicAdapters`(`pageSize`: UInt, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_filter(it,
-        FfiConverterTypeRoomListEntriesListener.lower(`listener`),
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(it,
+        FfiConverterUInt.lower(`pageSize`),FfiConverterTypeRoomListEntriesListener.lower(`listener`),
         _status)
 }
         }.let {
-            FfiConverterTypeRoomListEntriesWithDynamicFilterResult.lift(it)
+            FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult.lift(it)
         }
     
     
@@ -6114,14 +6128,16 @@ public object FfiConverterTypeRoomList: FfiConverter<RoomList, Pointer> {
 
 
 
-public interface RoomListEntriesDynamicFilterInterface {
+public interface RoomListDynamicEntriesControllerInterface {
     
-    fun `set`(`kind`: RoomListEntriesDynamicFilterKind): Boolean
+    fun `addOnePage`()
+    fun `resetToOnePage`()
+    fun `setFilter`(`kind`: RoomListEntriesDynamicFilterKind): Boolean
 }
 
-class RoomListEntriesDynamicFilter(
+class RoomListDynamicEntriesController(
     pointer: Pointer
-) : FFIObject(pointer), RoomListEntriesDynamicFilterInterface {
+) : FFIObject(pointer), RoomListDynamicEntriesControllerInterface {
 
     /**
      * Disconnect the object from the underlying Rust object.
@@ -6133,14 +6149,34 @@ class RoomListEntriesDynamicFilter(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_roomlistentriesdynamicfilter(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_roomlistdynamicentriescontroller(this.pointer, status)
         }
     }
 
-    override fun `set`(`kind`: RoomListEntriesDynamicFilterKind): Boolean =
+    override fun `addOnePage`() =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistentriesdynamicfilter_set(it,
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_add_one_page(it,
+        
+        _status)
+}
+        }
+    
+    
+    override fun `resetToOnePage`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_reset_to_one_page(it,
+        
+        _status)
+}
+        }
+    
+    
+    override fun `setFilter`(`kind`: RoomListEntriesDynamicFilterKind): Boolean =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_set_filter(it,
         FfiConverterTypeRoomListEntriesDynamicFilterKind.lower(`kind`),
         _status)
 }
@@ -6153,22 +6189,22 @@ class RoomListEntriesDynamicFilter(
     
 }
 
-public object FfiConverterTypeRoomListEntriesDynamicFilter: FfiConverter<RoomListEntriesDynamicFilter, Pointer> {
-    override fun lower(value: RoomListEntriesDynamicFilter): Pointer = value.callWithPointer { it }
+public object FfiConverterTypeRoomListDynamicEntriesController: FfiConverter<RoomListDynamicEntriesController, Pointer> {
+    override fun lower(value: RoomListDynamicEntriesController): Pointer = value.callWithPointer { it }
 
-    override fun lift(value: Pointer): RoomListEntriesDynamicFilter {
-        return RoomListEntriesDynamicFilter(value)
+    override fun lift(value: Pointer): RoomListDynamicEntriesController {
+        return RoomListDynamicEntriesController(value)
     }
 
-    override fun read(buf: ByteBuffer): RoomListEntriesDynamicFilter {
+    override fun read(buf: ByteBuffer): RoomListDynamicEntriesController {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RoomListEntriesDynamicFilter) = 8
+    override fun allocationSize(value: RoomListDynamicEntriesController) = 8
 
-    override fun write(value: RoomListEntriesDynamicFilter, buf: ByteBuffer) {
+    override fun write(value: RoomListDynamicEntriesController, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -9539,8 +9575,8 @@ public object FfiConverterTypeRoomListEntriesResult: FfiConverterRustBuffer<Room
 
 
 
-data class RoomListEntriesWithDynamicFilterResult (
-    var `dynamicFilter`: RoomListEntriesDynamicFilter, 
+data class RoomListEntriesWithDynamicAdaptersResult (
+    var `controller`: RoomListDynamicEntriesController, 
     var `entriesStream`: TaskHandle
 ) : Disposable {
     
@@ -9548,27 +9584,27 @@ data class RoomListEntriesWithDynamicFilterResult (
     override fun destroy() {
         
     Disposable.destroy(
-        this.`dynamicFilter`, 
+        this.`controller`, 
         this.`entriesStream`)
     }
     
 }
 
-public object FfiConverterTypeRoomListEntriesWithDynamicFilterResult: FfiConverterRustBuffer<RoomListEntriesWithDynamicFilterResult> {
-    override fun read(buf: ByteBuffer): RoomListEntriesWithDynamicFilterResult {
-        return RoomListEntriesWithDynamicFilterResult(
-            FfiConverterTypeRoomListEntriesDynamicFilter.read(buf),
+public object FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult: FfiConverterRustBuffer<RoomListEntriesWithDynamicAdaptersResult> {
+    override fun read(buf: ByteBuffer): RoomListEntriesWithDynamicAdaptersResult {
+        return RoomListEntriesWithDynamicAdaptersResult(
+            FfiConverterTypeRoomListDynamicEntriesController.read(buf),
             FfiConverterTypeTaskHandle.read(buf),
         )
     }
 
-    override fun allocationSize(value: RoomListEntriesWithDynamicFilterResult) = (
-            FfiConverterTypeRoomListEntriesDynamicFilter.allocationSize(value.`dynamicFilter`) +
+    override fun allocationSize(value: RoomListEntriesWithDynamicAdaptersResult) = (
+            FfiConverterTypeRoomListDynamicEntriesController.allocationSize(value.`controller`) +
             FfiConverterTypeTaskHandle.allocationSize(value.`entriesStream`)
     )
 
-    override fun write(value: RoomListEntriesWithDynamicFilterResult, buf: ByteBuffer) {
-            FfiConverterTypeRoomListEntriesDynamicFilter.write(value.`dynamicFilter`, buf)
+    override fun write(value: RoomListEntriesWithDynamicAdaptersResult, buf: ByteBuffer) {
+            FfiConverterTypeRoomListDynamicEntriesController.write(value.`controller`, buf)
             FfiConverterTypeTaskHandle.write(value.`entriesStream`, buf)
     }
 }
@@ -12549,6 +12585,9 @@ sealed class RoomListEntriesUpdate {
     data class Remove(
         val `index`: UInt
         ) : RoomListEntriesUpdate()
+    data class Truncate(
+        val `length`: UInt
+        ) : RoomListEntriesUpdate()
     data class Reset(
         val `values`: List<RoomListEntry>
         ) : RoomListEntriesUpdate()
@@ -12583,7 +12622,10 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             9 -> RoomListEntriesUpdate.Remove(
                 FfiConverterUInt.read(buf),
                 )
-            10 -> RoomListEntriesUpdate.Reset(
+            10 -> RoomListEntriesUpdate.Truncate(
+                FfiConverterUInt.read(buf),
+                )
+            11 -> RoomListEntriesUpdate.Reset(
                 FfiConverterSequenceTypeRoomListEntry.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -12653,6 +12695,13 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
                 + FfiConverterUInt.allocationSize(value.`index`)
             )
         }
+        is RoomListEntriesUpdate.Truncate -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`length`)
+            )
+        }
         is RoomListEntriesUpdate.Reset -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -12708,8 +12757,13 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
                 FfiConverterUInt.write(value.`index`, buf)
                 Unit
             }
-            is RoomListEntriesUpdate.Reset -> {
+            is RoomListEntriesUpdate.Truncate -> {
                 buf.putInt(10)
+                FfiConverterUInt.write(value.`length`, buf)
+                Unit
+            }
+            is RoomListEntriesUpdate.Reset -> {
+                buf.putInt(11)
                 FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
                 Unit
             }
@@ -13503,7 +13557,7 @@ public object FfiConverterTypeSyncServiceState: FfiConverterRustBuffer<SyncServi
 
 
 enum class TimelineChange {
-    APPEND,CLEAR,INSERT,SET,REMOVE,PUSH_BACK,PUSH_FRONT,POP_BACK,POP_FRONT,RESET;
+    APPEND,CLEAR,INSERT,SET,REMOVE,PUSH_BACK,PUSH_FRONT,POP_BACK,POP_FRONT,TRUNCATE,RESET;
 }
 
 public object FfiConverterTypeTimelineChange: FfiConverterRustBuffer<TimelineChange> {
@@ -18033,13 +18087,13 @@ internal class UniFfiFutureCallbackHandlerTypeRoomListEntriesResult(val continua
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeRoomListEntriesWithDynamicFilterResult(val continuation: Continuation<RoomListEntriesWithDynamicFilterResult>)
+internal class UniFfiFutureCallbackHandlerTypeRoomListEntriesWithDynamicAdaptersResult(val continuation: Continuation<RoomListEntriesWithDynamicAdaptersResult>)
     : UniFfiFutureCallbackRustBuffer {
     override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         uniffiActiveFutureCallbacks.remove(this)
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
-            continuation.resume(FfiConverterTypeRoomListEntriesWithDynamicFilterResult.lift(returnValue!!))
+            continuation.resume(FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult.lift(returnValue!!))
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
         }
