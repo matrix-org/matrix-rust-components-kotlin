@@ -662,8 +662,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_details_for_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -692,14 +692,14 @@ internal interface _UniFFILib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_member_avatar_url(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_member_display_name(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_members(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_members(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_name(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -814,7 +814,7 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Pointer,`delayBeforeShowingInMs`: Int,`delayBeforeHidingInMs`: Int,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roommember(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -853,6 +853,12 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_roommember_unignore(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roommember_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_free_roommembersiterator(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_len(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Int
+    fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_next_chunk(`ptr`: Pointer,`chunkSize`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_sendattachmentjoinhandle(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1460,6 +1466,10 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommember_user_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join(
@@ -1995,7 +2005,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_details_for_event() != 23233.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members() != 63440.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members() != 64110.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_timeline_event_content_by_event_id() != 4338.toShort()) {
@@ -2040,7 +2050,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 11928.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() != 19441.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() != 4975.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url() != 5937.toShort()) {
@@ -2049,7 +2059,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_display_name() != 4559.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_members() != 48203.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_members() != 6390.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 17678.toShort()) {
@@ -2211,7 +2221,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state() != 7038.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator() != 1112.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator() != 5536.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommember_avatar_url() != 9148.toShort()) {
@@ -2266,6 +2276,12 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommember_user_id() != 19498.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len() != 32977.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk() != 35645.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 58929.toShort()) {
@@ -5032,7 +5048,7 @@ public interface RoomInterface {
     fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String, `txnId`: String?)@Throws(ClientException::class)
     fun `endPoll`(`pollStartId`: String, `text`: String, `txnId`: String?)@Throws(ClientException::class)
     fun `fetchDetailsForEvent`(`eventId`: String)@Throws(ClientException::class)
-    fun `fetchMembers`(): TaskHandle@Throws(ClientException::class)
+    suspend fun `fetchMembers`()@Throws(ClientException::class)
     fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation
     fun `id`(): String@Throws(ClientException::class)
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
@@ -5047,10 +5063,10 @@ public interface RoomInterface {
     fun `join`()
     fun `joinedMembersCount`(): ULong@Throws(ClientException::class)
     fun `leave`()@Throws(ClientException::class)
-    fun `member`(`userId`: String): RoomMember@Throws(ClientException::class)
+    suspend fun `member`(`userId`: String): RoomMember@Throws(ClientException::class)
     fun `memberAvatarUrl`(`userId`: String): String?@Throws(ClientException::class)
     fun `memberDisplayName`(`userId`: String): String?@Throws(ClientException::class)
-    fun `members`(): List<RoomMember>
+    suspend fun `members`(): RoomMembersIterator
     fun `membership`(): Membership
     fun `name`(): String?
     fun `ownUserId`(): String@Throws(ClientException::class)
@@ -5457,17 +5473,36 @@ class Room(
     
     
     
-    @Throws(ClientException::class)override fun `fetchMembers`(): TaskHandle =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeTaskHandle.lift(it)
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `fetchMembers`() {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerVoid_TypeClientError(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(
+                                thisPtr,
+                                
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
         }
-    
+    }
     
     @Throws(ClientException::class)override fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation =
         callWithPointer {
@@ -5625,17 +5660,36 @@ class Room(
     
     
     
-    @Throws(ClientException::class)override fun `member`(`userId`: String): RoomMember =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_member(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomMember.lift(it)
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `member`(`userId`: String) : RoomMember {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomMember_TypeClientError(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_member(
+                                thisPtr,
+                                FfiConverterString.lower(`userId`),
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
         }
-    
+    }
     
     @Throws(ClientException::class)override fun `memberAvatarUrl`(`userId`: String): String? =
         callWithPointer {
@@ -5661,17 +5715,36 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `members`(): List<RoomMember> =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_members(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterSequenceTypeRoomMember.lift(it)
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `members`() : RoomMembersIterator {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerTypeRoomMembersIterator_TypeClientError(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_members(
+                                thisPtr,
+                                
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
         }
-    
+    }
     override fun `membership`(): Membership =
         callWithPointer {
     rustCall() { _status ->
@@ -6467,7 +6540,7 @@ public interface RoomListServiceInterface {
     suspend fun `invites`(): RoomList@Throws(RoomListException::class)
     fun `room`(`roomId`: String): RoomListItem
     fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
-    fun `syncIndicator`(`listener`: RoomListServiceSyncIndicatorListener): TaskHandle
+    fun `syncIndicator`(`delayBeforeShowingInMs`: UInt, `delayBeforeHidingInMs`: UInt, `listener`: RoomListServiceSyncIndicatorListener): TaskHandle
 }
 
 class RoomListService(
@@ -6604,11 +6677,11 @@ class RoomListService(
             FfiConverterTypeTaskHandle.lift(it)
         }
     
-    override fun `syncIndicator`(`listener`: RoomListServiceSyncIndicatorListener): TaskHandle =
+    override fun `syncIndicator`(`delayBeforeShowingInMs`: UInt, `delayBeforeHidingInMs`: UInt, `listener`: RoomListServiceSyncIndicatorListener): TaskHandle =
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(it,
-        FfiConverterTypeRoomListServiceSyncIndicatorListener.lower(`listener`),
+        FfiConverterUInt.lower(`delayBeforeShowingInMs`),FfiConverterUInt.lower(`delayBeforeHidingInMs`),FfiConverterTypeRoomListServiceSyncIndicatorListener.lower(`listener`),
         _status)
 }
         }.let {
@@ -6904,6 +6977,82 @@ public object FfiConverterTypeRoomMember: FfiConverter<RoomMember, Pointer> {
     override fun allocationSize(value: RoomMember) = 8
 
     override fun write(value: RoomMember, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface RoomMembersIteratorInterface {
+    
+    fun `len`(): UInt
+    fun `nextChunk`(`chunkSize`: UInt): List<RoomMember>?
+}
+
+class RoomMembersIterator(
+    pointer: Pointer
+) : FFIObject(pointer), RoomMembersIteratorInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_roommembersiterator(this.pointer, status)
+        }
+    }
+
+    override fun `len`(): UInt =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_len(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterUInt.lift(it)
+        }
+    
+    override fun `nextChunk`(`chunkSize`: UInt): List<RoomMember>? =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_next_chunk(it,
+        FfiConverterUInt.lower(`chunkSize`),
+        _status)
+}
+        }.let {
+            FfiConverterOptionalSequenceTypeRoomMember.lift(it)
+        }
+    
+    
+
+    
+}
+
+public object FfiConverterTypeRoomMembersIterator: FfiConverter<RoomMembersIterator, Pointer> {
+    override fun lower(value: RoomMembersIterator): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): RoomMembersIterator {
+        return RoomMembersIterator(value)
+    }
+
+    override fun read(buf: ByteBuffer): RoomMembersIterator {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: RoomMembersIterator) = 8
+
+    override fun write(value: RoomMembersIterator, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -16895,6 +17044,35 @@ public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<St
 
 
 
+public object FfiConverterOptionalSequenceTypeRoomMember: FfiConverterRustBuffer<List<RoomMember>?> {
+    override fun read(buf: ByteBuffer): List<RoomMember>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeRoomMember.read(buf)
+    }
+
+    override fun allocationSize(value: List<RoomMember>?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterSequenceTypeRoomMember.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<RoomMember>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeRoomMember.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalSequenceTypeTimelineItem: FfiConverterRustBuffer<List<TimelineItem>?> {
     override fun read(buf: ByteBuffer): List<TimelineItem>? {
         if (buf.get().toInt() == 0) {
@@ -17905,6 +18083,19 @@ internal class UniFfiFutureCallbackHandlerTypeRoomMember_TypeClientError(val con
     }
 }
 
+internal class UniFfiFutureCallbackHandlerTypeRoomMembersIterator_TypeClientError(val continuation: Continuation<RoomMembersIterator>)
+    : UniFfiFutureCallbackPointer {
+    override fun callback(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(ClientException, callStatus)
+            continuation.resume(FfiConverterTypeRoomMembersIterator.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
 internal class UniFfiFutureCallbackHandlerTypeRoomMessageEventContentWithoutRelation(val continuation: Continuation<RoomMessageEventContentWithoutRelation>)
     : UniFfiFutureCallbackPointer {
     override fun callback(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
@@ -18503,6 +18694,19 @@ internal class UniFfiFutureCallbackHandlerOptionalTypeVirtualTimelineItem(val co
     }
 }
 
+internal class UniFfiFutureCallbackHandlerOptionalSequenceTypeRoomMember(val continuation: Continuation<List<RoomMember>?>)
+    : UniFfiFutureCallbackRustBuffer {
+    override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(NullCallStatusErrorHandler, callStatus)
+            continuation.resume(FfiConverterOptionalSequenceTypeRoomMember.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
 internal class UniFfiFutureCallbackHandlerOptionalSequenceTypeTimelineItem(val continuation: Continuation<List<TimelineItem>?>)
     : UniFfiFutureCallbackRustBuffer {
     override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
@@ -18549,19 +18753,6 @@ internal class UniFfiFutureCallbackHandlerSequenceTypeRoom(val continuation: Con
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterSequenceTypeRoom.lift(returnValue!!))
-        } catch (e: Throwable) {
-            continuation.resumeWithException(e)
-        }
-    }
-}
-
-internal class UniFfiFutureCallbackHandlerSequenceTypeRoomMember_TypeClientError(val continuation: Continuation<List<RoomMember>>)
-    : UniFfiFutureCallbackRustBuffer {
-    override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
-        uniffiActiveFutureCallbacks.remove(this)
-        try {
-            checkCallStatus(ClientException, callStatus)
-            continuation.resume(FfiConverterSequenceTypeRoomMember.lift(returnValue!!))
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
         }
