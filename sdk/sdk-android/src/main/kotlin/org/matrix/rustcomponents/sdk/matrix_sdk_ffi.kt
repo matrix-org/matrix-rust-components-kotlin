@@ -808,7 +808,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_topic(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -834,7 +834,9 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_canonical_alias(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackPointer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_has_unread_notifications(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
@@ -1523,6 +1525,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_canonical_alias(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_has_unread_notifications(
     ): Short
@@ -2350,7 +2354,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_video() != 38775.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 39725.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 56429.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() != 55348.toShort()) {
@@ -2368,7 +2372,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_topic() != 23413.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() != 33347.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() != 46437.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries() != 27911.toShort()) {
@@ -2398,7 +2402,10 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_canonical_alias() != 56187.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room() != 50213.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room() != 12614.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room_blocking() != 53631.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_has_unread_notifications() != 64858.toShort()) {
@@ -5537,13 +5544,13 @@ public interface RoomInterface {
     fun `sendReadReceipt`(`eventId`: String)@Throws(ClientException::class)
     fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `inReplyToEventId`: String, `txnId`: String?)
     fun `sendVideo`(`url`: String, `thumbnailUrl`: String, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle@Throws(ClientException::class)
-    fun `setName`(`name`: String?)@Throws(ClientException::class)
+    fun `setName`(`name`: String)@Throws(ClientException::class)
     fun `setTopic`(`topic`: String)@Throws(ClientException::class)
     fun `subscribeToBackPaginationStatus`(`listener`: BackPaginationStatusListener): TaskHandle
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle@Throws(ClientException::class)
     fun `toggleReaction`(`eventId`: String, `key`: String)
     fun `topic`(): String?@Throws(ClientException::class)
-    fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>)
+    fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>, `mediaInfo`: ImageInfo?)
 }
 
 class Room(
@@ -6602,11 +6609,11 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `setName`(`name`: String?) =
+    @Throws(ClientException::class)override fun `setName`(`name`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_name(it,
-        FfiConverterOptionalString.lower(`name`),
+        FfiConverterString.lower(`name`),
         _status)
 }
         }
@@ -6669,11 +6676,11 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>) =
+    @Throws(ClientException::class)override fun `uploadAvatar`(`mimeType`: String, `data`: List<UByte>, `mediaInfo`: ImageInfo?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(it,
-        FfiConverterString.lower(`mimeType`),FfiConverterSequenceUByte.lower(`data`),
+        FfiConverterString.lower(`mimeType`),FfiConverterSequenceUByte.lower(`data`),FfiConverterOptionalTypeImageInfo.lower(`mediaInfo`),
         _status)
 }
         }
@@ -6901,7 +6908,8 @@ public interface RoomListItemInterface {
     
     fun `avatarUrl`(): String?
     fun `canonicalAlias`(): String?
-    fun `fullRoom`(): Room
+    suspend fun `fullRoom`(): Room
+    fun `fullRoomBlocking`(): Room
     fun `hasUnreadNotifications`(): Boolean
     fun `id`(): String
     fun `isDirect`(): Boolean
@@ -6954,10 +6962,40 @@ class RoomListItem(
             FfiConverterOptionalString.lift(it)
         }
     
-    override fun `fullRoom`(): Room =
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `fullRoom`() : Room {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerTypeRoom(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room(
+                                thisPtr,
+                                
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
+        }
+    }
+    override fun `fullRoomBlocking`(): Room =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room(it,
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room_blocking(it,
         
         _status)
 }
@@ -9328,7 +9366,9 @@ public object FfiConverterTypeAudioInfo: FfiConverterRustBuffer<AudioInfo> {
 data class AudioMessageContent (
     var `body`: String, 
     var `source`: MediaSource, 
-    var `info`: AudioInfo?
+    var `info`: AudioInfo?, 
+    var `audio`: UnstableAudioDetailsContent?, 
+    var `voice`: UnstableVoiceContent?
 ) : Disposable {
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -9337,7 +9377,9 @@ data class AudioMessageContent (
     Disposable.destroy(
         this.`body`, 
         this.`source`, 
-        this.`info`)
+        this.`info`, 
+        this.`audio`, 
+        this.`voice`)
     }
     
 }
@@ -9348,19 +9390,25 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
             FfiConverterString.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeAudioInfo.read(buf),
+            FfiConverterOptionalTypeUnstableAudioDetailsContent.read(buf),
+            FfiConverterOptionalTypeUnstableVoiceContent.read(buf),
         )
     }
 
     override fun allocationSize(value: AudioMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
-            FfiConverterOptionalTypeAudioInfo.allocationSize(value.`info`)
+            FfiConverterOptionalTypeAudioInfo.allocationSize(value.`info`) +
+            FfiConverterOptionalTypeUnstableAudioDetailsContent.allocationSize(value.`audio`) +
+            FfiConverterOptionalTypeUnstableVoiceContent.allocationSize(value.`voice`)
     )
 
     override fun write(value: AudioMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeAudioInfo.write(value.`info`, buf)
+            FfiConverterOptionalTypeUnstableAudioDetailsContent.write(value.`audio`, buf)
+            FfiConverterOptionalTypeUnstableVoiceContent.write(value.`voice`, buf)
     }
 }
 
@@ -10912,6 +10960,60 @@ public object FfiConverterTypeTransmissionProgress: FfiConverterRustBuffer<Trans
 
 
 
+data class UnstableAudioDetailsContent (
+    var `duration`: java.time.Duration, 
+    var `waveform`: List<UShort>
+) {
+    
+}
+
+public object FfiConverterTypeUnstableAudioDetailsContent: FfiConverterRustBuffer<UnstableAudioDetailsContent> {
+    override fun read(buf: ByteBuffer): UnstableAudioDetailsContent {
+        return UnstableAudioDetailsContent(
+            FfiConverterDuration.read(buf),
+            FfiConverterSequenceUShort.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: UnstableAudioDetailsContent) = (
+            FfiConverterDuration.allocationSize(value.`duration`) +
+            FfiConverterSequenceUShort.allocationSize(value.`waveform`)
+    )
+
+    override fun write(value: UnstableAudioDetailsContent, buf: ByteBuffer) {
+            FfiConverterDuration.write(value.`duration`, buf)
+            FfiConverterSequenceUShort.write(value.`waveform`, buf)
+    }
+}
+
+
+
+
+data class UnstableVoiceContent (
+    var `doNotUse`: Boolean
+) {
+    
+}
+
+public object FfiConverterTypeUnstableVoiceContent: FfiConverterRustBuffer<UnstableVoiceContent> {
+    override fun read(buf: ByteBuffer): UnstableVoiceContent {
+        return UnstableVoiceContent(
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: UnstableVoiceContent) = (
+            FfiConverterBoolean.allocationSize(value.`doNotUse`)
+    )
+
+    override fun write(value: UnstableVoiceContent, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`doNotUse`, buf)
+    }
+}
+
+
+
+
 data class UserProfile (
     var `userId`: String, 
     var `displayName`: String?, 
@@ -11653,6 +11755,52 @@ public object FfiConverterTypeLogLevel: FfiConverterRustBuffer<LogLevel> {
 }
 
 
+
+
+
+
+
+sealed class MediaInfoException(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class MissingField(message: String) : MediaInfoException(message)
+        class InvalidField(message: String) : MediaInfoException(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<MediaInfoException> {
+        override fun lift(error_buf: RustBuffer.ByValue): MediaInfoException = FfiConverterTypeMediaInfoError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeMediaInfoError : FfiConverterRustBuffer<MediaInfoException> {
+    override fun read(buf: ByteBuffer): MediaInfoException {
+        
+            return when(buf.getInt()) {
+            1 -> MediaInfoException.MissingField(FfiConverterString.read(buf))
+            2 -> MediaInfoException.InvalidField(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: MediaInfoException): Int {
+        return 4
+    }
+
+    override fun write(value: MediaInfoException, buf: ByteBuffer) {
+        when(value) {
+            is MediaInfoException.MissingField -> {
+                buf.putInt(1)
+                Unit
+            }
+            is MediaInfoException.InvalidField -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
@@ -13291,6 +13439,7 @@ sealed class RoomException(message: String): Exception(message) {
         // Flat enums carries a string error message, so no special implementation is necessary.
         class InvalidAttachmentData(message: String) : RoomException(message)
         class InvalidAttachmentMimeType(message: String) : RoomException(message)
+        class InvalidMediaInfo(message: String) : RoomException(message)
         class TimelineUnavailable(message: String) : RoomException(message)
         class InvalidThumbnailData(message: String) : RoomException(message)
         class FailedSendingAttachment(message: String) : RoomException(message)
@@ -13307,9 +13456,10 @@ public object FfiConverterTypeRoomError : FfiConverterRustBuffer<RoomException> 
             return when(buf.getInt()) {
             1 -> RoomException.InvalidAttachmentData(FfiConverterString.read(buf))
             2 -> RoomException.InvalidAttachmentMimeType(FfiConverterString.read(buf))
-            3 -> RoomException.TimelineUnavailable(FfiConverterString.read(buf))
-            4 -> RoomException.InvalidThumbnailData(FfiConverterString.read(buf))
-            5 -> RoomException.FailedSendingAttachment(FfiConverterString.read(buf))
+            3 -> RoomException.InvalidMediaInfo(FfiConverterString.read(buf))
+            4 -> RoomException.TimelineUnavailable(FfiConverterString.read(buf))
+            5 -> RoomException.InvalidThumbnailData(FfiConverterString.read(buf))
+            6 -> RoomException.FailedSendingAttachment(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -13329,16 +13479,20 @@ public object FfiConverterTypeRoomError : FfiConverterRustBuffer<RoomException> 
                 buf.putInt(2)
                 Unit
             }
-            is RoomException.TimelineUnavailable -> {
+            is RoomException.InvalidMediaInfo -> {
                 buf.putInt(3)
                 Unit
             }
-            is RoomException.InvalidThumbnailData -> {
+            is RoomException.TimelineUnavailable -> {
                 buf.putInt(4)
                 Unit
             }
-            is RoomException.FailedSendingAttachment -> {
+            is RoomException.InvalidThumbnailData -> {
                 buf.putInt(5)
+                Unit
+            }
+            is RoomException.FailedSendingAttachment -> {
+                buf.putInt(6)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -13351,6 +13505,8 @@ public object FfiConverterTypeRoomError : FfiConverterRustBuffer<RoomException> 
 
 sealed class RoomListEntriesDynamicFilterKind {
     object All : RoomListEntriesDynamicFilterKind()
+    
+    object None : RoomListEntriesDynamicFilterKind()
     
     data class NormalizedMatchRoomName(
         val `pattern`: String
@@ -13367,10 +13523,11 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
     override fun read(buf: ByteBuffer): RoomListEntriesDynamicFilterKind {
         return when(buf.getInt()) {
             1 -> RoomListEntriesDynamicFilterKind.All
-            2 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            2 -> RoomListEntriesDynamicFilterKind.None
+            3 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            3 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            4 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -13379,6 +13536,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
 
     override fun allocationSize(value: RoomListEntriesDynamicFilterKind) = when(value) {
         is RoomListEntriesDynamicFilterKind.All -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.None -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
@@ -13406,13 +13569,17 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(1)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
+            is RoomListEntriesDynamicFilterKind.None -> {
                 buf.putInt(2)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
+                buf.putInt(3)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
-                buf.putInt(3)
+                buf.putInt(4)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
@@ -14442,52 +14609,6 @@ public object FfiConverterTypeTimelineChange: FfiConverterRustBuffer<TimelineCha
 }
 
 
-
-
-
-
-
-sealed class TimelineException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
-        class MissingMediaInfoField(message: String) : TimelineException(message)
-        class InvalidMediaInfoField(message: String) : TimelineException(message)
-        
-
-    companion object ErrorHandler : CallStatusErrorHandler<TimelineException> {
-        override fun lift(error_buf: RustBuffer.ByValue): TimelineException = FfiConverterTypeTimelineError.lift(error_buf)
-    }
-}
-
-public object FfiConverterTypeTimelineError : FfiConverterRustBuffer<TimelineException> {
-    override fun read(buf: ByteBuffer): TimelineException {
-        
-            return when(buf.getInt()) {
-            1 -> TimelineException.MissingMediaInfoField(FfiConverterString.read(buf))
-            2 -> TimelineException.InvalidMediaInfoField(FfiConverterString.read(buf))
-            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
-        }
-        
-    }
-
-    override fun allocationSize(value: TimelineException): Int {
-        return 4
-    }
-
-    override fun write(value: TimelineException, buf: ByteBuffer) {
-        when(value) {
-            is TimelineException.MissingMediaInfoField -> {
-                buf.putInt(1)
-                Unit
-            }
-            is TimelineException.InvalidMediaInfoField -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-
-}
 
 
 
@@ -17298,6 +17419,64 @@ public object FfiConverterOptionalTypeTracingFileConfiguration: FfiConverterRust
 
 
 
+public object FfiConverterOptionalTypeUnstableAudioDetailsContent: FfiConverterRustBuffer<UnstableAudioDetailsContent?> {
+    override fun read(buf: ByteBuffer): UnstableAudioDetailsContent? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeUnstableAudioDetailsContent.read(buf)
+    }
+
+    override fun allocationSize(value: UnstableAudioDetailsContent?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeUnstableAudioDetailsContent.allocationSize(value)
+        }
+    }
+
+    override fun write(value: UnstableAudioDetailsContent?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeUnstableAudioDetailsContent.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeUnstableVoiceContent: FfiConverterRustBuffer<UnstableVoiceContent?> {
+    override fun read(buf: ByteBuffer): UnstableVoiceContent? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeUnstableVoiceContent.read(buf)
+    }
+
+    override fun allocationSize(value: UnstableVoiceContent?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeUnstableVoiceContent.allocationSize(value)
+        }
+    }
+
+    override fun write(value: UnstableVoiceContent?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeUnstableVoiceContent.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeVideoInfo: FfiConverterRustBuffer<VideoInfo?> {
     override fun read(buf: ByteBuffer): VideoInfo? {
         if (buf.get().toInt() == 0) {
@@ -17867,6 +18046,31 @@ public object FfiConverterSequenceUByte: FfiConverterRustBuffer<List<UByte>> {
         buf.putInt(value.size)
         value.forEach {
             FfiConverterUByte.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceUShort: FfiConverterRustBuffer<List<UShort>> {
+    override fun read(buf: ByteBuffer): List<UShort> {
+        val len = buf.getInt()
+        return List<UShort>(len) {
+            FfiConverterUShort.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<UShort>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterUShort.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<UShort>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterUShort.write(it, buf)
         }
     }
 }
