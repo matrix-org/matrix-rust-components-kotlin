@@ -522,6 +522,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_eventtimelineitem(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_can_be_replied_to(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_content(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_debug_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -698,13 +700,13 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_create_poll(`ptr`: Pointer,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_create_poll(`ptr`: Pointer,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_edit(`ptr`: Pointer,`newMsg`: Pointer,`originalEventId`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_edit(`ptr`: Pointer,`newMsg`: Pointer,`originalEventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_end_poll(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_end_poll(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_details_for_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -712,6 +714,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_members_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_get_event_timeline_item_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -760,7 +764,7 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_paginate_backwards(`ptr`: Pointer,`opts`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_redact(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_redact(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_remove_avatar(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -776,7 +780,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_room_info_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send(`ptr`: Pointer,`msg`: Pointer,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_send(`ptr`: Pointer,`msg`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -784,15 +788,15 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_image(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send_poll_response(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_send_poll_response(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_read_marker(`ptr`: Pointer,`fullyReadEventId`: RustBuffer.ByValue,`readReceiptEventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_read_receipt(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send_reply(`ptr`: Pointer,`msg`: Pointer,`inReplyToEventId`: RustBuffer.ByValue,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_send_reply(`ptr`: Pointer,`msg`: Pointer,`replyItem`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_video(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -1234,6 +1238,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_content(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_debug_info(
@@ -1407,6 +1413,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members_blocking(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_get_event_timeline_item_by_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_timeline_event_content_by_event_id(
     ): Short
@@ -1967,6 +1975,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username() != 64379.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to() != 42286.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_content() != 1802.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2207,16 +2218,16 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias() != 15084.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_create_poll() != 5532.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_create_poll() != 62592.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_display_name() != 38216.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_edit() != 35232.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_edit() != 59729.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_end_poll() != 8937.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_end_poll() != 42646.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_details_for_event() != 23233.toShort()) {
@@ -2226,6 +2237,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members_blocking() != 58127.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_event_timeline_item_by_event_id() != 50554.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_timeline_event_content_by_event_id() != 4338.toShort()) {
@@ -2300,7 +2314,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_paginate_backwards() != 28035.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_redact() != 61747.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_redact() != 12809.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar() != 24698.toShort()) {
@@ -2324,7 +2338,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info_blocking() != 23031.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send() != 39033.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send() != 974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_audio() != 19498.toShort()) {
@@ -2336,10 +2350,10 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_image() != 56510.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_location() != 43614.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_location() != 25452.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_poll_response() != 1386.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_poll_response() != 21289.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_read_marker() != 53306.toShort()) {
@@ -2348,7 +2362,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_read_receipt() != 6919.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_reply() != 58749.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_reply() != 12091.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_video() != 38775.toShort()) {
@@ -3964,6 +3978,7 @@ public object FfiConverterTypeClientBuilder: FfiConverter<ClientBuilder, Pointer
 
 public interface EventTimelineItemInterface {
     
+    fun `canBeRepliedTo`(): Boolean
     fun `content`(): TimelineItemContent
     fun `debugInfo`(): EventTimelineItemDebugInfo
     fun `eventId`(): String?
@@ -3999,6 +4014,17 @@ class EventTimelineItem(
         }
     }
 
+    override fun `canBeRepliedTo`(): Boolean =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_can_be_replied_to(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterBoolean.lift(it)
+        }
+    
     override fun `content`(): TimelineItemContent =
         callWithPointer {
     rustCall() { _status ->
@@ -5495,13 +5521,14 @@ public interface RoomInterface {
     fun `canUserTriggerRoomNotificationBlocking`(`userId`: String): Boolean
     fun `cancelSend`(`txnId`: String)
     fun `canonicalAlias`(): String?@Throws(ClientException::class)
-    fun `createPoll`(`question`: String, `answers`: List<String>, `maxSelections`: UByte, `pollKind`: PollKind, `txnId`: String?)@Throws(ClientException::class)
+    fun `createPoll`(`question`: String, `answers`: List<String>, `maxSelections`: UByte, `pollKind`: PollKind)@Throws(ClientException::class)
     fun `displayName`(): String@Throws(ClientException::class)
-    fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String, `txnId`: String?)@Throws(ClientException::class)
-    fun `endPoll`(`pollStartId`: String, `text`: String, `txnId`: String?)@Throws(ClientException::class)
+    fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String)@Throws(ClientException::class)
+    fun `endPoll`(`pollStartId`: String, `text`: String)@Throws(ClientException::class)
     fun `fetchDetailsForEvent`(`eventId`: String)@Throws(ClientException::class)
     suspend fun `fetchMembers`()@Throws(ClientException::class)
     fun `fetchMembersBlocking`()@Throws(ClientException::class)
+    fun `getEventTimelineItemByEventId`(`eventId`: String): EventTimelineItem@Throws(ClientException::class)
     fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation
     fun `id`(): String@Throws(ClientException::class)
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
@@ -5526,7 +5553,7 @@ public interface RoomInterface {
     fun `name`(): String?
     fun `ownUserId`(): String@Throws(ClientException::class)
     fun `paginateBackwards`(`opts`: PaginationOptions)@Throws(ClientException::class)
-    fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?)@Throws(ClientException::class)
+    fun `redact`(`eventId`: String, `reason`: String?)@Throws(ClientException::class)
     fun `removeAvatar`()
     fun `removeTimeline`()@Throws(ClientException::class)
     fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)
@@ -5534,15 +5561,15 @@ public interface RoomInterface {
     fun `retrySend`(`txnId`: String)@Throws(ClientException::class)
     suspend fun `roomInfo`(): RoomInfo@Throws(ClientException::class)
     fun `roomInfoBlocking`(): RoomInfo
-    fun `send`(`msg`: RoomMessageEventContentWithoutRelation, `txnId`: String?)
+    fun `send`(`msg`: RoomMessageEventContentWithoutRelation)
     fun `sendAudio`(`url`: String, `audioInfo`: AudioInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     fun `sendFile`(`url`: String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     fun `sendImage`(`url`: String, `thumbnailUrl`: String, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
-    fun `sendLocation`(`body`: String, `geoUri`: String, `description`: String?, `zoomLevel`: UByte?, `assetType`: AssetType?, `txnId`: String?)@Throws(ClientException::class)
-    fun `sendPollResponse`(`pollStartId`: String, `answers`: List<String>, `txnId`: String?)@Throws(ClientException::class)
+    fun `sendLocation`(`body`: String, `geoUri`: String, `description`: String?, `zoomLevel`: UByte?, `assetType`: AssetType?)@Throws(ClientException::class)
+    fun `sendPollResponse`(`pollStartId`: String, `answers`: List<String>)@Throws(ClientException::class)
     fun `sendReadMarker`(`fullyReadEventId`: String, `readReceiptEventId`: String?)@Throws(ClientException::class)
     fun `sendReadReceipt`(`eventId`: String)@Throws(ClientException::class)
-    fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `inReplyToEventId`: String, `txnId`: String?)
+    fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `replyItem`: EventTimelineItem)
     fun `sendVideo`(`url`: String, `thumbnailUrl`: String, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle@Throws(ClientException::class)
     fun `setName`(`name`: String)@Throws(ClientException::class)
     fun `setTopic`(`topic`: String)@Throws(ClientException::class)
@@ -5987,11 +6014,11 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `createPoll`(`question`: String, `answers`: List<String>, `maxSelections`: UByte, `pollKind`: PollKind, `txnId`: String?) =
+    @Throws(ClientException::class)override fun `createPoll`(`question`: String, `answers`: List<String>, `maxSelections`: UByte, `pollKind`: PollKind) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_create_poll(it,
-        FfiConverterString.lower(`question`),FfiConverterSequenceString.lower(`answers`),FfiConverterUByte.lower(`maxSelections`),FfiConverterTypePollKind.lower(`pollKind`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterString.lower(`question`),FfiConverterSequenceString.lower(`answers`),FfiConverterUByte.lower(`maxSelections`),FfiConverterTypePollKind.lower(`pollKind`),
         _status)
 }
         }
@@ -6010,22 +6037,22 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String, `txnId`: String?) =
+    @Throws(ClientException::class)override fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_edit(it,
-        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newMsg`),FfiConverterString.lower(`originalEventId`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newMsg`),FfiConverterString.lower(`originalEventId`),
         _status)
 }
         }
     
     
     
-    @Throws(ClientException::class)override fun `endPoll`(`pollStartId`: String, `text`: String, `txnId`: String?) =
+    @Throws(ClientException::class)override fun `endPoll`(`pollStartId`: String, `text`: String) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_end_poll(it,
-        FfiConverterString.lower(`pollStartId`),FfiConverterString.lower(`text`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterString.lower(`pollStartId`),FfiConverterString.lower(`text`),
         _status)
 }
         }
@@ -6083,6 +6110,18 @@ class Room(
 }
         }
     
+    
+    
+    @Throws(ClientException::class)override fun `getEventTimelineItemByEventId`(`eventId`: String): EventTimelineItem =
+        callWithPointer {
+    rustCallWithError(ClientException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_get_event_timeline_item_by_event_id(it,
+        FfiConverterString.lower(`eventId`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeEventTimelineItem.lift(it)
+        }
     
     
     @Throws(ClientException::class)override fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation =
@@ -6395,11 +6434,11 @@ class Room(
     
     
     
-    @Throws(ClientException::class)override fun `redact`(`eventId`: String, `reason`: String?, `txnId`: String?) =
+    @Throws(ClientException::class)override fun `redact`(`eventId`: String, `reason`: String?) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_redact(it,
-        FfiConverterString.lower(`eventId`),FfiConverterOptionalString.lower(`reason`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterString.lower(`eventId`),FfiConverterOptionalString.lower(`reason`),
         _status)
 }
         }
@@ -6500,11 +6539,11 @@ class Room(
             FfiConverterTypeRoomInfo.lift(it)
         }
     
-    override fun `send`(`msg`: RoomMessageEventContentWithoutRelation, `txnId`: String?) =
+    override fun `send`(`msg`: RoomMessageEventContentWithoutRelation) =
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send(it,
-        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),
         _status)
 }
         }
@@ -6543,22 +6582,22 @@ class Room(
             FfiConverterTypeSendAttachmentJoinHandle.lift(it)
         }
     
-    override fun `sendLocation`(`body`: String, `geoUri`: String, `description`: String?, `zoomLevel`: UByte?, `assetType`: AssetType?, `txnId`: String?) =
+    override fun `sendLocation`(`body`: String, `geoUri`: String, `description`: String?, `zoomLevel`: UByte?, `assetType`: AssetType?) =
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_location(it,
-        FfiConverterString.lower(`body`),FfiConverterString.lower(`geoUri`),FfiConverterOptionalString.lower(`description`),FfiConverterOptionalUByte.lower(`zoomLevel`),FfiConverterOptionalTypeAssetType.lower(`assetType`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterString.lower(`body`),FfiConverterString.lower(`geoUri`),FfiConverterOptionalString.lower(`description`),FfiConverterOptionalUByte.lower(`zoomLevel`),FfiConverterOptionalTypeAssetType.lower(`assetType`),
         _status)
 }
         }
     
     
     
-    @Throws(ClientException::class)override fun `sendPollResponse`(`pollStartId`: String, `answers`: List<String>, `txnId`: String?) =
+    @Throws(ClientException::class)override fun `sendPollResponse`(`pollStartId`: String, `answers`: List<String>) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_poll_response(it,
-        FfiConverterString.lower(`pollStartId`),FfiConverterSequenceString.lower(`answers`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterString.lower(`pollStartId`),FfiConverterSequenceString.lower(`answers`),
         _status)
 }
         }
@@ -6587,11 +6626,11 @@ class Room(
     
     
     
-    @Throws(ClientException::class)override fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `inReplyToEventId`: String, `txnId`: String?) =
+    @Throws(ClientException::class)override fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `replyItem`: EventTimelineItem) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_reply(it,
-        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterString.lower(`inReplyToEventId`),FfiConverterOptionalString.lower(`txnId`),
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterTypeEventTimelineItem.lower(`replyItem`),
         _status)
 }
         }
@@ -11955,6 +11994,9 @@ sealed class MessageLikeEventContent: Disposable  {
     
     object KeyVerificationDone : MessageLikeEventContent()
     
+    data class Poll(
+        val `question`: String
+        ) : MessageLikeEventContent()
     data class ReactionContent(
         val `relatedEventId`: String
         ) : MessageLikeEventContent()
@@ -11996,6 +12038,12 @@ sealed class MessageLikeEventContent: Disposable  {
             }
             is MessageLikeEventContent.KeyVerificationDone -> {// Nothing to destroy
             }
+            is MessageLikeEventContent.Poll -> {
+                
+    Disposable.destroy(
+        this.`question`)
+                
+            }
             is MessageLikeEventContent.ReactionContent -> {
                 
     Disposable.destroy(
@@ -12034,16 +12082,19 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
             9 -> MessageLikeEventContent.KeyVerificationKey
             10 -> MessageLikeEventContent.KeyVerificationMac
             11 -> MessageLikeEventContent.KeyVerificationDone
-            12 -> MessageLikeEventContent.ReactionContent(
+            12 -> MessageLikeEventContent.Poll(
                 FfiConverterString.read(buf),
                 )
-            13 -> MessageLikeEventContent.RoomEncrypted
-            14 -> MessageLikeEventContent.RoomMessage(
+            13 -> MessageLikeEventContent.ReactionContent(
+                FfiConverterString.read(buf),
+                )
+            14 -> MessageLikeEventContent.RoomEncrypted
+            15 -> MessageLikeEventContent.RoomMessage(
                 FfiConverterTypeMessageType.read(buf),
                 FfiConverterOptionalString.read(buf),
                 )
-            15 -> MessageLikeEventContent.RoomRedaction
-            16 -> MessageLikeEventContent.Sticker
+            16 -> MessageLikeEventContent.RoomRedaction
+            17 -> MessageLikeEventContent.Sticker
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -12113,6 +12164,13 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
+            )
+        }
+        is MessageLikeEventContent.Poll -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`question`)
             )
         }
         is MessageLikeEventContent.ReactionContent -> {
@@ -12196,27 +12254,32 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 buf.putInt(11)
                 Unit
             }
-            is MessageLikeEventContent.ReactionContent -> {
+            is MessageLikeEventContent.Poll -> {
                 buf.putInt(12)
+                FfiConverterString.write(value.`question`, buf)
+                Unit
+            }
+            is MessageLikeEventContent.ReactionContent -> {
+                buf.putInt(13)
                 FfiConverterString.write(value.`relatedEventId`, buf)
                 Unit
             }
             is MessageLikeEventContent.RoomEncrypted -> {
-                buf.putInt(13)
+                buf.putInt(14)
                 Unit
             }
             is MessageLikeEventContent.RoomMessage -> {
-                buf.putInt(14)
+                buf.putInt(15)
                 FfiConverterTypeMessageType.write(value.`messageType`, buf)
                 FfiConverterOptionalString.write(value.`inReplyToEventId`, buf)
                 Unit
             }
             is MessageLikeEventContent.RoomRedaction -> {
-                buf.putInt(15)
+                buf.putInt(16)
                 Unit
             }
             is MessageLikeEventContent.Sticker -> {
-                buf.putInt(16)
+                buf.putInt(17)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -18830,6 +18893,19 @@ internal class UniFfiFutureCallbackHandlerTypeClientBuilder(val continuation: Co
         try {
             checkCallStatus(NullCallStatusErrorHandler, callStatus)
             continuation.resume(FfiConverterTypeClientBuilder.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
+internal class UniFfiFutureCallbackHandlerTypeEventTimelineItem_TypeClientError(val continuation: Continuation<EventTimelineItem>)
+    : UniFfiFutureCallbackPointer {
+    override fun callback(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(ClientException, callStatus)
+            continuation.resume(FfiConverterTypeEventTimelineItem.lift(returnValue!!))
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
         }
