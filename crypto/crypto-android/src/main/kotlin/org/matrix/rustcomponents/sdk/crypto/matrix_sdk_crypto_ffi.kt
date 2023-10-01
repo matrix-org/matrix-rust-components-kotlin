@@ -463,6 +463,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(`ptr`: Pointer,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -730,6 +732,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent(
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions(
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes(
     ): Short
@@ -1029,6 +1033,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests() != 8996.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions() != 11961.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes() != 8888.toShort()) {
@@ -1833,6 +1840,7 @@ public interface OlmMachineInterface {
     fun `isUserTracked`(`userId`: String): Boolean@Throws(CryptoStoreException::class)
     fun `markRequestAsSent`(`requestId`: String, `requestType`: RequestType, `responseBody`: String)@Throws(CryptoStoreException::class)
     fun `outgoingRequests`(): List<Request>@Throws(CryptoStoreException::class)
+    fun `queryMissingSecretsFromOtherSessions`(): Boolean@Throws(CryptoStoreException::class)
     fun `receiveSyncChanges`(`events`: String, `deviceChanges`: DeviceLists, `keyCounts`: Map<String, Int>, `unusedFallbackKeys`: List<String>?): String@Throws(CryptoStoreException::class)
     fun `receiveUnencryptedVerificationEvent`(`event`: String, `roomId`: String)@Throws(CryptoStoreException::class)
     fun `receiveVerificationEvent`(`event`: String, `roomId`: String)@Throws(DecryptionException::class)
@@ -2225,6 +2233,18 @@ class OlmMachine(
 }
         }.let {
             FfiConverterSequenceTypeRequest.lift(it)
+        }
+    
+    
+    @Throws(CryptoStoreException::class)override fun `queryMissingSecretsFromOtherSessions`(): Boolean =
+        callWithPointer {
+    rustCallWithError(CryptoStoreException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterBoolean.lift(it)
         }
     
     
