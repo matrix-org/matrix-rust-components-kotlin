@@ -704,7 +704,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_edit(`ptr`: Pointer,`newMsg`: Pointer,`originalEventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_room_edit(`ptr`: Pointer,`newContent`: Pointer,`editItem`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_end_poll(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1052,7 +1052,15 @@ internal interface _UniFFILib : Library {
     ): Int
     fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_notification_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun uniffi_matrix_sdk_ffi_fn_free_widgetcomm(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_free_widgetdriver(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(`ptr`: Pointer,`room`: Pointer,`permissionsProvider`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_free_widgetdriverhandle(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_recv(`ptr`: Pointer,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(`ptr`: Pointer,`msg`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_backpaginationstatuslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1086,16 +1094,20 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_media_source_from_url(`url`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html_as_emote(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown(`md`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown_as_emote(`md`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_func_run_widget_api(`room`: Pointer,`widget`: RustBuffer.ByValue,`permissionsProvider`: Long,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackByte,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_setup_otlp_tracing(`config`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -1114,15 +1126,19 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html_as_emote(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new(
+    fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_func_run_widget_api(
+    fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha(
     ): Short
@@ -1712,6 +1728,12 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_send(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new(
@@ -1789,19 +1811,25 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 58164.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() != 16909.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url() != 28929.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html() != 48173.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html_as_emote() != 30627.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown() != 5412.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 65448.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote() != 16575.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_run_widget_api() != 39210.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 65448.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha() != 11183.toShort()) {
@@ -2224,7 +2252,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_display_name() != 38216.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_edit() != 59729.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_edit() != 38490.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_end_poll() != 42646.toShort()) {
@@ -2684,6 +2712,15 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count() != 10233.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run() != 25357.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv() != 25974.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_send() != 32739.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json() != 31512.toShort()) {
@@ -5523,7 +5560,7 @@ public interface RoomInterface {
     fun `canonicalAlias`(): String?@Throws(ClientException::class)
     fun `createPoll`(`question`: String, `answers`: List<String>, `maxSelections`: UByte, `pollKind`: PollKind)@Throws(ClientException::class)
     fun `displayName`(): String@Throws(ClientException::class)
-    fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String)@Throws(ClientException::class)
+    fun `edit`(`newContent`: RoomMessageEventContentWithoutRelation, `editItem`: EventTimelineItem)@Throws(ClientException::class)
     fun `endPoll`(`pollStartId`: String, `text`: String)@Throws(ClientException::class)
     fun `fetchDetailsForEvent`(`eventId`: String)@Throws(ClientException::class)
     suspend fun `fetchMembers`()@Throws(ClientException::class)
@@ -6037,11 +6074,11 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `edit`(`newMsg`: RoomMessageEventContentWithoutRelation, `originalEventId`: String) =
+    @Throws(ClientException::class)override fun `edit`(`newContent`: RoomMessageEventContentWithoutRelation, `editItem`: EventTimelineItem) =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_edit(it,
-        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newMsg`),FfiConverterString.lower(`originalEventId`),
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newContent`),FfiConverterTypeEventTimelineItem.lower(`editItem`),
         _status)
 }
         }
@@ -9237,13 +9274,14 @@ public object FfiConverterTypeUnreadNotificationsCount: FfiConverter<UnreadNotif
 
 
 
-public interface WidgetCommInterface {
+public interface WidgetDriverInterface {
     
+    suspend fun `run`(`room`: Room, `permissionsProvider`: WidgetPermissionsProvider)
 }
 
-class WidgetComm(
+class WidgetDriver(
     pointer: Pointer
-) : FFIObject(pointer), WidgetCommInterface {
+) : FFIObject(pointer), WidgetDriverInterface {
 
     /**
      * Disconnect the object from the underlying Rust object.
@@ -9255,31 +9293,175 @@ class WidgetComm(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_widgetcomm(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_widgetdriver(this.pointer, status)
         }
     }
 
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `run`(`room`: Room, `permissionsProvider`: WidgetPermissionsProvider) {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerVoid(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(
+                                thisPtr,
+                                FfiConverterTypeRoom.lower(`room`),FfiConverterTypeWidgetPermissionsProvider.lower(`permissionsProvider`),
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
+        }
+    }
     
 
     
 }
 
-public object FfiConverterTypeWidgetComm: FfiConverter<WidgetComm, Pointer> {
-    override fun lower(value: WidgetComm): Pointer = value.callWithPointer { it }
+public object FfiConverterTypeWidgetDriver: FfiConverter<WidgetDriver, Pointer> {
+    override fun lower(value: WidgetDriver): Pointer = value.callWithPointer { it }
 
-    override fun lift(value: Pointer): WidgetComm {
-        return WidgetComm(value)
+    override fun lift(value: Pointer): WidgetDriver {
+        return WidgetDriver(value)
     }
 
-    override fun read(buf: ByteBuffer): WidgetComm {
+    override fun read(buf: ByteBuffer): WidgetDriver {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: WidgetComm) = 8
+    override fun allocationSize(value: WidgetDriver) = 8
 
-    override fun write(value: WidgetComm, buf: ByteBuffer) {
+    override fun write(value: WidgetDriver, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface WidgetDriverHandleInterface {
+    
+    suspend fun `recv`(): String?
+    suspend fun `send`(`msg`: String): Boolean
+}
+
+class WidgetDriverHandle(
+    pointer: Pointer
+) : FFIObject(pointer), WidgetDriverHandleInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_widgetdriverhandle(this.pointer, status)
+        }
+    }
+
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `recv`() : String? {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerOptionalString(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_recv(
+                                thisPtr,
+                                
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
+        }
+    }
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `send`(`msg`: String) : Boolean {
+        // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+        // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+        return coroutineScope {
+            val scope = this
+            return@coroutineScope suspendCancellableCoroutine { continuation ->
+                try {
+                    val callback = UniFfiFutureCallbackHandlerBoolean(continuation)
+                    uniffiActiveFutureCallbacks.add(callback)
+                    continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                    callWithPointer { thisPtr ->
+                        rustCall { status ->
+                            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(
+                                thisPtr,
+                                FfiConverterString.lower(`msg`),
+                                FfiConverterForeignExecutor.lower(scope),
+                                callback,
+                                USize(0),
+                                status,
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    continuation.resumeWithException(e)
+                }
+            }
+        }
+    }
+    
+
+    
+}
+
+public object FfiConverterTypeWidgetDriverHandle: FfiConverter<WidgetDriverHandle, Pointer> {
+    override fun lower(value: WidgetDriverHandle): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): WidgetDriverHandle {
+        return WidgetDriverHandle(value)
+    }
+
+    override fun read(buf: ByteBuffer): WidgetDriverHandle {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: WidgetDriverHandle) = 8
+
+    override fun write(value: WidgetDriverHandle, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -11195,37 +11377,37 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
 
 
 
-data class Widget (
-    var `settings`: WidgetSettings, 
-    var `comm`: WidgetComm
+data class WidgetDriverAndHandle (
+    var `driver`: WidgetDriver, 
+    var `handle`: WidgetDriverHandle
 ) : Disposable {
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
     override fun destroy() {
         
     Disposable.destroy(
-        this.`settings`, 
-        this.`comm`)
+        this.`driver`, 
+        this.`handle`)
     }
     
 }
 
-public object FfiConverterTypeWidget: FfiConverterRustBuffer<Widget> {
-    override fun read(buf: ByteBuffer): Widget {
-        return Widget(
-            FfiConverterTypeWidgetSettings.read(buf),
-            FfiConverterTypeWidgetComm.read(buf),
+public object FfiConverterTypeWidgetDriverAndHandle: FfiConverterRustBuffer<WidgetDriverAndHandle> {
+    override fun read(buf: ByteBuffer): WidgetDriverAndHandle {
+        return WidgetDriverAndHandle(
+            FfiConverterTypeWidgetDriver.read(buf),
+            FfiConverterTypeWidgetDriverHandle.read(buf),
         )
     }
 
-    override fun allocationSize(value: Widget) = (
-            FfiConverterTypeWidgetSettings.allocationSize(value.`settings`) +
-            FfiConverterTypeWidgetComm.allocationSize(value.`comm`)
+    override fun allocationSize(value: WidgetDriverAndHandle) = (
+            FfiConverterTypeWidgetDriver.allocationSize(value.`driver`) +
+            FfiConverterTypeWidgetDriverHandle.allocationSize(value.`handle`)
     )
 
-    override fun write(value: Widget, buf: ByteBuffer) {
-            FfiConverterTypeWidgetSettings.write(value.`settings`, buf)
-            FfiConverterTypeWidgetComm.write(value.`comm`, buf)
+    override fun write(value: WidgetDriverAndHandle, buf: ByteBuffer) {
+            FfiConverterTypeWidgetDriver.write(value.`driver`, buf)
+            FfiConverterTypeWidgetDriverHandle.write(value.`handle`, buf)
     }
 }
 
@@ -19367,6 +19549,19 @@ internal class UniFfiFutureCallbackHandlerTypeUserProfile_TypeClientError(val co
     }
 }
 
+internal class UniFfiFutureCallbackHandlerTypeWidgetDriverAndHandle(val continuation: Continuation<WidgetDriverAndHandle>)
+    : UniFfiFutureCallbackRustBuffer {
+    override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(NullCallStatusErrorHandler, callStatus)
+            continuation.resume(FfiConverterTypeWidgetDriverAndHandle.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
 internal class UniFfiFutureCallbackHandlerTypeMembership(val continuation: Continuation<Membership>)
     : UniFfiFutureCallbackRustBuffer {
     override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
@@ -19799,6 +19994,14 @@ fun `logEvent`(`file`: String, `line`: UInt?, `level`: LogLevel, `target`: Strin
 
 
 
+fun `makeWidgetDriver`(`settings`: WidgetSettings): WidgetDriverAndHandle {
+    return FfiConverterTypeWidgetDriverAndHandle.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(FfiConverterTypeWidgetSettings.lower(`settings`),_status)
+})
+}
+
+
 fun `mediaSourceFromUrl`(`url`: String): MediaSource {
     return FfiConverterTypeMediaSource.lift(
     rustCall() { _status ->
@@ -19815,10 +20018,26 @@ fun `messageEventContentFromHtml`(`body`: String, `htmlBody`: String): RoomMessa
 }
 
 
+fun `messageEventContentFromHtmlAsEmote`(`body`: String, `htmlBody`: String): RoomMessageEventContentWithoutRelation {
+    return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html_as_emote(FfiConverterString.lower(`body`),FfiConverterString.lower(`htmlBody`),_status)
+})
+}
+
+
 fun `messageEventContentFromMarkdown`(`md`: String): RoomMessageEventContentWithoutRelation {
     return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown(FfiConverterString.lower(`md`),_status)
+})
+}
+
+
+fun `messageEventContentFromMarkdownAsEmote`(`md`: String): RoomMessageEventContentWithoutRelation {
+    return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown_as_emote(FfiConverterString.lower(`md`),_status)
 })
 }
 
@@ -19830,33 +20049,6 @@ fun `messageEventContentNew`(`msgtype`: MessageType): RoomMessageEventContentWit
 })
 }
 
-
-@Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-suspend fun `runWidgetApi`(`room`: Room, `widget`: Widget, `permissionsProvider`: WidgetPermissionsProvider) {
-    // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
-    // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
-    return coroutineScope {
-        val scope = this
-        return@coroutineScope suspendCancellableCoroutine { continuation ->
-            try {
-                val callback = UniFfiFutureCallbackHandlerVoid(continuation)
-                uniffiActiveFutureCallbacks.add(callback)
-                continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
-                rustCall { status ->
-                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_run_widget_api(
-                        FfiConverterTypeRoom.lower(`room`),FfiConverterTypeWidget.lower(`widget`),FfiConverterTypeWidgetPermissionsProvider.lower(`permissionsProvider`),
-                        FfiConverterForeignExecutor.lower(scope),
-                        callback,
-                        USize(0),
-                        status,
-                    )
-                }
-            } catch (e: Exception) {
-                continuation.resumeWithException(e)
-            }
-        }
-    }
-}
 
 fun `sdkGitSha`(): String {
     return FfiConverterString.lift(
