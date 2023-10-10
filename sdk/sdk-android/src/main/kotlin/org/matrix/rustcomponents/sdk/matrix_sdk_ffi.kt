@@ -792,8 +792,6 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_poll_response(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send_read_marker(`ptr`: Pointer,`fullyReadEventId`: RustBuffer.ByValue,`readReceiptEventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_read_receipt(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_reply(`ptr`: Pointer,`msg`: Pointer,`replyItem`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -1092,6 +1090,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Pointer,`props`: RustBuffer.ByValue,`uniffiExecutor`: USize,`uniffiCallback`: UniFfiFutureCallbackRustBuffer,`uniffiCallbackData`: USize,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -1108,6 +1108,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_setup_otlp_tracing(`config`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -1124,6 +1126,8 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver(
@@ -1139,6 +1143,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha(
     ): Short
@@ -1508,8 +1514,6 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_poll_response(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_send_read_marker(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_read_receipt(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_reply(
@@ -1808,10 +1812,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id() != 65533.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() != 16581.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 58164.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() != 16909.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() != 16217.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url() != 28929.toShort()) {
@@ -1830,6 +1837,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 65448.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 13275.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha() != 11183.toShort()) {
@@ -2384,9 +2394,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_poll_response() != 21289.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_read_marker() != 53306.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_read_receipt() != 6919.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2923,6 +2930,26 @@ public object FfiConverterLong: FfiConverter<Long, Long> {
 
     override fun write(value: Long, buf: ByteBuffer) {
         buf.putLong(value)
+    }
+}
+
+public object FfiConverterDouble: FfiConverter<Double, Double> {
+    override fun lift(value: Double): Double {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Double {
+        return buf.getDouble()
+    }
+
+    override fun lower(value: Double): Double {
+        return value
+    }
+
+    override fun allocationSize(value: Double) = 8
+
+    override fun write(value: Double, buf: ByteBuffer) {
+        buf.putDouble(value)
     }
 }
 
@@ -5604,7 +5631,6 @@ public interface RoomInterface {
     fun `sendImage`(`url`: String, `thumbnailUrl`: String, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     fun `sendLocation`(`body`: String, `geoUri`: String, `description`: String?, `zoomLevel`: UByte?, `assetType`: AssetType?)@Throws(ClientException::class)
     fun `sendPollResponse`(`pollStartId`: String, `answers`: List<String>)@Throws(ClientException::class)
-    fun `sendReadMarker`(`fullyReadEventId`: String, `readReceiptEventId`: String?)@Throws(ClientException::class)
     fun `sendReadReceipt`(`eventId`: String)@Throws(ClientException::class)
     fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `replyItem`: EventTimelineItem)
     fun `sendVideo`(`url`: String, `thumbnailUrl`: String, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle@Throws(ClientException::class)
@@ -6635,17 +6661,6 @@ class Room(
     rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_poll_response(it,
         FfiConverterString.lower(`pollStartId`),FfiConverterSequenceString.lower(`answers`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(ClientException::class)override fun `sendReadMarker`(`fullyReadEventId`: String, `readReceiptEventId`: String?) =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_read_marker(it,
-        FfiConverterString.lower(`fullyReadEventId`),FfiConverterOptionalString.lower(`readReceiptEventId`),
         _status)
 }
         }
@@ -9636,6 +9651,39 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
 
 
 
+data class ClientProperties (
+    var `clientId`: String, 
+    var `languageTag`: String?, 
+    var `theme`: String?
+) {
+    
+}
+
+public object FfiConverterTypeClientProperties: FfiConverterRustBuffer<ClientProperties> {
+    override fun read(buf: ByteBuffer): ClientProperties {
+        return ClientProperties(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ClientProperties) = (
+            FfiConverterString.allocationSize(value.`clientId`) +
+            FfiConverterOptionalString.allocationSize(value.`languageTag`) +
+            FfiConverterOptionalString.allocationSize(value.`theme`)
+    )
+
+    override fun write(value: ClientProperties, buf: ByteBuffer) {
+            FfiConverterString.write(value.`clientId`, buf)
+            FfiConverterOptionalString.write(value.`languageTag`, buf)
+            FfiConverterOptionalString.write(value.`theme`, buf)
+    }
+}
+
+
+
+
 data class CreateRoomParameters (
     var `name`: String?, 
     var `topic`: String? = null, 
@@ -11377,6 +11425,71 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
 
 
 
+data class VirtualElementCallWidgetOptions (
+    var `elementCallUrl`: String, 
+    var `widgetId`: String, 
+    var `parentUrl`: String?, 
+    var `hideHeader`: Boolean?, 
+    var `preload`: Boolean?, 
+    var `fontScale`: Double?, 
+    var `appPrompt`: Boolean?, 
+    var `skipLobby`: Boolean?, 
+    var `confineToRoom`: Boolean?, 
+    var `fonts`: List<String>?, 
+    var `analyticsId`: String?
+) {
+    
+}
+
+public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustBuffer<VirtualElementCallWidgetOptions> {
+    override fun read(buf: ByteBuffer): VirtualElementCallWidgetOptions {
+        return VirtualElementCallWidgetOptions(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalDouble.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VirtualElementCallWidgetOptions) = (
+            FfiConverterString.allocationSize(value.`elementCallUrl`) +
+            FfiConverterString.allocationSize(value.`widgetId`) +
+            FfiConverterOptionalString.allocationSize(value.`parentUrl`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`hideHeader`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`preload`) +
+            FfiConverterOptionalDouble.allocationSize(value.`fontScale`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`appPrompt`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`skipLobby`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`confineToRoom`) +
+            FfiConverterOptionalSequenceString.allocationSize(value.`fonts`) +
+            FfiConverterOptionalString.allocationSize(value.`analyticsId`)
+    )
+
+    override fun write(value: VirtualElementCallWidgetOptions, buf: ByteBuffer) {
+            FfiConverterString.write(value.`elementCallUrl`, buf)
+            FfiConverterString.write(value.`widgetId`, buf)
+            FfiConverterOptionalString.write(value.`parentUrl`, buf)
+            FfiConverterOptionalBoolean.write(value.`hideHeader`, buf)
+            FfiConverterOptionalBoolean.write(value.`preload`, buf)
+            FfiConverterOptionalDouble.write(value.`fontScale`, buf)
+            FfiConverterOptionalBoolean.write(value.`appPrompt`, buf)
+            FfiConverterOptionalBoolean.write(value.`skipLobby`, buf)
+            FfiConverterOptionalBoolean.write(value.`confineToRoom`, buf)
+            FfiConverterOptionalSequenceString.write(value.`fonts`, buf)
+            FfiConverterOptionalString.write(value.`analyticsId`, buf)
+    }
+}
+
+
+
+
 data class WidgetDriverAndHandle (
     var `driver`: WidgetDriver, 
     var `handle`: WidgetDriverHandle
@@ -11416,7 +11529,8 @@ public object FfiConverterTypeWidgetDriverAndHandle: FfiConverterRustBuffer<Widg
 
 data class WidgetPermissions (
     var `read`: List<WidgetEventFilter>, 
-    var `send`: List<WidgetEventFilter>
+    var `send`: List<WidgetEventFilter>, 
+    var `requiresClient`: Boolean
 ) {
     
 }
@@ -11426,17 +11540,20 @@ public object FfiConverterTypeWidgetPermissions: FfiConverterRustBuffer<WidgetPe
         return WidgetPermissions(
             FfiConverterSequenceTypeWidgetEventFilter.read(buf),
             FfiConverterSequenceTypeWidgetEventFilter.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: WidgetPermissions) = (
             FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`read`) +
-            FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`send`)
+            FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`send`) +
+            FfiConverterBoolean.allocationSize(value.`requiresClient`)
     )
 
     override fun write(value: WidgetPermissions, buf: ByteBuffer) {
             FfiConverterSequenceTypeWidgetEventFilter.write(value.`read`, buf)
             FfiConverterSequenceTypeWidgetEventFilter.write(value.`send`, buf)
+            FfiConverterBoolean.write(value.`requiresClient`, buf)
     }
 }
 
@@ -11445,7 +11562,8 @@ public object FfiConverterTypeWidgetPermissions: FfiConverterRustBuffer<WidgetPe
 
 data class WidgetSettings (
     var `id`: String, 
-    var `initOnLoad`: Boolean
+    var `initAfterContentLoad`: Boolean, 
+    var `rawUrl`: String
 ) {
     
 }
@@ -11455,17 +11573,20 @@ public object FfiConverterTypeWidgetSettings: FfiConverterRustBuffer<WidgetSetti
         return WidgetSettings(
             FfiConverterString.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterString.read(buf),
         )
     }
 
     override fun allocationSize(value: WidgetSettings) = (
             FfiConverterString.allocationSize(value.`id`) +
-            FfiConverterBoolean.allocationSize(value.`initOnLoad`)
+            FfiConverterBoolean.allocationSize(value.`initAfterContentLoad`) +
+            FfiConverterString.allocationSize(value.`rawUrl`)
     )
 
     override fun write(value: WidgetSettings, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
-            FfiConverterBoolean.write(value.`initOnLoad`, buf)
+            FfiConverterBoolean.write(value.`initAfterContentLoad`, buf)
+            FfiConverterString.write(value.`rawUrl`, buf)
     }
 }
 
@@ -12875,61 +12996,155 @@ public object FfiConverterTypeNotificationProcessSetup : FfiConverterRustBuffer<
 
 
 
-sealed class NotificationSettingsException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
-        class Generic(message: String) : NotificationSettingsException(message)
-        class InvalidParameter(message: String) : NotificationSettingsException(message)
-        class InvalidRoomId(message: String) : NotificationSettingsException(message)
-        class RuleNotFound(message: String) : NotificationSettingsException(message)
-        class UnableToAddPushRule(message: String) : NotificationSettingsException(message)
-        class UnableToRemovePushRule(message: String) : NotificationSettingsException(message)
-        class UnableToSavePushRules(message: String) : NotificationSettingsException(message)
-        class UnableToUpdatePushRule(message: String) : NotificationSettingsException(message)
-        
+sealed class NotificationSettingsException: Exception() {
+    // Each variant is a nested class
+    
+    class Generic(
+        val `msg`: String
+        ) : NotificationSettingsException() {
+        override val message
+            get() = "msg=${ `msg` }"
+    }
+    
+    class InvalidParameter(
+        val `msg`: String
+        ) : NotificationSettingsException() {
+        override val message
+            get() = "msg=${ `msg` }"
+    }
+    
+    class InvalidRoomId(
+        val `roomId`: String
+        ) : NotificationSettingsException() {
+        override val message
+            get() = "roomId=${ `roomId` }"
+    }
+    
+    class RuleNotFound(
+        val `ruleId`: String
+        ) : NotificationSettingsException() {
+        override val message
+            get() = "ruleId=${ `ruleId` }"
+    }
+    
+    class UnableToAddPushRule(
+        ) : NotificationSettingsException() {
+        override val message
+            get() = ""
+    }
+    
+    class UnableToRemovePushRule(
+        ) : NotificationSettingsException() {
+        override val message
+            get() = ""
+    }
+    
+    class UnableToSavePushRules(
+        ) : NotificationSettingsException() {
+        override val message
+            get() = ""
+    }
+    
+    class UnableToUpdatePushRule(
+        ) : NotificationSettingsException() {
+        override val message
+            get() = ""
+    }
+    
 
     companion object ErrorHandler : CallStatusErrorHandler<NotificationSettingsException> {
         override fun lift(error_buf: RustBuffer.ByValue): NotificationSettingsException = FfiConverterTypeNotificationSettingsError.lift(error_buf)
     }
+
+    
 }
 
 public object FfiConverterTypeNotificationSettingsError : FfiConverterRustBuffer<NotificationSettingsException> {
     override fun read(buf: ByteBuffer): NotificationSettingsException {
         
-            return when(buf.getInt()) {
-            1 -> NotificationSettingsException.Generic(FfiConverterString.read(buf))
-            2 -> NotificationSettingsException.InvalidParameter(FfiConverterString.read(buf))
-            3 -> NotificationSettingsException.InvalidRoomId(FfiConverterString.read(buf))
-            4 -> NotificationSettingsException.RuleNotFound(FfiConverterString.read(buf))
-            5 -> NotificationSettingsException.UnableToAddPushRule(FfiConverterString.read(buf))
-            6 -> NotificationSettingsException.UnableToRemovePushRule(FfiConverterString.read(buf))
-            7 -> NotificationSettingsException.UnableToSavePushRules(FfiConverterString.read(buf))
-            8 -> NotificationSettingsException.UnableToUpdatePushRule(FfiConverterString.read(buf))
+
+        return when(buf.getInt()) {
+            1 -> NotificationSettingsException.Generic(
+                FfiConverterString.read(buf),
+                )
+            2 -> NotificationSettingsException.InvalidParameter(
+                FfiConverterString.read(buf),
+                )
+            3 -> NotificationSettingsException.InvalidRoomId(
+                FfiConverterString.read(buf),
+                )
+            4 -> NotificationSettingsException.RuleNotFound(
+                FfiConverterString.read(buf),
+                )
+            5 -> NotificationSettingsException.UnableToAddPushRule()
+            6 -> NotificationSettingsException.UnableToRemovePushRule()
+            7 -> NotificationSettingsException.UnableToSavePushRules()
+            8 -> NotificationSettingsException.UnableToUpdatePushRule()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
-        
     }
 
     override fun allocationSize(value: NotificationSettingsException): Int {
-        return 4
+        return when(value) {
+            is NotificationSettingsException.Generic -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`msg`)
+            )
+            is NotificationSettingsException.InvalidParameter -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`msg`)
+            )
+            is NotificationSettingsException.InvalidRoomId -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`roomId`)
+            )
+            is NotificationSettingsException.RuleNotFound -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+                + FfiConverterString.allocationSize(value.`ruleId`)
+            )
+            is NotificationSettingsException.UnableToAddPushRule -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is NotificationSettingsException.UnableToRemovePushRule -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is NotificationSettingsException.UnableToSavePushRules -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is NotificationSettingsException.UnableToUpdatePushRule -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+        }
     }
 
     override fun write(value: NotificationSettingsException, buf: ByteBuffer) {
         when(value) {
             is NotificationSettingsException.Generic -> {
                 buf.putInt(1)
+                FfiConverterString.write(value.`msg`, buf)
                 Unit
             }
             is NotificationSettingsException.InvalidParameter -> {
                 buf.putInt(2)
+                FfiConverterString.write(value.`msg`, buf)
                 Unit
             }
             is NotificationSettingsException.InvalidRoomId -> {
                 buf.putInt(3)
+                FfiConverterString.write(value.`roomId`, buf)
                 Unit
             }
             is NotificationSettingsException.RuleNotFound -> {
                 buf.putInt(4)
+                FfiConverterString.write(value.`ruleId`, buf)
                 Unit
             }
             is NotificationSettingsException.UnableToAddPushRule -> {
@@ -13352,6 +13567,106 @@ public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<Paginat
 }
 
 
+
+
+
+
+
+sealed class ParseException(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class EmptyHost(message: String) : ParseException(message)
+        class IdnaException(message: String) : ParseException(message)
+        class InvalidPort(message: String) : ParseException(message)
+        class InvalidIpv4Address(message: String) : ParseException(message)
+        class InvalidIpv6Address(message: String) : ParseException(message)
+        class InvalidDomainCharacter(message: String) : ParseException(message)
+        class RelativeUrlWithoutBase(message: String) : ParseException(message)
+        class RelativeUrlWithCannotBeABaseBase(message: String) : ParseException(message)
+        class SetHostOnCannotBeABaseUrl(message: String) : ParseException(message)
+        class Overflow(message: String) : ParseException(message)
+        class Other(message: String) : ParseException(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<ParseException> {
+        override fun lift(error_buf: RustBuffer.ByValue): ParseException = FfiConverterTypeParseError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeParseError : FfiConverterRustBuffer<ParseException> {
+    override fun read(buf: ByteBuffer): ParseException {
+        
+            return when(buf.getInt()) {
+            1 -> ParseException.EmptyHost(FfiConverterString.read(buf))
+            2 -> ParseException.IdnaException(FfiConverterString.read(buf))
+            3 -> ParseException.InvalidPort(FfiConverterString.read(buf))
+            4 -> ParseException.InvalidIpv4Address(FfiConverterString.read(buf))
+            5 -> ParseException.InvalidIpv6Address(FfiConverterString.read(buf))
+            6 -> ParseException.InvalidDomainCharacter(FfiConverterString.read(buf))
+            7 -> ParseException.RelativeUrlWithoutBase(FfiConverterString.read(buf))
+            8 -> ParseException.RelativeUrlWithCannotBeABaseBase(FfiConverterString.read(buf))
+            9 -> ParseException.SetHostOnCannotBeABaseUrl(FfiConverterString.read(buf))
+            10 -> ParseException.Overflow(FfiConverterString.read(buf))
+            11 -> ParseException.Other(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: ParseException): Int {
+        return 4
+    }
+
+    override fun write(value: ParseException, buf: ByteBuffer) {
+        when(value) {
+            is ParseException.EmptyHost -> {
+                buf.putInt(1)
+                Unit
+            }
+            is ParseException.IdnaException -> {
+                buf.putInt(2)
+                Unit
+            }
+            is ParseException.InvalidPort -> {
+                buf.putInt(3)
+                Unit
+            }
+            is ParseException.InvalidIpv4Address -> {
+                buf.putInt(4)
+                Unit
+            }
+            is ParseException.InvalidIpv6Address -> {
+                buf.putInt(5)
+                Unit
+            }
+            is ParseException.InvalidDomainCharacter -> {
+                buf.putInt(6)
+                Unit
+            }
+            is ParseException.RelativeUrlWithoutBase -> {
+                buf.putInt(7)
+                Unit
+            }
+            is ParseException.RelativeUrlWithCannotBeABaseBase -> {
+                buf.putInt(8)
+                Unit
+            }
+            is ParseException.SetHostOnCannotBeABaseUrl -> {
+                buf.putInt(9)
+                Unit
+            }
+            is ParseException.Overflow -> {
+                buf.putInt(10)
+                Unit
+            }
+            is ParseException.Other -> {
+                buf.putInt(11)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
@@ -17026,6 +17341,35 @@ public object FfiConverterOptionalULong: FfiConverterRustBuffer<ULong?> {
 
 
 
+public object FfiConverterOptionalDouble: FfiConverterRustBuffer<Double?> {
+    override fun read(buf: ByteBuffer): Double? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterDouble.read(buf)
+    }
+
+    override fun allocationSize(value: Double?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterDouble.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Double?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterDouble.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalBoolean: FfiConverterRustBuffer<Boolean?> {
     override fun read(buf: ByteBuffer): Boolean? {
         if (buf.get().toInt() == 0) {
@@ -19029,6 +19373,19 @@ internal class UniFfiFutureCallbackHandlerString_TypeClientError(val continuatio
     }
 }
 
+internal class UniFfiFutureCallbackHandlerString_TypeParseError(val continuation: Continuation<String>)
+    : UniFfiFutureCallbackRustBuffer {
+    override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(ParseException, callStatus)
+            continuation.resume(FfiConverterString.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
 internal class UniFfiFutureCallbackHandlerTypeAuthenticationService(val continuation: Continuation<AuthenticationService>)
     : UniFfiFutureCallbackPointer {
     override fun callback(_callbackData: USize, returnValue: Pointer?, callStatus: RustCallStatus.ByValue) {
@@ -19549,13 +19906,26 @@ internal class UniFfiFutureCallbackHandlerTypeUserProfile_TypeClientError(val co
     }
 }
 
-internal class UniFfiFutureCallbackHandlerTypeWidgetDriverAndHandle(val continuation: Continuation<WidgetDriverAndHandle>)
+internal class UniFfiFutureCallbackHandlerTypeWidgetDriverAndHandle_TypeParseError(val continuation: Continuation<WidgetDriverAndHandle>)
     : UniFfiFutureCallbackRustBuffer {
     override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
         uniffiActiveFutureCallbacks.remove(this)
         try {
-            checkCallStatus(NullCallStatusErrorHandler, callStatus)
+            checkCallStatus(ParseException, callStatus)
             continuation.resume(FfiConverterTypeWidgetDriverAndHandle.lift(returnValue!!))
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+}
+
+internal class UniFfiFutureCallbackHandlerTypeWidgetSettings_TypeParseError(val continuation: Continuation<WidgetSettings>)
+    : UniFfiFutureCallbackRustBuffer {
+    override fun callback(_callbackData: USize, returnValue: RustBuffer.ByValue?, callStatus: RustCallStatus.ByValue) {
+        uniffiActiveFutureCallbacks.remove(this)
+        try {
+            checkCallStatus(ParseException, callStatus)
+            continuation.resume(FfiConverterTypeWidgetSettings.lift(returnValue!!))
         } catch (e: Throwable) {
             continuation.resumeWithException(e)
         }
@@ -19985,6 +20355,34 @@ fun `genTransactionId`(): String {
 })
 }
 
+@Throws(ParseException::class)
+
+@Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+suspend fun `generateWebviewUrl`(`widgetSettings`: WidgetSettings, `room`: Room, `props`: ClientProperties) : String {
+    // Create a new `CoroutineScope` for this operation, suspend the coroutine, and call the
+    // scaffolding function, passing it one of the callback handlers from `AsyncTypes.kt`.
+    return coroutineScope {
+        val scope = this
+        return@coroutineScope suspendCancellableCoroutine { continuation ->
+            try {
+                val callback = UniFfiFutureCallbackHandlerString_TypeParseError(continuation)
+                uniffiActiveFutureCallbacks.add(callback)
+                continuation.invokeOnCancellation { uniffiActiveFutureCallbacks.remove(callback) }
+                rustCall { status ->
+                    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(
+                        FfiConverterTypeWidgetSettings.lower(`widgetSettings`),FfiConverterTypeRoom.lower(`room`),FfiConverterTypeClientProperties.lower(`props`),
+                        FfiConverterForeignExecutor.lower(scope),
+                        callback,
+                        USize(0),
+                        status,
+                    )
+                }
+            } catch (e: Exception) {
+                continuation.resumeWithException(e)
+            }
+        }
+    }
+}
 
 fun `logEvent`(`file`: String, `line`: UInt?, `level`: LogLevel, `target`: String, `message`: String) =
     
@@ -19993,10 +20391,11 @@ fun `logEvent`(`file`: String, `line`: UInt?, `level`: LogLevel, `target`: Strin
 }
 
 
+@Throws(ParseException::class)
 
 fun `makeWidgetDriver`(`settings`: WidgetSettings): WidgetDriverAndHandle {
     return FfiConverterTypeWidgetDriverAndHandle.lift(
-    rustCall() { _status ->
+    rustCallWithError(ParseException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(FfiConverterTypeWidgetSettings.lower(`settings`),_status)
 })
 }
@@ -20046,6 +20445,15 @@ fun `messageEventContentNew`(`msgtype`: MessageType): RoomMessageEventContentWit
     return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(FfiConverterTypeMessageType.lower(`msgtype`),_status)
+})
+}
+
+@Throws(ParseException::class)
+
+fun `newVirtualElementCallWidget`(`props`: VirtualElementCallWidgetOptions): WidgetSettings {
+    return FfiConverterTypeWidgetSettings.lift(
+    rustCallWithError(ParseException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(FfiConverterTypeVirtualElementCallWidgetOptions.lower(`props`),_status)
 })
 }
 
