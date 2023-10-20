@@ -389,7 +389,7 @@ internal interface _UniFFILib : Library {
                 FfiConverterTypeSessionVerificationControllerDelegate.register(lib)
                 FfiConverterTypeSyncServiceStateObserver.register(lib)
                 FfiConverterTypeTimelineListener.register(lib)
-                FfiConverterTypeWidgetPermissionsProvider.register(lib)
+                FfiConverterTypeWidgetCapabilitiesProvider.register(lib)
                 uniffiRustFutureContinuationCallback.register(lib)
                 }
         }
@@ -405,6 +405,8 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_free_roommessageeventcontentwithoutrelation(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roommessageeventcontentwithoutrelation_with_mentions(`ptr`: Pointer,`mentions`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_authenticationservice(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,`sessionDelegate`: RustBuffer.ByValue,`crossProcessRefreshLockId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -591,66 +593,36 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode_blocking(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings_blocking(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_rooms_with_user_defined_rules(`ptr`: Pointer,`enabled`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_rooms_with_user_defined_rules_blocking(`ptr`: Pointer,`enabled`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_user_defined_room_notification_mode(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_user_defined_room_notification_mode_blocking(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode_blocking(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(`ptr`: Pointer,`enabled`: Byte,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_blocking(`ptr`: Pointer,`enabled`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,`mode`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode_blocking(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,`mode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(`ptr`: Pointer,`enabled`: Byte,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled_blocking(`ptr`: Pointer,`enabled`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`mode`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode_blocking(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`mode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled(`ptr`: Pointer,`enabled`: Byte,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled_blocking(`ptr`: Pointer,`enabled`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room_blocking(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_oidcauthenticationdata(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_oidcauthenticationdata_login_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -661,40 +633,24 @@ internal interface _UniFFILib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener_blocking(`ptr`: Pointer,`listener`: Long,
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_avatar_url(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`stateEvent`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`stateEvent`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_cancel_send(`ptr`: Pointer,`txnId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -711,8 +667,6 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_members(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_members_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_event_timeline_item_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -747,13 +701,9 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_member_avatar_url(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_member_blocking(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_member_display_name(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_members(`ptr`: Pointer,
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_members_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -777,8 +727,6 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_room_info_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_send(`ptr`: Pointer,`msg`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -853,8 +801,6 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_room_info(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_room_info_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_subscribe(`ptr`: Pointer,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_unread_notifications(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -925,34 +871,22 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationemoji(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationemoji_description(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -977,19 +911,13 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_state(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_stop(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_syncservice_stop_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_free_syncservicebuilder(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Pointer,
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish_blocking(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(`ptr`: Pointer,`appIdentifier`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
@@ -1053,7 +981,7 @@ internal interface _UniFFILib : Library {
     ): Int
     fun uniffi_matrix_sdk_ffi_fn_free_widgetdriver(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(`ptr`: Pointer,`room`: Pointer,`permissionsProvider`: Long,
+    fun uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(`ptr`: Pointer,`room`: Pointer,`capabilitiesProvider`: Long,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_widgetdriverhandle(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1087,7 +1015,7 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_timelinelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_init_callback_widgetpermissionsprovider(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_widgetcapabilitiesprovider(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -1263,6 +1191,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_url(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_configure_homeserver(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_homeserver_details(
@@ -1425,65 +1355,35 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_oidcauthenticationdata_login_url(
     ): Short
@@ -1491,39 +1391,23 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_avatar_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_invite(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_invite_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_kick(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_kick_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_message(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_message_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_state(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_state_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_trigger_room_notification(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_trigger_room_notification_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_cancel_send(
     ): Short
@@ -1540,8 +1424,6 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_details_for_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_event_timeline_item_by_event_id(
     ): Short
@@ -1577,13 +1459,9 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_member_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member_display_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_members(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_members_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
     ): Short
@@ -1606,8 +1484,6 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_retry_send(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send(
     ): Short
@@ -1677,8 +1553,6 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unread_notifications(
@@ -1741,31 +1615,19 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_is_verified(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_description(
     ): Short
@@ -1781,17 +1643,11 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_start(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_start_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_state(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop_blocking(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish_blocking(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock(
     ): Short
@@ -1897,7 +1753,7 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_widgetpermissionsprovider_acquire_permissions(
+    fun uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities(
     ): Short
     fun ffi_matrix_sdk_ffi_uniffi_contract_version(
     ): Int
@@ -1943,7 +1799,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote() != 16575.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 65448.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 60536.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 13275.toShort()) {
@@ -1962,6 +1818,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_url() != 34026.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions() != 48900.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_configure_homeserver() != 20936.toShort()) {
@@ -2192,7 +2051,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_is_threaded() != 29945.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_msgtype() != 50686.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_msgtype() != 35166.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 9907.toShort()) {
@@ -2207,67 +2066,34 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules() != 42972.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules_blocking() != 49945.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode() != 7288.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode_blocking() != 54691.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings() != 654.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings_blocking() != 14778.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules() != 687.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules_blocking() != 36007.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode() != 40224.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode_blocking() != 54350.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled() != 38110.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled_blocking() != 63240.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled() != 36336.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled_blocking() != 19453.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled() != 9844.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled_blocking() != 3925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode() != 43578.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode_blocking() != 52229.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled() != 61774.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled_blocking() != 13674.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode() != 64886.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode_blocking() != 45386.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate() != 22622.toShort()) {
@@ -2276,25 +2102,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled() != 50730.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled_blocking() != 49766.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode() != 21294.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode_blocking() != 30630.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled() != 63345.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled_blocking() != 55113.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() != 33146.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room_blocking() != 21159.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_oidcauthenticationdata_login_url() != 2455.toShort()) {
@@ -2306,9 +2120,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener() != 43137.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener_blocking() != 41720.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases() != 25219.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2318,43 +2129,22 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban() != 47371.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban_blocking() != 9553.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_invite() != 62419.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_invite_blocking() != 1804.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_kick() != 47687.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_kick_blocking() != 9352.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact() != 54334.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact_blocking() != 17668.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_message() != 28210.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_message_blocking() != 45751.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_state() != 54763.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_send_state_blocking() != 42484.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_trigger_room_notification() != 8288.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_trigger_room_notification_blocking() != 25135.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_cancel_send() != 22141.toShort()) {
@@ -2379,9 +2169,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members() != 64110.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_members_blocking() != 58127.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_event_timeline_item_by_event_id() != 50554.toShort()) {
@@ -2435,16 +2222,10 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url() != 5937.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_blocking() != 16632.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_display_name() != 4559.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_members() != 6390.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_members_blocking() != 30072.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 17678.toShort()) {
@@ -2478,9 +2259,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info() != 45186.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info_blocking() != 23031.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send() != 974.toShort()) {
@@ -2585,9 +2363,6 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info() != 17731.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info_blocking() != 48948.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe() != 16638.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2681,25 +2456,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 25237.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join_blocking() != 42780.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() != 468.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification_blocking() != 36353.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification() != 63679.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification_blocking() != 15930.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() != 50627.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification_blocking() != 58069.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_is_verified() != 949.toShort()) {
@@ -2708,16 +2471,10 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification() != 51679.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification_blocking() != 48371.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate() != 24735.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification() != 3726.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification_blocking() != 27679.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_description() != 55458.toShort()) {
@@ -2741,22 +2498,13 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_start() != 4435.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_start_blocking() != 46746.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_state() != 15048.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop() != 39770.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop_blocking() != 5460.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish() != 61604.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish_blocking() != 8552.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock() != 29139.toShort()) {
@@ -2831,7 +2579,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count() != 10233.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run() != 25357.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run() != 39250.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv() != 25974.toShort()) {
@@ -2915,7 +2663,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() != 974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetpermissionsprovider_acquire_permissions() != 21463.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities() != 47314.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -4716,7 +4464,7 @@ public interface MessageInterface {
     fun `inReplyTo`(): InReplyToDetails?
     fun `isEdited`(): Boolean
     fun `isThreaded`(): Boolean
-    fun `msgtype`(): MessageType?
+    fun `msgtype`(): MessageType
     companion object
 }
 
@@ -4782,7 +4530,7 @@ class Message(
             FfiConverterBoolean.lift(it)
         }
     
-    override fun `msgtype`(): MessageType? =
+    override fun `msgtype`(): MessageType =
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_msgtype(it,
@@ -4790,7 +4538,7 @@ class Message(
         _status)
 }
         }.let {
-            FfiConverterOptionalTypeMessageType.lift(it)
+            FfiConverterTypeMessageType.lift(it)
         }
     
     
@@ -4975,36 +4723,21 @@ public object FfiConverterTypeNotificationClientBuilder: FfiConverter<Notificati
 public interface NotificationSettingsInterface {
     
     suspend fun `containsKeywordsRules`(): Boolean
-    fun `containsKeywordsRulesBlocking`(): Boolean
-    suspend fun `getDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationMode
-    fun `getDefaultRoomNotificationModeBlocking`(`isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationMode@Throws(NotificationSettingsException::class)
-    suspend fun `getRoomNotificationSettings`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationSettings@Throws(NotificationSettingsException::class)
-    fun `getRoomNotificationSettingsBlocking`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationSettings
-    suspend fun `getRoomsWithUserDefinedRules`(`enabled`: Boolean?): List<String>
-    fun `getRoomsWithUserDefinedRulesBlocking`(`enabled`: Boolean?): List<String>@Throws(NotificationSettingsException::class)
+    suspend fun `getDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationMode@Throws(NotificationSettingsException::class)
+    suspend fun `getRoomNotificationSettings`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationSettings
+    suspend fun `getRoomsWithUserDefinedRules`(`enabled`: Boolean?): List<String>@Throws(NotificationSettingsException::class)
     suspend fun `getUserDefinedRoomNotificationMode`(`roomId`: String): RoomNotificationMode?@Throws(NotificationSettingsException::class)
-    fun `getUserDefinedRoomNotificationModeBlocking`(`roomId`: String): RoomNotificationMode?@Throws(NotificationSettingsException::class)
     suspend fun `isCallEnabled`(): Boolean@Throws(NotificationSettingsException::class)
-    fun `isCallEnabledBlocking`(): Boolean@Throws(NotificationSettingsException::class)
     suspend fun `isRoomMentionEnabled`(): Boolean@Throws(NotificationSettingsException::class)
-    fun `isRoomMentionEnabledBlocking`(): Boolean@Throws(NotificationSettingsException::class)
     suspend fun `isUserMentionEnabled`(): Boolean@Throws(NotificationSettingsException::class)
-    fun `isUserMentionEnabledBlocking`(): Boolean@Throws(NotificationSettingsException::class)
     suspend fun `restoreDefaultRoomNotificationMode`(`roomId`: String)@Throws(NotificationSettingsException::class)
-    fun `restoreDefaultRoomNotificationModeBlocking`(`roomId`: String)@Throws(NotificationSettingsException::class)
     suspend fun `setCallEnabled`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
-    fun `setCallEnabledBlocking`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
-    suspend fun `setDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode)@Throws(NotificationSettingsException::class)
-    fun `setDefaultRoomNotificationModeBlocking`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode)
+    suspend fun `setDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode)
     fun `setDelegate`(`delegate`: NotificationSettingsDelegate?)@Throws(NotificationSettingsException::class)
     suspend fun `setRoomMentionEnabled`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
-    fun `setRoomMentionEnabledBlocking`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
     suspend fun `setRoomNotificationMode`(`roomId`: String, `mode`: RoomNotificationMode)@Throws(NotificationSettingsException::class)
-    fun `setRoomNotificationModeBlocking`(`roomId`: String, `mode`: RoomNotificationMode)@Throws(NotificationSettingsException::class)
     suspend fun `setUserMentionEnabled`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
-    fun `setUserMentionEnabledBlocking`(`enabled`: Boolean)@Throws(NotificationSettingsException::class)
-    suspend fun `unmuteRoom`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean)@Throws(NotificationSettingsException::class)
-    fun `unmuteRoomBlocking`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean)
+    suspend fun `unmuteRoom`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean)
     companion object
 }
 
@@ -5045,17 +4778,6 @@ class NotificationSettings(
             NullCallStatusErrorHandler,
         )
     }
-    override fun `containsKeywordsRulesBlocking`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `getDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean) : RoomNotificationMode {
@@ -5075,17 +4797,6 @@ class NotificationSettings(
             NullCallStatusErrorHandler,
         )
     }
-    override fun `getDefaultRoomNotificationModeBlocking`(`isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationMode =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode_blocking(it,
-        FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomNotificationMode.lift(it)
-        }
-    
     
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5107,18 +4818,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `getRoomNotificationSettingsBlocking`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean): RoomNotificationSettings =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings_blocking(it,
-        FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomNotificationSettings.lift(it)
-        }
-    
-    
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `getRoomsWithUserDefinedRules`(`enabled`: Boolean?) : List<String> {
         return uniffiRustCallAsync(
@@ -5137,17 +4836,6 @@ class NotificationSettings(
             NullCallStatusErrorHandler,
         )
     }
-    override fun `getRoomsWithUserDefinedRulesBlocking`(`enabled`: Boolean?): List<String> =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_rooms_with_user_defined_rules_blocking(it,
-        FfiConverterOptionalBoolean.lower(`enabled`),
-        _status)
-}
-        }.let {
-            FfiConverterSequenceString.lift(it)
-        }
-    
     
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5169,18 +4857,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `getUserDefinedRoomNotificationModeBlocking`(`roomId`: String): RoomNotificationMode? =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_user_defined_room_notification_mode_blocking(it,
-        FfiConverterString.lower(`roomId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeRoomNotificationMode.lift(it)
-        }
-    
-    
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isCallEnabled`() : Boolean {
@@ -5200,18 +4876,6 @@ class NotificationSettings(
             NotificationSettingsException.ErrorHandler,
         )
     }
-    
-    @Throws(NotificationSettingsException::class)override fun `isCallEnabledBlocking`(): Boolean =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5233,18 +4897,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `isRoomMentionEnabledBlocking`(): Boolean =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isUserMentionEnabled`() : Boolean {
@@ -5264,18 +4916,6 @@ class NotificationSettings(
             NotificationSettingsException.ErrorHandler,
         )
     }
-    
-    @Throws(NotificationSettingsException::class)override fun `isUserMentionEnabledBlocking`(): Boolean =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5298,17 +4938,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `restoreDefaultRoomNotificationModeBlocking`(`roomId`: String) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode_blocking(it,
-        FfiConverterString.lower(`roomId`),
-        _status)
-}
-        }
-    
-    
-    
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setCallEnabled`(`enabled`: Boolean) {
@@ -5330,17 +4959,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `setCallEnabledBlocking`(`enabled`: Boolean) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled_blocking(it,
-        FfiConverterBoolean.lower(`enabled`),
-        _status)
-}
-        }
-    
-    
-    
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setDefaultRoomNotificationMode`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode) {
@@ -5361,17 +4979,6 @@ class NotificationSettings(
             NotificationSettingsException.ErrorHandler,
         )
     }
-    
-    @Throws(NotificationSettingsException::class)override fun `setDefaultRoomNotificationModeBlocking`(`isEncrypted`: Boolean, `isOneToOne`: Boolean, `mode`: RoomNotificationMode) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode_blocking(it,
-        FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),FfiConverterTypeRoomNotificationMode.lower(`mode`),
-        _status)
-}
-        }
-    
-    
     override fun `setDelegate`(`delegate`: NotificationSettingsDelegate?) =
         callWithPointer {
     rustCall() { _status ->
@@ -5404,17 +5011,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `setRoomMentionEnabledBlocking`(`enabled`: Boolean) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled_blocking(it,
-        FfiConverterBoolean.lower(`enabled`),
-        _status)
-}
-        }
-    
-    
-    
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setRoomNotificationMode`(`roomId`: String, `mode`: RoomNotificationMode) {
@@ -5435,17 +5031,6 @@ class NotificationSettings(
             NotificationSettingsException.ErrorHandler,
         )
     }
-    
-    @Throws(NotificationSettingsException::class)override fun `setRoomNotificationModeBlocking`(`roomId`: String, `mode`: RoomNotificationMode) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode_blocking(it,
-        FfiConverterString.lower(`roomId`),FfiConverterTypeRoomNotificationMode.lower(`mode`),
-        _status)
-}
-        }
-    
-    
     
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5468,17 +5053,6 @@ class NotificationSettings(
         )
     }
     
-    @Throws(NotificationSettingsException::class)override fun `setUserMentionEnabledBlocking`(`enabled`: Boolean) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled_blocking(it,
-        FfiConverterBoolean.lower(`enabled`),
-        _status)
-}
-        }
-    
-    
-    
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `unmuteRoom`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean) {
@@ -5499,17 +5073,6 @@ class NotificationSettings(
             NotificationSettingsException.ErrorHandler,
         )
     }
-    
-    @Throws(NotificationSettingsException::class)override fun `unmuteRoomBlocking`(`roomId`: String, `isEncrypted`: Boolean, `isOneToOne`: Boolean) =
-        callWithPointer {
-    rustCallWithError(NotificationSettingsException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room_blocking(it,
-        FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),
-        _status)
-}
-        }
-    
-    
     
 
     
@@ -5613,23 +5176,15 @@ public interface RoomInterface {
     
     fun `activeMembersCount`(): ULong
     suspend fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
-    suspend fun `addTimelineListenerBlocking`(`listener`: TimelineListener): RoomTimelineListenerResult
     fun `alternativeAliases`(): List<String>
     fun `avatarUrl`(): String?@Throws(ClientException::class)
     suspend fun `canUserBan`(`userId`: String): Boolean@Throws(ClientException::class)
-    fun `canUserBanBlocking`(`userId`: String): Boolean@Throws(ClientException::class)
     suspend fun `canUserInvite`(`userId`: String): Boolean@Throws(ClientException::class)
-    fun `canUserInviteBlocking`(`userId`: String): Boolean@Throws(ClientException::class)
     suspend fun `canUserKick`(`userId`: String): Boolean@Throws(ClientException::class)
-    fun `canUserKickBlocking`(`userId`: String): Boolean@Throws(ClientException::class)
     suspend fun `canUserRedact`(`userId`: String): Boolean@Throws(ClientException::class)
-    fun `canUserRedactBlocking`(`userId`: String): Boolean@Throws(ClientException::class)
     suspend fun `canUserSendMessage`(`userId`: String, `message`: MessageLikeEventType): Boolean@Throws(ClientException::class)
-    fun `canUserSendMessageBlocking`(`userId`: String, `message`: MessageLikeEventType): Boolean@Throws(ClientException::class)
     suspend fun `canUserSendState`(`userId`: String, `stateEvent`: StateEventType): Boolean@Throws(ClientException::class)
-    fun `canUserSendStateBlocking`(`userId`: String, `stateEvent`: StateEventType): Boolean@Throws(ClientException::class)
-    suspend fun `canUserTriggerRoomNotification`(`userId`: String): Boolean@Throws(ClientException::class)
-    fun `canUserTriggerRoomNotificationBlocking`(`userId`: String): Boolean
+    suspend fun `canUserTriggerRoomNotification`(`userId`: String): Boolean
     fun `cancelSend`(`txnId`: String)
     fun `canonicalAlias`(): String?@Throws(ClientException::class)
     fun `createPoll`(`question`: String, `answers`: List<String>, `maxSelections`: UByte, `pollKind`: PollKind)@Throws(ClientException::class)
@@ -5638,7 +5193,6 @@ public interface RoomInterface {
     fun `endPoll`(`pollStartId`: String, `text`: String)@Throws(ClientException::class)
     fun `fetchDetailsForEvent`(`eventId`: String)@Throws(ClientException::class)
     suspend fun `fetchMembers`()@Throws(ClientException::class)
-    fun `fetchMembersBlocking`()@Throws(ClientException::class)
     fun `getEventTimelineItemByEventId`(`eventId`: String): EventTimelineItem@Throws(ClientException::class)
     fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation
     fun `id`(): String@Throws(ClientException::class)
@@ -5656,10 +5210,8 @@ public interface RoomInterface {
     fun `leave`()@Throws(ClientException::class)
     suspend fun `member`(`userId`: String): RoomMember@Throws(ClientException::class)
     fun `memberAvatarUrl`(`userId`: String): String?@Throws(ClientException::class)
-    fun `memberBlocking`(`userId`: String): RoomMember@Throws(ClientException::class)
     fun `memberDisplayName`(`userId`: String): String?@Throws(ClientException::class)
-    suspend fun `members`(): RoomMembersIterator@Throws(ClientException::class)
-    fun `membersBlocking`(): RoomMembersIterator
+    suspend fun `members`(): RoomMembersIterator
     fun `membership`(): Membership
     fun `name`(): String?
     fun `ownUserId`(): String@Throws(ClientException::class)
@@ -5670,8 +5222,7 @@ public interface RoomInterface {
     fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)
     fun `retryDecryption`(`sessionIds`: List<String>)
     fun `retrySend`(`txnId`: String)@Throws(ClientException::class)
-    suspend fun `roomInfo`(): RoomInfo@Throws(ClientException::class)
-    fun `roomInfoBlocking`(): RoomInfo
+    suspend fun `roomInfo`(): RoomInfo
     fun `send`(`msg`: RoomMessageEventContentWithoutRelation)
     fun `sendAudio`(`url`: String, `audioInfo`: AudioInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     fun `sendFile`(`url`: String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
@@ -5740,25 +5291,6 @@ class Room(
             NullCallStatusErrorHandler,
         )
     }
-    
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `addTimelineListenerBlocking`(`listener`: TimelineListener) : RoomTimelineListenerResult {
-        return uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener_blocking(
-                    thisPtr,
-                    FfiConverterTypeTimelineListener.lower(`listener`),
-                )
-            },
-            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, continuation) },
-            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, status) },
-            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
-            // lift function
-            { FfiConverterTypeRoomTimelineListenerResult.lift(it) },
-            // Error FFI converter
-            NullCallStatusErrorHandler,
-        )
-    }
     override fun `alternativeAliases`(): List<String> =
         callWithPointer {
     rustCall() { _status ->
@@ -5802,18 +5334,6 @@ class Room(
         )
     }
     
-    @Throws(ClientException::class)override fun `canUserBanBlocking`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban_blocking(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserInvite`(`userId`: String) : Boolean {
@@ -5833,18 +5353,6 @@ class Room(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `canUserInviteBlocking`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite_blocking(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5866,18 +5374,6 @@ class Room(
         )
     }
     
-    @Throws(ClientException::class)override fun `canUserKickBlocking`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick_blocking(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserRedact`(`userId`: String) : Boolean {
@@ -5897,18 +5393,6 @@ class Room(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `canUserRedactBlocking`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_blocking(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5930,18 +5414,6 @@ class Room(
         )
     }
     
-    @Throws(ClientException::class)override fun `canUserSendMessageBlocking`(`userId`: String, `message`: MessageLikeEventType): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_message_blocking(it,
-        FfiConverterString.lower(`userId`),FfiConverterTypeMessageLikeEventType.lower(`message`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserSendState`(`userId`: String, `stateEvent`: StateEventType) : Boolean {
@@ -5962,18 +5434,6 @@ class Room(
         )
     }
     
-    @Throws(ClientException::class)override fun `canUserSendStateBlocking`(`userId`: String, `stateEvent`: StateEventType): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_send_state_blocking(it,
-        FfiConverterString.lower(`userId`),FfiConverterTypeStateEventType.lower(`stateEvent`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserTriggerRoomNotification`(`userId`: String) : Boolean {
@@ -5993,18 +5453,6 @@ class Room(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `canUserTriggerRoomNotificationBlocking`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_trigger_room_notification_blocking(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     override fun `cancelSend`(`txnId`: String) =
         callWithPointer {
     rustCall() { _status ->
@@ -6103,17 +5551,6 @@ class Room(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `fetchMembersBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_members_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
     
     @Throws(ClientException::class)override fun `getEventTimelineItemByEventId`(`eventId`: String): EventTimelineItem =
         callWithPointer {
@@ -6315,18 +5752,6 @@ class Room(
         }
     
     
-    @Throws(ClientException::class)override fun `memberBlocking`(`userId`: String): RoomMember =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_member_blocking(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomMember.lift(it)
-        }
-    
-    
     @Throws(ClientException::class)override fun `memberDisplayName`(`userId`: String): String? =
         callWithPointer {
     rustCallWithError(ClientException) { _status ->
@@ -6358,18 +5783,6 @@ class Room(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `membersBlocking`(): RoomMembersIterator =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_members_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomMembersIterator.lift(it)
-        }
-    
     override fun `membership`(): Membership =
         callWithPointer {
     rustCall() { _status ->
@@ -6497,18 +5910,6 @@ class Room(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `roomInfoBlocking`(): RoomInfo =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_room_info_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomInfo.lift(it)
-        }
-    
     override fun `send`(`msg`: RoomMessageEventContentWithoutRelation) =
         callWithPointer {
     rustCall() { _status ->
@@ -6932,8 +6333,7 @@ public interface RoomListItemInterface {
     fun `isDirect`(): Boolean
     suspend fun `latestEvent`(): EventTimelineItem?
     fun `name`(): String?@Throws(ClientException::class)
-    suspend fun `roomInfo`(): RoomInfo@Throws(ClientException::class)
-    fun `roomInfoBlocking`(): RoomInfo
+    suspend fun `roomInfo`(): RoomInfo
     fun `subscribe`(`settings`: RoomSubscription?)
     fun `unreadNotifications`(): UnreadNotificationsCount
     fun `unsubscribe`()
@@ -7093,18 +6493,6 @@ class RoomListItem(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `roomInfoBlocking`(): RoomInfo =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_room_info_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomInfo.lift(it)
-        }
-    
     override fun `subscribe`(`settings`: RoomSubscription?) =
         callWithPointer {
     rustCall() { _status ->
@@ -7676,6 +7064,7 @@ public object FfiConverterTypeRoomMembersIterator: FfiConverter<RoomMembersItera
 
 public interface RoomMessageEventContentWithoutRelationInterface {
     
+    fun `withMentions`(`mentions`: Mentions): RoomMessageEventContentWithoutRelation
     companion object
 }
 
@@ -7697,6 +7086,17 @@ class RoomMessageEventContentWithoutRelation(
         }
     }
 
+    override fun `withMentions`(`mentions`: Mentions): RoomMessageEventContentWithoutRelation =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roommessageeventcontentwithoutrelation_with_mentions(it,
+        FfiConverterTypeMentions.lower(`mentions`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(it)
+        }
+    
     
 
     
@@ -7732,8 +7132,7 @@ public object FfiConverterTypeRoomMessageEventContentWithoutRelation: FfiConvert
 public interface SendAttachmentJoinHandleInterface {
     
     fun `cancel`()@Throws(RoomException::class)
-    suspend fun `join`()@Throws(RoomException::class)
-    fun `joinBlocking`()
+    suspend fun `join`()
     companion object
 }
 
@@ -7787,17 +7186,6 @@ class SendAttachmentJoinHandle(
         )
     }
     
-    @Throws(RoomException::class)override fun `joinBlocking`() =
-        callWithPointer {
-    rustCallWithError(RoomException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
-    
 
     
     companion object
@@ -7832,17 +7220,12 @@ public object FfiConverterTypeSendAttachmentJoinHandle: FfiConverter<SendAttachm
 public interface SessionVerificationControllerInterface {
     @Throws(ClientException::class)
     suspend fun `approveVerification`()@Throws(ClientException::class)
-    fun `approveVerificationBlocking`()@Throws(ClientException::class)
     suspend fun `cancelVerification`()@Throws(ClientException::class)
-    fun `cancelVerificationBlocking`()@Throws(ClientException::class)
-    suspend fun `declineVerification`()@Throws(ClientException::class)
-    fun `declineVerificationBlocking`()
+    suspend fun `declineVerification`()
     fun `isVerified`(): Boolean@Throws(ClientException::class)
-    suspend fun `requestVerification`()@Throws(ClientException::class)
-    fun `requestVerificationBlocking`()
+    suspend fun `requestVerification`()
     fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)@Throws(ClientException::class)
-    suspend fun `startSasVerification`()@Throws(ClientException::class)
-    fun `startSasVerificationBlocking`()
+    suspend fun `startSasVerification`()
     companion object
 }
 
@@ -7886,17 +7269,6 @@ class SessionVerificationController(
         )
     }
     
-    @Throws(ClientException::class)override fun `approveVerificationBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
-    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `cancelVerification`() {
@@ -7918,17 +7290,6 @@ class SessionVerificationController(
         )
     }
     
-    @Throws(ClientException::class)override fun `cancelVerificationBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
-    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `declineVerification`() {
@@ -7949,17 +7310,6 @@ class SessionVerificationController(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `declineVerificationBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
     override fun `isVerified`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
@@ -7992,17 +7342,6 @@ class SessionVerificationController(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `requestVerificationBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
     override fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?) =
         callWithPointer {
     rustCall() { _status ->
@@ -8034,17 +7373,6 @@ class SessionVerificationController(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `startSasVerificationBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
     
 
     
@@ -8260,10 +7588,8 @@ public interface SyncServiceInterface {
     
     fun `roomListService`(): RoomListService
     suspend fun `start`()
-    fun `startBlocking`()
     fun `state`(`listener`: SyncServiceStateObserver): TaskHandle@Throws(ClientException::class)
-    suspend fun `stop`()@Throws(ClientException::class)
-    fun `stopBlocking`()
+    suspend fun `stop`()
     companion object
 }
 
@@ -8316,16 +7642,6 @@ class SyncService(
             NullCallStatusErrorHandler,
         )
     }
-    override fun `startBlocking`() =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_start_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
     override fun `state`(`listener`: SyncServiceStateObserver): TaskHandle =
         callWithPointer {
     rustCall() { _status ->
@@ -8358,17 +7674,6 @@ class SyncService(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `stopBlocking`() =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_stop_blocking(it,
-        
-        _status)
-}
-        }
-    
-    
     
 
     
@@ -8403,8 +7708,7 @@ public object FfiConverterTypeSyncService: FfiConverter<SyncService, Pointer> {
 
 public interface SyncServiceBuilderInterface {
     @Throws(ClientException::class)
-    suspend fun `finish`(): SyncService@Throws(ClientException::class)
-    fun `finishBlocking`(): SyncService
+    suspend fun `finish`(): SyncService
     fun `withCrossProcessLock`(`appIdentifier`: String?): SyncServiceBuilder
     companion object
 }
@@ -8447,18 +7751,6 @@ class SyncServiceBuilder(
             ClientException.ErrorHandler,
         )
     }
-    
-    @Throws(ClientException::class)override fun `finishBlocking`(): SyncService =
-        callWithPointer {
-    rustCallWithError(ClientException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish_blocking(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeSyncService.lift(it)
-        }
-    
     override fun `withCrossProcessLock`(`appIdentifier`: String?): SyncServiceBuilder =
         callWithPointer {
     rustCall() { _status ->
@@ -9110,7 +8402,7 @@ public object FfiConverterTypeUnreadNotificationsCount: FfiConverter<UnreadNotif
 
 public interface WidgetDriverInterface {
     
-    suspend fun `run`(`room`: Room, `permissionsProvider`: WidgetPermissionsProvider)
+    suspend fun `run`(`room`: Room, `capabilitiesProvider`: WidgetCapabilitiesProvider)
     companion object
 }
 
@@ -9134,12 +8426,12 @@ class WidgetDriver(
 
     
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `run`(`room`: Room, `permissionsProvider`: WidgetPermissionsProvider) {
+    override suspend fun `run`(`room`: Room, `capabilitiesProvider`: WidgetCapabilitiesProvider) {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(
                     thisPtr,
-                    FfiConverterTypeRoom.lower(`room`),FfiConverterTypeWidgetPermissionsProvider.lower(`permissionsProvider`),
+                    FfiConverterTypeRoom.lower(`room`),FfiConverterTypeWidgetCapabilitiesProvider.lower(`capabilitiesProvider`),
                 )
             },
             { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, continuation) },
@@ -9896,6 +9188,36 @@ public object FfiConverterTypeLocationContent: FfiConverterRustBuffer<LocationCo
             FfiConverterOptionalString.write(value.`description`, buf)
             FfiConverterOptionalUByte.write(value.`zoomLevel`, buf)
             FfiConverterOptionalTypeAssetType.write(value.`asset`, buf)
+    }
+}
+
+
+
+
+data class Mentions (
+    var `userIds`: List<String>, 
+    var `room`: Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMentions: FfiConverterRustBuffer<Mentions> {
+    override fun read(buf: ByteBuffer): Mentions {
+        return Mentions(
+            FfiConverterSequenceString.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Mentions) = (
+            FfiConverterSequenceString.allocationSize(value.`userIds`) +
+            FfiConverterBoolean.allocationSize(value.`room`)
+    )
+
+    override fun write(value: Mentions, buf: ByteBuffer) {
+            FfiConverterSequenceString.write(value.`userIds`, buf)
+            FfiConverterBoolean.write(value.`room`, buf)
     }
 }
 
@@ -11196,7 +10518,7 @@ data class VirtualElementCallWidgetOptions (
     var `appPrompt`: Boolean?, 
     var `skipLobby`: Boolean?, 
     var `confineToRoom`: Boolean?, 
-    var `fonts`: List<String>?, 
+    var `font`: String?, 
     var `analyticsId`: String?
 ) {
     
@@ -11215,7 +10537,7 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
@@ -11230,7 +10552,7 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalBoolean.allocationSize(value.`appPrompt`) +
             FfiConverterOptionalBoolean.allocationSize(value.`skipLobby`) +
             FfiConverterOptionalBoolean.allocationSize(value.`confineToRoom`) +
-            FfiConverterOptionalSequenceString.allocationSize(value.`fonts`) +
+            FfiConverterOptionalString.allocationSize(value.`font`) +
             FfiConverterOptionalString.allocationSize(value.`analyticsId`)
     )
 
@@ -11244,8 +10566,42 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalBoolean.write(value.`appPrompt`, buf)
             FfiConverterOptionalBoolean.write(value.`skipLobby`, buf)
             FfiConverterOptionalBoolean.write(value.`confineToRoom`, buf)
-            FfiConverterOptionalSequenceString.write(value.`fonts`, buf)
+            FfiConverterOptionalString.write(value.`font`, buf)
             FfiConverterOptionalString.write(value.`analyticsId`, buf)
+    }
+}
+
+
+
+
+data class WidgetCapabilities (
+    var `read`: List<WidgetEventFilter>, 
+    var `send`: List<WidgetEventFilter>, 
+    var `requiresClient`: Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeWidgetCapabilities: FfiConverterRustBuffer<WidgetCapabilities> {
+    override fun read(buf: ByteBuffer): WidgetCapabilities {
+        return WidgetCapabilities(
+            FfiConverterSequenceTypeWidgetEventFilter.read(buf),
+            FfiConverterSequenceTypeWidgetEventFilter.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: WidgetCapabilities) = (
+            FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`read`) +
+            FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`send`) +
+            FfiConverterBoolean.allocationSize(value.`requiresClient`)
+    )
+
+    override fun write(value: WidgetCapabilities, buf: ByteBuffer) {
+            FfiConverterSequenceTypeWidgetEventFilter.write(value.`read`, buf)
+            FfiConverterSequenceTypeWidgetEventFilter.write(value.`send`, buf)
+            FfiConverterBoolean.write(value.`requiresClient`, buf)
     }
 }
 
@@ -11290,42 +10646,8 @@ public object FfiConverterTypeWidgetDriverAndHandle: FfiConverterRustBuffer<Widg
 
 
 
-data class WidgetPermissions (
-    var `read`: List<WidgetEventFilter>, 
-    var `send`: List<WidgetEventFilter>, 
-    var `requiresClient`: Boolean
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeWidgetPermissions: FfiConverterRustBuffer<WidgetPermissions> {
-    override fun read(buf: ByteBuffer): WidgetPermissions {
-        return WidgetPermissions(
-            FfiConverterSequenceTypeWidgetEventFilter.read(buf),
-            FfiConverterSequenceTypeWidgetEventFilter.read(buf),
-            FfiConverterBoolean.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: WidgetPermissions) = (
-            FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`read`) +
-            FfiConverterSequenceTypeWidgetEventFilter.allocationSize(value.`send`) +
-            FfiConverterBoolean.allocationSize(value.`requiresClient`)
-    )
-
-    override fun write(value: WidgetPermissions, buf: ByteBuffer) {
-            FfiConverterSequenceTypeWidgetEventFilter.write(value.`read`, buf)
-            FfiConverterSequenceTypeWidgetEventFilter.write(value.`send`, buf)
-            FfiConverterBoolean.write(value.`requiresClient`, buf)
-    }
-}
-
-
-
-
 data class WidgetSettings (
-    var `id`: String, 
+    var `widgetId`: String, 
     var `initAfterContentLoad`: Boolean, 
     var `rawUrl`: String
 ) {
@@ -11343,13 +10665,13 @@ public object FfiConverterTypeWidgetSettings: FfiConverterRustBuffer<WidgetSetti
     }
 
     override fun allocationSize(value: WidgetSettings) = (
-            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`widgetId`) +
             FfiConverterBoolean.allocationSize(value.`initAfterContentLoad`) +
             FfiConverterString.allocationSize(value.`rawUrl`)
     )
 
     override fun write(value: WidgetSettings, buf: ByteBuffer) {
-            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`widgetId`, buf)
             FfiConverterBoolean.write(value.`initAfterContentLoad`, buf)
             FfiConverterString.write(value.`rawUrl`, buf)
     }
@@ -12456,6 +11778,12 @@ sealed class MessageType: Disposable  {
         ) : MessageType() {
         companion object
     }
+    data class Other(
+        val `msgtype`: String, 
+        val `body`: String
+        ) : MessageType() {
+        companion object
+    }
     
 
     
@@ -12510,6 +11838,13 @@ sealed class MessageType: Disposable  {
         this.`content`)
                 
             }
+            is MessageType.Other -> {
+                
+    Disposable.destroy(
+        this.`msgtype`, 
+        this.`body`)
+                
+            }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
     
@@ -12542,6 +11877,10 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
                 )
             8 -> MessageType.Location(
                 FfiConverterTypeLocationContent.read(buf),
+                )
+            9 -> MessageType.Other(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -12604,6 +11943,14 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
                 + FfiConverterTypeLocationContent.allocationSize(value.`content`)
             )
         }
+        is MessageType.Other -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`msgtype`)
+                + FfiConverterString.allocationSize(value.`body`)
+            )
+        }
     }
 
     override fun write(value: MessageType, buf: ByteBuffer) {
@@ -12646,6 +11993,12 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
             is MessageType.Location -> {
                 buf.putInt(8)
                 FfiConverterTypeLocationContent.write(value.`content`, buf)
+                Unit
+            }
+            is MessageType.Other -> {
+                buf.putInt(9)
+                FfiConverterString.write(value.`msgtype`, buf)
+                FfiConverterString.write(value.`body`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -17085,22 +16438,22 @@ public object FfiConverterTypeTimelineListener: FfiConverterCallbackInterface<Ti
 
 
 
-// Declaration and FfiConverters for WidgetPermissionsProvider Callback Interface
+// Declaration and FfiConverters for WidgetCapabilitiesProvider Callback Interface
 
-public interface WidgetPermissionsProvider {
-    fun `acquirePermissions`(`permissions`: WidgetPermissions): WidgetPermissions
+public interface WidgetCapabilitiesProvider {
+    fun `acquireCapabilities`(`capabilities`: WidgetCapabilities): WidgetCapabilities
     
     companion object
 }
 
 // The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeWidgetPermissionsProvider : ForeignCallback {
+internal class ForeignCallbackTypeWidgetCapabilitiesProvider : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
     override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeWidgetPermissionsProvider.lift(handle)
+        val cb = FfiConverterTypeWidgetCapabilitiesProvider.lift(handle)
         return when (method) {
             IDX_CALLBACK_FREE -> {
-                FfiConverterTypeWidgetPermissionsProvider.drop(handle)
+                FfiConverterTypeWidgetCapabilitiesProvider.drop(handle)
                 // Successful return
                 // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
                 UNIFFI_CALLBACK_SUCCESS
@@ -17109,7 +16462,7 @@ internal class ForeignCallbackTypeWidgetPermissionsProvider : ForeignCallback {
                 // Call the method, write to outBuf and return a status code
                 // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
                 try {
-                    this.`invokeAcquirePermissions`(cb, argsData, argsLen, outBuf)
+                    this.`invokeAcquireCapabilities`(cb, argsData, argsLen, outBuf)
                 } catch (e: Throwable) {
                     // Unexpected error
                     try {
@@ -17138,16 +16491,16 @@ internal class ForeignCallbackTypeWidgetPermissionsProvider : ForeignCallback {
 
     
     @Suppress("UNUSED_PARAMETER")
-    private fun `invokeAcquirePermissions`(kotlinCallbackInterface: WidgetPermissionsProvider, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+    private fun `invokeAcquireCapabilities`(kotlinCallbackInterface: WidgetCapabilitiesProvider, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
         val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
             it.order(ByteOrder.BIG_ENDIAN)
         }
         fun makeCall() : Int {
-            val returnValue = kotlinCallbackInterface.`acquirePermissions`(
-                FfiConverterTypeWidgetPermissions.read(argsBuf)
+            val returnValue = kotlinCallbackInterface.`acquireCapabilities`(
+                FfiConverterTypeWidgetCapabilities.read(argsBuf)
                 
             )
-            outBuf.setValue(FfiConverterTypeWidgetPermissions.lowerIntoRustBuffer(returnValue))
+            outBuf.setValue(FfiConverterTypeWidgetCapabilities.lowerIntoRustBuffer(returnValue))
             return UNIFFI_CALLBACK_SUCCESS
         }
         fun makeCallAndHandleError() : Int = makeCall()
@@ -17158,12 +16511,12 @@ internal class ForeignCallbackTypeWidgetPermissionsProvider : ForeignCallback {
 }
 
 // The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeWidgetPermissionsProvider: FfiConverterCallbackInterface<WidgetPermissionsProvider>(
-    foreignCallback = ForeignCallbackTypeWidgetPermissionsProvider()
+public object FfiConverterTypeWidgetCapabilitiesProvider: FfiConverterCallbackInterface<WidgetCapabilitiesProvider>(
+    foreignCallback = ForeignCallbackTypeWidgetCapabilitiesProvider()
 ) {
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
-            lib.uniffi_matrix_sdk_ffi_fn_init_callback_widgetpermissionsprovider(this.foreignCallback, status)
+            lib.uniffi_matrix_sdk_ffi_fn_init_callback_widgetcapabilitiesprovider(this.foreignCallback, status)
         }
     }
 }
@@ -18186,35 +17539,6 @@ public object FfiConverterOptionalTypeMembershipChange: FfiConverterRustBuffer<M
 
 
 
-public object FfiConverterOptionalTypeMessageType: FfiConverterRustBuffer<MessageType?> {
-    override fun read(buf: ByteBuffer): MessageType? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeMessageType.read(buf)
-    }
-
-    override fun allocationSize(value: MessageType?): Int {
-        if (value == null) {
-            return 1
-        } else {
-            return 1 + FfiConverterTypeMessageType.allocationSize(value)
-        }
-    }
-
-    override fun write(value: MessageType?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeMessageType.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypePushFormat: FfiConverterRustBuffer<PushFormat?> {
     override fun read(buf: ByteBuffer): PushFormat? {
         if (buf.get().toInt() == 0) {
@@ -19148,10 +18472,11 @@ fun `messageEventContentFromMarkdownAsEmote`(`md`: String): RoomMessageEventCont
 })
 }
 
+@Throws(ClientException::class)
 
 fun `messageEventContentNew`(`msgtype`: MessageType): RoomMessageEventContentWithoutRelation {
     return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
-    rustCall() { _status ->
+    rustCallWithError(ClientException) { _status ->
     _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(FfiConverterTypeMessageType.lower(`msgtype`),_status)
 })
 }
