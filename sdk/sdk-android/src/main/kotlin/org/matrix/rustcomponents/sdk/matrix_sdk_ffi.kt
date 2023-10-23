@@ -377,8 +377,11 @@ internal interface _UniFFILib : Library {
                 uniffiCheckContractApiVersion(lib)
                 uniffiCheckApiChecksums(lib)
                 FfiConverterTypeBackPaginationStatusListener.register(lib)
+                FfiConverterTypeBackupStateListener.register(lib)
+                FfiConverterTypeBackupSteadyStateListener.register(lib)
                 FfiConverterTypeClientDelegate.register(lib)
                 FfiConverterTypeClientSessionDelegate.register(lib)
+                FfiConverterTypeEnableRecoveryProgressListener.register(lib)
                 FfiConverterTypeNotificationSettingsDelegate.register(lib)
                 FfiConverterTypeProgressWatcher.register(lib)
                 FfiConverterTypeRoomInfoListener.register(lib)
@@ -437,6 +440,8 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_encryption(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_room(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_content(`ptr`: Pointer,`mediaSource`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -520,6 +525,24 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(`ptr`: Pointer,`username`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_encryption(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_disable_recovery(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Pointer,`waitForBackupsToUpload`: Byte,`progressListener`: Long,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(`ptr`: Pointer,`progressListener`: RustBuffer.ByValue,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_eventtimelineitem(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -991,9 +1014,15 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_init_callback_backpaginationstatuslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_backupstatelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_backupsteadystatelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_clientdelegate(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_clientsessiondelegate(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_enablerecoveryprogresslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_notificationsettingsdelegate(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1217,6 +1246,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_encryption(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_content(
@@ -1296,6 +1327,22 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to(
     ): Short
@@ -1715,6 +1762,10 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_backpaginationstatuslistener_on_update(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_backupstatelistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_refresh_tokens(
@@ -1722,6 +1773,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_retrieve_session_from_keychain(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_save_session_in_keychain(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
     ): Short
@@ -1859,6 +1912,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_display_name() != 57766.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_encryption() != 55944.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_room() != 2581.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1977,6 +2033,30 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username() != 64379.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state() != 13611.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener() != 29.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery() != 56498.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups() != 38094.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() != 13489.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() != 30199.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() != 55362.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state() != 57865.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to() != 42286.toShort()) {
@@ -2606,6 +2686,12 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_backpaginationstatuslistener_on_update() != 2582.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_backupstatelistener_on_update() != 32936.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update() != 21611.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error() != 54393.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2616,6 +2702,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_save_session_in_keychain() != 30188.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update() != 5434.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 4921.toShort()) {
@@ -3278,7 +3367,8 @@ public interface ClientInterface {
     fun `cachedAvatarUrl`(): String?@Throws(ClientException::class)
     fun `createRoom`(`request`: CreateRoomParameters): String@Throws(ClientException::class)
     fun `deviceId`(): String@Throws(ClientException::class)
-    fun `displayName`(): String@Throws(ClientException::class)
+    fun `displayName`(): String
+    fun `encryption`(): Encryption@Throws(ClientException::class)
     fun `getDmRoom`(`userId`: String): Room?@Throws(ClientException::class)
     fun `getMediaContent`(`mediaSource`: MediaSource): ByteArray@Throws(ClientException::class)
     fun `getMediaFile`(`mediaSource`: MediaSource, `body`: String?, `mimeType`: String, `tempDir`: String?): MediaFileHandle@Throws(ClientException::class)
@@ -3408,6 +3498,17 @@ class Client(
 }
         }.let {
             FfiConverterString.lift(it)
+        }
+    
+    override fun `encryption`(): Encryption =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_encryption(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeEncryption.lift(it)
         }
     
     
@@ -3959,6 +4060,213 @@ public object FfiConverterTypeClientBuilder: FfiConverter<ClientBuilder, Pointer
     override fun allocationSize(value: ClientBuilder) = 8
 
     override fun write(value: ClientBuilder, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+public interface EncryptionInterface {
+    
+    fun `backupState`(): BackupState
+    fun `backupStateListener`(`listener`: BackupStateListener): TaskHandle@Throws(ClientException::class)
+    suspend fun `disableRecovery`()@Throws(ClientException::class)
+    suspend fun `enableBackups`()@Throws(ClientException::class)
+    suspend fun `enableRecovery`(`waitForBackupsToUpload`: Boolean, `progressListener`: EnableRecoveryProgressListener): String@Throws(ClientException::class)
+    suspend fun `isLastDevice`(): Boolean@Throws(ClientException::class)
+    suspend fun `resetRecoveryKey`(): String
+    suspend fun `waitForBackupUploadSteadyState`(`progressListener`: BackupSteadyStateListener?)
+    companion object
+}
+
+class Encryption(
+    pointer: Pointer
+) : FFIObject(pointer), EncryptionInterface {
+
+    /**
+     * Disconnect the object from the underlying Rust object.
+     *
+     * It can be called more than once, but once called, interacting with the object
+     * causes an `IllegalStateException`.
+     *
+     * Clients **must** call this method once done with the object, or cause a memory leak.
+     */
+    override protected fun freeRustArcPtr() {
+        rustCall() { status ->
+            _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_encryption(this.pointer, status)
+        }
+    }
+
+    override fun `backupState`(): BackupState =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeBackupState.lift(it)
+        }
+    
+    override fun `backupStateListener`(`listener`: BackupStateListener): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(it,
+        FfiConverterTypeBackupStateListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `disableRecovery`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_disable_recovery(
+                    thisPtr,
+                    
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `enableBackups`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(
+                    thisPtr,
+                    
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `enableRecovery`(`waitForBackupsToUpload`: Boolean, `progressListener`: EnableRecoveryProgressListener) : String {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(
+                    thisPtr,
+                    FfiConverterBoolean.lower(`waitForBackupsToUpload`),FfiConverterTypeEnableRecoveryProgressListener.lower(`progressListener`),
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isLastDevice`() : Boolean {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(
+                    thisPtr,
+                    
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+            // lift function
+            { FfiConverterBoolean.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `resetRecoveryKey`() : String {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(
+                    thisPtr,
+                    
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `waitForBackupUploadSteadyState`(`progressListener`: BackupSteadyStateListener?) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(
+                    thisPtr,
+                    FfiConverterOptionalTypeBackupSteadyStateListener.lower(`progressListener`),
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            NullCallStatusErrorHandler,
+        )
+    }
+    
+
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeEncryption: FfiConverter<Encryption, Pointer> {
+    override fun lower(value: Encryption): Pointer = value.callWithPointer { it }
+
+    override fun lift(value: Pointer): Encryption {
+        return Encryption(value)
+    }
+
+    override fun read(buf: ByteBuffer): Encryption {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: Encryption) = 8
+
+    override fun write(value: Encryption, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -10928,6 +11236,132 @@ public object FfiConverterTypeBackPaginationStatus: FfiConverterRustBuffer<BackP
 
 
 
+enum class BackupState {
+    UNKNOWN,CREATING,ENABLING,RESUMING,ENABLED,DOWNLOADING,DISABLING,DISABLED;
+    companion object
+}
+
+public object FfiConverterTypeBackupState: FfiConverterRustBuffer<BackupState> {
+    override fun read(buf: ByteBuffer) = try {
+        BackupState.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: BackupState) = 4
+
+    override fun write(value: BackupState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+sealed class BackupUploadState {
+    object Waiting : BackupUploadState()
+    
+    data class CheckingIfUploadNeeded(
+        val `backedUpCount`: UInt, 
+        val `totalCount`: UInt
+        ) : BackupUploadState() {
+        companion object
+    }
+    data class Uploading(
+        val `backedUpCount`: UInt, 
+        val `totalCount`: UInt
+        ) : BackupUploadState() {
+        companion object
+    }
+    object Done : BackupUploadState()
+    
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupUploadState>{
+    override fun read(buf: ByteBuffer): BackupUploadState {
+        return when(buf.getInt()) {
+            1 -> BackupUploadState.Waiting
+            2 -> BackupUploadState.CheckingIfUploadNeeded(
+                FfiConverterUInt.read(buf),
+                FfiConverterUInt.read(buf),
+                )
+            3 -> BackupUploadState.Uploading(
+                FfiConverterUInt.read(buf),
+                FfiConverterUInt.read(buf),
+                )
+            4 -> BackupUploadState.Done
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: BackupUploadState) = when(value) {
+        is BackupUploadState.Waiting -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is BackupUploadState.CheckingIfUploadNeeded -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`backedUpCount`)
+                + FfiConverterUInt.allocationSize(value.`totalCount`)
+            )
+        }
+        is BackupUploadState.Uploading -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`backedUpCount`)
+                + FfiConverterUInt.allocationSize(value.`totalCount`)
+            )
+        }
+        is BackupUploadState.Done -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+    }
+
+    override fun write(value: BackupUploadState, buf: ByteBuffer) {
+        when(value) {
+            is BackupUploadState.Waiting -> {
+                buf.putInt(1)
+                Unit
+            }
+            is BackupUploadState.CheckingIfUploadNeeded -> {
+                buf.putInt(2)
+                FfiConverterUInt.write(value.`backedUpCount`, buf)
+                FfiConverterUInt.write(value.`totalCount`, buf)
+                Unit
+            }
+            is BackupUploadState.Uploading -> {
+                buf.putInt(3)
+                FfiConverterUInt.write(value.`backedUpCount`, buf)
+                FfiConverterUInt.write(value.`totalCount`, buf)
+                Unit
+            }
+            is BackupUploadState.Done -> {
+                buf.putInt(4)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
 
 sealed class ClientException: Exception() {
     // Each variant is a nested class
@@ -10980,6 +11414,104 @@ public object FfiConverterTypeClientError : FfiConverterRustBuffer<ClientExcepti
     }
 
 }
+
+
+
+
+sealed class EnableRecoveryProgress {
+    object CreatingBackup : EnableRecoveryProgress()
+    
+    object CreatingRecoveryKey : EnableRecoveryProgress()
+    
+    data class BackingUp(
+        val `backedUpCount`: UInt, 
+        val `totalCount`: UInt
+        ) : EnableRecoveryProgress() {
+        companion object
+    }
+    data class Done(
+        val `recoveryKey`: String
+        ) : EnableRecoveryProgress() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeEnableRecoveryProgress : FfiConverterRustBuffer<EnableRecoveryProgress>{
+    override fun read(buf: ByteBuffer): EnableRecoveryProgress {
+        return when(buf.getInt()) {
+            1 -> EnableRecoveryProgress.CreatingBackup
+            2 -> EnableRecoveryProgress.CreatingRecoveryKey
+            3 -> EnableRecoveryProgress.BackingUp(
+                FfiConverterUInt.read(buf),
+                FfiConverterUInt.read(buf),
+                )
+            4 -> EnableRecoveryProgress.Done(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: EnableRecoveryProgress) = when(value) {
+        is EnableRecoveryProgress.CreatingBackup -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is EnableRecoveryProgress.CreatingRecoveryKey -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is EnableRecoveryProgress.BackingUp -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterUInt.allocationSize(value.`backedUpCount`)
+                + FfiConverterUInt.allocationSize(value.`totalCount`)
+            )
+        }
+        is EnableRecoveryProgress.Done -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterString.allocationSize(value.`recoveryKey`)
+            )
+        }
+    }
+
+    override fun write(value: EnableRecoveryProgress, buf: ByteBuffer) {
+        when(value) {
+            is EnableRecoveryProgress.CreatingBackup -> {
+                buf.putInt(1)
+                Unit
+            }
+            is EnableRecoveryProgress.CreatingRecoveryKey -> {
+                buf.putInt(2)
+                Unit
+            }
+            is EnableRecoveryProgress.BackingUp -> {
+                buf.putInt(3)
+                FfiConverterUInt.write(value.`backedUpCount`, buf)
+                FfiConverterUInt.write(value.`totalCount`, buf)
+                Unit
+            }
+            is EnableRecoveryProgress.Done -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`recoveryKey`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
 
 
 
@@ -15195,6 +15727,178 @@ public object FfiConverterTypeBackPaginationStatusListener: FfiConverterCallback
 
 
 
+// Declaration and FfiConverters for BackupStateListener Callback Interface
+
+public interface BackupStateListener {
+    fun `onUpdate`(`status`: BackupState)
+    
+    companion object
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeBackupStateListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeBackupStateListener.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeBackupStateListener.drop(handle)
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeOnUpdate`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnUpdate`(kotlinCallbackInterface: BackupStateListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onUpdate`(
+                FfiConverterTypeBackupState.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeBackupStateListener: FfiConverterCallbackInterface<BackupStateListener>(
+    foreignCallback = ForeignCallbackTypeBackupStateListener()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.uniffi_matrix_sdk_ffi_fn_init_callback_backupstatelistener(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for BackupSteadyStateListener Callback Interface
+
+public interface BackupSteadyStateListener {
+    fun `onUpdate`(`status`: BackupUploadState)
+    
+    companion object
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeBackupSteadyStateListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeBackupSteadyStateListener.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeBackupSteadyStateListener.drop(handle)
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeOnUpdate`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnUpdate`(kotlinCallbackInterface: BackupSteadyStateListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onUpdate`(
+                FfiConverterTypeBackupUploadState.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeBackupSteadyStateListener: FfiConverterCallbackInterface<BackupSteadyStateListener>(
+    foreignCallback = ForeignCallbackTypeBackupSteadyStateListener()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.uniffi_matrix_sdk_ffi_fn_init_callback_backupsteadystatelistener(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
 // Declaration and FfiConverters for ClientDelegate Callback Interface
 
 public interface ClientDelegate {
@@ -15428,6 +16132,92 @@ public object FfiConverterTypeClientSessionDelegate: FfiConverterCallbackInterfa
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
             lib.uniffi_matrix_sdk_ffi_fn_init_callback_clientsessiondelegate(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for EnableRecoveryProgressListener Callback Interface
+
+public interface EnableRecoveryProgressListener {
+    fun `onUpdate`(`status`: EnableRecoveryProgress)
+    
+    companion object
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeEnableRecoveryProgressListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeEnableRecoveryProgressListener.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeEnableRecoveryProgressListener.drop(handle)
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeOnUpdate`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnUpdate`(kotlinCallbackInterface: EnableRecoveryProgressListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onUpdate`(
+                FfiConverterTypeEnableRecoveryProgress.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeEnableRecoveryProgressListener: FfiConverterCallbackInterface<EnableRecoveryProgressListener>(
+    foreignCallback = ForeignCallbackTypeEnableRecoveryProgressListener()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.uniffi_matrix_sdk_ffi_fn_init_callback_enablerecoveryprogresslistener(this.foreignCallback, status)
         }
     }
 }
@@ -17619,6 +18409,35 @@ public object FfiConverterOptionalTypeVirtualTimelineItem: FfiConverterRustBuffe
         } else {
             buf.put(1)
             FfiConverterTypeVirtualTimelineItem.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeBackupSteadyStateListener: FfiConverterRustBuffer<BackupSteadyStateListener?> {
+    override fun read(buf: ByteBuffer): BackupSteadyStateListener? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeBackupSteadyStateListener.read(buf)
+    }
+
+    override fun allocationSize(value: BackupSteadyStateListener?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterTypeBackupSteadyStateListener.allocationSize(value)
+        }
+    }
+
+    override fun write(value: BackupSteadyStateListener?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeBackupSteadyStateListener.write(value, buf)
         }
     }
 }
