@@ -384,6 +384,7 @@ internal interface _UniFFILib : Library {
                 FfiConverterTypeEnableRecoveryProgressListener.register(lib)
                 FfiConverterTypeNotificationSettingsDelegate.register(lib)
                 FfiConverterTypeProgressWatcher.register(lib)
+                FfiConverterTypeRecoveryStateListener.register(lib)
                 FfiConverterTypeRoomInfoListener.register(lib)
                 FfiConverterTypeRoomListEntriesListener.register(lib)
                 FfiConverterTypeRoomListLoadingStateListener.register(lib)
@@ -538,7 +539,15 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Pointer,`waitForBackupsToUpload`: Byte,`progressListener`: Long,
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_fix_recovery_issues(`ptr`: Pointer,`recoveryKey`: RustBuffer.ByValue,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_reset(`ptr`: Pointer,`oldRecoveryKey`: RustBuffer.ByValue,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Pointer,
     ): Pointer
@@ -654,6 +663,8 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_active_room_call_participants(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_add_timeline_listener(`ptr`: Pointer,`listener`: Long,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -694,6 +705,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -902,8 +915,8 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(`ptr`: Pointer,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(`ptr`: Pointer,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -1027,6 +1040,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_notificationsettingsdelegate(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_progresswatcher(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_recoverystatelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_roominfolistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
     ): Unit
@@ -1338,7 +1353,15 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_fix_recovery_issues(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state_listener(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key(
     ): Short
@@ -1436,6 +1459,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_active_room_call_participants(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases(
@@ -1475,6 +1500,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_event_timeline_item_by_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_timeline_event_content_by_event_id(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_id(
     ): Short
@@ -1780,6 +1807,8 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update(
@@ -2050,7 +2079,19 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() != 13489.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_fix_recovery_issues() != 24283.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() != 30199.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset() != 16535.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state() != 7187.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state_listener() != 11439.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() != 55362.toShort()) {
@@ -2197,6 +2238,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() != 62367.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_room_call_participants() != 5256.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_add_timeline_listener() != 43137.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2255,6 +2299,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_timeline_event_content_by_event_id() != 4338.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call() != 59850.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_id() != 27132.toShort()) {
@@ -2545,7 +2592,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() != 50627.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_is_verified() != 949.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_is_verified() != 3866.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification() != 51679.toShort()) {
@@ -2711,6 +2758,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress() != 12165.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update() != 3601.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call() != 567.toShort()) {
@@ -4076,7 +4126,11 @@ public interface EncryptionInterface {
     suspend fun `disableRecovery`()@Throws(ClientException::class)
     suspend fun `enableBackups`()@Throws(ClientException::class)
     suspend fun `enableRecovery`(`waitForBackupsToUpload`: Boolean, `progressListener`: EnableRecoveryProgressListener): String@Throws(ClientException::class)
+    suspend fun `fixRecoveryIssues`(`recoveryKey`: String)@Throws(ClientException::class)
     suspend fun `isLastDevice`(): Boolean@Throws(ClientException::class)
+    suspend fun `recoverAndReset`(`oldRecoveryKey`: String): String
+    fun `recoveryState`(): RecoveryState
+    fun `recoveryStateListener`(`listener`: RecoveryStateListener): TaskHandle@Throws(ClientException::class)
     suspend fun `resetRecoveryKey`(): String
     suspend fun `waitForBackupUploadSteadyState`(`progressListener`: BackupSteadyStateListener?)
     companion object
@@ -4187,6 +4241,27 @@ class Encryption(
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `fixRecoveryIssues`(`recoveryKey`: String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_fix_recovery_issues(
+                    thisPtr,
+                    FfiConverterString.lower(`recoveryKey`),
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isLastDevice`() : Boolean {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
@@ -4204,6 +4279,48 @@ class Encryption(
             ClientException.ErrorHandler,
         )
     }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `recoverAndReset`(`oldRecoveryKey`: String) : String {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_reset(
+                    thisPtr,
+                    FfiConverterString.lower(`oldRecoveryKey`),
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    override fun `recoveryState`(): RecoveryState =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeRecoveryState.lift(it)
+        }
+    
+    override fun `recoveryStateListener`(`listener`: RecoveryStateListener): TaskHandle =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state_listener(it,
+        FfiConverterTypeRecoveryStateListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -5483,6 +5600,7 @@ public object FfiConverterTypeOidcAuthenticationData: FfiConverter<OidcAuthentic
 public interface RoomInterface {
     
     fun `activeMembersCount`(): ULong
+    fun `activeRoomCallParticipants`(): List<String>
     suspend fun `addTimelineListener`(`listener`: TimelineListener): RoomTimelineListenerResult
     fun `alternativeAliases`(): List<String>
     fun `avatarUrl`(): String?@Throws(ClientException::class)
@@ -5503,6 +5621,7 @@ public interface RoomInterface {
     suspend fun `fetchMembers`()@Throws(ClientException::class)
     fun `getEventTimelineItemByEventId`(`eventId`: String): EventTimelineItem@Throws(ClientException::class)
     fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation
+    fun `hasActiveRoomCall`(): Boolean
     fun `id`(): String@Throws(ClientException::class)
     fun `ignoreUser`(`userId`: String)@Throws(ClientException::class)
     fun `inviteUserById`(`userId`: String)
@@ -5578,6 +5697,17 @@ class Room(
 }
         }.let {
             FfiConverterULong.lift(it)
+        }
+    
+    override fun `activeRoomCallParticipants`(): List<String> =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_active_room_call_participants(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterSequenceString.lift(it)
         }
     
     
@@ -5881,6 +6011,17 @@ class Room(
 }
         }.let {
             FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(it)
+        }
+    
+    override fun `hasActiveRoomCall`(): Boolean =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterBoolean.lift(it)
         }
     
     override fun `id`(): String =
@@ -7529,8 +7670,8 @@ public interface SessionVerificationControllerInterface {
     @Throws(ClientException::class)
     suspend fun `approveVerification`()@Throws(ClientException::class)
     suspend fun `cancelVerification`()@Throws(ClientException::class)
-    suspend fun `declineVerification`()
-    fun `isVerified`(): Boolean@Throws(ClientException::class)
+    suspend fun `declineVerification`()@Throws(ClientException::class)
+    suspend fun `isVerified`(): Boolean@Throws(ClientException::class)
     suspend fun `requestVerification`()
     fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)@Throws(ClientException::class)
     suspend fun `startSasVerification`()
@@ -7618,17 +7759,26 @@ class SessionVerificationController(
             ClientException.ErrorHandler,
         )
     }
-    override fun `isVerified`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
     
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isVerified`() : Boolean {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                _UniFFILib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(
+                    thisPtr,
+                    
+                )
+            },
+            { future, continuation -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, continuation) },
+            { future, status -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, status) },
+            { future -> _UniFFILib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+            // lift function
+            { FfiConverterBoolean.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -9989,7 +10139,9 @@ data class RoomInfo (
     var `joinedMembersCount`: ULong, 
     var `highlightCount`: ULong, 
     var `notificationCount`: ULong, 
-    var `userDefinedNotificationMode`: RoomNotificationMode?
+    var `userDefinedNotificationMode`: RoomNotificationMode?, 
+    var `hasRoomCall`: Boolean, 
+    var `activeRoomCallParticipants`: List<String>
 ) : Disposable {
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -10014,7 +10166,9 @@ data class RoomInfo (
         this.`joinedMembersCount`, 
         this.`highlightCount`, 
         this.`notificationCount`, 
-        this.`userDefinedNotificationMode`)
+        this.`userDefinedNotificationMode`, 
+        this.`hasRoomCall`, 
+        this.`activeRoomCallParticipants`)
     }
     
     companion object
@@ -10042,6 +10196,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterOptionalTypeRoomNotificationMode.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterSequenceString.read(buf),
         )
     }
 
@@ -10064,7 +10220,9 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
             FfiConverterULong.allocationSize(value.`highlightCount`) +
             FfiConverterULong.allocationSize(value.`notificationCount`) +
-            FfiConverterOptionalTypeRoomNotificationMode.allocationSize(value.`userDefinedNotificationMode`)
+            FfiConverterOptionalTypeRoomNotificationMode.allocationSize(value.`userDefinedNotificationMode`) +
+            FfiConverterBoolean.allocationSize(value.`hasRoomCall`) +
+            FfiConverterSequenceString.allocationSize(value.`activeRoomCallParticipants`)
     )
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
@@ -10087,6 +10245,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`highlightCount`, buf)
             FfiConverterULong.write(value.`notificationCount`, buf)
             FfiConverterOptionalTypeRoomNotificationMode.write(value.`userDefinedNotificationMode`, buf)
+            FfiConverterBoolean.write(value.`hasRoomCall`, buf)
+            FfiConverterSequenceString.write(value.`activeRoomCallParticipants`, buf)
     }
 }
 
@@ -13606,6 +13766,30 @@ public object FfiConverterTypePusherKind : FfiConverterRustBuffer<PusherKind>{
 
 
 
+enum class RecoveryState {
+    UNKNOWN,ENABLED,DISABLED,INCOMPLETE;
+    companion object
+}
+
+public object FfiConverterTypeRecoveryState: FfiConverterRustBuffer<RecoveryState> {
+    override fun read(buf: ByteBuffer) = try {
+        RecoveryState.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RecoveryState) = 4
+
+    override fun write(value: RecoveryState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
 sealed class RepliedToEventDetails: Disposable  {
     object Unavailable : RepliedToEventDetails()
     
@@ -16386,6 +16570,92 @@ public object FfiConverterTypeProgressWatcher: FfiConverterCallbackInterface<Pro
     override fun register(lib: _UniFFILib) {
         rustCall() { status ->
             lib.uniffi_matrix_sdk_ffi_fn_init_callback_progresswatcher(this.foreignCallback, status)
+        }
+    }
+}
+
+
+
+
+
+
+// Declaration and FfiConverters for RecoveryStateListener Callback Interface
+
+public interface RecoveryStateListener {
+    fun `onUpdate`(`status`: RecoveryState)
+    
+    companion object
+}
+
+// The ForeignCallback that is passed to Rust.
+internal class ForeignCallbackTypeRecoveryStateListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeRecoveryStateListener.lift(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeRecoveryStateListener.drop(handle)
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeOnUpdate`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeOnUpdate`(kotlinCallbackInterface: RecoveryStateListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`onUpdate`(
+                FfiConverterTypeRecoveryState.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+}
+
+// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
+public object FfiConverterTypeRecoveryStateListener: FfiConverterCallbackInterface<RecoveryStateListener>(
+    foreignCallback = ForeignCallbackTypeRecoveryStateListener()
+) {
+    override fun register(lib: _UniFFILib) {
+        rustCall() { status ->
+            lib.uniffi_matrix_sdk_ffi_fn_init_callback_recoverystatelistener(this.foreignCallback, status)
         }
     }
 }
