@@ -2097,7 +2097,7 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() != 55362.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state() != 57865.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state() != 37083.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to() != 42286.toShort()) {
@@ -4131,7 +4131,7 @@ public interface EncryptionInterface {
     suspend fun `recoverAndReset`(`oldRecoveryKey`: String): String
     fun `recoveryState`(): RecoveryState
     fun `recoveryStateListener`(`listener`: RecoveryStateListener): TaskHandle@Throws(ClientException::class)
-    suspend fun `resetRecoveryKey`(): String
+    suspend fun `resetRecoveryKey`(): String@Throws(SteadyStateException::class)
     suspend fun `waitForBackupUploadSteadyState`(`progressListener`: BackupSteadyStateListener?)
     companion object
 }
@@ -4342,6 +4342,7 @@ class Encryption(
         )
     }
     
+    @Throws(SteadyStateException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `waitForBackupUploadSteadyState`(`progressListener`: BackupSteadyStateListener?) {
         return uniffiRustCallAsync(
@@ -4358,7 +4359,7 @@ class Encryption(
             { Unit },
             
             // Error FFI converter
-            NullCallStatusErrorHandler,
+            SteadyStateException.ErrorHandler,
         )
     }
     
@@ -11435,6 +11436,8 @@ sealed class BackupUploadState {
         ) : BackupUploadState() {
         companion object
     }
+    object Error : BackupUploadState()
+    
     object Done : BackupUploadState()
     
     
@@ -11455,7 +11458,8 @@ public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupU
                 FfiConverterUInt.read(buf),
                 FfiConverterUInt.read(buf),
                 )
-            4 -> BackupUploadState.Done
+            4 -> BackupUploadState.Error
+            5 -> BackupUploadState.Done
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -11481,6 +11485,12 @@ public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupU
                 4
                 + FfiConverterUInt.allocationSize(value.`backedUpCount`)
                 + FfiConverterUInt.allocationSize(value.`totalCount`)
+            )
+        }
+        is BackupUploadState.Error -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
             )
         }
         is BackupUploadState.Done -> {
@@ -11509,8 +11519,12 @@ public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupU
                 FfiConverterUInt.write(value.`totalCount`, buf)
                 Unit
             }
-            is BackupUploadState.Done -> {
+            is BackupUploadState.Error -> {
                 buf.putInt(4)
+                Unit
+            }
+            is BackupUploadState.Done -> {
+                buf.putInt(5)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -15088,6 +15102,87 @@ public object FfiConverterTypeStateEventType: FfiConverterRustBuffer<StateEventT
 }
 
 
+
+
+
+
+
+sealed class SteadyStateException: Exception() {
+    // Each variant is a nested class
+    
+    class BackupDisabled(
+        ) : SteadyStateException() {
+        override val message
+            get() = ""
+    }
+    
+    class Connection(
+        ) : SteadyStateException() {
+        override val message
+            get() = ""
+    }
+    
+    class Laged(
+        ) : SteadyStateException() {
+        override val message
+            get() = ""
+    }
+    
+
+    companion object ErrorHandler : CallStatusErrorHandler<SteadyStateException> {
+        override fun lift(error_buf: RustBuffer.ByValue): SteadyStateException = FfiConverterTypeSteadyStateError.lift(error_buf)
+    }
+
+    
+}
+
+public object FfiConverterTypeSteadyStateError : FfiConverterRustBuffer<SteadyStateException> {
+    override fun read(buf: ByteBuffer): SteadyStateException {
+        
+
+        return when(buf.getInt()) {
+            1 -> SteadyStateException.BackupDisabled()
+            2 -> SteadyStateException.Connection()
+            3 -> SteadyStateException.Laged()
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SteadyStateException): Int {
+        return when(value) {
+            is SteadyStateException.BackupDisabled -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is SteadyStateException.Connection -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is SteadyStateException.Laged -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+        }
+    }
+
+    override fun write(value: SteadyStateException, buf: ByteBuffer) {
+        when(value) {
+            is SteadyStateException.BackupDisabled -> {
+                buf.putInt(1)
+                Unit
+            }
+            is SteadyStateException.Connection -> {
+                buf.putInt(2)
+                Unit
+            }
+            is SteadyStateException.Laged -> {
+                buf.putInt(3)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
