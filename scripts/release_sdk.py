@@ -12,6 +12,13 @@ class Module(Enum):
     SDK = auto()
     CRYPTO = auto()
 
+def module_type(value):
+    try:
+        return Module[value.upper()]
+    except KeyError:
+        raise argparse.ArgumentTypeError(
+            f"Invalid module choice: {value}. Available options: SDK, CRYPTO")
+
 def override_version_in_build_version_file(file_path: str, new_version: str):
     with open(file_path, 'r') as file:
         content = file.read()
