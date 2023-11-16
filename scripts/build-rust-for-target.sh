@@ -40,6 +40,8 @@ fi
 
 if [ -z "$only_target" ]; then
   helpFunction
+else
+  target_command=("--only-target" "$only_target")
 fi
 
 if [ "$gradle_module" = "crypto" ]; then
