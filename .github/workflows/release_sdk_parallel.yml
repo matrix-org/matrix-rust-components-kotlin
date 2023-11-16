@@ -15,8 +15,8 @@ jobs:
   build_targets:
     strategy:
       matrix:
-        target: [ "aarch64-linux-android", "armeabi-linux-android", "i686-linux-android", "x86_64-linux-android" ]
-      fail-fast: true
+        target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
+#      fail-fast: true
     name: "Build Rust target: ${{ matrix.target }}"
     runs-on: ubuntu-latest
 
