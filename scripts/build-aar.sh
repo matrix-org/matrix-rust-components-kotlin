@@ -14,7 +14,7 @@ helpFunction() {
   exit 1
 }
 
-while getopts ':r:m:o:' 'opt'; do
+while getopts ':rm:o:' 'opt'; do
   case ${opt} in
   'r') is_release='true' ;;
   'm') gradle_module="$OPTARG" ;;
