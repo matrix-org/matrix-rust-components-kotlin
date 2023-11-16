@@ -168,3 +168,12 @@ jobs:
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 ./scripts/release_sdk.py --module SDK --version ${{ github.event.inputs.sdk-version }}
+
+      - name: Upload results # TODO: delete this
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: results
+          if-no-files-found: error
+          path: ./sdk/sdk-android/src/main/*
+          retention-days: 1
