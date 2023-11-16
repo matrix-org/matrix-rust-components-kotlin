@@ -14,7 +14,7 @@ helpFunction() {
   exit 1
 }
 
-while getopts ':r:m:o:' 'opt'; do
+while getopts ':rm:o:' 'opt'; do
   case ${opt} in
   'r') is_release='true' ;;
   'm') gradle_module="$OPTARG" ;;
@@ -30,8 +30,6 @@ moveFunction() {
     mv "$1" "$output"
   fi
 }
-
-pushd ../
 
 ## For now, cargo ndk includes all generated so files from the target directory, so makes sure it just includes the one we need.
 echo "Clean .so files"
@@ -58,5 +56,3 @@ else
     moveFunction "crypto/crypto-android/build/outputs/aar/crypto-android-debug.aar"
   fi
 fi
-
-popd

@@ -54,21 +54,6 @@ def clone_repo_and_checkout_ref(directory, git_url, ref):
         text=True,
     )
 
-def get_linkable_ref(directory, ref):
-    result = subprocess.run(
-        ["git", "show-ref", "--verify", f"refs/heads/{ref}"],
-        cwd=directory,
-        capture_output=True,
-        text=True
-    )
-    if result.returncode == 0:
-        # The reference is a valid branch name, return the corresponding commit hash
-        return result.stdout.strip().split()[0]
-
-    # The reference is not a valid branch name, return the reference itself
-    return ref
-
-
 def is_provided_version_higher(major: int, minor: int, patch: int, provided_version: str) -> bool:
     provided_major, provided_minor, provided_patch = map(int, provided_version.split('.'))
     if provided_major > major:
@@ -97,7 +82,7 @@ parser.add_argument("-m", "--module", type=module_type, required=True,
 parser.add_argument("-v", "--version", type=str, required=True,
                     help="Version as a string (e.g. '1.0.0')")
 parser.add_argument("-t", "--target", type=str, required=True,
-                    help="Choose a target ('arm64-v8a', 'armv7a', 'x86', 'x86_64')")
+                    help="Choose a target (\"aarch64-linux-android\", \"armv7-linux-androideabi\", \"i686-linux-android\", \"x86_64-linux-android\")")
 parser.add_argument("-r", "--ref", type=str, required=True,
                     help="Ref to the git matrix-rust-sdk (branch name, commit or tag)")
 parser.add_argument("-p", "--path-to-sdk", type=str, required=False,
@@ -136,5 +121,10 @@ else:
 if skip_clone is False:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
 
-linkable_ref = get_linkable_ref(sdk_path, args.ref)
 execute_build_script(current_dir, sdk_path, args.module, args.target)
+
+# Export Rust SDK path for next steps, if running in GitHub Actions
+env_file_path = os.getenv('GITHUB_ENV')
+if os.path.exists(env_file_path):
+    with open(env_file_path, "a") as file:
+        file.write(f"RUST_SDK_PATH={sdk_path}")

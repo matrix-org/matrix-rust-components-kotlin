@@ -15,13 +15,14 @@ jobs:
   build_targets:
     strategy:
       matrix:
-        target: [ "aarch64-linux-android", "armeabi-linux-android", "x86-linux-android", "x86_64-linux-android"]
-      fail-fast: true
+        target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
     name: "Build Rust target: ${{ matrix.target }}"
     runs-on: ubuntu-latest
+    outputs:
+      linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
     concurrency:
-      group: ${{ github.ref }}-${{ github.job }}-{{ matrix.target }}
+      group: ${{ github.ref }}-${{ github.job }}-${{ matrix.target }}
       cancel-in-progress: true
 
     steps:
@@ -81,6 +82,13 @@ jobs:
       - name: Run build script
         run: |
           python3 ./scripts/build-rust-for-target.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --target ${{ matrix.target }}
+
+      - name: Set linkable git ref
+        id: set_linkable_ref
+        run: |
+          pushd ${{ env.RUST_SDK_PATH }}
+          echo linkable_ref=$(git show-ref --verify refs/heads/${{ github.event.inputs.rust-checkout-ref }} | awk '{print $1}') >> $GITHUB_OUTPUT
+          popd
 
       - name: Upload target artifacts
         if: success() || failure()
@@ -167,4 +175,13 @@ jobs:
           SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./scripts/release_sdk.py --module SDK --version ${{ github.event.inputs.sdk-version }}
+          python3 ./scripts/release_sdk.py --module SDK --version ${{ github.event.inputs.sdk-version }} --linkable-ref ${{ needs.build_targets.outputs.linkable_ref }}
+
+      - name: Upload AAR results
+        if: success() || failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: results
+          if-no-files-found: error
+          path: ./sdk/sdk-android/build/**/*.aar
+          retention-days: 1
