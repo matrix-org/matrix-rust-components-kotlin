@@ -84,7 +84,7 @@ jobs:
 
       - name: Set linkable git ref
         run: |
-          pushd ../matrix-rust-sdk
+          pushd ${{ env.RUST_SDK_PATH }}
           echo LINKABLE_REF=$(git show-ref --verify refs/heads/${{ github.event.inputs.rust-checkout-ref }}) >> $GITHUB_OUTPUT
           popd
 

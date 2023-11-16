@@ -122,3 +122,9 @@ if skip_clone is False:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
 
 execute_build_script(current_dir, sdk_path, args.module, args.target)
+
+# Export Rust SDK path for next steps, if running in GitHub Actions
+env_file_path = os.getenv('GITHUB_ENV')
+if os.path.exists(env_file_path):
+    with open(env_file_path, "a") as file:
+        file.write(f"RUST_SDK_PATH={sdk_path}")
