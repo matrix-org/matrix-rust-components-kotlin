@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.ref }}-${{ github.job }}-{{ matrix.target }}
+      group: ${{ github.ref }}-${{ github.job }}-${{ matrix.target }}
       cancel-in-progress: true
 
     steps:
