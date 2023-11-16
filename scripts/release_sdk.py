@@ -132,6 +132,24 @@ def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
     if result.returncode != 0:
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
 
+def get_build_version_file_path(module: Module, project_root: str) -> str:
+    if module == Module.SDK:
+        return os.path.join(project_root, 'buildSrc/src/main/kotlin', 'BuildVersionsSDK.kt')
+    elif module == Module.CRYPTO:
+        return os.path.join(project_root, 'buildSrc/src/main/kotlin', 'BuildVersionsCrypto.kt')
+    else:
+        raise ValueError(f"Unknown module: {module}")
+
+def read_version_numbers_from_kotlin_file(file_path):
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    major_version = int(re.search(r"majorVersion\s*=\s*(\d+)", content).group(1))
+    minor_version = int(re.search(r"minorVersion\s*=\s*(\d+)", content).group(1))
+    patch_version = int(re.search(r"patchVersion\s*=\s*(\d+)", content).group(1))
+
+    return major_version, minor_version, patch_version
+
 def build_aar_files(script_directory: str, module: Module):
     print("Execute build script...")
     build_script_path = os.path.join(script_directory, "build-aar.sh")
@@ -171,6 +189,7 @@ build_aar_files(current_dir, args.module)
 override_version_in_build_version_file(build_version_file_path, args.version)
 
 commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {linkable_ref})"
+print(f"Commit message: {commit_message}")
 # commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
