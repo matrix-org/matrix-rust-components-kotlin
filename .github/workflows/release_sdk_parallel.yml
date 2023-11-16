@@ -19,6 +19,8 @@ jobs:
 #      fail-fast: true
     name: "Build Rust target: ${{ matrix.target }}"
     runs-on: ubuntu-latest
+    outputs:
+      LINKABLE_REF: ${{ steps.set_linkable_ref.outputs.LINKABLE_REF }}
 
     concurrency:
       group: ${{ github.ref }}-${{ github.job }}-${{ matrix.target }}
@@ -83,9 +85,12 @@ jobs:
           python3 ./scripts/build-rust-for-target.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --target ${{ matrix.target }}
 
       - name: Set linkable git ref
+        id: set_linkable_ref
         run: |
           pushd ${{ env.RUST_SDK_PATH }}
-          echo LINKABLE_REF=$(git show-ref --verify refs/heads/${{ github.event.inputs.rust-checkout-ref }}) >> $GITHUB_OUTPUT
+          export LINKABLE_REF=$(git show-ref --verify refs/heads/${{ github.event.inputs.rust-checkout-ref }})
+          echo LINKABLE_REF=${LINKABLE_REF} >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
           popd
 
       - name: Upload target artifacts
