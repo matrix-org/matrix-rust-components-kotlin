@@ -31,8 +31,6 @@ moveFunction() {
   fi
 }
 
-pushd ../
-
 ## For now, cargo ndk includes all generated so files from the target directory, so makes sure it just includes the one we need.
 echo "Clean .so files"
 if [ "$gradle_module" = "crypto" ]; then
@@ -58,5 +56,3 @@ else
     moveFunction "crypto/crypto-android/build/outputs/aar/crypto-android-debug.aar"
   fi
 fi
-
-popd
