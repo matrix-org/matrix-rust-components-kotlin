@@ -82,6 +82,12 @@ jobs:
         run: |
           python3 ./scripts/build-rust-for-target.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --target ${{ matrix.target }}
 
+      - name: Set linkable git ref
+        run: |
+          pushd ../matrix-rust-sdk
+          echo LINKABLE_REF=$(git show-ref --verify refs/heads/${{ github.event.inputs.rust-checkout-ref }}) >> $GITHUB_OUTPUT
+          popd
+
       - name: Upload target artifacts
         if: success() || failure()
         uses: actions/upload-artifact@v3
@@ -167,7 +173,7 @@ jobs:
           SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./scripts/release_sdk.py --module SDK --version ${{ github.event.inputs.sdk-version }}
+          python3 ./scripts/release_sdk.py --module SDK --version ${{ github.event.inputs.sdk-version }} --linkable-ref ${{ needs.build_targets.outputs.LINKABLE_REF }}
 
       - name: Upload results # TODO: delete this
         if: success() || failure()

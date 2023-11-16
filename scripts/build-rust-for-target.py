@@ -54,21 +54,6 @@ def clone_repo_and_checkout_ref(directory, git_url, ref):
         text=True,
     )
 
-def get_linkable_ref(directory, ref):
-    result = subprocess.run(
-        ["git", "show-ref", "--verify", f"refs/heads/{ref}"],
-        cwd=directory,
-        capture_output=True,
-        text=True
-    )
-    if result.returncode == 0:
-        # The reference is a valid branch name, return the corresponding commit hash
-        return result.stdout.strip().split()[0]
-
-    # The reference is not a valid branch name, return the reference itself
-    return ref
-
-
 def is_provided_version_higher(major: int, minor: int, patch: int, provided_version: str) -> bool:
     provided_major, provided_minor, provided_patch = map(int, provided_version.split('.'))
     if provided_major > major:
@@ -136,5 +121,4 @@ else:
 if skip_clone is False:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
 
-linkable_ref = get_linkable_ref(sdk_path, args.ref)
 execute_build_script(current_dir, sdk_path, args.module, args.target)
