@@ -27,7 +27,7 @@ while getopts ':rp:m:t:o:' 'opt'; do
   'r') is_release='true' ;;
   'p') sdk_path="$OPTARG" ;;
   'm') gradle_module="$OPTARG" ;;
-  't') only_target='arm64-v8a' ;;
+  't') only_target="$OPTARG" ;;
   'o') output="$OPTARG" ;;
   ?) helpFunction ;;
   esac
