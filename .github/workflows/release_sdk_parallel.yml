@@ -178,11 +178,11 @@ jobs:
         run: |
           python3 ./scripts/release_sdk.py --module SDK --version ${{ github.event.inputs.sdk-version }} --linkable-ref ${{ needs.build_targets.outputs.linkable_ref }}
 
-      - name: Upload results # TODO: delete this
+      - name: Upload AAR results
         if: success() || failure()
         uses: actions/upload-artifact@v3
         with:
           name: results
           if-no-files-found: error
-          path: ./sdk/sdk-android/src/main/*
+          path: ./sdk/sdk-android/build/**/*.aar
           retention-days: 1

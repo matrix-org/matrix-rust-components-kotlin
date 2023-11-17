@@ -36,7 +36,7 @@ def commit_and_push_changes(directory: str, message: str):
     try:
         subprocess.run(["git", "add", "."], cwd=directory, check=True)
         subprocess.run(["git", "commit", "-m", message], cwd=directory, check=True)
-        subprocess.run(["git", "push"], cwd=directory, check=True)
+#         subprocess.run(["git", "push"], cwd=directory, check=True)
         print("Changes committed and pushed successfully.")
     except subprocess.CalledProcessError as e:
         print("Failed to commit and push changes.")
@@ -86,17 +86,17 @@ def create_github_release(repo_url: str, tag_name: str, release_name: str, relea
     }
 
     # Send release request
-    response = requests.post(f"{repo_url}/releases", headers=headers, json=payload)
-    if response.status_code == 201:
-        print("Release created successfully.")
-        release_data = response.json()
-        upload_url = release_data["upload_url"]
-        upload_asset_to_github_release(upload_url, asset_path, asset_name)
-    else:
-        print("Failed to create release.")
-        print("Response:")
-        print(response.json())
-        exit(1)
+#     response = requests.post(f"{repo_url}/releases", headers=headers, json=payload)
+#     if response.status_code == 201:
+#         print("Release created successfully.")
+#         release_data = response.json()
+#         upload_url = release_data["upload_url"]
+#         upload_asset_to_github_release(upload_url, asset_path, asset_name)
+#     else:
+#         print("Failed to create release.")
+#         print("Response:")
+#         print(response.json())
+#         exit(1)
 
 def get_asset_name(module: Module) -> str:
     if module == Module.SDK:
@@ -127,7 +127,8 @@ def get_publish_task(module: Module) -> str:
 
 
 def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
-    gradle_command = f"./gradlew {publish_task} closeAndReleaseStagingRepository"
+#     gradle_command = f"./gradlew {publish_task} closeAndReleaseStagingRepository"
+    gradle_command = f"./gradlew {publish_task}"
     result = subprocess.run(gradle_command, shell=True, cwd=root_project_dir, text=True)
     if result.returncode != 0:
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
@@ -192,17 +193,17 @@ override_version_in_build_version_file(build_version_file_path, args.version)
 
 commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
 print(f"Commit message: {commit_message}")
-# commit_and_push_changes(project_root, commit_message)
+commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
 release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
 
-# create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
-#                       release_name, release_name, release_notes)
-#
-# run_publish_close_and_release_tasks(
-#     project_root,
-#     get_publish_task(args.module),
-# )
+create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
+                      release_name, release_name, release_notes)
+
+run_publish_close_and_release_tasks(
+    project_root,
+    get_publish_task(args.module),
+)
