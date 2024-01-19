@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload target artifacts
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: targets
           if-no-files-found: error
@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload FFI bindings
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ffi-bindings
           if-no-files-found: error
@@ -185,7 +185,7 @@ jobs:
 
       - name: Upload AAR results
         if: success() || failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: results
           if-no-files-found: error
