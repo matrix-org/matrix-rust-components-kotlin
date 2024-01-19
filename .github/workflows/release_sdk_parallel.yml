@@ -100,7 +100,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: targets
+          name: targets-${{ matrix.target }}
           if-no-files-found: error
           path: ./sdk/sdk-android/src/main/jniLibs/*/libmatrix_sdk_ffi.so
           retention-days: 1
@@ -112,6 +112,7 @@ jobs:
           name: ffi-bindings
           if-no-files-found: error
           path: ./sdk/sdk-android/src/main/kotlin/
+          overwrite: true
           retention-days: 1
 
   release_library:
@@ -131,6 +132,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: targets
+          pattern: targets-*
+          merge-multiple: true
           path: targets
 
       - name: Copy artifacts to their right folders
