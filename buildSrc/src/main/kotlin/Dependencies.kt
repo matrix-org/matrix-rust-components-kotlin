@@ -4,7 +4,7 @@ object DependenciesVersions {
     const val jUnit = "4.12"
     const val nexusPublishGradlePlugin = "1.1.0"
     const val jna = "5.13.0"
-    const val coroutines = "1.7.1"
+    const val coroutines = "1.7.3"
 }
 
 /**
