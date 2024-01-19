@@ -98,7 +98,7 @@ jobs:
           mv rust-sdk/target/${{ matrix.targets.value }}/release/libmatrix_crypto.so rust-sdk/target/${{ matrix.targets.value }}/release/libuniffi_olm.so
           
       - name: Upload native file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.targets.folder }}
           path: rust-sdk/target/${{ matrix.targets.value }}/release/libuniffi_olm.so
@@ -187,7 +187,7 @@ jobs:
       run: ./gradlew :crypto:crypto-android:assembleRelease
       
     - name: Upload library file (aar)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: crypto-release
         path: crypto/crypto-android/build/outputs/aar/crypto-android-release.aar
