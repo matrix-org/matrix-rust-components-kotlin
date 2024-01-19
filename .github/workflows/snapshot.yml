@@ -44,7 +44,7 @@ jobs:
           export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
           echo $PATH
     
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -142,7 +142,7 @@ jobs:
         distribution: 'temurin'
         cache: gradle
         
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/bin/
@@ -152,7 +152,7 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
