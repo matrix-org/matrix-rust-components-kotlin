@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download target artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: targets
           path: targets
@@ -140,7 +140,7 @@ jobs:
           popd
 
       - name: Download FFI bindings
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ffi-bindings
           path: ffi-bindings
