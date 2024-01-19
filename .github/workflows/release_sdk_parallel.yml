@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -125,7 +125,7 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download target artifacts
         uses: actions/download-artifact@v4

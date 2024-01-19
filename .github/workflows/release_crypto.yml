@@ -31,12 +31,12 @@ jobs:
     steps:
     
       - name: Checkout this repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with: 
           path: main
 
       - name: Checkout matrix rust sdk repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: matrix-org/matrix-rust-sdk
           path: rust-sdk
