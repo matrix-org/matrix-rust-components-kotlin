@@ -4,6 +4,7 @@ set -e
 helpFunction() {
   echo ""
   echo "Usage: $0 -r -p /Documents/dev/matrix-rust-sdk -m sdk"
+  echo -e "\t-d Debug build (no optimization + debug symbols)"
   echo -e "\t-p Local path to the rust-sdk repository"
   echo -e "\t-o Optional output path with the expected name of the aar file"
   echo -e "\t-r Flag to build in release mode"
@@ -17,13 +18,15 @@ scripts_dir=$(
   pwd -P
 )
 
+is_debug='false'
 is_release='false'
 gradle_module='sdk'
 only_target=''
 output=''
 
-while getopts ':rp:m:t:o:' 'opt'; do
+while getopts ':rp:m:t:o:d' 'opt'; do
   case ${opt} in
+  'd') is_debug='true';;
   'r') is_release='true' ;;
   'p') sdk_path="$OPTARG" ;;
   'm') gradle_module="$OPTARG" ;;
@@ -47,6 +50,8 @@ fi
 
 if ${is_release}; then
   profile="release"
+elif ${is_debug}; then
+  profile="dbg"
 else
   profile="reldbg"
 fi
