@@ -27,6 +27,9 @@ jobs:
 
       - name: Checkout this repo
         uses: actions/checkout@v4
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
 
 #      - name: Checkout matrix rust sdk repo
 #        uses: actions/checkout@v3
