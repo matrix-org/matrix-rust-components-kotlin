@@ -44,7 +44,7 @@ android {
 }
 
 afterEvaluate {
-    generateMetadataFileForReleasePublication.dependsOn androidSourcesJar
+    generateMetadataFileForReleasePublication.mustRunAfter androidSourcesJar
 }
 
 dependencies {
