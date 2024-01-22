@@ -17,22 +17,22 @@ jobs:
     name: Build and generate crypto native libs
     runs-on: macos-latest
     env:
-        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-        SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-        SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-        SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
+      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+      OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+      SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
 
     concurrency:
       group: ${{ github.ref }}-${{ github.job }}
       cancel-in-progress: true
 
     steps:
-    
+
       - name: Checkout this repo
         uses: actions/checkout@v4
-        with: 
+        with:
           path: main
 
       - name: Checkout matrix rust sdk repo
@@ -42,26 +42,26 @@ jobs:
           path: rust-sdk
           ref: '${{ github.event.inputs.rust-checkout-ref }}'
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          java-version: '17'
+          distribution: 'temurin' # See 'Supported distributions' for available options
 
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
-        
-      - name: Install android ndk   
+
+      - name: Install android ndk
         uses: nttld/setup-ndk@v1
         id: install-ndk
         with:
           ndk-version: r25c
-          
+
       - name: Create symlinks for buildchain
         run: |
           export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
           echo $PATH
-    
+
       - uses: actions/cache@v4
         with:
           path: |
@@ -75,21 +75,21 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-#      - name: Create cargo config
-#        run: |
-#          echo [target.aarch64-linux-android] > $HOME/.cargo/config.toml
-#          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-#          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang\"  >> $HOME/.cargo/config.toml
-#
-#          echo [target.i686-linux-android] >> $HOME/.cargo/config.toml
-#          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-#          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android30-clang\"  >> $HOME/.cargo/config.toml
-#
-#          echo [target.armv7-linux-androideabi] >> $HOME/.cargo/config.toml
-#          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-#          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/armv7a-linux-androideabi30-clang\"  >> $HOME/.cargo/config.toml
-#
-#          cat $HOME/.cargo/config.toml
+      #      - name: Create cargo config
+      #        run: |
+      #          echo [target.aarch64-linux-android] > $HOME/.cargo/config.toml
+      #          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
+      #          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang\"  >> $HOME/.cargo/config.toml
+      #
+      #          echo [target.i686-linux-android] >> $HOME/.cargo/config.toml
+      #          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
+      #          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android30-clang\"  >> $HOME/.cargo/config.toml
+      #
+      #          echo [target.armv7-linux-androideabi] >> $HOME/.cargo/config.toml
+      #          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
+      #          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/armv7a-linux-androideabi30-clang\"  >> $HOME/.cargo/config.toml
+      #
+      #          cat $HOME/.cargo/config.toml
 
       - name: Add Rust targets
         run: |
@@ -97,7 +97,7 @@ jobs:
           rustup target add aarch64-linux-android
           rustup target add armv7-linux-androideabi
           rustup target add i686-linux-android
-      
+
       - name: Install cargo-ndk
         continue-on-error: true
         run: cargo install cargo-ndk
