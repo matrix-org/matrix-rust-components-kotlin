@@ -15,7 +15,6 @@ ext {
 apply from: "${rootDir}/scripts/publish-module.gradle"
 
 android {
-
     namespace 'org.matrix.rustcomponents.sdk.crypto'
 
     compileSdk ConfigurationData.compileSdk
@@ -42,6 +41,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+}
+
+afterEvaluate {
+    generateMetadataFileForReleasePublication.dependsOn androidSourcesJar
 }
 
 dependencies {

@@ -21,7 +21,6 @@ android {
     compileSdk ConfigurationData.compileSdk
 
     defaultConfig {
-
         minSdk ConfigurationData.minSdk
         targetSdk ConfigurationData.targetSdk
         versionName ConfigurationData.versionNameSdk
@@ -43,6 +42,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+}
+
+afterEvaluate {
+    generateMetadataFileForReleasePublication.dependsOn androidSourcesJar
 }
 
 dependencies {
