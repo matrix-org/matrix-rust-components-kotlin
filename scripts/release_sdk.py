@@ -34,9 +34,9 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
 
 def commit_and_push_changes(directory: str, message: str):
     try:
-        subprocess.run(["git", "add", "."], cwd=directory, check=True)
-        subprocess.run(["git", "commit", "-m", message], cwd=directory, check=True)
-        subprocess.run(["git", "push"], cwd=directory, check=True)
+        subprocess.run(["git", "add", "."], cwd=directory, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", message], cwd=directory, check=True, capture_output=True)
+        subprocess.run(["git", "push"], cwd=directory, check=True, capture_output=True)
         print("Changes committed and pushed successfully.")
     except subprocess.CalledProcessError as e:
         print("Failed to commit and push changes.")
