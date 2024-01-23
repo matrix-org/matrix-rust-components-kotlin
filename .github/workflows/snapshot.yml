@@ -31,7 +31,7 @@ jobs:
           ref: '${{ github.event.inputs.rust-checkout-ref }}'
     
       - name: Install android sdk
-        uses: malinskiy/action-android/install-sdk@release/0.1.2
+        uses: malinskiy/action-android/install-sdk@release/0.1.4
         
       - name: Install android ndk   
         uses: nttld/setup-ndk@v1

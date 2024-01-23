@@ -15,7 +15,6 @@ ext {
 apply from: "${rootDir}/scripts/publish-module.gradle"
 
 android {
-
     namespace 'org.matrix.rustcomponents.sdk.crypto'
 
     compileSdk ConfigurationData.compileSdk

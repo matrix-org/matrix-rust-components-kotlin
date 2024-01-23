@@ -21,7 +21,6 @@ android {
     compileSdk ConfigurationData.compileSdk
 
     defaultConfig {
-
         minSdk ConfigurationData.minSdk
         targetSdk ConfigurationData.targetSdk
         versionName ConfigurationData.versionNameSdk

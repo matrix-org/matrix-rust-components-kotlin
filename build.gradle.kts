@@ -18,5 +18,5 @@ apply(from = "${rootDir}/scripts/publish-root.gradle")
 
 
 tasks.register<Delete>("clean").configure {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
  }
