@@ -113,7 +113,7 @@ jobs:
       - name: Upload FFI bindings
         # The FFI bindings will be identical for the 4 architectures, so upload as artifact
         # only once.
-        if: (success() || failure()) && ${{ matrix.target == 'x86_64-linux-android' }}
+        if: (success() || failure()) && matrix.target == 'x86_64-linux-android'
         uses: actions/upload-artifact@v4
         with:
           name: ffi-bindings
