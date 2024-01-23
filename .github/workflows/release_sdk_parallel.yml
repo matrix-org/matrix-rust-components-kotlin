@@ -187,7 +187,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: results
+          name: sdk-android-release
           if-no-files-found: error
           path: ./sdk/sdk-android/build/**/*.aar
           retention-days: 7
