@@ -99,25 +99,6 @@ def create_github_release(repo_url: str, tag_name: str, release_name: str, relea
         print(response.json())
         exit(1)
 
-def get_asset_name(module: Module) -> str:
-    if module == Module.SDK:
-        return "matrix-android-sdk.aar"
-    elif module == Module.CRYPTO:
-        return "matrix-android-crypto.aar"
-    else:
-        raise ValueError(f"Unknown module: {module}")
-
-
-def get_asset_path(root_project_dir: str, module: Module) -> str:
-    if module == Module.SDK:
-        return os.path.join(root_project_dir, "sdk/sdk-android/build/outputs/aar",
-                            "sdk-android-release.aar")
-    elif module == Module.CRYPTO:
-        return os.path.join(root_project_dir, "crypto/crypto-android/build/outputs/aar",
-                            "crypto-android-release.aar")
-    else:
-        raise ValueError(f"Unknown module: {module}")
-
 def get_publish_task(module: Module) -> str:
     if module == Module.SDK:
         return ":sdk:sdk-android:publishToSonatype"
@@ -191,11 +172,6 @@ build_aar_files(current_dir, args.module)
 
 override_version_in_build_version_file(build_version_file_path, args.version)
 
-release_name = f"{args.module.name.lower()}-v{args.version}"
-release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
-asset_path = get_asset_path(project_root, args.module)
-asset_name = get_asset_name(args.module)
-
 # First release on Maven
 run_publish_close_and_release_tasks(
     project_root,
@@ -207,5 +183,7 @@ commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rus
 print(f"Commit message: {commit_message}")
 commit_and_push_changes(project_root, commit_message)
 
+release_name = f"{args.module.name.lower()}-v{args.version}"
+release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
 create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
                       release_name, release_name, release_notes)
