@@ -191,19 +191,21 @@ build_aar_files(current_dir, args.module)
 
 override_version_in_build_version_file(build_version_file_path, args.version)
 
-commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
-print(f"Commit message: {commit_message}")
-commit_and_push_changes(project_root, commit_message)
-
 release_name = f"{args.module.name.lower()}-v{args.version}"
 release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
 asset_path = get_asset_path(project_root, args.module)
 asset_name = get_asset_name(args.module)
 
-create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
-                      release_name, release_name, release_notes)
-
+# First release on Maven
 run_publish_close_and_release_tasks(
     project_root,
     get_publish_task(args.module),
 )
+
+# Success, commit and push changes, then create github release
+commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
+print(f"Commit message: {commit_message}")
+commit_and_push_changes(project_root, commit_message)
+
+create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
+                      release_name, release_name, release_notes)
