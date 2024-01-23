@@ -42,6 +42,7 @@ def commit_and_push_changes(directory: str, message: str):
         print("Failed to commit and push changes.")
         print("Error message:")
         print(e.stderr)
+        raise e
 
 def upload_asset_to_github_release(upload_url: str, asset_path: str, asset_name: str):
     print(f"Uploading {asset_name} to github release..")
