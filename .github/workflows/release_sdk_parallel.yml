@@ -138,30 +138,18 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-      - name: Download target artifacts
+      - name: Download target artifacts to their right folders
         uses: actions/download-artifact@v4
         with:
           pattern: targets-*
           merge-multiple: true
-          path: targets
+          path: sdk/sdk-android/src/main/jniLibs/
 
-      - name: Copy artifacts to their right folders
-        run: |
-          pushd targets
-          cp -R . ../sdk/sdk-android/src/main/jniLibs/
-          popd
-
-      - name: Download FFI bindings
+      - name: Download FFI bindings to their package
         uses: actions/download-artifact@v4
         with:
           name: ffi-bindings
-          path: ffi-bindings
-
-      - name: Copy FFI bindings to their package
-        run: |
-          pushd ffi-bindings
-          cp -R . ../sdk/sdk-android/src/main/kotlin/
-          popd
+          path: sdk/sdk-android/src/main/kotlin/
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
