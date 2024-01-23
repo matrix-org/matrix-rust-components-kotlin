@@ -58,7 +58,12 @@ def commit_and_push_changes(directory: str, message: str):
         raise e
 
 
-def upload_asset_to_github_release(upload_url: str, asset_path: str, asset_name: str):
+def upload_asset_to_github_release(
+        github_token: str,
+        upload_url: str,
+        asset_path: str,
+        asset_name: str,
+):
     print(f"Uploading {asset_name} to github release..")
     # Build headers with token and content type
     headers = {
@@ -85,6 +90,7 @@ def upload_asset_to_github_release(upload_url: str, asset_path: str, asset_name:
 
 
 def create_github_release(
+        github_token: str,
         repo_url: str,
         tag_name: str,
         release_name: str,
@@ -114,7 +120,12 @@ def create_github_release(
         print("Release created successfully.")
         release_data = response.json()
         upload_url = release_data["upload_url"]
-        upload_asset_to_github_release(upload_url, asset_path, asset_name)
+        upload_asset_to_github_release(
+            github_token,
+            upload_url,
+            asset_path,
+            asset_name,
+        )
     else:
         print("Failed to create release.")
         print("Response:")
@@ -189,10 +200,51 @@ def build_aar_files(script_directory: str, module: Module):
     print("Finish executing build script with success")
 
 
-github_token = os.environ['GITHUB_API_TOKEN']
-if github_token is None:
-    print("Please set GITHUB_API_TOKEN environment variable")
-    exit(1)
+def main(args: argparse.Namespace):
+    github_token = os.environ['GITHUB_API_TOKEN']
+    if github_token is None:
+        print("Please set GITHUB_API_TOKEN environment variable")
+        exit(1)
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir).rstrip(os.sep)
+
+    print(f"Project Root Directory: {project_root}")
+    print(f"Selected module: {args.module}")
+    print(f"Version: {args.version}")
+
+    build_version_file_path = get_build_version_file_path(args.module, project_root)
+    major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
+
+    build_aar_files(current_dir, args.module)
+
+    override_version_in_build_version_file(build_version_file_path, args.version)
+
+    # First release on Maven
+    run_publish_close_and_release_tasks(
+        project_root,
+        get_publish_task(args.module),
+    )
+
+    # Success, commit and push changes, then create github release
+    commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
+    print(f"Commit message: {commit_message}")
+    commit_and_push_changes(project_root, commit_message)
+
+    release_name = f"{args.module.name.lower()}-v{args.version}"
+    release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
+    asset_path = get_asset_path(project_root, args.module)
+    asset_name = get_asset_name(args.module)
+    create_github_release(
+        github_token,
+        "https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
+        release_name,
+        release_name,
+        release_notes,
+        asset_path,
+        asset_name,
+    )
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--module", type=module_type, required=True,
@@ -201,43 +253,6 @@ parser.add_argument("-v", "--version", type=str, required=True,
                     help="Version as a string (e.g. '1.0.0')")
 parser.add_argument("-l", "--linkable-ref", type=str, required=True,
                     help="The git ref to link to in the matrix-rust-sdk project")
-
 args = parser.parse_args()
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir).rstrip(os.sep)
-
-print(f"Project Root Directory: {project_root}")
-print(f"Selected module: {args.module}")
-print(f"Version: {args.version}")
-
-build_version_file_path = get_build_version_file_path(args.module, project_root)
-major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
-
-build_aar_files(current_dir, args.module)
-
-override_version_in_build_version_file(build_version_file_path, args.version)
-
-# First release on Maven
-run_publish_close_and_release_tasks(
-    project_root,
-    get_publish_task(args.module),
-)
-
-# Success, commit and push changes, then create github release
-commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
-print(f"Commit message: {commit_message}")
-commit_and_push_changes(project_root, commit_message)
-
-release_name = f"{args.module.name.lower()}-v{args.version}"
-release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
-asset_path = get_asset_path(project_root, args.module)
-asset_name = get_asset_name(args.module)
-create_github_release(
-    "https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
-    release_name,
-    release_name,
-    release_notes,
-    asset_path,
-    asset_name,
-)
+main(args)
