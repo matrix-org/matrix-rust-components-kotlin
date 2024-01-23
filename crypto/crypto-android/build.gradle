@@ -43,10 +43,6 @@ android {
     }
 }
 
-afterEvaluate {
-    generateMetadataFileForReleasePublication.mustRunAfter androidSourcesJar
-}
-
 dependencies {
     implementation Dependencies.jna
     testImplementation Dependencies.junit

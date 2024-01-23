@@ -44,10 +44,6 @@ android {
     }
 }
 
-afterEvaluate {
-    generateMetadataFileForReleasePublication.mustRunAfter androidSourcesJar
-}
-
 dependencies {
     implementation Dependencies.jna
     implementation Dependencies.coroutines
