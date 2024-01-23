@@ -6,11 +6,12 @@ import re
 import requests
 import subprocess
 from enum import Enum, auto
-from tempfile import TemporaryDirectory
+
 
 class Module(Enum):
     SDK = auto()
     CRYPTO = auto()
+
 
 def module_type(value):
     try:
@@ -18,6 +19,7 @@ def module_type(value):
     except KeyError:
         raise argparse.ArgumentTypeError(
             f"Invalid module choice: {value}. Available options: SDK, CRYPTO")
+
 
 def override_version_in_build_version_file(file_path: str, new_version: str):
     with open(file_path, 'r') as file:
@@ -32,10 +34,21 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
     with open(file_path, 'w') as file:
         file.write(content)
 
+
 def commit_and_push_changes(directory: str, message: str):
     try:
-        subprocess.run(["git", "add", "."], cwd=directory, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-m", message], cwd=directory, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "."],
+            cwd=directory,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", message],
+            cwd=directory,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(["git", "push"], cwd=directory, check=True, capture_output=True)
         print("Changes committed and pushed successfully.")
     except subprocess.CalledProcessError as e:
@@ -43,6 +56,7 @@ def commit_and_push_changes(directory: str, message: str):
         print("Error message:")
         print(e.stderr)
         raise e
+
 
 def upload_asset_to_github_release(upload_url: str, asset_path: str, asset_name: str):
     print(f"Uploading {asset_name} to github release..")
@@ -69,7 +83,15 @@ def upload_asset_to_github_release(upload_url: str, asset_path: str, asset_name:
         print(response.json())
         exit(1)
 
-def create_github_release(repo_url: str, tag_name: str, release_name: str, release_notes: str):
+
+def create_github_release(
+        repo_url: str,
+        tag_name: str,
+        release_name: str,
+        release_notes: str,
+        asset_path: str,
+        asset_name: str,
+):
     print(f"Create github release {tag_name}")
     # Build release payload
     payload = {
@@ -99,6 +121,27 @@ def create_github_release(repo_url: str, tag_name: str, release_name: str, relea
         print(response.json())
         exit(1)
 
+
+def get_asset_name(module: Module) -> str:
+    if module == Module.SDK:
+        return "matrix-android-sdk.aar"
+    elif module == Module.CRYPTO:
+        return "matrix-android-crypto.aar"
+    else:
+        raise ValueError(f"Unknown module: {module}")
+
+
+def get_asset_path(root_project_dir: str, module: Module) -> str:
+    if module == Module.SDK:
+        return os.path.join(root_project_dir, "sdk/sdk-android/build/outputs/aar",
+                            "sdk-android-release.aar")
+    elif module == Module.CRYPTO:
+        return os.path.join(root_project_dir, "crypto/crypto-android/build/outputs/aar",
+                            "crypto-android-release.aar")
+    else:
+        raise ValueError(f"Unknown module: {module}")
+
+
 def get_publish_task(module: Module) -> str:
     if module == Module.SDK:
         return ":sdk:sdk-android:publishToSonatype"
@@ -114,6 +157,7 @@ def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
     if result.returncode != 0:
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
 
+
 def get_build_version_file_path(module: Module, project_root: str) -> str:
     if module == Module.SDK:
         return os.path.join(project_root, 'buildSrc/src/main/kotlin', 'BuildVersionsSDK.kt')
@@ -121,6 +165,7 @@ def get_build_version_file_path(module: Module, project_root: str) -> str:
         return os.path.join(project_root, 'buildSrc/src/main/kotlin', 'BuildVersionsCrypto.kt')
     else:
         raise ValueError(f"Unknown module: {module}")
+
 
 def read_version_numbers_from_kotlin_file(file_path):
     with open(file_path, "r") as file:
@@ -131,6 +176,7 @@ def read_version_numbers_from_kotlin_file(file_path):
     patch_version = int(re.search(r"patchVersion\s*=\s*(\d+)", content).group(1))
 
     return major_version, minor_version, patch_version
+
 
 def build_aar_files(script_directory: str, module: Module):
     print("Execute build script...")
@@ -185,5 +231,13 @@ commit_and_push_changes(project_root, commit_message)
 
 release_name = f"{args.module.name.lower()}-v{args.version}"
 release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
-create_github_release("https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
-                      release_name, release_name, release_notes)
+asset_path = get_asset_path(project_root, args.module)
+asset_name = get_asset_name(args.module)
+create_github_release(
+    "https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
+    release_name,
+    release_name,
+    release_notes,
+    asset_path,
+    asset_name,
+)
