@@ -111,13 +111,14 @@ jobs:
           retention-days: 7
 
       - name: Upload FFI bindings
-        if: success() || failure()
+        # The FFI bindings will be identical for the 4 architectures, so upload as artifact
+        # only once.
+        if: (success() || failure()) && ${{ matrix.target == 'x86_64-linux-android' }}
         uses: actions/upload-artifact@v4
         with:
           name: ffi-bindings
           if-no-files-found: error
           path: ./sdk/sdk-android/src/main/kotlin/
-          overwrite: true
           retention-days: 7
 
   release_library:
