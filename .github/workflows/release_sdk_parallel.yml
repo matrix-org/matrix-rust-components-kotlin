@@ -55,7 +55,7 @@ jobs:
           ndk-version: r25c
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@nightly-2024-02-06
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
