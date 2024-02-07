@@ -415,6 +415,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceSessionVerificationControllerDelegate.register(lib)
                 uniffiCallbackInterfaceSyncServiceStateObserver.register(lib)
                 uniffiCallbackInterfaceTimelineListener.register(lib)
+                uniffiCallbackInterfaceTypingNotificationsListener.register(lib)
                 uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(lib)
                 }
         }
@@ -787,6 +788,12 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read_and_send_read_receipt(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_unread(`ptr`: Pointer,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_member_avatar_url(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -818,6 +825,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_notable_tags(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_timeline(`ptr`: Pointer,
     ): Pointer
@@ -861,8 +870,6 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_full_room(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_has_unread_notifications(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_init_timeline(`ptr`: Pointer,`eventTypeFilter`: RustBuffer.ByValue,
@@ -879,8 +886,6 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_subscribe(`ptr`: Pointer,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_unread_notifications(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_unsubscribe(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1051,6 +1056,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event(`ptr`: Pointer,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(`ptr`: Pointer,`opts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(`ptr`: Pointer,`sessionIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1200,6 +1207,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_syncservicestateobserver(`handle`: ForeignCallback,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_timelinelistener(`handle`: ForeignCallback,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_typingnotificationslistener(`handle`: ForeignCallback,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_widgetcapabilitiesprovider(`handle`: ForeignCallback,
     ): Unit
@@ -1671,6 +1680,12 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read_and_send_read_receipt(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_unread(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url(
@@ -1703,6 +1718,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_topic(
@@ -1733,8 +1750,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_has_unread_notifications(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_init_timeline(
@@ -1750,8 +1765,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unread_notifications(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unsubscribe(
     ): Short
@@ -1874,6 +1887,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_timeline_event_content_by_event_id(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards(
     ): Short
@@ -2016,6 +2031,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities(
     ): Short
@@ -2525,6 +2542,15 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 6569.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 30321.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read_and_send_read_receipt() != 32673.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_unread() != 41204.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() != 10689.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2573,6 +2599,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 47774.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications() != 10034.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline() != 701.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2618,9 +2647,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_full_room() != 35618.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_has_unread_notifications() != 49961.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_id() != 41176.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2643,9 +2669,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe() != 19882.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unread_notifications() != 23977.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unsubscribe() != 45026.toShort()) {
@@ -2829,6 +2852,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_timeline_event_content_by_event_id() != 33318.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event() != 11115.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() != 40762.toShort()) {
@@ -3044,6 +3070,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() != 9224.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call() != 50844.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities() != 43759.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3090,6 +3119,7 @@ internal suspend fun<T, F, E: Exception> uniffiRustCallAsync(
         freeFunc(rustFuture)
     }
 }
+
 
 // Public interface members begin here.
 
@@ -3650,6 +3680,7 @@ public interface AuthenticationServiceInterface {
     
     companion object
 }
+
 open class AuthenticationService : FFIObject, AuthenticationServiceInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -3901,6 +3932,7 @@ public interface ClientInterface {
     
     companion object
 }
+
 open class Client : FFIObject, ClientInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -4456,6 +4488,7 @@ public interface ClientBuilderInterface {
     
     companion object
 }
+
 open class ClientBuilder : FFIObject, ClientBuilderInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -4727,6 +4760,7 @@ public interface EncryptionInterface {
     
     companion object
 }
+
 open class Encryption : FFIObject, EncryptionInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -5072,6 +5106,7 @@ public interface EventTimelineItemInterface {
     
     companion object
 }
+
 open class EventTimelineItem : FFIObject, EventTimelineItemInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -5337,6 +5372,7 @@ public interface HomeserverLoginDetailsInterface {
     
     companion object
 }
+
 open class HomeserverLoginDetails : FFIObject, HomeserverLoginDetailsInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -5464,6 +5500,7 @@ public interface MediaFileHandleInterface {
     
     companion object
 }
+
 /**
  * A file handle that takes ownership of a media file on disk. When the handle
  * is dropped, the file will be removed from the disk.
@@ -5573,6 +5610,7 @@ public interface MediaSourceInterface {
     
     companion object
 }
+
 open class MediaSource : FFIObject, MediaSourceInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -5686,6 +5724,7 @@ public interface MessageInterface {
     
     companion object
 }
+
 open class Message : FFIObject, MessageInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -5821,6 +5860,7 @@ public interface NotificationClientInterface {
     
     companion object
 }
+
 open class NotificationClient : FFIObject, NotificationClientInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -5919,6 +5959,7 @@ public interface NotificationClientBuilderInterface {
     
     companion object
 }
+
 open class NotificationClientBuilder : FFIObject, NotificationClientBuilderInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -6143,6 +6184,7 @@ public interface NotificationSettingsInterface {
     
     companion object
 }
+
 open class NotificationSettings : FFIObject, NotificationSettingsInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -6685,6 +6727,7 @@ public interface OidcAuthenticationDataInterface {
     
     companion object
 }
+
 /**
  * The data required to authenticate against an OIDC server.
  */
@@ -6865,6 +6908,26 @@ public interface RoomInterface {
      */
     fun `leave`()
     
+    /**
+     * Reverts a previously set unread flag.
+     */
+    suspend fun `markAsRead`()
+    
+    /**
+     * Reverts a previously set unread flag and sends a read receipt to the
+     * latest event in the room. Sending read receipts is useful when
+     * executing this from the room list but shouldn't be use when entering
+     * the room, the timeline should be left to its own devices in that
+     * case.
+     */
+    suspend fun `markAsReadAndSendReadReceipt`(`receiptType`: ReceiptType)
+    
+    /**
+     * Sets a flag on the room to indicate that the user has explicitly marked
+     * it as unread
+     */
+    suspend fun `markAsUnread`()
+    
     suspend fun `member`(`userId`: String): RoomMember
     
     fun `memberAvatarUrl`(`userId`: String): String?
@@ -6928,6 +6991,8 @@ public interface RoomInterface {
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
+    suspend fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle
+    
     suspend fun `timeline`(): Timeline
     
     fun `topic`(): String?
@@ -6955,6 +7020,7 @@ public interface RoomInterface {
     
     companion object
 }
+
 open class Room : FFIObject, RoomInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -7445,6 +7511,83 @@ open class Room : FFIObject, RoomInterface {
     
     
     
+    /**
+     * Reverts a previously set unread flag.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `markAsRead`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    /**
+     * Reverts a previously set unread flag and sends a read receipt to the
+     * latest event in the room. Sending read receipts is useful when
+     * executing this from the room list but shouldn't be use when entering
+     * the room, the timeline should be left to its own devices in that
+     * case.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `markAsReadAndSendReadReceipt`(`receiptType`: ReceiptType) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read_and_send_read_receipt(
+                    thisPtr,
+                    FfiConverterTypeReceiptType.lower(`receiptType`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    /**
+     * Sets a flag on the room to indicate that the user has explicitly marked
+     * it as unread
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `markAsUnread`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_unread(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `member`(`userId`: String) : RoomMember {
@@ -7690,6 +7833,25 @@ open class Room : FFIObject, RoomInterface {
         }
     
     
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener) : TaskHandle {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(
+                    thisPtr,
+                    FfiConverterTypeTypingNotificationsListener.lower(`listener`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeTaskHandle.lift(it) },
+            // Error FFI converter
+            UniffiNullRustCallStatusErrorHandler,
+        )
+    }
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `timeline`() : Timeline {
@@ -7836,6 +7998,7 @@ public interface RoomListInterface {
     
     companion object
 }
+
 open class RoomList : FFIObject, RoomListInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -7962,6 +8125,7 @@ public interface RoomListDynamicEntriesControllerInterface {
     
     companion object
 }
+
 open class RoomListDynamicEntriesController : FFIObject, RoomListDynamicEntriesControllerInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -8075,8 +8239,6 @@ public interface RoomListItemInterface {
      */
     suspend fun `fullRoom`(): Room
     
-    fun `hasUnreadNotifications`(): Boolean
-    
     fun `id`(): String
     
     /**
@@ -8103,12 +8265,11 @@ public interface RoomListItemInterface {
     
     fun `subscribe`(`settings`: RoomSubscription?)
     
-    fun `unreadNotifications`(): UnreadNotificationsCount
-    
     fun `unsubscribe`()
     
     companion object
 }
+
 open class RoomListItem : FFIObject, RoomListItemInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -8189,17 +8350,6 @@ open class RoomListItem : FFIObject, RoomListItemInterface {
             RoomListException.ErrorHandler,
         )
     }
-    override fun `hasUnreadNotifications`(): Boolean =
-        callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_has_unread_notifications(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
     override fun `id`(): String =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -8324,17 +8474,6 @@ open class RoomListItem : FFIObject, RoomListItemInterface {
         }
     
     
-    override fun `unreadNotifications`(): UnreadNotificationsCount =
-        callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_unread_notifications(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeUnreadNotificationsCount.lift(it)
-        }
-    
     override fun `unsubscribe`() =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -8397,6 +8536,7 @@ public interface RoomListServiceInterface {
     
     companion object
 }
+
 open class RoomListService : FFIObject, RoomListServiceInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -8614,6 +8754,7 @@ public interface RoomMemberInterface {
     
     companion object
 }
+
 open class RoomMember : FFIObject, RoomMemberInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -8920,6 +9061,7 @@ public interface RoomMembersIteratorInterface {
     
     companion object
 }
+
 open class RoomMembersIterator : FFIObject, RoomMembersIteratorInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9018,6 +9160,7 @@ public interface RoomMessageEventContentWithoutRelationInterface {
     
     companion object
 }
+
 open class RoomMessageEventContentWithoutRelation : FFIObject, RoomMessageEventContentWithoutRelationInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9107,6 +9250,7 @@ public interface SendAttachmentJoinHandleInterface {
     
     companion object
 }
+
 open class SendAttachmentJoinHandle : FFIObject, SendAttachmentJoinHandleInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9226,6 +9370,7 @@ public interface SessionVerificationControllerInterface {
     
     companion object
 }
+
 open class SessionVerificationController : FFIObject, SessionVerificationControllerInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9439,6 +9584,7 @@ public interface SessionVerificationEmojiInterface {
     
     companion object
 }
+
 open class SessionVerificationEmoji : FFIObject, SessionVerificationEmojiInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9541,6 +9687,7 @@ public interface SpanInterface {
     
     companion object
 }
+
 open class Span : FFIObject, SpanInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9692,6 +9839,7 @@ public interface SyncServiceInterface {
     
     companion object
 }
+
 open class SyncService : FFIObject, SyncServiceInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9833,6 +9981,7 @@ public interface SyncServiceBuilderInterface {
     
     companion object
 }
+
 open class SyncServiceBuilder : FFIObject, SyncServiceBuilderInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -9951,6 +10100,7 @@ public interface TaskHandleInterface {
     
     companion object
 }
+
 /**
  * A task handle is a way to keep the handle a task running by itself in
  * detached mode.
@@ -10073,6 +10223,8 @@ public interface TimelineInterface {
     
     fun `getTimelineEventContentByEventId`(`eventId`: String): RoomMessageEventContentWithoutRelation
     
+    suspend fun `latestEvent`(): EventTimelineItem?
+    
     /**
      * Loads older messages into the timeline.
      *
@@ -10110,6 +10262,7 @@ public interface TimelineInterface {
     
     companion object
 }
+
 open class Timeline : FFIObject, TimelineInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -10282,6 +10435,25 @@ open class Timeline : FFIObject, TimelineInterface {
             FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(it)
         }
     
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `latestEvent`() : EventTimelineItem? {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterOptionalTypeEventTimelineItem.lift(it) },
+            // Error FFI converter
+            UniffiNullRustCallStatusErrorHandler,
+        )
+    }
     
     /**
      * Loads older messages into the timeline.
@@ -10505,6 +10677,7 @@ public interface TimelineDiffInterface {
     
     companion object
 }
+
 open class TimelineDiff : FFIObject, TimelineDiffInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -10675,6 +10848,7 @@ public interface TimelineEventInterface {
     
     companion object
 }
+
 open class TimelineEvent : FFIObject, TimelineEventInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -10794,6 +10968,7 @@ public interface TimelineEventTypeFilterInterface {
     
     companion object
 }
+
 open class TimelineEventTypeFilter : FFIObject, TimelineEventTypeFilterInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -10889,6 +11064,7 @@ public interface TimelineItemInterface {
     
     companion object
 }
+
 open class TimelineItem : FFIObject, TimelineItemInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -11011,6 +11187,7 @@ public interface TimelineItemContentInterface {
     
     companion object
 }
+
 open class TimelineItemContent : FFIObject, TimelineItemContentInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -11113,6 +11290,7 @@ public interface UnreadNotificationsCountInterface {
     
     companion object
 }
+
 open class UnreadNotificationsCount : FFIObject, UnreadNotificationsCountInterface {
 
     constructor(pointer: Pointer): super(pointer)
@@ -11226,6 +11404,7 @@ public interface WidgetDriverInterface {
     
     companion object
 }
+
 /**
  * An object that handles all interactions of a widget living inside a webview
  * or IFrame with the Matrix world.
@@ -11343,6 +11522,7 @@ public interface WidgetDriverHandleInterface {
     
     companion object
 }
+
 /**
  * A handle that encapsulates the communication between a widget driver and the
  * corresponding widget (inside a webview or IFrame).
@@ -12699,6 +12879,10 @@ data class RoomInfo (
     var `hasRoomCall`: Boolean, 
     var `activeRoomCallParticipants`: List<String>, 
     /**
+     * Whether this room has been explicitly marked as unread
+     */
+    var `isMarkedUnread`: Boolean, 
+    /**
      * "Interesting" messages received in that room, independently of the
      * notification settings.
      */
@@ -12740,6 +12924,7 @@ data class RoomInfo (
         this.`userDefinedNotificationMode`, 
         this.`hasRoomCall`, 
         this.`activeRoomCallParticipants`, 
+        this.`isMarkedUnread`, 
         this.`numUnreadMessages`, 
         this.`numUnreadNotifications`, 
         this.`numUnreadMentions`)
@@ -12772,6 +12957,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeRoomNotificationMode.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterSequenceString.read(buf),
+            FfiConverterBoolean.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
@@ -12800,6 +12986,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeRoomNotificationMode.allocationSize(value.`userDefinedNotificationMode`) +
             FfiConverterBoolean.allocationSize(value.`hasRoomCall`) +
             FfiConverterSequenceString.allocationSize(value.`activeRoomCallParticipants`) +
+            FfiConverterBoolean.allocationSize(value.`isMarkedUnread`) +
             FfiConverterULong.allocationSize(value.`numUnreadMessages`) +
             FfiConverterULong.allocationSize(value.`numUnreadNotifications`) +
             FfiConverterULong.allocationSize(value.`numUnreadMentions`)
@@ -12827,6 +13014,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeRoomNotificationMode.write(value.`userDefinedNotificationMode`, buf)
             FfiConverterBoolean.write(value.`hasRoomCall`, buf)
             FfiConverterSequenceString.write(value.`activeRoomCallParticipants`, buf)
+            FfiConverterBoolean.write(value.`isMarkedUnread`, buf)
             FfiConverterULong.write(value.`numUnreadMessages`, buf)
             FfiConverterULong.write(value.`numUnreadNotifications`, buf)
             FfiConverterULong.write(value.`numUnreadMentions`, buf)
@@ -14711,102 +14899,18 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
 
 
 
-enum class FilterMessageLikeEventType {
-    
-    CALL_ANSWER,
-    CALL_INVITE,
-    CALL_HANGUP,
-    CALL_CANDIDATES,
-    KEY_VERIFICATION_READY,
-    KEY_VERIFICATION_START,
-    KEY_VERIFICATION_CANCEL,
-    KEY_VERIFICATION_ACCEPT,
-    KEY_VERIFICATION_KEY,
-    KEY_VERIFICATION_MAC,
-    KEY_VERIFICATION_DONE,
-    POLL,
-    REACTION,
-    ROOM_ENCRYPTED,
-    ROOM_MESSAGE,
-    ROOM_REDACTION,
-    STICKER;
-    companion object
-}
-
-public object FfiConverterTypeFilterMessageLikeEventType: FfiConverterRustBuffer<FilterMessageLikeEventType> {
-    override fun read(buf: ByteBuffer) = try {
-        FilterMessageLikeEventType.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: FilterMessageLikeEventType) = 4
-
-    override fun write(value: FilterMessageLikeEventType, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-enum class FilterStateEventType {
-    
-    POLICY_RULE_ROOM,
-    POLICY_RULE_SERVER,
-    POLICY_RULE_USER,
-    ROOM_ALIASES,
-    ROOM_AVATAR,
-    ROOM_CANONICAL_ALIAS,
-    ROOM_CREATE,
-    ROOM_ENCRYPTION,
-    ROOM_GUEST_ACCESS,
-    ROOM_HISTORY_VISIBILITY,
-    ROOM_JOIN_RULES,
-    ROOM_MEMBER,
-    ROOM_NAME,
-    ROOM_PINNED_EVENTS,
-    ROOM_POWER_LEVELS,
-    ROOM_SERVER_ACL,
-    ROOM_THIRD_PARTY_INVITE,
-    ROOM_TOMBSTONE,
-    ROOM_TOPIC,
-    SPACE_CHILD,
-    SPACE_PARENT;
-    companion object
-}
-
-public object FfiConverterTypeFilterStateEventType: FfiConverterRustBuffer<FilterStateEventType> {
-    override fun read(buf: ByteBuffer) = try {
-        FilterStateEventType.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: FilterStateEventType) = 4
-
-    override fun write(value: FilterStateEventType, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
 sealed class FilterTimelineEventType {
     
     data class MessageLike(
         
-        val `eventType`: FilterMessageLikeEventType
+        val `eventType`: MessageLikeEventType
         ) : FilterTimelineEventType() {
         companion object
     }
     
     data class State(
         
-        val `eventType`: FilterStateEventType
+        val `eventType`: StateEventType
         ) : FilterTimelineEventType() {
         companion object
     }
@@ -14820,10 +14924,10 @@ public object FfiConverterTypeFilterTimelineEventType : FfiConverterRustBuffer<F
     override fun read(buf: ByteBuffer): FilterTimelineEventType {
         return when(buf.getInt()) {
             1 -> FilterTimelineEventType.MessageLike(
-                FfiConverterTypeFilterMessageLikeEventType.read(buf),
+                FfiConverterTypeMessageLikeEventType.read(buf),
                 )
             2 -> FilterTimelineEventType.State(
-                FfiConverterTypeFilterStateEventType.read(buf),
+                FfiConverterTypeStateEventType.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -14834,14 +14938,14 @@ public object FfiConverterTypeFilterTimelineEventType : FfiConverterRustBuffer<F
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
-                + FfiConverterTypeFilterMessageLikeEventType.allocationSize(value.`eventType`)
+                + FfiConverterTypeMessageLikeEventType.allocationSize(value.`eventType`)
             )
         }
         is FilterTimelineEventType.State -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
-                + FfiConverterTypeFilterStateEventType.allocationSize(value.`eventType`)
+                + FfiConverterTypeStateEventType.allocationSize(value.`eventType`)
             )
         }
     }
@@ -14850,12 +14954,12 @@ public object FfiConverterTypeFilterTimelineEventType : FfiConverterRustBuffer<F
         when(value) {
             is FilterTimelineEventType.MessageLike -> {
                 buf.putInt(1)
-                FfiConverterTypeFilterMessageLikeEventType.write(value.`eventType`, buf)
+                FfiConverterTypeMessageLikeEventType.write(value.`eventType`, buf)
                 Unit
             }
             is FilterTimelineEventType.State -> {
                 buf.putInt(2)
-                FfiConverterTypeFilterStateEventType.write(value.`eventType`, buf)
+                FfiConverterTypeStateEventType.write(value.`eventType`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -15441,21 +15545,27 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
 enum class MessageLikeEventType {
     
     CALL_ANSWER,
-    CALL_INVITE,
-    CALL_HANGUP,
     CALL_CANDIDATES,
-    KEY_VERIFICATION_READY,
-    KEY_VERIFICATION_START,
-    KEY_VERIFICATION_CANCEL,
+    CALL_HANGUP,
+    CALL_INVITE,
     KEY_VERIFICATION_ACCEPT,
+    KEY_VERIFICATION_CANCEL,
+    KEY_VERIFICATION_DONE,
     KEY_VERIFICATION_KEY,
     KEY_VERIFICATION_MAC,
-    KEY_VERIFICATION_DONE,
-    REACTION_SENT,
+    KEY_VERIFICATION_READY,
+    KEY_VERIFICATION_START,
+    POLL_END,
+    POLL_RESPONSE,
+    POLL_START,
+    REACTION,
     ROOM_ENCRYPTED,
     ROOM_MESSAGE,
     ROOM_REDACTION,
-    STICKER;
+    STICKER,
+    UNSTABLE_POLL_END,
+    UNSTABLE_POLL_RESPONSE,
+    UNSTABLE_POLL_START;
     companion object
 }
 
@@ -19482,6 +19592,7 @@ public interface BackPaginationStatusListener {
 }
 
 
+
 internal typealias UniffiHandle = Long
 internal class ConcurrentHandleMap<T>(
     private val leftMap: MutableMap<UniffiHandle, T> = mutableMapOf(),
@@ -19632,6 +19743,7 @@ public interface BackupStateListener {
 }
 
 
+
 // Implement the foreign callback handler for BackupStateListener
 internal class UniffiCallbackInterfaceBackupStateListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -19716,6 +19828,7 @@ public interface BackupSteadyStateListener {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for BackupSteadyStateListener
@@ -19804,6 +19917,7 @@ public interface ClientDelegate {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for ClientDelegate
@@ -19920,6 +20034,7 @@ public interface ClientSessionDelegate {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for ClientSessionDelegate
@@ -20048,6 +20163,7 @@ public interface EnableRecoveryProgressListener {
 }
 
 
+
 // Implement the foreign callback handler for EnableRecoveryProgressListener
 internal class UniffiCallbackInterfaceEnableRecoveryProgressListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -20137,6 +20253,7 @@ public interface NotificationSettingsDelegate {
 }
 
 
+
 // Implement the foreign callback handler for NotificationSettingsDelegate
 internal class UniffiCallbackInterfaceNotificationSettingsDelegate : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -20217,6 +20334,7 @@ public interface ProgressWatcher {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for ProgressWatcher
@@ -20305,6 +20423,7 @@ public interface RecoveryStateListener {
 }
 
 
+
 // Implement the foreign callback handler for RecoveryStateListener
 internal class UniffiCallbackInterfaceRecoveryStateListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -20389,6 +20508,7 @@ public interface RoomInfoListener {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for RoomInfoListener
@@ -20477,6 +20597,7 @@ public interface RoomListEntriesListener {
 }
 
 
+
 // Implement the foreign callback handler for RoomListEntriesListener
 internal class UniffiCallbackInterfaceRoomListEntriesListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -20561,6 +20682,7 @@ public interface RoomListLoadingStateListener {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for RoomListLoadingStateListener
@@ -20649,6 +20771,7 @@ public interface RoomListServiceStateListener {
 }
 
 
+
 // Implement the foreign callback handler for RoomListServiceStateListener
 internal class UniffiCallbackInterfaceRoomListServiceStateListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -20735,6 +20858,7 @@ public interface RoomListServiceSyncIndicatorListener {
 }
 
 
+
 // Implement the foreign callback handler for RoomListServiceSyncIndicatorListener
 internal class UniffiCallbackInterfaceRoomListServiceSyncIndicatorListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -20819,6 +20943,7 @@ public interface RoomNotableTagsListener {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for RoomNotableTagsListener
@@ -20915,6 +21040,7 @@ public interface SessionVerificationControllerDelegate {
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for SessionVerificationControllerDelegate
@@ -21143,6 +21269,7 @@ public interface SyncServiceStateObserver {
 }
 
 
+
 // Implement the foreign callback handler for SyncServiceStateObserver
 internal class UniffiCallbackInterfaceSyncServiceStateObserver : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -21229,6 +21356,7 @@ public interface TimelineListener {
 }
 
 
+
 // Implement the foreign callback handler for TimelineListener
 internal class UniffiCallbackInterfaceTimelineListener : ForeignCallback {
     @Suppress("TooGenericExceptionCaught")
@@ -21307,12 +21435,100 @@ public object FfiConverterTypeTimelineListener: FfiConverterCallbackInterface<Ti
 
 
 
+public interface TypingNotificationsListener {
+    
+    fun `call`(`typingUserIds`: List<String>)
+    
+    companion object
+}
+
+
+
+// Implement the foreign callback handler for TypingNotificationsListener
+internal class UniffiCallbackInterfaceTypingNotificationsListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun invoke(handle: UniffiHandle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeTypingNotificationsListener.handleMap.get(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeTypingNotificationsListener.handleMap.remove(handle)
+
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeCall`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeCall`(kotlinCallbackInterface: TypingNotificationsListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`call`(
+                FfiConverterSequenceString.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_typingnotificationslistener(this)
+    }
+}
+
+internal val uniffiCallbackInterfaceTypingNotificationsListener = UniffiCallbackInterfaceTypingNotificationsListener()
+
+// The ffiConverter which transforms the Callbacks in to UniffiHandles to pass to Rust.
+public object FfiConverterTypeTypingNotificationsListener: FfiConverterCallbackInterface<TypingNotificationsListener>()
+
+
+
+
+
 public interface WidgetCapabilitiesProvider {
     
     fun `acquireCapabilities`(`capabilities`: WidgetCapabilities): WidgetCapabilities
     
     companion object
 }
+
 
 
 // Implement the foreign callback handler for WidgetCapabilitiesProvider
