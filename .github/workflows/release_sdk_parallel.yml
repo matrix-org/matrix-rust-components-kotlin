@@ -17,7 +17,7 @@ jobs:
       matrix:
         target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
     name: "Build Rust target: ${{ matrix.target }}"
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     outputs:
       linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
