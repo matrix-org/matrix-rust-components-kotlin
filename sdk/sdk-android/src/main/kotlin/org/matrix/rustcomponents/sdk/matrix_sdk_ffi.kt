@@ -38,7 +38,9 @@ import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
+import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.RoomMemberRole
+import uniffi.matrix_sdk.RoomPowerLevelChanges
 import uniffi.matrix_sdk_base.FfiConverterTypeRoomNotableTags
 import uniffi.matrix_sdk_base.RoomNotableTags
 import uniffi.matrix_sdk_ui.BackPaginationStatus
@@ -46,6 +48,7 @@ import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeBackPaginationStatus
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
+import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferRoomNotableTags
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferBackPaginationStatus
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
@@ -734,9 +737,13 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_apply_power_level_changes(`ptr`: Pointer,`changes`: RustBufferRoomPowerLevelChanges.ByValue,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_avatar_url(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_ban_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_build_power_level_changes_from_current(`ptr`: Pointer,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
@@ -818,6 +825,10 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Pointer,
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favorite(`ptr`: Pointer,`isFavorite`: Byte,`tagOrder`: RustBuffer.ByValue,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Pointer,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Pointer,`topic`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -835,6 +846,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_typing_notice(`ptr`: Pointer,`isTyping`: Byte,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_unban_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_update_power_level_for_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`powerLevel`: Long,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -1626,9 +1639,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_apply_power_level_changes(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_avatar_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_ban_user(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_build_power_level_changes_from_current(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban(
     ): Short
@@ -1710,6 +1727,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favorite(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
@@ -1727,6 +1748,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_typing_notice(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_unban_user(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_update_power_level_for_user(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
     ): Short
@@ -2461,10 +2484,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases() != 28555.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_apply_power_level_changes() != 41062.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_avatar_url() != 34637.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_ban_user() != 25865.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_build_power_level_changes_from_current() != 13995.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban() != 22009.toShort()) {
@@ -2587,6 +2616,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info() != 41146.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favorite() != 61829.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority() != 47223.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 60145.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2612,6 +2647,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_unban_user() != 51089.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_power_level_for_user() != 61757.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() != 34800.toShort()) {
@@ -6833,9 +6871,13 @@ public interface RoomInterface {
     
     fun `alternativeAliases`(): List<String>
     
+    suspend fun `applyPowerLevelChanges`(`changes`: RoomPowerLevelChanges)
+    
     fun `avatarUrl`(): String?
     
     suspend fun `banUser`(`userId`: String, `reason`: String?)
+    
+    suspend fun `buildPowerLevelChangesFromCurrent`(): RoomPowerLevelChanges
     
     suspend fun `canUserBan`(`userId`: String): Boolean
     
@@ -6977,6 +7019,10 @@ public interface RoomInterface {
     
     suspend fun `roomInfo`(): RoomInfo
     
+    suspend fun `setIsFavorite`(`isFavorite`: Boolean, `tagOrder`: Double?)
+    
+    suspend fun `setIsLowPriority`(`isLowPriority`: Boolean, `tagOrder`: Double?)
+    
     /**
      * Sets a new name to the room.
      */
@@ -7000,6 +7046,8 @@ public interface RoomInterface {
     suspend fun `typingNotice`(`isTyping`: Boolean)
     
     suspend fun `unbanUser`(`userId`: String, `reason`: String?)
+    
+    suspend fun `updatePowerLevelForUser`(`userId`: String, `powerLevel`: Long)
     
     /**
      * Upload and set the room's avatar.
@@ -7098,6 +7146,27 @@ open class Room : FFIObject, RoomInterface {
             FfiConverterSequenceString.lift(it)
         }
     
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `applyPowerLevelChanges`(`changes`: RoomPowerLevelChanges) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_apply_power_level_changes(
+                    thisPtr,
+                    FfiConverterTypeRoomPowerLevelChanges.lower(`changes`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     override fun `avatarUrl`(): String? =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -7126,6 +7195,26 @@ open class Room : FFIObject, RoomInterface {
             // lift function
             { Unit },
             
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `buildPowerLevelChangesFromCurrent`() : RoomPowerLevelChanges {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_build_power_level_changes_from_current(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation).let { RustBufferRoomPowerLevelChanges.create(it.capacity, it.len, it.data) } },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterTypeRoomPowerLevelChanges.lift(it) },
             // Error FFI converter
             ClientException.ErrorHandler,
         )
@@ -7783,6 +7872,48 @@ open class Room : FFIObject, RoomInterface {
         )
     }
     
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setIsFavorite`(`isFavorite`: Boolean, `tagOrder`: Double?) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_is_favorite(
+                    thisPtr,
+                    FfiConverterBoolean.lower(`isFavorite`),FfiConverterOptionalDouble.lower(`tagOrder`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setIsLowPriority`(`isLowPriority`: Boolean, `tagOrder`: Double?) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(
+                    thisPtr,
+                    FfiConverterBoolean.lower(`isLowPriority`),FfiConverterOptionalDouble.lower(`tagOrder`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
     /**
      * Sets a new name to the room.
      */
@@ -7912,6 +8043,27 @@ open class Room : FFIObject, RoomInterface {
                 UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_unban_user(
                     thisPtr,
                     FfiConverterString.lower(`userId`),FfiConverterOptionalString.lower(`reason`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `updatePowerLevelForUser`(`userId`: String, `powerLevel`: Long) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_update_power_level_for_user(
+                    thisPtr,
+                    FfiConverterString.lower(`userId`),FfiConverterLong.lower(`powerLevel`),
                 )
             },
             { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17388,11 +17540,32 @@ public object FfiConverterTypeRoomError : FfiConverterRustBuffer<RoomException> 
 
 sealed class RoomListEntriesDynamicFilterKind {
     
-    object All : RoomListEntriesDynamicFilterKind()
+    data class All(
+        
+        val `filters`: List<RoomListEntriesDynamicFilterKind>
+        ) : RoomListEntriesDynamicFilterKind() {
+        companion object
+    }
+    
+    data class Any(
+        
+        val `filters`: List<RoomListEntriesDynamicFilterKind>
+        ) : RoomListEntriesDynamicFilterKind() {
+        companion object
+    }
+    
+    object NonLeft : RoomListEntriesDynamicFilterKind()
     
     
-    object AllNonLeft : RoomListEntriesDynamicFilterKind()
+    object Unread : RoomListEntriesDynamicFilterKind()
     
+    
+    data class Category(
+        
+        val `expect`: RoomListFilterCategory
+        ) : RoomListEntriesDynamicFilterKind() {
+        companion object
+    }
     
     object None : RoomListEntriesDynamicFilterKind()
     
@@ -17419,13 +17592,22 @@ sealed class RoomListEntriesDynamicFilterKind {
 public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRustBuffer<RoomListEntriesDynamicFilterKind>{
     override fun read(buf: ByteBuffer): RoomListEntriesDynamicFilterKind {
         return when(buf.getInt()) {
-            1 -> RoomListEntriesDynamicFilterKind.All
-            2 -> RoomListEntriesDynamicFilterKind.AllNonLeft
-            3 -> RoomListEntriesDynamicFilterKind.None
-            4 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            1 -> RoomListEntriesDynamicFilterKind.All(
+                FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.read(buf),
+                )
+            2 -> RoomListEntriesDynamicFilterKind.Any(
+                FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.read(buf),
+                )
+            3 -> RoomListEntriesDynamicFilterKind.NonLeft
+            4 -> RoomListEntriesDynamicFilterKind.Unread
+            5 -> RoomListEntriesDynamicFilterKind.Category(
+                FfiConverterTypeRoomListFilterCategory.read(buf),
+                )
+            6 -> RoomListEntriesDynamicFilterKind.None
+            7 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            5 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            8 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -17437,12 +17619,33 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
+                + FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.allocationSize(value.`filters`)
             )
         }
-        is RoomListEntriesDynamicFilterKind.AllNonLeft -> {
+        is RoomListEntriesDynamicFilterKind.Any -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
+                + FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.allocationSize(value.`filters`)
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.NonLeft -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.Unread -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.Category -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+                + FfiConverterTypeRoomListFilterCategory.allocationSize(value.`expect`)
             )
         }
         is RoomListEntriesDynamicFilterKind.None -> {
@@ -17471,23 +17674,38 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
         when(value) {
             is RoomListEntriesDynamicFilterKind.All -> {
                 buf.putInt(1)
+                FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.write(value.`filters`, buf)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.AllNonLeft -> {
+            is RoomListEntriesDynamicFilterKind.Any -> {
                 buf.putInt(2)
+                FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.write(value.`filters`, buf)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.None -> {
+            is RoomListEntriesDynamicFilterKind.NonLeft -> {
                 buf.putInt(3)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
+            is RoomListEntriesDynamicFilterKind.Unread -> {
                 buf.putInt(4)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(5)
+                FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.None -> {
+                buf.putInt(6)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
+                buf.putInt(7)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
-                buf.putInt(5)
+                buf.putInt(8)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
@@ -18033,6 +18251,31 @@ public object FfiConverterTypeRoomListError : FfiConverterRustBuffer<RoomListExc
     }
 
 }
+
+
+
+enum class RoomListFilterCategory {
+    
+    GROUP,
+    PEOPLE;
+    companion object
+}
+
+public object FfiConverterTypeRoomListFilterCategory: FfiConverterRustBuffer<RoomListFilterCategory> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomListFilterCategory.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomListFilterCategory) = 4
+
+    override fun write(value: RoomListFilterCategory, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
 
 
 
@@ -23468,6 +23711,31 @@ public object FfiConverterSequenceTypeFilterTimelineEventType: FfiConverterRustB
 
 
 
+public object FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind: FfiConverterRustBuffer<List<RoomListEntriesDynamicFilterKind>> {
+    override fun read(buf: ByteBuffer): List<RoomListEntriesDynamicFilterKind> {
+        val len = buf.getInt()
+        return List<RoomListEntriesDynamicFilterKind>(len) {
+            FfiConverterTypeRoomListEntriesDynamicFilterKind.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomListEntriesDynamicFilterKind>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeRoomListEntriesDynamicFilterKind.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomListEntriesDynamicFilterKind>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypeRoomListEntriesDynamicFilterKind.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeRoomListEntriesUpdate: FfiConverterRustBuffer<List<RoomListEntriesUpdate>> {
     override fun read(buf: ByteBuffer): List<RoomListEntriesUpdate> {
         val len = buf.getInt()
@@ -23679,6 +23947,10 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<St
         }
     }
 }
+
+
+
+
 
 
 

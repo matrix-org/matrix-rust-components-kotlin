@@ -548,6 +548,26 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
+public object FfiConverterLong: FfiConverter<Long, Long> {
+    override fun lift(value: Long): Long {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Long {
+        return buf.getLong()
+    }
+
+    override fun lower(value: Long): Long {
+        return value
+    }
+
+    override fun allocationSize(value: Long) = 8
+
+    override fun write(value: Long, buf: ByteBuffer) {
+        buf.putLong(value)
+    }
+}
+
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -605,6 +625,102 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 /**
+ * A set of common power levels required for various operations within a room,
+ * that can be applied as a single operation. When updating these
+ * settings, any levels that are `None` will remain unchanged.
+ */
+data class RoomPowerLevelChanges (
+    /**
+     * The level required to ban a user.
+     */
+    var `ban`: Long? = null, 
+    /**
+     * The level required to invite a user.
+     */
+    var `invite`: Long? = null, 
+    /**
+     * The level required to kick a user.
+     */
+    var `kick`: Long? = null, 
+    /**
+     * The level required to redact an event.
+     */
+    var `redact`: Long? = null, 
+    /**
+     * The default level required to send message events.
+     */
+    var `eventsDefault`: Long? = null, 
+    /**
+     * The default level required to send state events.
+     */
+    var `stateDefault`: Long? = null, 
+    /**
+     * The default power level for every user in the room.
+     */
+    var `usersDefault`: Long? = null, 
+    /**
+     * The level required to change the room's name.
+     */
+    var `roomName`: Long? = null, 
+    /**
+     * The level required to change the room's avatar.
+     */
+    var `roomAvatar`: Long? = null, 
+    /**
+     * The level required to change the room's topic.
+     */
+    var `roomTopic`: Long? = null
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomPowerLevelChanges: FfiConverterRustBuffer<RoomPowerLevelChanges> {
+    override fun read(buf: ByteBuffer): RoomPowerLevelChanges {
+        return RoomPowerLevelChanges(
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomPowerLevelChanges) = (
+            FfiConverterOptionalLong.allocationSize(value.`ban`) +
+            FfiConverterOptionalLong.allocationSize(value.`invite`) +
+            FfiConverterOptionalLong.allocationSize(value.`kick`) +
+            FfiConverterOptionalLong.allocationSize(value.`redact`) +
+            FfiConverterOptionalLong.allocationSize(value.`eventsDefault`) +
+            FfiConverterOptionalLong.allocationSize(value.`stateDefault`) +
+            FfiConverterOptionalLong.allocationSize(value.`usersDefault`) +
+            FfiConverterOptionalLong.allocationSize(value.`roomName`) +
+            FfiConverterOptionalLong.allocationSize(value.`roomAvatar`) +
+            FfiConverterOptionalLong.allocationSize(value.`roomTopic`)
+    )
+
+    override fun write(value: RoomPowerLevelChanges, buf: ByteBuffer) {
+            FfiConverterOptionalLong.write(value.`ban`, buf)
+            FfiConverterOptionalLong.write(value.`invite`, buf)
+            FfiConverterOptionalLong.write(value.`kick`, buf)
+            FfiConverterOptionalLong.write(value.`redact`, buf)
+            FfiConverterOptionalLong.write(value.`eventsDefault`, buf)
+            FfiConverterOptionalLong.write(value.`stateDefault`, buf)
+            FfiConverterOptionalLong.write(value.`usersDefault`, buf)
+            FfiConverterOptionalLong.write(value.`roomName`, buf)
+            FfiConverterOptionalLong.write(value.`roomAvatar`, buf)
+            FfiConverterOptionalLong.write(value.`roomTopic`, buf)
+    }
+}
+
+
+
+/**
  * The role of a member in a room.
  */
 enum class RoomMemberRole {
@@ -639,4 +755,33 @@ public object FfiConverterTypeRoomMemberRole: FfiConverterRustBuffer<RoomMemberR
 }
 
 
+
+
+
+
+public object FfiConverterOptionalLong: FfiConverterRustBuffer<Long?> {
+    override fun read(buf: ByteBuffer): Long? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterLong.read(buf)
+    }
+
+    override fun allocationSize(value: Long?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterLong.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Long?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterLong.write(value, buf)
+        }
+    }
+}
 

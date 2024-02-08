@@ -631,7 +631,11 @@ data class RoomNotableTags (
     /**
      * Whether or not the room is marked as favorite.
      */
-    var `isFavorite`: Boolean
+    var `isFavorite`: Boolean, 
+    /**
+     * Whether or not the room is marked as low priority.
+     */
+    var `isLowPriority`: Boolean
 ) {
     
     companion object
@@ -641,15 +645,18 @@ public object FfiConverterTypeRoomNotableTags: FfiConverterRustBuffer<RoomNotabl
     override fun read(buf: ByteBuffer): RoomNotableTags {
         return RoomNotableTags(
             FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: RoomNotableTags) = (
-            FfiConverterBoolean.allocationSize(value.`isFavorite`)
+            FfiConverterBoolean.allocationSize(value.`isFavorite`) +
+            FfiConverterBoolean.allocationSize(value.`isLowPriority`)
     )
 
     override fun write(value: RoomNotableTags, buf: ByteBuffer) {
             FfiConverterBoolean.write(value.`isFavorite`, buf)
+            FfiConverterBoolean.write(value.`isLowPriority`, buf)
     }
 }
 
