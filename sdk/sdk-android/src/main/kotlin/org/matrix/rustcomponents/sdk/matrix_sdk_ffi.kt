@@ -41,15 +41,12 @@ import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPowerLevelChanges
-import uniffi.matrix_sdk_base.FfiConverterTypeRoomNotableTags
-import uniffi.matrix_sdk_base.RoomNotableTags
 import uniffi.matrix_sdk_ui.BackPaginationStatus
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeBackPaginationStatus
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
-import uniffi.matrix_sdk_base.RustBuffer as RustBufferRoomNotableTags
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferBackPaginationStatus
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 
@@ -414,7 +411,6 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceRoomListLoadingStateListener.register(lib)
                 uniffiCallbackInterfaceRoomListServiceStateListener.register(lib)
                 uniffiCallbackInterfaceRoomListServiceSyncIndicatorListener.register(lib)
-                uniffiCallbackInterfaceRoomNotableTagsListener.register(lib)
                 uniffiCallbackInterfaceSessionVerificationControllerDelegate.register(lib)
                 uniffiCallbackInterfaceSyncServiceStateObserver.register(lib)
                 uniffiCallbackInterfaceTimelineListener.register(lib)
@@ -825,7 +821,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Pointer,
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favorite(`ptr`: Pointer,`isFavorite`: Byte,`tagOrder`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Pointer,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Pointer,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
     ): Pointer
@@ -833,8 +829,6 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Pointer,`topic`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_notable_tags(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,
@@ -1212,8 +1206,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_roomlistservicestatelistener(`handle`: ForeignCallback,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_roomlistservicesyncindicatorlistener(`handle`: ForeignCallback,
-    ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_init_callback_roomnotabletagslistener(`handle`: ForeignCallback,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_sessionverificationcontrollerdelegate(`handle`: ForeignCallback,
     ): Unit
@@ -1727,15 +1719,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favorite(
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_notable_tags(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
     ): Short
@@ -2036,8 +2026,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomnotabletagslistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request(
     ): Short
@@ -2616,7 +2604,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info() != 41146.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favorite() != 61829.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite() != 41879.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority() != 47223.toShort()) {
@@ -2626,9 +2614,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() != 29413.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_notable_tags() != 3691.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 47774.toShort()) {
@@ -3079,9 +3064,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update() != 42394.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomnotabletagslistener_call() != 33153.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() != 22759.toShort()) {
@@ -7019,7 +7001,7 @@ public interface RoomInterface {
     
     suspend fun `roomInfo`(): RoomInfo
     
-    suspend fun `setIsFavorite`(`isFavorite`: Boolean, `tagOrder`: Double?)
+    suspend fun `setIsFavourite`(`isFavourite`: Boolean, `tagOrder`: Double?)
     
     suspend fun `setIsLowPriority`(`isLowPriority`: Boolean, `tagOrder`: Double?)
     
@@ -7032,8 +7014,6 @@ public interface RoomInterface {
      * Sets a new topic in the room.
      */
     fun `setTopic`(`topic`: String)
-    
-    fun `subscribeToNotableTags`(`listener`: RoomNotableTagsListener): TaskHandle
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
@@ -7874,12 +7854,12 @@ open class Room : FFIObject, RoomInterface {
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `setIsFavorite`(`isFavorite`: Boolean, `tagOrder`: Double?) {
+    override suspend fun `setIsFavourite`(`isFavourite`: Boolean, `tagOrder`: Double?) {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_is_favorite(
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(
                     thisPtr,
-                    FfiConverterBoolean.lower(`isFavorite`),FfiConverterOptionalDouble.lower(`tagOrder`),
+                    FfiConverterBoolean.lower(`isFavourite`),FfiConverterOptionalDouble.lower(`tagOrder`),
                 )
             },
             { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7940,17 +7920,6 @@ open class Room : FFIObject, RoomInterface {
 }
         }
     
-    
-    override fun `subscribeToNotableTags`(`listener`: RoomNotableTagsListener): TaskHandle =
-        callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_notable_tags(it,
-        FfiConverterTypeRoomNotableTagsListener.lower(`listener`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeTaskHandle.lift(it)
-        }
     
     override fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle =
         callWithPointer {
@@ -21180,93 +21149,6 @@ public object FfiConverterTypeRoomListServiceSyncIndicatorListener: FfiConverter
 
 
 
-public interface RoomNotableTagsListener {
-    
-    fun `call`(`notableTags`: RoomNotableTags)
-    
-    companion object
-}
-
-
-
-// Implement the foreign callback handler for RoomNotableTagsListener
-internal class UniffiCallbackInterfaceRoomNotableTagsListener : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun invoke(handle: UniffiHandle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeRoomNotableTagsListener.handleMap.get(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeRoomNotableTagsListener.handleMap.remove(handle)
-
-                // Successful return
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                UNIFFI_CALLBACK_SUCCESS
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    this.`invokeCall`(cb, argsData, argsLen, outBuf)
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                UNIFFI_CALLBACK_UNEXPECTED_ERROR
-            }
-        }
-    }
-
-    
-    @Suppress("UNUSED_PARAMETER")
-    private fun `invokeCall`(kotlinCallbackInterface: RoomNotableTagsListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
-            it.order(ByteOrder.BIG_ENDIAN)
-        }
-        fun makeCall() : Int {
-            kotlinCallbackInterface.`call`(
-                FfiConverterTypeRoomNotableTags.read(argsBuf)
-            )
-            return UNIFFI_CALLBACK_SUCCESS
-        }
-        fun makeCallAndHandleError() : Int = makeCall()
-
-        return makeCallAndHandleError()
-    }
-    
-
-    // Registers the foreign callback with the Rust side.
-    // This method is generated for each callback interface.
-    internal fun register(lib: UniffiLib) {
-        lib.uniffi_matrix_sdk_ffi_fn_init_callback_roomnotabletagslistener(this)
-    }
-}
-
-internal val uniffiCallbackInterfaceRoomNotableTagsListener = UniffiCallbackInterfaceRoomNotableTagsListener()
-
-// The ffiConverter which transforms the Callbacks in to UniffiHandles to pass to Rust.
-public object FfiConverterTypeRoomNotableTagsListener: FfiConverterCallbackInterface<RoomNotableTagsListener>()
-
-
-
-
-
 public interface SessionVerificationControllerDelegate {
     
     fun `didAcceptVerificationRequest`()
@@ -23947,10 +23829,6 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<St
         }
     }
 }
-
-
-
-
 
 
 

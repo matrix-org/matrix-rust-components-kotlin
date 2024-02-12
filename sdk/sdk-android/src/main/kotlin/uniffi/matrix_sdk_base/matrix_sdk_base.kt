@@ -548,26 +548,6 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
-
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -619,44 +599,6 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
-    }
-}
-
-
-
-/**
- * Holds information computed from the room account data `m.tag` events.
- */
-data class RoomNotableTags (
-    /**
-     * Whether or not the room is marked as favorite.
-     */
-    var `isFavorite`: Boolean, 
-    /**
-     * Whether or not the room is marked as low priority.
-     */
-    var `isLowPriority`: Boolean
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomNotableTags: FfiConverterRustBuffer<RoomNotableTags> {
-    override fun read(buf: ByteBuffer): RoomNotableTags {
-        return RoomNotableTags(
-            FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: RoomNotableTags) = (
-            FfiConverterBoolean.allocationSize(value.`isFavorite`) +
-            FfiConverterBoolean.allocationSize(value.`isLowPriority`)
-    )
-
-    override fun write(value: RoomNotableTags, buf: ByteBuffer) {
-            FfiConverterBoolean.write(value.`isFavorite`, buf)
-            FfiConverterBoolean.write(value.`isLowPriority`, buf)
     }
 }
 
