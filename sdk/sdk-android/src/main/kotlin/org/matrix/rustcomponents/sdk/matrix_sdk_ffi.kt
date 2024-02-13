@@ -791,11 +791,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read_and_send_read_receipt(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_unread(`ptr`: Pointer,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Pointer
@@ -829,6 +825,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Pointer,`topic`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(`ptr`: Pointer,`newValue`: Byte,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,
@@ -1064,6 +1062,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event(`ptr`: Pointer,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(`ptr`: Pointer,`opts`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -1691,10 +1691,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read_and_send_read_receipt(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_unread(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url(
@@ -1726,6 +1722,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
     ): Short
@@ -1902,6 +1900,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_timeline_event_content_by_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards(
     ): Short
@@ -2559,13 +2559,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 6569.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 30321.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read_and_send_read_receipt() != 32673.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_unread() != 41204.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 43726.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() != 10689.toShort()) {
@@ -2614,6 +2608,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() != 29413.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag() != 35026.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 47774.toShort()) {
@@ -2878,6 +2875,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event() != 11115.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read() != 15734.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() != 40762.toShort()) {
@@ -6933,24 +6933,12 @@ public interface RoomInterface {
     fun `leave`()
     
     /**
-     * Reverts a previously set unread flag.
+     * Mark a room as read, by attaching a read receipt on the latest event.
+     *
+     * Note: this does NOT unset the unread flag; it's the caller's
+     * responsibility to do so, if needs be.
      */
-    suspend fun `markAsRead`()
-    
-    /**
-     * Reverts a previously set unread flag and sends a read receipt to the
-     * latest event in the room. Sending read receipts is useful when
-     * executing this from the room list but shouldn't be use when entering
-     * the room, the timeline should be left to its own devices in that
-     * case.
-     */
-    suspend fun `markAsReadAndSendReadReceipt`(`receiptType`: ReceiptType)
-    
-    /**
-     * Sets a flag on the room to indicate that the user has explicitly marked
-     * it as unread
-     */
-    suspend fun `markAsUnread`()
+    suspend fun `markAsRead`(`receiptType`: ReceiptType)
     
     suspend fun `member`(`userId`: String): RoomMember
     
@@ -7014,6 +7002,12 @@ public interface RoomInterface {
      * Sets a new topic in the room.
      */
     fun `setTopic`(`topic`: String)
+    
+    /**
+     * Set (or unset) a flag on the room to indicate that the user has
+     * explicitly marked it as unread.
+     */
+    suspend fun `setUnreadFlag`(`newValue`: Boolean)
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
@@ -7581,69 +7575,19 @@ open class Room : FFIObject, RoomInterface {
     
     
     /**
-     * Reverts a previously set unread flag.
+     * Mark a room as read, by attaching a read receipt on the latest event.
+     *
+     * Note: this does NOT unset the unread flag; it's the caller's
+     * responsibility to do so, if needs be.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `markAsRead`() {
+    override suspend fun `markAsRead`(`receiptType`: ReceiptType) {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(
                     thisPtr,
-                    
-                )
-            },
-            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-            // lift function
-            { Unit },
-            
-            // Error FFI converter
-            ClientException.ErrorHandler,
-        )
-    }
-    
-    /**
-     * Reverts a previously set unread flag and sends a read receipt to the
-     * latest event in the room. Sending read receipts is useful when
-     * executing this from the room list but shouldn't be use when entering
-     * the room, the timeline should be left to its own devices in that
-     * case.
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `markAsReadAndSendReadReceipt`(`receiptType`: ReceiptType) {
-        return uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read_and_send_read_receipt(
-                    thisPtr,
                     FfiConverterTypeReceiptType.lower(`receiptType`),
-                )
-            },
-            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-            // lift function
-            { Unit },
-            
-            // Error FFI converter
-            ClientException.ErrorHandler,
-        )
-    }
-    
-    /**
-     * Sets a flag on the room to indicate that the user has explicitly marked
-     * it as unread
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `markAsUnread`() {
-        return uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_unread(
-                    thisPtr,
-                    
                 )
             },
             { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7921,6 +7865,31 @@ open class Room : FFIObject, RoomInterface {
         }
     
     
+    
+    /**
+     * Set (or unset) a flag on the room to indicate that the user has
+     * explicitly marked it as unread.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setUnreadFlag`(`newValue`: Boolean) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(
+                    thisPtr,
+                    FfiConverterBoolean.lower(`newValue`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     override fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -10347,6 +10316,16 @@ public interface TimelineInterface {
     suspend fun `latestEvent`(): EventTimelineItem?
     
     /**
+     * Mark the room as read by trying to attach an *unthreaded* read receipt
+     * to the latest room event.
+     *
+     * This works even if the latest event belongs to a thread, as a threaded
+     * reply also belongs to the unthreaded timeline. No threaded receipt
+     * will be sent here (see also #3123).
+     */
+    suspend fun `markAsRead`(`receiptType`: ReceiptType)
+    
+    /**
      * Loads older messages into the timeline.
      *
      * Raises an exception if there are no timeline listeners.
@@ -10573,6 +10552,35 @@ open class Timeline : FFIObject, TimelineInterface {
             { FfiConverterOptionalTypeEventTimelineItem.lift(it) },
             // Error FFI converter
             UniffiNullRustCallStatusErrorHandler,
+        )
+    }
+    
+    /**
+     * Mark the room as read by trying to attach an *unthreaded* read receipt
+     * to the latest room event.
+     *
+     * This works even if the latest event belongs to a thread, as a threaded
+     * reply also belongs to the unthreaded timeline. No threaded receipt
+     * will be sent here (see also #3123).
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `markAsRead`(`receiptType`: ReceiptType) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(
+                    thisPtr,
+                    FfiConverterTypeReceiptType.lower(`receiptType`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
         )
     }
     
@@ -12986,6 +12994,7 @@ data class RoomInfo (
     var `isPublic`: Boolean, 
     var `isSpace`: Boolean, 
     var `isTombstoned`: Boolean, 
+    var `isFavourite`: Boolean, 
     var `canonicalAlias`: String?, 
     var `alternativeAliases`: List<String>, 
     var `membership`: Membership, 
@@ -13032,6 +13041,7 @@ data class RoomInfo (
         this.`isPublic`, 
         this.`isSpace`, 
         this.`isTombstoned`, 
+        this.`isFavourite`, 
         this.`canonicalAlias`, 
         this.`alternativeAliases`, 
         this.`membership`, 
@@ -13065,6 +13075,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterTypeMembership.read(buf),
@@ -13094,6 +13105,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.allocationSize(value.`isPublic`) +
             FfiConverterBoolean.allocationSize(value.`isSpace`) +
             FfiConverterBoolean.allocationSize(value.`isTombstoned`) +
+            FfiConverterBoolean.allocationSize(value.`isFavourite`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
             FfiConverterSequenceString.allocationSize(value.`alternativeAliases`) +
             FfiConverterTypeMembership.allocationSize(value.`membership`) +
@@ -13122,6 +13134,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.write(value.`isPublic`, buf)
             FfiConverterBoolean.write(value.`isSpace`, buf)
             FfiConverterBoolean.write(value.`isTombstoned`, buf)
+            FfiConverterBoolean.write(value.`isFavourite`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
             FfiConverterSequenceString.write(value.`alternativeAliases`, buf)
             FfiConverterTypeMembership.write(value.`membership`, buf)
