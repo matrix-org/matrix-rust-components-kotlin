@@ -445,7 +445,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_authenticationservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,`sessionDelegate`: RustBuffer.ByValue,`crossProcessRefreshLockId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`additionalRootCertificates`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,`sessionDelegate`: RustBuffer.ByValue,`crossProcessRefreshLockId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -534,6 +534,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_clientbuilder(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_constructor_clientbuilder_new(uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_add_root_certificates(`ptr`: Pointer,`certificates`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_base_path(`ptr`: Pointer,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -1247,6 +1249,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_setup_tracing(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_func_suggested_role_for_power_level(`powerLevel`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferRoomMemberRole.ByValue
     fun ffi_matrix_sdk_ffi_rustbuffer_alloc(`size`: Int,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_matrix_sdk_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1389,6 +1393,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_setup_tracing(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_suggested_role_for_power_level(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_url(
@@ -1472,6 +1478,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_media(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_add_root_certificates(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_base_path(
     ): Short
@@ -2109,6 +2117,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_setup_tracing() != 35378.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_suggested_role_for_power_level() != 21984.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json() != 2998.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2233,6 +2244,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id() != 40531.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_add_root_certificates() != 57950.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_base_path() != 40888.toShort()) {
@@ -3000,7 +3014,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json() != 62542.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new() != 1456.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new() != 61043.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new() != 43131.toShort()) {
@@ -3717,10 +3731,10 @@ open class AuthenticationService : FFIObject, AuthenticationServiceInterface {
     /**
      * Creates a new service to authenticate a user with.
      */
-    constructor(`basePath`: String, `passphrase`: String?, `userAgent`: String?, `oidcConfiguration`: OidcConfiguration?, `customSlidingSyncProxy`: String?, `sessionDelegate`: ClientSessionDelegate?, `crossProcessRefreshLockId`: String?) :
+    constructor(`basePath`: String, `passphrase`: String?, `userAgent`: String?, `additionalRootCertificates`: List<ByteArray>, `oidcConfiguration`: OidcConfiguration?, `customSlidingSyncProxy`: String?, `sessionDelegate`: ClientSessionDelegate?, `crossProcessRefreshLockId`: String?) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(FfiConverterString.lower(`basePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`userAgent`),FfiConverterOptionalTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalString.lower(`customSlidingSyncProxy`),FfiConverterOptionalTypeClientSessionDelegate.lower(`sessionDelegate`),FfiConverterOptionalString.lower(`crossProcessRefreshLockId`),_status)
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(FfiConverterString.lower(`basePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`userAgent`),FfiConverterSequenceByteArray.lower(`additionalRootCertificates`),FfiConverterOptionalTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalString.lower(`customSlidingSyncProxy`),FfiConverterOptionalTypeClientSessionDelegate.lower(`sessionDelegate`),FfiConverterOptionalString.lower(`crossProcessRefreshLockId`),_status)
 })
 
     override val cleanable: UniffiCleaner.Cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
@@ -4478,6 +4492,8 @@ public object FfiConverterTypeClient: FfiConverter<Client, Pointer> {
 
 public interface ClientBuilderInterface {
     
+    fun `addRootCertificates`(`certificates`: List<ByteArray>): ClientBuilder
+    
     fun `basePath`(`path`: String): ClientBuilder
     
     fun `build`(): Client
@@ -4548,6 +4564,17 @@ open class ClientBuilder : FFIObject, ClientBuilderInterface {
         }
     }
 
+    override fun `addRootCertificates`(`certificates`: List<ByteArray>): ClientBuilder =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_add_root_certificates(it,
+        FfiConverterSequenceByteArray.lower(`certificates`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeClientBuilder.lift(it)
+        }
+    
     override fun `basePath`(`path`: String): ClientBuilder =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -16427,8 +16454,12 @@ sealed class OtherState {
     object RoomPinnedEvents : OtherState()
     
     
-    object RoomPowerLevels : OtherState()
-    
+    data class RoomPowerLevels(
+        
+        val `users`: Map<String, Long>
+        ) : OtherState() {
+        companion object
+    }
     
     object RoomServerAcl : OtherState()
     
@@ -16488,7 +16519,9 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
                 FfiConverterOptionalString.read(buf),
                 )
             13 -> OtherState.RoomPinnedEvents
-            14 -> OtherState.RoomPowerLevels
+            14 -> OtherState.RoomPowerLevels(
+                FfiConverterMapStringLong.read(buf),
+                )
             15 -> OtherState.RoomServerAcl
             16 -> OtherState.RoomThirdPartyInvite(
                 FfiConverterOptionalString.read(buf),
@@ -16591,6 +16624,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
+                + FfiConverterMapStringLong.allocationSize(value.`users`)
             )
         }
         is OtherState.RoomServerAcl -> {
@@ -16698,6 +16732,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             }
             is OtherState.RoomPowerLevels -> {
                 buf.putInt(14)
+                FfiConverterMapStringLong.write(value.`users`, buf)
                 Unit
             }
             is OtherState.RoomServerAcl -> {
@@ -17542,6 +17577,9 @@ sealed class RoomListEntriesDynamicFilterKind {
     object Unread : RoomListEntriesDynamicFilterKind()
     
     
+    object Favourite : RoomListEntriesDynamicFilterKind()
+    
+    
     data class Category(
         
         val `expect`: RoomListFilterCategory
@@ -17582,14 +17620,15 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 )
             3 -> RoomListEntriesDynamicFilterKind.NonLeft
             4 -> RoomListEntriesDynamicFilterKind.Unread
-            5 -> RoomListEntriesDynamicFilterKind.Category(
+            5 -> RoomListEntriesDynamicFilterKind.Favourite
+            6 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            6 -> RoomListEntriesDynamicFilterKind.None
-            7 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            7 -> RoomListEntriesDynamicFilterKind.None
+            8 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            8 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            9 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -17618,6 +17657,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             )
         }
         is RoomListEntriesDynamicFilterKind.Unread -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.Favourite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
@@ -17672,22 +17717,26 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(4)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.Favourite -> {
                 buf.putInt(5)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(6)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(6)
+                buf.putInt(7)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(7)
+                buf.putInt(8)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
@@ -23306,6 +23355,31 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<String>> {
 
 
 
+public object FfiConverterSequenceByteArray: FfiConverterRustBuffer<List<ByteArray>> {
+    override fun read(buf: ByteBuffer): List<ByteArray> {
+        val len = buf.getInt()
+        return List<ByteArray>(len) {
+            FfiConverterByteArray.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<ByteArray>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterByteArray.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<ByteArray>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterByteArray.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeRoom: FfiConverterRustBuffer<List<Room>> {
     override fun read(buf: ByteBuffer): List<Room> {
         val len = buf.getInt()
@@ -23740,6 +23814,41 @@ public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<String, Int>>
 
 
 
+public object FfiConverterMapStringLong: FfiConverterRustBuffer<Map<String, Long>> {
+    override fun read(buf: ByteBuffer): Map<String, Long> {
+        val len = buf.getInt()
+        return buildMap<String, Long>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterLong.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<String, Long>): Int {
+        val spaceForMapSize = 4
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterLong.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<String, Long>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterLong.write(v, buf)
+        }
+    }
+}
+
+
+
 public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<String, String>> {
     override fun read(buf: ByteBuffer): Map<String, String> {
         val len = buf.getInt()
@@ -24042,5 +24151,13 @@ fun `setupTracing`(`config`: TracingConfiguration) =
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_setup_tracing(FfiConverterTypeTracingConfiguration.lower(`config`),_status)
 }
 
+
+
+fun `suggestedRoleForPowerLevel`(`powerLevel`: Long): RoomMemberRole {
+    return FfiConverterTypeRoomMemberRole.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_suggested_role_for_power_level(FfiConverterLong.lower(`powerLevel`),_status)
+})
+}
 
 
