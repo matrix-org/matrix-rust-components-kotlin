@@ -403,6 +403,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceClientDelegate.register(lib)
                 uniffiCallbackInterfaceClientSessionDelegate.register(lib)
                 uniffiCallbackInterfaceEnableRecoveryProgressListener.register(lib)
+                uniffiCallbackInterfaceIgnoredUsersListener.register(lib)
                 uniffiCallbackInterfaceNotificationSettingsDelegate.register(lib)
                 uniffiCallbackInterfaceProgressWatcher.register(lib)
                 uniffiCallbackInterfaceRecoveryStateListener.register(lib)
@@ -445,7 +446,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_authenticationservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`additionalRootCertificates`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,`sessionDelegate`: RustBuffer.ByValue,`crossProcessRefreshLockId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`additionalRootCertificates`: RustBuffer.ByValue,`proxy`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,`sessionDelegate`: RustBuffer.ByValue,`crossProcessRefreshLockId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -493,8 +494,10 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Pointer,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -519,10 +522,12 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_upload_media(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,
@@ -554,6 +559,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Pointer,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(`ptr`: Pointer,`serverName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(`ptr`: Pointer,`serverNameOrUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_versions(`ptr`: Pointer,`versions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -761,14 +768,16 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_discard_room_key(`ptr`: Pointer,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_invite_user_by_id(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_invited_members_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -831,7 +840,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_timeline(`ptr`: Pointer,
     ): Pointer
@@ -1193,6 +1202,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_enablerecoveryprogresslistener(`handle`: ForeignCallback,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_ignoreduserslistener(`handle`: ForeignCallback,
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_notificationsettingsdelegate(`handle`: ForeignCallback,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_progresswatcher(`handle`: ForeignCallback,
@@ -1445,6 +1456,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_ignore_user(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
@@ -1468,6 +1481,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
     ): Short
@@ -1498,6 +1513,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_versions(
     ): Short
@@ -1664,6 +1681,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_trigger_room_notification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_display_name(
     ): Short
@@ -2019,6 +2038,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress(
@@ -2192,7 +2213,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_homeserver() != 26427.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignore_user() != 14308.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignore_user() != 55157.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() != 49620.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 55564.toShort()) {
@@ -2231,10 +2255,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() != 36816.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users() != 46021.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_service() != 52812.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user() != 11337.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user() != 9349.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar() != 10403.toShort()) {
@@ -2252,7 +2279,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_base_path() != 40888.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 25537.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 22728.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh() != 43839.toShort()) {
@@ -2274,6 +2301,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name() != 63110.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url() != 22597.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_versions() != 36178.toShort()) {
@@ -2525,6 +2555,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias() != 19786.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key() != 18081.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_display_name() != 39695.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -2534,7 +2567,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_id() != 61990.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user() != 3287.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user() != 50971.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_invite_user_by_id() != 483.toShort()) {
@@ -2630,7 +2663,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 47774.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications() != 10034.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications() != 24633.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline() != 701.toShort()) {
@@ -3014,7 +3047,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json() != 62542.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new() != 61043.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_authenticationservice_new() != 249.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new() != 43131.toShort()) {
@@ -3054,6 +3087,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update() != 30049.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call() != 22029.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 51708.toShort()) {
@@ -3731,10 +3767,10 @@ open class AuthenticationService : FFIObject, AuthenticationServiceInterface {
     /**
      * Creates a new service to authenticate a user with.
      */
-    constructor(`basePath`: String, `passphrase`: String?, `userAgent`: String?, `additionalRootCertificates`: List<ByteArray>, `oidcConfiguration`: OidcConfiguration?, `customSlidingSyncProxy`: String?, `sessionDelegate`: ClientSessionDelegate?, `crossProcessRefreshLockId`: String?) :
+    constructor(`basePath`: String, `passphrase`: String?, `userAgent`: String?, `additionalRootCertificates`: List<ByteArray>, `proxy`: String?, `oidcConfiguration`: OidcConfiguration?, `customSlidingSyncProxy`: String?, `sessionDelegate`: ClientSessionDelegate?, `crossProcessRefreshLockId`: String?) :
         this(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(FfiConverterString.lower(`basePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`userAgent`),FfiConverterSequenceByteArray.lower(`additionalRootCertificates`),FfiConverterOptionalTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalString.lower(`customSlidingSyncProxy`),FfiConverterOptionalTypeClientSessionDelegate.lower(`sessionDelegate`),FfiConverterOptionalString.lower(`crossProcessRefreshLockId`),_status)
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(FfiConverterString.lower(`basePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`userAgent`),FfiConverterSequenceByteArray.lower(`additionalRootCertificates`),FfiConverterOptionalString.lower(`proxy`),FfiConverterOptionalTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalString.lower(`customSlidingSyncProxy`),FfiConverterOptionalTypeClientSessionDelegate.lower(`sessionDelegate`),FfiConverterOptionalString.lower(`crossProcessRefreshLockId`),_status)
 })
 
     override val cleanable: UniffiCleaner.Cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
@@ -3909,7 +3945,9 @@ public interface ClientInterface {
      */
     fun `homeserver`(): String
     
-    fun `ignoreUser`(`userId`: String)
+    suspend fun `ignoreUser`(`userId`: String)
+    
+    suspend fun `ignoredUsers`(): List<String>
     
     /**
      * Login using a username and password.
@@ -3954,9 +3992,11 @@ public interface ClientInterface {
      */
     fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: String, `deviceDisplayName`: String, `profileTag`: String?, `lang`: String)
     
+    fun `subscribeToIgnoredUsers`(`listener`: IgnoredUsersListener): TaskHandle
+    
     fun `syncService`(): SyncServiceBuilder
     
-    fun `unignoreUser`(`userId`: String)
+    suspend fun `unignoreUser`(`userId`: String)
     
     fun `uploadAvatar`(`mimeType`: String, `data`: ByteArray)
     
@@ -4224,16 +4264,46 @@ open class Client : FFIObject, ClientInterface {
         }
     
     
-    @Throws(ClientException::class)override fun `ignoreUser`(`userId`: String) =
-        callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ignoreUser`(`userId`: String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(
+                    thisPtr,
+                    FfiConverterString.lower(`userId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
-    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ignoredUsers`() : List<String> {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterSequenceString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     /**
      * Login using a username and password.
@@ -4389,6 +4459,17 @@ open class Client : FFIObject, ClientInterface {
         }
     
     
+    override fun `subscribeToIgnoredUsers`(`listener`: IgnoredUsersListener): TaskHandle =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(it,
+        FfiConverterTypeIgnoredUsersListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
     override fun `syncService`(): SyncServiceBuilder =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -4401,16 +4482,26 @@ open class Client : FFIObject, ClientInterface {
         }
     
     
-    @Throws(ClientException::class)override fun `unignoreUser`(`userId`: String) =
-        callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }
-    
-    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `unignoreUser`(`userId`: String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(
+                    thisPtr,
+                    FfiConverterString.lower(`userId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     @Throws(ClientException::class)override fun `uploadAvatar`(`mimeType`: String, `data`: ByteArray) =
         callWithPointer {
@@ -4512,6 +4603,8 @@ public interface ClientBuilderInterface {
     
     fun `serverName`(`serverName`: String): ClientBuilder
     
+    fun `serverNameOrHomeserverUrl`(`serverNameOrUrl`: String): ClientBuilder
+    
     fun `serverVersions`(`versions`: List<String>): ClientBuilder
     
     fun `setSessionDelegate`(`sessionDelegate`: ClientSessionDelegate): ClientBuilder
@@ -4587,9 +4680,9 @@ open class ClientBuilder : FFIObject, ClientBuilderInterface {
         }
     
     
-    @Throws(ClientException::class)override fun `build`(): Client =
+    @Throws(ClientBuildException::class)override fun `build`(): Client =
         callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
+    uniffiRustCallWithError(ClientBuildException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(it,
         
         _status)
@@ -4669,6 +4762,17 @@ open class ClientBuilder : FFIObject, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(it,
         FfiConverterString.lower(`serverName`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeClientBuilder.lift(it)
+        }
+    
+    override fun `serverNameOrHomeserverUrl`(`serverNameOrUrl`: String): ClientBuilder =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(it,
+        FfiConverterString.lower(`serverNameOrUrl`),
         _status)
 }
         }.let {
@@ -6906,6 +7010,17 @@ public interface RoomInterface {
     
     fun `canonicalAlias`(): String?
     
+    /**
+     * Forces the currently active room key, which is used to encrypt messages,
+     * to be rotated.
+     *
+     * A new room key will be crated and shared with all the room members the
+     * next time a message will be sent. You don't have to call this method,
+     * room keys will be rotated automatically when necessary. This method is
+     * still useful for debugging purposes.
+     */
+    suspend fun `discardRoomKey`()
+    
     fun `displayName`(): String
     
     /**
@@ -6921,9 +7036,9 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `event_id` - The ID of the user to ignore.
+     * * `user_id` - The ID of the user to ignore.
      */
-    fun `ignoreUser`(`userId`: String)
+    suspend fun `ignoreUser`(`userId`: String)
     
     fun `inviteUserById`(`userId`: String)
     
@@ -7038,7 +7153,7 @@ public interface RoomInterface {
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
-    suspend fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle
+    fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle
     
     suspend fun `timeline`(): Timeline
     
@@ -7392,6 +7507,36 @@ open class Room : FFIObject, RoomInterface {
         }
     
     
+    /**
+     * Forces the currently active room key, which is used to encrypt messages,
+     * to be rotated.
+     *
+     * A new room key will be crated and shared with all the room members the
+     * next time a message will be sent. You don't have to call this method,
+     * room keys will be rotated automatically when necessary. This method is
+     * still useful for debugging purposes.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `discardRoomKey`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_discard_room_key(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
     @Throws(ClientException::class)override fun `displayName`(): String =
         callWithPointer {
     uniffiRustCallWithError(ClientException) { _status ->
@@ -7435,18 +7580,28 @@ open class Room : FFIObject, RoomInterface {
      *
      * # Arguments
      *
-     * * `event_id` - The ID of the user to ignore.
+     * * `user_id` - The ID of the user to ignore.
      */
-    @Throws(ClientException::class)override fun `ignoreUser`(`userId`: String) =
-        callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }
-    
-    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ignoreUser`(`userId`: String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(
+                    thisPtr,
+                    FfiConverterString.lower(`userId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     @Throws(ClientException::class)override fun `inviteUserById`(`userId`: String) =
         callWithPointer {
@@ -7928,25 +8083,17 @@ open class Room : FFIObject, RoomInterface {
             FfiConverterTypeTaskHandle.lift(it)
         }
     
+    override fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(it,
+        FfiConverterTypeTypingNotificationsListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
     
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener) : TaskHandle {
-        return uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(
-                    thisPtr,
-                    FfiConverterTypeTypingNotificationsListener.lower(`listener`),
-                )
-            },
-            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
-            // lift function
-            { FfiConverterTypeTaskHandle.lift(it) },
-            // Error FFI converter
-            UniffiNullRustCallStatusErrorHandler,
-        )
-    }
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -14335,6 +14482,12 @@ sealed class AuthenticationException(message: String): Exception(message) {
         
         class InvalidServerName(message: String) : AuthenticationException(message)
         
+        class ServerUnreachable(message: String) : AuthenticationException(message)
+        
+        class WellKnownLookupFailed(message: String) : AuthenticationException(message)
+        
+        class WellKnownDeserializationException(message: String) : AuthenticationException(message)
+        
         class SlidingSyncNotAvailable(message: String) : AuthenticationException(message)
         
         class SessionMissing(message: String) : AuthenticationException(message)
@@ -14367,16 +14520,19 @@ public object FfiConverterTypeAuthenticationError : FfiConverterRustBuffer<Authe
             return when(buf.getInt()) {
             1 -> AuthenticationException.ClientMissing(FfiConverterString.read(buf))
             2 -> AuthenticationException.InvalidServerName(FfiConverterString.read(buf))
-            3 -> AuthenticationException.SlidingSyncNotAvailable(FfiConverterString.read(buf))
-            4 -> AuthenticationException.SessionMissing(FfiConverterString.read(buf))
-            5 -> AuthenticationException.InvalidBasePath(FfiConverterString.read(buf))
-            6 -> AuthenticationException.OidcNotSupported(FfiConverterString.read(buf))
-            7 -> AuthenticationException.OidcMetadataMissing(FfiConverterString.read(buf))
-            8 -> AuthenticationException.OidcMetadataInvalid(FfiConverterString.read(buf))
-            9 -> AuthenticationException.OidcCallbackUrlInvalid(FfiConverterString.read(buf))
-            10 -> AuthenticationException.OidcCancelled(FfiConverterString.read(buf))
-            11 -> AuthenticationException.OidcException(FfiConverterString.read(buf))
-            12 -> AuthenticationException.Generic(FfiConverterString.read(buf))
+            3 -> AuthenticationException.ServerUnreachable(FfiConverterString.read(buf))
+            4 -> AuthenticationException.WellKnownLookupFailed(FfiConverterString.read(buf))
+            5 -> AuthenticationException.WellKnownDeserializationException(FfiConverterString.read(buf))
+            6 -> AuthenticationException.SlidingSyncNotAvailable(FfiConverterString.read(buf))
+            7 -> AuthenticationException.SessionMissing(FfiConverterString.read(buf))
+            8 -> AuthenticationException.InvalidBasePath(FfiConverterString.read(buf))
+            9 -> AuthenticationException.OidcNotSupported(FfiConverterString.read(buf))
+            10 -> AuthenticationException.OidcMetadataMissing(FfiConverterString.read(buf))
+            11 -> AuthenticationException.OidcMetadataInvalid(FfiConverterString.read(buf))
+            12 -> AuthenticationException.OidcCallbackUrlInvalid(FfiConverterString.read(buf))
+            13 -> AuthenticationException.OidcCancelled(FfiConverterString.read(buf))
+            14 -> AuthenticationException.OidcException(FfiConverterString.read(buf))
+            15 -> AuthenticationException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -14396,44 +14552,56 @@ public object FfiConverterTypeAuthenticationError : FfiConverterRustBuffer<Authe
                 buf.putInt(2)
                 Unit
             }
-            is AuthenticationException.SlidingSyncNotAvailable -> {
+            is AuthenticationException.ServerUnreachable -> {
                 buf.putInt(3)
                 Unit
             }
-            is AuthenticationException.SessionMissing -> {
+            is AuthenticationException.WellKnownLookupFailed -> {
                 buf.putInt(4)
                 Unit
             }
-            is AuthenticationException.InvalidBasePath -> {
+            is AuthenticationException.WellKnownDeserializationException -> {
                 buf.putInt(5)
                 Unit
             }
-            is AuthenticationException.OidcNotSupported -> {
+            is AuthenticationException.SlidingSyncNotAvailable -> {
                 buf.putInt(6)
                 Unit
             }
-            is AuthenticationException.OidcMetadataMissing -> {
+            is AuthenticationException.SessionMissing -> {
                 buf.putInt(7)
                 Unit
             }
-            is AuthenticationException.OidcMetadataInvalid -> {
+            is AuthenticationException.InvalidBasePath -> {
                 buf.putInt(8)
                 Unit
             }
-            is AuthenticationException.OidcCallbackUrlInvalid -> {
+            is AuthenticationException.OidcNotSupported -> {
                 buf.putInt(9)
                 Unit
             }
-            is AuthenticationException.OidcCancelled -> {
+            is AuthenticationException.OidcMetadataMissing -> {
                 buf.putInt(10)
                 Unit
             }
-            is AuthenticationException.OidcException -> {
+            is AuthenticationException.OidcMetadataInvalid -> {
                 buf.putInt(11)
                 Unit
             }
-            is AuthenticationException.Generic -> {
+            is AuthenticationException.OidcCallbackUrlInvalid -> {
                 buf.putInt(12)
+                Unit
+            }
+            is AuthenticationException.OidcCancelled -> {
+                buf.putInt(13)
+                Unit
+            }
+            is AuthenticationException.OidcException -> {
+                buf.putInt(14)
+                Unit
+            }
+            is AuthenticationException.Generic -> {
+                buf.putInt(15)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -14566,6 +14734,52 @@ public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupU
 }
 
 
+
+
+
+
+
+sealed class ClientBuildException(message: String): Exception(message) {
+        
+        class Sdk(message: String) : ClientBuildException(message)
+        
+        class Generic(message: String) : ClientBuildException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<ClientBuildException> {
+        override fun lift(error_buf: RustBuffer.ByValue): ClientBuildException = FfiConverterTypeClientBuildError.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBuildException> {
+    override fun read(buf: ByteBuffer): ClientBuildException {
+        
+            return when(buf.getInt()) {
+            1 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
+            2 -> ClientBuildException.Generic(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: ClientBuildException): Int {
+        return 4
+    }
+
+    override fun write(value: ClientBuildException, buf: ByteBuffer) {
+        when(value) {
+            is ClientBuildException.Sdk -> {
+                buf.putInt(1)
+                Unit
+            }
+            is ClientBuildException.Generic -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
@@ -20511,6 +20725,93 @@ internal val uniffiCallbackInterfaceEnableRecoveryProgressListener = UniffiCallb
 
 // The ffiConverter which transforms the Callbacks in to UniffiHandles to pass to Rust.
 public object FfiConverterTypeEnableRecoveryProgressListener: FfiConverterCallbackInterface<EnableRecoveryProgressListener>()
+
+
+
+
+
+public interface IgnoredUsersListener {
+    
+    fun `call`(`ignoredUserIds`: List<String>)
+    
+    companion object
+}
+
+
+
+// Implement the foreign callback handler for IgnoredUsersListener
+internal class UniffiCallbackInterfaceIgnoredUsersListener : ForeignCallback {
+    @Suppress("TooGenericExceptionCaught")
+    override fun invoke(handle: UniffiHandle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val cb = FfiConverterTypeIgnoredUsersListener.handleMap.get(handle)
+        return when (method) {
+            IDX_CALLBACK_FREE -> {
+                FfiConverterTypeIgnoredUsersListener.handleMap.remove(handle)
+
+                // Successful return
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                UNIFFI_CALLBACK_SUCCESS
+            }
+            1 -> {
+                // Call the method, write to outBuf and return a status code
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
+                try {
+                    this.`invokeCall`(cb, argsData, argsLen, outBuf)
+                } catch (e: Throwable) {
+                    // Unexpected error
+                    try {
+                        // Try to serialize the error into a string
+                        outBuf.setValue(FfiConverterString.lower(e.toString()))
+                    } catch (e: Throwable) {
+                        // If that fails, then it's time to give up and just return
+                    }
+                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
+                }
+            }
+            
+            else -> {
+                // An unexpected error happened.
+                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
+                try {
+                    // Try to serialize the error into a string
+                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
+                } catch (e: Throwable) {
+                    // If that fails, then it's time to give up and just return
+                }
+                UNIFFI_CALLBACK_UNEXPECTED_ERROR
+            }
+        }
+    }
+
+    
+    @Suppress("UNUSED_PARAMETER")
+    private fun `invokeCall`(kotlinCallbackInterface: IgnoredUsersListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
+        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
+            it.order(ByteOrder.BIG_ENDIAN)
+        }
+        fun makeCall() : Int {
+            kotlinCallbackInterface.`call`(
+                FfiConverterSequenceString.read(argsBuf)
+            )
+            return UNIFFI_CALLBACK_SUCCESS
+        }
+        fun makeCallAndHandleError() : Int = makeCall()
+
+        return makeCallAndHandleError()
+    }
+    
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_ignoreduserslistener(this)
+    }
+}
+
+internal val uniffiCallbackInterfaceIgnoredUsersListener = UniffiCallbackInterfaceIgnoredUsersListener()
+
+// The ffiConverter which transforms the Callbacks in to UniffiHandles to pass to Rust.
+public object FfiConverterTypeIgnoredUsersListener: FfiConverterCallbackInterface<IgnoredUsersListener>()
 
 
 
