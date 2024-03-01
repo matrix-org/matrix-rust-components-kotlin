@@ -28,6 +28,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
@@ -42,6 +43,12 @@ open class RustBuffer : Structure() {
 
     class ByValue: RustBuffer(), Structure.ByValue
     class ByReference: RustBuffer(), Structure.ByReference
+
+   internal fun setValue(other: RustBuffer) {
+        capacity = other.capacity
+        len = other.len
+        data = other.data
+    }
 
     companion object {
         internal fun alloc(size: Int = 0) = uniffiRustCall() { status ->
@@ -190,7 +197,11 @@ public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, Ru
 }
 // A handful of classes and functions to support the generated data structures.
 // This would be a good candidate for isolating in its own ffi-support lib.
-// Error runtime.
+
+internal const val UNIFFI_CALL_SUCCESS = 0.toByte()
+internal const val UNIFFI_CALL_ERROR = 1.toByte()
+internal const val UNIFFI_CALL_UNEXPECTED_ERROR = 2.toByte()
+
 @Structure.FieldOrder("code", "error_buf")
 internal open class UniffiRustCallStatus : Structure() {
     @JvmField var code: Byte = 0
@@ -199,15 +210,15 @@ internal open class UniffiRustCallStatus : Structure() {
     class ByValue: UniffiRustCallStatus(), Structure.ByValue
 
     fun isSuccess(): Boolean {
-        return code == 0.toByte()
+        return code == UNIFFI_CALL_SUCCESS
     }
 
     fun isError(): Boolean {
-        return code == 1.toByte()
+        return code == UNIFFI_CALL_ERROR
     }
 
     fun isPanic(): Boolean {
-        return code == 2.toByte()
+        return code == UNIFFI_CALL_UNEXPECTED_ERROR
     }
 }
 
@@ -263,91 +274,63 @@ private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U 
     return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback);
 }
 
-// IntegerType that matches Rust's `usize` / C's `size_t`
-public class USize(value: Long = 0) : IntegerType(Native.SIZE_T_SIZE, value, true) {
-    // This is needed to fill in the gaps of IntegerType's implementation of Number for Kotlin.
-    override fun toByte() = toInt().toByte()
-    // Needed until https://youtrack.jetbrains.com/issue/KT-47902 is fixed.
-    @Deprecated("`toInt().toChar()` is deprecated")
-    override fun toChar() = toInt().toChar()
-    override fun toShort() = toInt().toShort()
-
-    fun writeToBuffer(buf: ByteBuffer) {
-        // Make sure we always write usize integers using native byte-order, since they may be
-        // casted to pointer values
-        buf.order(ByteOrder.nativeOrder())
-        try {
-            when (Native.SIZE_T_SIZE) {
-                4 -> buf.putInt(toInt())
-                8 -> buf.putLong(toLong())
-                else -> throw RuntimeException("Invalid SIZE_T_SIZE: ${Native.SIZE_T_SIZE}")
-            }
-        } finally {
-            buf.order(ByteOrder.BIG_ENDIAN)
-        }
-    }
-
-    companion object {
-        val size: Int
-            get() = Native.SIZE_T_SIZE
-
-        fun readFromBuffer(buf: ByteBuffer) : USize {
-            // Make sure we always read usize integers using native byte-order, since they may be
-            // casted from pointer values
-            buf.order(ByteOrder.nativeOrder())
-            try {
-                return when (Native.SIZE_T_SIZE) {
-                    4 -> USize(buf.getInt().toLong())
-                    8 -> USize(buf.getLong())
-                    else -> throw RuntimeException("Invalid SIZE_T_SIZE: ${Native.SIZE_T_SIZE}")
-                }
-            } finally {
-                buf.order(ByteOrder.BIG_ENDIAN)
-            }
-        }
+internal inline fun<T> uniffiTraitInterfaceCall(
+    callStatus: UniffiRustCallStatus,
+    makeCall: () -> T,
+    writeReturn: (T) -> Unit,
+) {
+    try {
+        writeReturn(makeCall())
+    } catch(e: Exception) {
+        callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
+        callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
 }
 
-
+internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
+    callStatus: UniffiRustCallStatus,
+    makeCall: () -> T,
+    writeReturn: (T) -> Unit,
+    lowerError: (E) -> RustBuffer.ByValue
+) {
+    try {
+        writeReturn(makeCall())
+    } catch(e: Exception) {
+        if (e is E) {
+            callStatus.code = UNIFFI_CALL_ERROR
+            callStatus.error_buf = lowerError(e)
+        } else {
+            callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
+            callStatus.error_buf = FfiConverterString.lower(e.toString())
+        }
+    }
+}
 // Map handles to objects
 //
-// This is used when the Rust code expects an opaque pointer to represent some foreign object.
-// Normally we would pass a pointer to the object, but JNA doesn't support getting a pointer from an
-// object reference , nor does it support leaking a reference to Rust.
-//
-// Instead, this class maps USize values to objects so that we can pass a pointer-sized type to
-// Rust when it needs an opaque pointer.
-//
-// TODO: refactor callbacks to use this class
-internal class UniFfiHandleMap<T: Any> {
-    private val map = ConcurrentHashMap<USize, T>()
-    // Use AtomicInteger for our counter, since we may be on a 32-bit system.  4 billion possible
-    // values seems like enough. If somehow we generate 4 billion handles, then this will wrap
-    // around back to zero and we can assume the first handle generated will have been dropped by
-    // then.
-    private val counter = java.util.concurrent.atomic.AtomicInteger(0)
+// This is used pass an opaque 64-bit handle representing a foreign object to the Rust code.
+internal class UniffiHandleMap<T: Any> {
+    private val map = ConcurrentHashMap<Long, T>()
+    private val counter = java.util.concurrent.atomic.AtomicLong(0)
 
     val size: Int
         get() = map.size
 
-    fun insert(obj: T): USize {
-        val handle = USize(counter.getAndAdd(1).toLong())
+    // Insert a new object into the handle map and get a handle for it
+    fun insert(obj: T): Long {
+        val handle = counter.getAndAdd(1)
         map.put(handle, obj)
         return handle
     }
 
-    fun get(handle: USize): T? {
-        return map.get(handle)
+    // Get an object from the handle map
+    fun get(handle: Long): T {
+        return map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
     }
 
-    fun remove(handle: USize): T? {
-        return map.remove(handle)
+    // Remove an entry from the handlemap and get the Kotlin object back
+    fun remove(handle: Long): T {
+        return map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
     }
-}
-
-// FFI type for Rust future continuations
-internal interface UniFffiRustFutureContinuationCallbackType : com.sun.jna.Callback {
-    fun callback(continuationHandle: USize, pollResult: Byte);
 }
 
 // Contains loading, initialization code,
@@ -366,6 +349,90 @@ private inline fun <reified Lib : Library> loadIndirect(
 ): Lib {
     return Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
 }
+
+// Define FFI callback types
+internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
+    fun callback(`data`: Long,`pollResult`: Byte,)
+}
+internal interface UniffiForeignFutureFree : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+}
+internal interface UniffiCallbackInterfaceFree : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+}
+@Structure.FieldOrder("handle", "free")
+internal open class UniffiForeignFuture(
+    @JvmField internal var `handle`: Long = 0.toLong(),
+    @JvmField internal var `free`: UniffiForeignFutureFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `handle`: Long = 0.toLong(),
+        `free`: UniffiForeignFutureFree? = null,
+    ): UniffiForeignFuture(`handle`,`free`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFuture) {
+        `handle` = other.`handle`
+        `free` = other.`free`
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
@@ -390,109 +457,109 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_matrix_sdk_ui_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_ui_rust_future_poll_u8(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u8(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_u8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u8(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_u8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u8(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun ffi_matrix_sdk_ui_rust_future_poll_i8(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i8(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_i8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i8(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_i8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i8(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun ffi_matrix_sdk_ui_rust_future_poll_u16(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u16(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_u16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u16(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_u16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u16(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    fun ffi_matrix_sdk_ui_rust_future_poll_i16(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i16(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_i16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i16(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_i16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i16(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    fun ffi_matrix_sdk_ui_rust_future_poll_u32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u32(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_u32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u32(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_u32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u32(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    fun ffi_matrix_sdk_ui_rust_future_poll_i32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i32(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_i32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i32(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_i32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i32(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    fun ffi_matrix_sdk_ui_rust_future_poll_u64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u64(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_u64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u64(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_u64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u64(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun ffi_matrix_sdk_ui_rust_future_poll_i64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i64(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_i64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i64(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_i64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i64(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun ffi_matrix_sdk_ui_rust_future_poll_f32(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_f32(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_f32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_f32(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_f32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_f32(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Float
-    fun ffi_matrix_sdk_ui_rust_future_poll_f64(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_f64(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_f64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_f64(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_f64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_f64(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
-    fun ffi_matrix_sdk_ui_rust_future_poll_pointer(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_pointer(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_pointer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_pointer(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_pointer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_pointer(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun ffi_matrix_sdk_ui_rust_future_poll_rust_buffer(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_rust_buffer(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_rust_buffer(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_rust_buffer(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_ui_rust_future_poll_void(`handle`: Pointer,`callback`: UniFffiRustFutureContinuationCallbackType,`callbackData`: USize,
+    fun ffi_matrix_sdk_ui_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_void(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_cancel_void(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_void(`handle`: Pointer,
+    fun ffi_matrix_sdk_ui_rust_future_free_void(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_void(`handle`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_ui_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun ffi_matrix_sdk_ui_uniffi_contract_version(
     ): Int
@@ -501,7 +568,7 @@ internal interface UniffiLib : Library {
 
 private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 25
+    val bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_matrix_sdk_ui_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
@@ -547,6 +614,9 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
             // swallow
         }
     }
+
+/** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
+object NoPointer
 
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
