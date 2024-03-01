@@ -47,5 +47,6 @@ android {
 dependencies {
     implementation Dependencies.jna
     implementation Dependencies.coroutines
+    implementation Dependencies.annotations
     testImplementation Dependencies.junit
 }
