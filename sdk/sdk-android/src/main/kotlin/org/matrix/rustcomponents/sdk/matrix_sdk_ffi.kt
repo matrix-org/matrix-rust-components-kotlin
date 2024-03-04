@@ -2070,7 +2070,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_unban_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_update_power_level_for_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`powerLevel`: Long,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_update_power_levels_for_users(`ptr`: Pointer,`updates`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -2946,7 +2946,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_unban_user(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_update_power_level_for_user(
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_update_power_levels_for_users(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
     ): Short
@@ -3826,7 +3826,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_unban_user() != 51089.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_power_level_for_user() != 61757.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_power_levels_for_users() != 34363.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() != 34800.toShort()) {
@@ -10043,7 +10043,7 @@ public interface RoomInterface {
     
     suspend fun `unbanUser`(`userId`: String, `reason`: String?)
     
-    suspend fun `updatePowerLevelForUser`(`userId`: String, `powerLevel`: Long)
+    suspend fun `updatePowerLevelsForUsers`(`updates`: List<UserPowerLevelUpdate>)
     
     /**
      * Upload and set the room's avatar.
@@ -11117,12 +11117,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `updatePowerLevelForUser`(`userId`: String, `powerLevel`: Long) {
+    override suspend fun `updatePowerLevelsForUsers`(`updates`: List<UserPowerLevelUpdate>) {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_update_power_level_for_user(
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_update_power_levels_for_users(
                     thisPtr,
-                    FfiConverterString.lower(`userId`),FfiConverterLong.lower(`powerLevel`),
+                    FfiConverterSequenceTypeUserPowerLevelUpdate.lower(`updates`),
                 )
             },
             { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -19742,6 +19742,44 @@ public object FfiConverterTypeUnstableVoiceContent: FfiConverterRustBuffer<Unsta
 
 
 
+/**
+ * An update for a particular user's power level within the room.
+ */
+data class UserPowerLevelUpdate (
+    /**
+     * The user ID of the user to update.
+     */
+    var `userId`: String, 
+    /**
+     * The power level to assign to the user.
+     */
+    var `powerLevel`: Long
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeUserPowerLevelUpdate: FfiConverterRustBuffer<UserPowerLevelUpdate> {
+    override fun read(buf: ByteBuffer): UserPowerLevelUpdate {
+        return UserPowerLevelUpdate(
+            FfiConverterString.read(buf),
+            FfiConverterLong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: UserPowerLevelUpdate) = (
+            FfiConverterString.allocationSize(value.`userId`) +
+            FfiConverterLong.allocationSize(value.`powerLevel`)
+    )
+
+    override fun write(value: UserPowerLevelUpdate, buf: ByteBuffer) {
+            FfiConverterString.write(value.`userId`, buf)
+            FfiConverterLong.write(value.`powerLevel`, buf)
+    }
+}
+
+
+
 data class UserProfile (
     var `userId`: String, 
     var `displayName`: String?, 
@@ -25346,6 +25384,9 @@ sealed class TimelineItemContentKind: Disposable  {
         companion object
     }
     
+    object CallInvite : TimelineItemContentKind()
+    
+    
     data class UnableToDecrypt(
         
         val `msg`: EncryptedMessage
@@ -25433,6 +25474,8 @@ sealed class TimelineItemContentKind: Disposable  {
         this.`hasBeenEdited`)
                 
             }
+            is TimelineItemContentKind.CallInvite -> {// Nothing to destroy
+            }
             is TimelineItemContentKind.UnableToDecrypt -> {
                 
     Disposable.destroy(
@@ -25502,28 +25545,29 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterOptionalULong.read(buf),
                 FfiConverterBoolean.read(buf),
                 )
-            5 -> TimelineItemContentKind.UnableToDecrypt(
+            5 -> TimelineItemContentKind.CallInvite
+            6 -> TimelineItemContentKind.UnableToDecrypt(
                 FfiConverterTypeEncryptedMessage.read(buf),
                 )
-            6 -> TimelineItemContentKind.RoomMembership(
+            7 -> TimelineItemContentKind.RoomMembership(
                 FfiConverterString.read(buf),
                 FfiConverterOptionalTypeMembershipChange.read(buf),
                 )
-            7 -> TimelineItemContentKind.ProfileChange(
+            8 -> TimelineItemContentKind.ProfileChange(
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 )
-            8 -> TimelineItemContentKind.State(
+            9 -> TimelineItemContentKind.State(
                 FfiConverterString.read(buf),
                 FfiConverterTypeOtherState.read(buf),
                 )
-            9 -> TimelineItemContentKind.FailedToParseMessageLike(
+            10 -> TimelineItemContentKind.FailedToParseMessageLike(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 )
-            10 -> TimelineItemContentKind.FailedToParseState(
+            11 -> TimelineItemContentKind.FailedToParseState(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
@@ -25565,6 +25609,12 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterMapStringSequenceString.allocationSize(value.`votes`)
                 + FfiConverterOptionalULong.allocationSize(value.`endTime`)
                 + FfiConverterBoolean.allocationSize(value.`hasBeenEdited`)
+            )
+        }
+        is TimelineItemContentKind.CallInvite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
             )
         }
         is TimelineItemContentKind.UnableToDecrypt -> {
@@ -25647,19 +25697,23 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterBoolean.write(value.`hasBeenEdited`, buf)
                 Unit
             }
-            is TimelineItemContentKind.UnableToDecrypt -> {
+            is TimelineItemContentKind.CallInvite -> {
                 buf.putInt(5)
+                Unit
+            }
+            is TimelineItemContentKind.UnableToDecrypt -> {
+                buf.putInt(6)
                 FfiConverterTypeEncryptedMessage.write(value.`msg`, buf)
                 Unit
             }
             is TimelineItemContentKind.RoomMembership -> {
-                buf.putInt(6)
+                buf.putInt(7)
                 FfiConverterString.write(value.`userId`, buf)
                 FfiConverterOptionalTypeMembershipChange.write(value.`change`, buf)
                 Unit
             }
             is TimelineItemContentKind.ProfileChange -> {
-                buf.putInt(7)
+                buf.putInt(8)
                 FfiConverterOptionalString.write(value.`displayName`, buf)
                 FfiConverterOptionalString.write(value.`prevDisplayName`, buf)
                 FfiConverterOptionalString.write(value.`avatarUrl`, buf)
@@ -25667,19 +25721,19 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 Unit
             }
             is TimelineItemContentKind.State -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterTypeOtherState.write(value.`content`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseMessageLike -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseState -> {
-                buf.putInt(10)
+                buf.putInt(11)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterString.write(value.`error`, buf)
@@ -28845,6 +28899,31 @@ public object FfiConverterSequenceTypeRoomMember: FfiConverterRustBuffer<List<Ro
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomMember.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeUserPowerLevelUpdate: FfiConverterRustBuffer<List<UserPowerLevelUpdate>> {
+    override fun read(buf: ByteBuffer): List<UserPowerLevelUpdate> {
+        val len = buf.getInt()
+        return List<UserPowerLevelUpdate>(len) {
+            FfiConverterTypeUserPowerLevelUpdate.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<UserPowerLevelUpdate>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeUserPowerLevelUpdate.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<UserPowerLevelUpdate>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeUserPowerLevelUpdate.write(it, buf)
         }
     }
 }
