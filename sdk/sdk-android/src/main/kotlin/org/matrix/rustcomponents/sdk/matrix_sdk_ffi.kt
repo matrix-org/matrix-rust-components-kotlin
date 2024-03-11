@@ -1605,6 +1605,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1906,6 +1910,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_notificationsettings(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_push_encrypted_event_to_device(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(`ptr`: Pointer,
@@ -1966,8 +1972,6 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_ban_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_build_power_level_changes_from_current(`ptr`: Pointer,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_ban(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_invite(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
@@ -1990,6 +1994,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2044,6 +2050,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_report_content(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`score`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_reset_power_levels(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Pointer,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
@@ -2790,6 +2798,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_finish(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_push_encrypted_event_to_device(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules(
@@ -2842,8 +2852,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_ban_user(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_build_power_level_changes_from_current(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_invite(
@@ -2865,6 +2873,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_display_name(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call(
     ): Short
@@ -2919,6 +2929,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_report_content(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info(
     ): Short
@@ -3592,6 +3604,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclientbuilder_finish() != 40007.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device() != 37323.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_push_encrypted_event_to_device() != 21251.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3670,9 +3685,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_ban_user() != 25865.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_build_power_level_changes_from_current() != 13995.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_ban() != 22009.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3704,6 +3716,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_display_name() != 39695.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels() != 54094.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call() != 33588.toShort()) {
@@ -3785,6 +3800,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_content() != 39574.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels() != 63622.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info() != 41146.toShort()) {
@@ -8802,6 +8820,13 @@ public object FfiConverterTypeNotificationClientBuilder: FfiConverter<Notificati
 public interface NotificationSettingsInterface {
     
     /**
+     * Check whether [MSC 4028 push rule][rule] is enabled on the homeserver.
+     *
+     * [rule]: https://github.com/matrix-org/matrix-spec-proposals/blob/giomfo/push_encrypted_events/proposals/4028-push-all-encrypted-events-except-for-muted-rooms.md
+     */
+    suspend fun `canHomeserverPushEncryptedEventToDevice`(): Boolean
+    
+    /**
      * Returns true if [MSC 4028 push rule][rule] is supported and enabled.
      *
      * [rule]: https://github.com/matrix-org/matrix-spec-proposals/blob/giomfo/push_encrypted_events/proposals/4028-push-all-encrypted-events-except-for-muted-rooms.md
@@ -9009,6 +9034,30 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         }
     }
 
+    
+    /**
+     * Check whether [MSC 4028 push rule][rule] is enabled on the homeserver.
+     *
+     * [rule]: https://github.com/matrix-org/matrix-spec-proposals/blob/giomfo/push_encrypted_events/proposals/4028-push-all-encrypted-events-except-for-muted-rooms.md
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `canHomeserverPushEncryptedEventToDevice`() : Boolean {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+            // lift function
+            { FfiConverterBoolean.lift(it) },
+            // Error FFI converter
+            UniffiNullRustCallStatusErrorHandler,
+        )
+    }
     
     /**
      * Returns true if [MSC 4028 push rule][rule] is supported and enabled.
@@ -9868,8 +9917,6 @@ public interface RoomInterface {
     
     suspend fun `banUser`(`userId`: String, `reason`: String?)
     
-    suspend fun `buildPowerLevelChangesFromCurrent`(): RoomPowerLevelChanges
-    
     suspend fun `canUserBan`(`userId`: String): Boolean
     
     suspend fun `canUserInvite`(`userId`: String): Boolean
@@ -9900,6 +9947,8 @@ public interface RoomInterface {
     suspend fun `discardRoomKey`()
     
     fun `displayName`(): String
+    
+    suspend fun `getPowerLevels`(): RoomPowerLevels
     
     /**
      * Is there a non expired membership with application "m.call" and scope
@@ -10006,6 +10055,8 @@ public interface RoomInterface {
      * offensive and 0 is inoffensive (optional).
      */
     fun `reportContent`(`eventId`: String, `score`: Int?, `reason`: String?)
+    
+    suspend fun `resetPowerLevels`(): RoomPowerLevels
     
     suspend fun `roomInfo`(): RoomInfo
     
@@ -10245,26 +10296,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `buildPowerLevelChangesFromCurrent`() : RoomPowerLevelChanges {
-        return uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_build_power_level_changes_from_current(
-                    thisPtr,
-                    
-                )
-            },
-            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation).let { RustBufferRoomPowerLevelChanges.create(it.capacity, it.len, it.data) } },
-            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
-            // lift function
-            { FfiConverterTypeRoomPowerLevelChanges.lift(it) },
-            // Error FFI converter
-            ClientException.ErrorHandler,
-        )
-    }
-    
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `canUserBan`(`userId`: String) : Boolean {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
@@ -10475,6 +10506,26 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             FfiConverterString.lift(it)
         }
     
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getPowerLevels`() : RoomPowerLevels {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterTypeRoomPowerLevels.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     /**
      * Is there a non expired membership with application "m.call" and scope
@@ -10884,6 +10935,26 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         }
     
     
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `resetPowerLevels`() : RoomPowerLevels {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_reset_power_levels(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterTypeRoomPowerLevels.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -19314,6 +19385,97 @@ public object FfiConverterTypeRoomNotificationSettings: FfiConverterRustBuffer<R
 
 
 
+data class RoomPowerLevels (
+    /**
+     * The level required to ban a user.
+     */
+    var `ban`: Long, 
+    /**
+     * The level required to invite a user.
+     */
+    var `invite`: Long, 
+    /**
+     * The level required to kick a user.
+     */
+    var `kick`: Long, 
+    /**
+     * The level required to redact an event.
+     */
+    var `redact`: Long, 
+    /**
+     * The default level required to send message events.
+     */
+    var `eventsDefault`: Long, 
+    /**
+     * The default level required to send state events.
+     */
+    var `stateDefault`: Long, 
+    /**
+     * The default power level for every user in the room.
+     */
+    var `usersDefault`: Long, 
+    /**
+     * The level required to change the room's name.
+     */
+    var `roomName`: Long, 
+    /**
+     * The level required to change the room's avatar.
+     */
+    var `roomAvatar`: Long, 
+    /**
+     * The level required to change the room's topic.
+     */
+    var `roomTopic`: Long
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomPowerLevels: FfiConverterRustBuffer<RoomPowerLevels> {
+    override fun read(buf: ByteBuffer): RoomPowerLevels {
+        return RoomPowerLevels(
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterLong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomPowerLevels) = (
+            FfiConverterLong.allocationSize(value.`ban`) +
+            FfiConverterLong.allocationSize(value.`invite`) +
+            FfiConverterLong.allocationSize(value.`kick`) +
+            FfiConverterLong.allocationSize(value.`redact`) +
+            FfiConverterLong.allocationSize(value.`eventsDefault`) +
+            FfiConverterLong.allocationSize(value.`stateDefault`) +
+            FfiConverterLong.allocationSize(value.`usersDefault`) +
+            FfiConverterLong.allocationSize(value.`roomName`) +
+            FfiConverterLong.allocationSize(value.`roomAvatar`) +
+            FfiConverterLong.allocationSize(value.`roomTopic`)
+    )
+
+    override fun write(value: RoomPowerLevels, buf: ByteBuffer) {
+            FfiConverterLong.write(value.`ban`, buf)
+            FfiConverterLong.write(value.`invite`, buf)
+            FfiConverterLong.write(value.`kick`, buf)
+            FfiConverterLong.write(value.`redact`, buf)
+            FfiConverterLong.write(value.`eventsDefault`, buf)
+            FfiConverterLong.write(value.`stateDefault`, buf)
+            FfiConverterLong.write(value.`usersDefault`, buf)
+            FfiConverterLong.write(value.`roomName`, buf)
+            FfiConverterLong.write(value.`roomAvatar`, buf)
+            FfiConverterLong.write(value.`roomTopic`, buf)
+    }
+}
+
+
+
 data class RoomSubscription (
     var `requiredState`: List<RequiredState>?, 
     var `timelineLimit`: UInt?
@@ -22521,7 +22683,9 @@ sealed class OtherState {
     
     data class RoomPowerLevels(
         
-        val `users`: Map<String, Long>
+        val `users`: Map<String, Long>, 
+        
+        val `previous`: Map<String, Long>?
         ) : OtherState() {
         companion object
     }
@@ -22586,6 +22750,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             13 -> OtherState.RoomPinnedEvents
             14 -> OtherState.RoomPowerLevels(
                 FfiConverterMapStringLong.read(buf),
+                FfiConverterOptionalMapStringLong.read(buf),
                 )
             15 -> OtherState.RoomServerAcl
             16 -> OtherState.RoomThirdPartyInvite(
@@ -22690,6 +22855,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             (
                 4
                 + FfiConverterMapStringLong.allocationSize(value.`users`)
+                + FfiConverterOptionalMapStringLong.allocationSize(value.`previous`)
             )
         }
         is OtherState.RoomServerAcl -> {
@@ -22798,6 +22964,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             is OtherState.RoomPowerLevels -> {
                 buf.putInt(14)
                 FfiConverterMapStringLong.write(value.`users`, buf)
+                FfiConverterOptionalMapStringLong.write(value.`previous`, buf)
                 Unit
             }
             is OtherState.RoomServerAcl -> {
@@ -28545,6 +28712,35 @@ public object FfiConverterOptionalSequenceTypeRoomMember: FfiConverterRustBuffer
         } else {
             buf.put(1)
             FfiConverterSequenceTypeRoomMember.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalMapStringLong: FfiConverterRustBuffer<Map<String, Long>?> {
+    override fun read(buf: ByteBuffer): Map<String, Long>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterMapStringLong.read(buf)
+    }
+
+    override fun allocationSize(value: Map<String, Long>?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterMapStringLong.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Map<String, Long>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterMapStringLong.write(value, buf)
         }
     }
 }
