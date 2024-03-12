@@ -472,6 +472,9 @@ internal interface UniffiCallbackInterfaceTimelineListenerMethod0 : com.sun.jna.
 internal interface UniffiCallbackInterfaceTypingNotificationsListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`typingUserIds`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceVerificationStateListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceWidgetCapabilitiesProviderMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`capabilities`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -800,6 +803,22 @@ internal open class UniffiVTableCallbackInterfaceTypingNotificationsListener(
     }
 
 }
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceVerificationStateListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceVerificationStateListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceVerificationStateListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceVerificationStateListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceVerificationStateListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
 @Structure.FieldOrder("acquireCapabilities", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
     @JvmField internal var `acquireCapabilities`: UniffiCallbackInterfaceWidgetCapabilitiesProviderMethod0? = null,
@@ -816,6 +835,14 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
     }
 
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -1638,6 +1665,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceSyncServiceStateObserver.register(lib)
                 uniffiCallbackInterfaceTimelineListener.register(lib)
                 uniffiCallbackInterfaceTypingNotificationsListener.register(lib)
+                uniffiCallbackInterfaceVerificationStateListener.register(lib)
                 uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(lib)
                 }
         }
@@ -1822,6 +1850,10 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(`ptr`: Pointer,`progressListener`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_eventtimelineitem(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2224,6 +2256,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(`ptr`: Pointer,`appIdentifier`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_unified_invites_in_room_list(`ptr`: Pointer,`withUnifiedInvites`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_clone_taskhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_taskhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2411,6 +2445,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_timelinelistener(`vtable`: UniffiVTableCallbackInterfaceTimelineListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_typingnotificationslistener(`vtable`: UniffiVTableCallbackInterfaceTypingNotificationsListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(`vtable`: UniffiVTableCallbackInterfaceVerificationStateListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_widgetcapabilitiesprovider(`vtable`: UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider,
     ): Unit
@@ -2738,6 +2774,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state_listener(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to(
@@ -3056,6 +3096,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_unified_invites_in_room_list(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished(
@@ -3227,6 +3269,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities(
     ): Short
@@ -3512,6 +3556,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() != 20380.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state() != 29114.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state_listener() != 26187.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state() != 16813.toShort()) {
@@ -3991,6 +4041,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock() != 43169.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_unified_invites_in_room_list() != 46590.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel() != 9124.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4247,6 +4300,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call() != 50844.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update() != 9392.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities() != 43759.toShort()) {
@@ -6373,6 +6429,10 @@ public interface EncryptionInterface {
     
     suspend fun `resetRecoveryKey`(): String
     
+    fun `verificationState`(): VerificationState
+    
+    fun `verificationStateListener`(`listener`: VerificationStateListener): TaskHandle
+    
     suspend fun `waitForBackupUploadSteadyState`(`progressListener`: BackupSteadyStateListener?)
     
     companion object
@@ -6677,6 +6737,28 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface {
             RecoveryException.ErrorHandler,
         )
     }
+    override fun `verificationState`(): VerificationState =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeVerificationState.lift(it)
+        }
+    
+    override fun `verificationStateListener`(`listener`: VerificationStateListener): TaskHandle =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state_listener(it,
+        FfiConverterTypeVerificationStateListener.lower(`listener`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeTaskHandle.lift(it)
+        }
+    
     
     @Throws(SteadyStateException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -14579,6 +14661,8 @@ public interface SyncServiceBuilderInterface {
     
     fun `withCrossProcessLock`(`appIdentifier`: String?): SyncServiceBuilder
     
+    fun `withUnifiedInvitesInRoomList`(`withUnifiedInvites`: Boolean): SyncServiceBuilder
+    
     companion object
 }
 
@@ -14688,6 +14772,17 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(it,
         FfiConverterOptionalString.lower(`appIdentifier`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeSyncServiceBuilder.lift(it)
+        }
+    
+    override fun `withUnifiedInvitesInRoomList`(`withUnifiedInvites`: Boolean): SyncServiceBuilder =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_unified_invites_in_room_list(it,
+        FfiConverterBoolean.lower(`withUnifiedInvites`),
         _status)
 }
         }.let {
@@ -25914,6 +26009,32 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
 
 
 
+enum class VerificationState {
+    
+    UNKNOWN,
+    VERIFIED,
+    UNVERIFIED;
+    companion object
+}
+
+public object FfiConverterTypeVerificationState: FfiConverterRustBuffer<VerificationState> {
+    override fun read(buf: ByteBuffer) = try {
+        VerificationState.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: VerificationState) = 4
+
+    override fun write(value: VerificationState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
 /**
  * A [`TimelineItem`](super::TimelineItem) that doesn't correspond to an event.
  */
@@ -27187,6 +27308,55 @@ internal object uniffiCallbackInterfaceTypingNotificationsListener {
 
 // The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
 public object FfiConverterTypeTypingNotificationsListener: FfiConverterCallbackInterface<TypingNotificationsListener>()
+
+
+
+
+
+public interface VerificationStateListener {
+    
+    fun `onUpdate`(`status`: VerificationState)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceVerificationStateListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceVerificationStateListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeVerificationStateListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeVerificationState.lift(`status`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeVerificationStateListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceVerificationStateListener(
+        `onUpdate`,
+        uniffiFree
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeVerificationStateListener: FfiConverterCallbackInterface<VerificationStateListener>()
 
 
 
