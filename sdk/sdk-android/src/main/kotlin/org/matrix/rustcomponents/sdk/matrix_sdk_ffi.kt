@@ -472,6 +472,9 @@ internal interface UniffiCallbackInterfaceTimelineListenerMethod0 : com.sun.jna.
 internal interface UniffiCallbackInterfaceTypingNotificationsListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`typingUserIds`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceUnableToDecryptDelegateMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`info`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceVerificationStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -799,6 +802,22 @@ internal open class UniffiVTableCallbackInterfaceTypingNotificationsListener(
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceTypingNotificationsListener) {
         `call` = other.`call`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUtd", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceUnableToDecryptDelegate(
+    @JvmField internal var `onUtd`: UniffiCallbackInterfaceUnableToDecryptDelegateMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUtd`: UniffiCallbackInterfaceUnableToDecryptDelegateMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceUnableToDecryptDelegate(`onUtd`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceUnableToDecryptDelegate) {
+        `onUtd` = other.`onUtd`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -1636,6 +1655,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1665,6 +1688,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceSyncServiceStateObserver.register(lib)
                 uniffiCallbackInterfaceTimelineListener.register(lib)
                 uniffiCallbackInterfaceTypingNotificationsListener.register(lib)
+                uniffiCallbackInterfaceUnableToDecryptDelegate.register(lib)
                 uniffiCallbackInterfaceVerificationStateListener.register(lib)
                 uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(lib)
                 }
@@ -2258,6 +2282,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_unified_invites_in_room_list(`ptr`: Pointer,`withUnifiedInvites`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_utd_hook(`ptr`: Pointer,`delegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_clone_taskhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_taskhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2445,6 +2471,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_timelinelistener(`vtable`: UniffiVTableCallbackInterfaceTimelineListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_typingnotificationslistener(`vtable`: UniffiVTableCallbackInterfaceTypingNotificationsListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_unabletodecryptdelegate(`vtable`: UniffiVTableCallbackInterfaceUnableToDecryptDelegate,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(`vtable`: UniffiVTableCallbackInterfaceVerificationStateListener,
     ): Unit
@@ -3098,6 +3126,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_unified_invites_in_room_list(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_utd_hook(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished(
@@ -3269,6 +3299,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_unabletodecryptdelegate_on_utd(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update(
     ): Short
@@ -4044,6 +4076,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_unified_invites_in_room_list() != 46590.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_utd_hook() != 31250.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel() != 9124.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4300,6 +4335,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call() != 50844.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_unabletodecryptdelegate_on_utd() != 28912.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update() != 9392.toShort()) {
@@ -14663,6 +14701,8 @@ public interface SyncServiceBuilderInterface {
     
     fun `withUnifiedInvitesInRoomList`(`withUnifiedInvites`: Boolean): SyncServiceBuilder
     
+    fun `withUtdHook`(`delegate`: UnableToDecryptDelegate): SyncServiceBuilder
+    
     companion object
 }
 
@@ -14783,6 +14823,17 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_unified_invites_in_room_list(it,
         FfiConverterBoolean.lower(`withUnifiedInvites`),
+        _status)
+}
+        }.let {
+            FfiConverterTypeSyncServiceBuilder.lift(it)
+        }
+    
+    override fun `withUtdHook`(`delegate`: UnableToDecryptDelegate): SyncServiceBuilder =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_utd_hook(it,
+        FfiConverterTypeUnableToDecryptDelegate.lower(`delegate`),
         _status)
 }
         }.let {
@@ -17891,6 +17942,8 @@ public object FfiConverterTypeAudioInfo: FfiConverterRustBuffer<AudioInfo> {
 
 data class AudioMessageContent (
     var `body`: String, 
+    var `formatted`: FormattedBody?, 
+    var `filename`: String?, 
     var `source`: MediaSource, 
     var `info`: AudioInfo?, 
     var `audio`: UnstableAudioDetailsContent?, 
@@ -17902,6 +17955,8 @@ data class AudioMessageContent (
         
     Disposable.destroy(
         this.`body`, 
+        this.`formatted`, 
+        this.`filename`, 
         this.`source`, 
         this.`info`, 
         this.`audio`, 
@@ -17915,6 +17970,8 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
     override fun read(buf: ByteBuffer): AudioMessageContent {
         return AudioMessageContent(
             FfiConverterString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeAudioInfo.read(buf),
             FfiConverterOptionalTypeUnstableAudioDetailsContent.read(buf),
@@ -17924,6 +17981,8 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
 
     override fun allocationSize(value: AudioMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
+            FfiConverterOptionalString.allocationSize(value.`filename`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeAudioInfo.allocationSize(value.`info`) +
             FfiConverterOptionalTypeUnstableAudioDetailsContent.allocationSize(value.`audio`) +
@@ -17932,6 +17991,8 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
 
     override fun write(value: AudioMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
+            FfiConverterOptionalString.write(value.`filename`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeAudioInfo.write(value.`info`, buf)
             FfiConverterOptionalTypeUnstableAudioDetailsContent.write(value.`audio`, buf)
@@ -18154,6 +18215,7 @@ public object FfiConverterTypeFileInfo: FfiConverterRustBuffer<FileInfo> {
 
 data class FileMessageContent (
     var `body`: String, 
+    var `formatted`: FormattedBody?, 
     var `filename`: String?, 
     var `source`: MediaSource, 
     var `info`: FileInfo?
@@ -18164,6 +18226,7 @@ data class FileMessageContent (
         
     Disposable.destroy(
         this.`body`, 
+        this.`formatted`, 
         this.`filename`, 
         this.`source`, 
         this.`info`)
@@ -18176,6 +18239,7 @@ public object FfiConverterTypeFileMessageContent: FfiConverterRustBuffer<FileMes
     override fun read(buf: ByteBuffer): FileMessageContent {
         return FileMessageContent(
             FfiConverterString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeFileInfo.read(buf),
@@ -18184,6 +18248,7 @@ public object FfiConverterTypeFileMessageContent: FfiConverterRustBuffer<FileMes
 
     override fun allocationSize(value: FileMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
             FfiConverterOptionalString.allocationSize(value.`filename`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeFileInfo.allocationSize(value.`info`)
@@ -18191,6 +18256,7 @@ public object FfiConverterTypeFileMessageContent: FfiConverterRustBuffer<FileMes
 
     override fun write(value: FileMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
             FfiConverterOptionalString.write(value.`filename`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeFileInfo.write(value.`info`, buf)
@@ -18325,6 +18391,8 @@ public object FfiConverterTypeImageInfo: FfiConverterRustBuffer<ImageInfo> {
 
 data class ImageMessageContent (
     var `body`: String, 
+    var `formatted`: FormattedBody?, 
+    var `filename`: String?, 
     var `source`: MediaSource, 
     var `info`: ImageInfo?
 ) : Disposable {
@@ -18334,6 +18402,8 @@ data class ImageMessageContent (
         
     Disposable.destroy(
         this.`body`, 
+        this.`formatted`, 
+        this.`filename`, 
         this.`source`, 
         this.`info`)
     }
@@ -18345,6 +18415,8 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
     override fun read(buf: ByteBuffer): ImageMessageContent {
         return ImageMessageContent(
             FfiConverterString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeImageInfo.read(buf),
         )
@@ -18352,12 +18424,16 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
 
     override fun allocationSize(value: ImageMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
+            FfiConverterOptionalString.allocationSize(value.`filename`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeImageInfo.allocationSize(value.`info`)
     )
 
     override fun write(value: ImageMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
+            FfiConverterOptionalString.write(value.`filename`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeImageInfo.write(value.`info`, buf)
     }
@@ -19945,6 +20021,46 @@ public object FfiConverterTypeTransmissionProgress: FfiConverterRustBuffer<Trans
 
 
 
+data class UnableToDecryptInfo (
+    /**
+     * The identifier of the event that couldn't get decrypted.
+     */
+    var `eventId`: String, 
+    /**
+     * If the event could be decrypted late (that is, the event was encrypted
+     * at first, but could be decrypted later on), then this indicates the
+     * time it took to decrypt the event. If it is not set, this is
+     * considered a definite UTD.
+     *
+     * If set, this is in milliseconds.
+     */
+    var `timeToDecryptMs`: ULong?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeUnableToDecryptInfo: FfiConverterRustBuffer<UnableToDecryptInfo> {
+    override fun read(buf: ByteBuffer): UnableToDecryptInfo {
+        return UnableToDecryptInfo(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: UnableToDecryptInfo) = (
+            FfiConverterString.allocationSize(value.`eventId`) +
+            FfiConverterOptionalULong.allocationSize(value.`timeToDecryptMs`)
+    )
+
+    override fun write(value: UnableToDecryptInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`eventId`, buf)
+            FfiConverterOptionalULong.write(value.`timeToDecryptMs`, buf)
+    }
+}
+
+
+
 data class UnstableAudioDetailsContent (
     var `duration`: java.time.Duration, 
     var `waveform`: List<UShort>
@@ -20139,6 +20255,8 @@ public object FfiConverterTypeVideoInfo: FfiConverterRustBuffer<VideoInfo> {
 
 data class VideoMessageContent (
     var `body`: String, 
+    var `formatted`: FormattedBody?, 
+    var `filename`: String?, 
     var `source`: MediaSource, 
     var `info`: VideoInfo?
 ) : Disposable {
@@ -20148,6 +20266,8 @@ data class VideoMessageContent (
         
     Disposable.destroy(
         this.`body`, 
+        this.`formatted`, 
+        this.`filename`, 
         this.`source`, 
         this.`info`)
     }
@@ -20159,6 +20279,8 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
     override fun read(buf: ByteBuffer): VideoMessageContent {
         return VideoMessageContent(
             FfiConverterString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeVideoInfo.read(buf),
         )
@@ -20166,12 +20288,16 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
 
     override fun allocationSize(value: VideoMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
+            FfiConverterOptionalString.allocationSize(value.`filename`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeVideoInfo.allocationSize(value.`info`)
     )
 
     override fun write(value: VideoMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
+            FfiConverterOptionalString.write(value.`filename`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeVideoInfo.write(value.`info`, buf)
     }
@@ -23907,6 +24033,9 @@ sealed class RoomListEntriesDynamicFilterKind {
     object Favourite : RoomListEntriesDynamicFilterKind()
     
     
+    object Invite : RoomListEntriesDynamicFilterKind()
+    
+    
     data class Category(
         
         val `expect`: RoomListFilterCategory
@@ -23948,14 +24077,15 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             3 -> RoomListEntriesDynamicFilterKind.NonLeft
             4 -> RoomListEntriesDynamicFilterKind.Unread
             5 -> RoomListEntriesDynamicFilterKind.Favourite
-            6 -> RoomListEntriesDynamicFilterKind.Category(
+            6 -> RoomListEntriesDynamicFilterKind.Invite
+            7 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            7 -> RoomListEntriesDynamicFilterKind.None
-            8 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            8 -> RoomListEntriesDynamicFilterKind.None
+            9 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            9 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            10 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -23990,6 +24120,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             )
         }
         is RoomListEntriesDynamicFilterKind.Favourite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.Invite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4
@@ -24048,22 +24184,26 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(5)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.Invite -> {
                 buf.putInt(6)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(7)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(7)
+                buf.putInt(8)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
@@ -27308,6 +27448,55 @@ internal object uniffiCallbackInterfaceTypingNotificationsListener {
 
 // The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
 public object FfiConverterTypeTypingNotificationsListener: FfiConverterCallbackInterface<TypingNotificationsListener>()
+
+
+
+
+
+public interface UnableToDecryptDelegate {
+    
+    fun `onUtd`(`info`: UnableToDecryptInfo)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceUnableToDecryptDelegate {
+    internal object `onUtd`: UniffiCallbackInterfaceUnableToDecryptDelegateMethod0 {
+        override fun callback(`uniffiHandle`: Long,`info`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeUnableToDecryptDelegate.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUtd`(
+                    FfiConverterTypeUnableToDecryptInfo.lift(`info`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeUnableToDecryptDelegate.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceUnableToDecryptDelegate(
+        `onUtd`,
+        uniffiFree
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_unabletodecryptdelegate(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeUnableToDecryptDelegate: FfiConverterCallbackInterface<UnableToDecryptDelegate>()
 
 
 
