@@ -2331,11 +2331,11 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send(`ptr`: Pointer,`msg`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`url`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -2345,9 +2345,9 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(`ptr`: Pointer,`msg`: Pointer,`replyItem`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -4136,13 +4136,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send() != 16148.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 51865.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 2898.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 14268.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 48568.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 33650.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() != 2150.toShort()) {
@@ -4157,10 +4157,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply() != 8317.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 9937.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 28201.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 9768.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 50962.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 9015.toShort()) {
@@ -15284,11 +15284,11 @@ public interface TimelineInterface {
     
     fun `send`(`msg`: RoomMessageEventContentWithoutRelation)
     
-    fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     
     fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     
-    fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     
     fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?)
     
@@ -15298,9 +15298,9 @@ public interface TimelineInterface {
     
     fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `replyItem`: EventTimelineItem)
     
-    fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     
-    fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     
     fun `subscribeToBackPaginationStatus`(`listener`: BackPaginationStatusListener): TaskHandle
     
@@ -15622,11 +15622,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         }
     
     
-    override fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
+    override fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
         callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(it,
-        FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
+        FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
         _status)
 }
         }.let {
@@ -15644,11 +15644,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
             FfiConverterTypeSendAttachmentJoinHandle.lift(it)
         }
     
-    override fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
+    override fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
         callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(it,
-        FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeImageInfo.lower(`imageInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
+        FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeImageInfo.lower(`imageInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
         _status)
 }
         }.let {
@@ -15698,22 +15698,22 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         }
     
     
-    override fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
+    override fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
         callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(it,
-        FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeVideoInfo.lower(`videoInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
+        FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeVideoInfo.lower(`videoInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
         _status)
 }
         }.let {
             FfiConverterTypeSendAttachmentJoinHandle.lift(it)
         }
     
-    override fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
+    override fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle =
         callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(it,
-        FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
+        FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
         _status)
 }
         }.let {
