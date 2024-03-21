@@ -433,6 +433,9 @@ internal interface UniffiCallbackInterfaceProgressWatcherMethod0 : com.sun.jna.C
 internal interface UniffiCallbackInterfaceRecoveryStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceRoomDirectorySearchEntriesListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`roomEntriesUpdate`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceRoomInfoListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomInfo`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -645,6 +648,22 @@ internal open class UniffiVTableCallbackInterfaceRecoveryStateListener(
     ): UniffiVTableCallbackInterfaceRecoveryStateListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRecoveryStateListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceRoomDirectorySearchEntriesListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceRoomDirectorySearchEntriesListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener) {
         `onUpdate` = other.`onUpdate`
         `uniffiFree` = other.`uniffiFree`
     }
@@ -1662,6 +1681,26 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1682,6 +1721,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceNotificationSettingsDelegate.register(lib)
                 uniffiCallbackInterfaceProgressWatcher.register(lib)
                 uniffiCallbackInterfaceRecoveryStateListener.register(lib)
+                uniffiCallbackInterfaceRoomDirectorySearchEntriesListener.register(lib)
                 uniffiCallbackInterfaceRoomInfoListener.register(lib)
                 uniffiCallbackInterfaceRoomListEntriesListener.register(lib)
                 uniffiCallbackInterfaceRoomListLoadingStateListener.register(lib)
@@ -1749,6 +1789,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Pointer,`request`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1775,6 +1817,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1785,6 +1829,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_room_directory_search(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_rooms(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_search_users(`ptr`: Pointer,`searchTerm`: RustBuffer.ByValue,`limit`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -1797,8 +1843,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2141,6 +2187,20 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_clone_roomdirectorysearch(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_roomdirectorysearch(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_is_at_last_page(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_loaded_pages(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_next_page(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_results(`ptr`: Pointer,`listener`: Long,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(`ptr`: Pointer,`filter`: RustBuffer.ByValue,`batchSize`: Int,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2457,6 +2517,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_recoverystatelistener(`vtable`: UniffiVTableCallbackInterfaceRecoveryStateListener,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomdirectorysearchentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener,
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roominfolistener(`vtable`: UniffiVTableCallbackInterfaceRoomInfoListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomListEntriesListener,
@@ -2687,6 +2749,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_device_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
@@ -2713,6 +2777,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
@@ -2722,6 +2788,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_rooms(
     ): Short
@@ -3033,6 +3101,16 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters(
@@ -3275,6 +3353,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update(
@@ -3416,6 +3496,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() != 25555.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher() != 46707.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_device_id() != 44340.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3455,6 +3538,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() != 49620.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() != 61264.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 55564.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3468,6 +3554,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() != 19641.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search() != 39855.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_rooms() != 29558.toShort()) {
@@ -3488,7 +3577,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name() != 27968.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() != 36816.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() != 21191.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users() != 46021.toShort()) {
@@ -3935,6 +4024,21 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() != 34800.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page() != 22509.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages() != 7109.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page() != 14603.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results() != 40431.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() != 11131.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries() != 24971.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4296,6 +4400,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update() != 3747.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update() != 3751.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call() != 29620.toShort()) {
@@ -5198,6 +5305,11 @@ public interface ClientInterface {
     
     fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
     
+    /**
+     * Deletes a pusher of given pusher ids
+     */
+    suspend fun `deletePusher`(`identifiers`: PusherIdentifiers)
+    
     fun `deviceId`(): kotlin.String
     
     fun `displayName`(): kotlin.String
@@ -5227,6 +5339,8 @@ public interface ClientInterface {
     
     suspend fun `ignoredUsers`(): List<kotlin.String>
     
+    suspend fun `joinRoomById`(`roomId`: kotlin.String): Room
+    
     /**
      * Login using a username and password.
      */
@@ -5248,6 +5362,8 @@ public interface ClientInterface {
      */
     fun `restoreSession`(`session`: Session)
     
+    fun `roomDirectorySearch`(): RoomDirectorySearch
+    
     fun `rooms`(): List<Room>
     
     fun `searchUsers`(`searchTerm`: kotlin.String, `limit`: kotlin.ULong): SearchUsersResults
@@ -5268,7 +5384,7 @@ public interface ClientInterface {
     /**
      * Registers a pusher with given parameters
      */
-    fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String)
+    suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String)
     
     fun `subscribeToIgnoredUsers`(`listener`: IgnoredUsersListener): TaskHandle
     
@@ -5432,6 +5548,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
             FfiConverterString.lift(it)
         }
     
+    
+    /**
+     * Deletes a pusher of given pusher ids
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `deletePusher`(`identifiers`: PusherIdentifiers) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(
+                    thisPtr,
+                    FfiConverterTypePusherIdentifiers.lower(`identifiers`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     @Throws(ClientException::class)override fun `deviceId`(): kotlin.String =
         callWithPointer {
@@ -5630,6 +5770,26 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         )
     }
     
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `joinRoomById`(`roomId`: kotlin.String) : Room {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(
+                    thisPtr,
+                    FfiConverterString.lower(`roomId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeRoom.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
     /**
      * Login using a username and password.
      */
@@ -5696,6 +5856,17 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 }
         }
     
+    
+    override fun `roomDirectorySearch`(): RoomDirectorySearch =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_room_directory_search(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeRoomDirectorySearch.lift(it)
+        }
     
     override fun `rooms`(): List<Room> =
         callWithPointer {
@@ -5774,16 +5945,26 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     /**
      * Registers a pusher with given parameters
      */
-    @Throws(ClientException::class)override fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String) =
-        callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(it,
-        FfiConverterTypePusherIdentifiers.lower(`identifiers`),FfiConverterTypePusherKind.lower(`kind`),FfiConverterString.lower(`appDisplayName`),FfiConverterString.lower(`deviceDisplayName`),FfiConverterOptionalString.lower(`profileTag`),FfiConverterString.lower(`lang`),
-        _status)
-}
-        }
-    
-    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(
+                    thisPtr,
+                    FfiConverterTypePusherIdentifiers.lower(`identifiers`),FfiConverterTypePusherKind.lower(`kind`),FfiConverterString.lower(`appDisplayName`),FfiConverterString.lower(`deviceDisplayName`),FfiConverterOptionalString.lower(`profileTag`),FfiConverterString.lower(`lang`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     override fun `subscribeToIgnoredUsers`(`listener`: IgnoredUsersListener): TaskHandle =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -11383,6 +11564,335 @@ public object FfiConverterTypeRoom: FfiConverter<Room, Pointer> {
     override fun allocationSize(value: Room) = 8UL
 
     override fun write(value: Room, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface RoomDirectorySearchInterface {
+    
+    suspend fun `isAtLastPage`(): kotlin.Boolean
+    
+    suspend fun `loadedPages`(): kotlin.UInt
+    
+    suspend fun `nextPage`()
+    
+    suspend fun `results`(`listener`: RoomDirectorySearchEntriesListener): TaskHandle
+    
+    suspend fun `search`(`filter`: kotlin.String?, `batchSize`: kotlin.UInt)
+    
+    companion object
+}
+
+open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_roomdirectorysearch(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_roomdirectorysearch(pointer!!, status)
+        }
+    }
+
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isAtLastPage`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_is_at_last_page(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+            // lift function
+            { FfiConverterBoolean.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `loadedPages`() : kotlin.UInt {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_loaded_pages(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_u32(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_u32(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_u32(future) },
+            // lift function
+            { FfiConverterUInt.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `nextPage`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_next_page(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `results`(`listener`: RoomDirectorySearchEntriesListener) : TaskHandle {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_results(
+                    thisPtr,
+                    FfiConverterTypeRoomDirectorySearchEntriesListener.lower(`listener`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeTaskHandle.lift(it) },
+            // Error FFI converter
+            UniffiNullRustCallStatusErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `search`(`filter`: kotlin.String?, `batchSize`: kotlin.UInt) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(
+                    thisPtr,
+                    FfiConverterOptionalString.lower(`filter`),FfiConverterUInt.lower(`batchSize`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeRoomDirectorySearch: FfiConverter<RoomDirectorySearch, Pointer> {
+
+    override fun lower(value: RoomDirectorySearch): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): RoomDirectorySearch {
+        return RoomDirectorySearch(value)
+    }
+
+    override fun read(buf: ByteBuffer): RoomDirectorySearch {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: RoomDirectorySearch) = 8UL
+
+    override fun write(value: RoomDirectorySearch, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -19148,6 +19658,91 @@ public object FfiConverterTypeRequiredState: FfiConverterRustBuffer<RequiredStat
 
 
 
+data class RoomDescription (
+    var `roomId`: kotlin.String, 
+    var `name`: kotlin.String?, 
+    var `topic`: kotlin.String?, 
+    var `alias`: kotlin.String?, 
+    var `avatarUrl`: kotlin.String?, 
+    var `joinRule`: PublicRoomJoinRule?, 
+    var `isWorldReadable`: kotlin.Boolean, 
+    var `joinedMembers`: kotlin.ULong
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomDescription: FfiConverterRustBuffer<RoomDescription> {
+    override fun read(buf: ByteBuffer): RoomDescription {
+        return RoomDescription(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypePublicRoomJoinRule.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomDescription) = (
+            FfiConverterString.allocationSize(value.`roomId`) +
+            FfiConverterOptionalString.allocationSize(value.`name`) +
+            FfiConverterOptionalString.allocationSize(value.`topic`) +
+            FfiConverterOptionalString.allocationSize(value.`alias`) +
+            FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
+            FfiConverterOptionalTypePublicRoomJoinRule.allocationSize(value.`joinRule`) +
+            FfiConverterBoolean.allocationSize(value.`isWorldReadable`) +
+            FfiConverterULong.allocationSize(value.`joinedMembers`)
+    )
+
+    override fun write(value: RoomDescription, buf: ByteBuffer) {
+            FfiConverterString.write(value.`roomId`, buf)
+            FfiConverterOptionalString.write(value.`name`, buf)
+            FfiConverterOptionalString.write(value.`topic`, buf)
+            FfiConverterOptionalString.write(value.`alias`, buf)
+            FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+            FfiConverterOptionalTypePublicRoomJoinRule.write(value.`joinRule`, buf)
+            FfiConverterBoolean.write(value.`isWorldReadable`, buf)
+            FfiConverterULong.write(value.`joinedMembers`, buf)
+    }
+}
+
+
+
+data class RoomDirectorySearchEntriesResult (
+    var `entriesStream`: TaskHandle
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`entriesStream`)
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomDirectorySearchEntriesResult: FfiConverterRustBuffer<RoomDirectorySearchEntriesResult> {
+    override fun read(buf: ByteBuffer): RoomDirectorySearchEntriesResult {
+        return RoomDirectorySearchEntriesResult(
+            FfiConverterTypeTaskHandle.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomDirectorySearchEntriesResult) = (
+            FfiConverterTypeTaskHandle.allocationSize(value.`entriesStream`)
+    )
+
+    override fun write(value: RoomDirectorySearchEntriesResult, buf: ByteBuffer) {
+            FfiConverterTypeTaskHandle.write(value.`entriesStream`, buf)
+    }
+}
+
+
+
 data class RoomInfo (
     var `id`: kotlin.String, 
     var `name`: kotlin.String?, 
@@ -23493,6 +24088,33 @@ public object FfiConverterTypeProfileDetails : FfiConverterRustBuffer<ProfileDet
 
 
 
+enum class PublicRoomJoinRule {
+    
+    PUBLIC,
+    KNOCK;
+    companion object
+}
+
+
+public object FfiConverterTypePublicRoomJoinRule: FfiConverterRustBuffer<PublicRoomJoinRule> {
+    override fun read(buf: ByteBuffer) = try {
+        PublicRoomJoinRule.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: PublicRoomJoinRule) = 4UL
+
+    override fun write(value: PublicRoomJoinRule, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
 enum class PushFormat {
     
     EVENT_ID_ONLY;
@@ -23858,6 +24480,243 @@ public object FfiConverterTypeRepliedToEventDetails : FfiConverterRustBuffer<Rep
             is RepliedToEventDetails.Error -> {
                 buf.putInt(4)
                 FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class RoomDirectorySearchEntryUpdate {
+    
+    data class Append(
+        val `values`: List<RoomDescription>) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    object Clear : RoomDirectorySearchEntryUpdate()
+    
+    
+    data class PushFront(
+        val `value`: RoomDescription) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    data class PushBack(
+        val `value`: RoomDescription) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    object PopFront : RoomDirectorySearchEntryUpdate()
+    
+    
+    object PopBack : RoomDirectorySearchEntryUpdate()
+    
+    
+    data class Insert(
+        val `index`: kotlin.UInt, 
+        val `value`: RoomDescription) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    data class Set(
+        val `index`: kotlin.UInt, 
+        val `value`: RoomDescription) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    data class Remove(
+        val `index`: kotlin.UInt) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    data class Truncate(
+        val `length`: kotlin.UInt) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+    data class Reset(
+        val `values`: List<RoomDescription>) : RoomDirectorySearchEntryUpdate() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomDirectorySearchEntryUpdate : FfiConverterRustBuffer<RoomDirectorySearchEntryUpdate>{
+    override fun read(buf: ByteBuffer): RoomDirectorySearchEntryUpdate {
+        return when(buf.getInt()) {
+            1 -> RoomDirectorySearchEntryUpdate.Append(
+                FfiConverterSequenceTypeRoomDescription.read(buf),
+                )
+            2 -> RoomDirectorySearchEntryUpdate.Clear
+            3 -> RoomDirectorySearchEntryUpdate.PushFront(
+                FfiConverterTypeRoomDescription.read(buf),
+                )
+            4 -> RoomDirectorySearchEntryUpdate.PushBack(
+                FfiConverterTypeRoomDescription.read(buf),
+                )
+            5 -> RoomDirectorySearchEntryUpdate.PopFront
+            6 -> RoomDirectorySearchEntryUpdate.PopBack
+            7 -> RoomDirectorySearchEntryUpdate.Insert(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeRoomDescription.read(buf),
+                )
+            8 -> RoomDirectorySearchEntryUpdate.Set(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeRoomDescription.read(buf),
+                )
+            9 -> RoomDirectorySearchEntryUpdate.Remove(
+                FfiConverterUInt.read(buf),
+                )
+            10 -> RoomDirectorySearchEntryUpdate.Truncate(
+                FfiConverterUInt.read(buf),
+                )
+            11 -> RoomDirectorySearchEntryUpdate.Reset(
+                FfiConverterSequenceTypeRoomDescription.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: RoomDirectorySearchEntryUpdate) = when(value) {
+        is RoomDirectorySearchEntryUpdate.Append -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeRoomDescription.allocationSize(value.`values`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.Clear -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.PushFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeRoomDescription.allocationSize(value.`value`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.PushBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeRoomDescription.allocationSize(value.`value`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.PopFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.PopBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.Insert -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeRoomDescription.allocationSize(value.`value`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.Set -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeRoomDescription.allocationSize(value.`value`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.Remove -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.Truncate -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`length`)
+            )
+        }
+        is RoomDirectorySearchEntryUpdate.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeRoomDescription.allocationSize(value.`values`)
+            )
+        }
+    }
+
+    override fun write(value: RoomDirectorySearchEntryUpdate, buf: ByteBuffer) {
+        when(value) {
+            is RoomDirectorySearchEntryUpdate.Append -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeRoomDescription.write(value.`values`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.Clear -> {
+                buf.putInt(2)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.PushFront -> {
+                buf.putInt(3)
+                FfiConverterTypeRoomDescription.write(value.`value`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.PushBack -> {
+                buf.putInt(4)
+                FfiConverterTypeRoomDescription.write(value.`value`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.PopFront -> {
+                buf.putInt(5)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.PopBack -> {
+                buf.putInt(6)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.Insert -> {
+                buf.putInt(7)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeRoomDescription.write(value.`value`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.Set -> {
+                buf.putInt(8)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeRoomDescription.write(value.`value`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.Remove -> {
+                buf.putInt(9)
+                FfiConverterUInt.write(value.`index`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.Truncate -> {
+                buf.putInt(10)
+                FfiConverterUInt.write(value.`length`, buf)
+                Unit
+            }
+            is RoomDirectorySearchEntryUpdate.Reset -> {
+                buf.putInt(11)
+                FfiConverterSequenceTypeRoomDescription.write(value.`values`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -26805,6 +27664,55 @@ public object FfiConverterTypeRecoveryStateListener: FfiConverterCallbackInterfa
 
 
 
+public interface RoomDirectorySearchEntriesListener {
+    
+    fun `onUpdate`(`roomEntriesUpdate`: List<RoomDirectorySearchEntryUpdate>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceRoomDirectorySearchEntriesListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceRoomDirectorySearchEntriesListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`roomEntriesUpdate`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeRoomDirectorySearchEntriesListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterSequenceTypeRoomDirectorySearchEntryUpdate.lift(`roomEntriesUpdate`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeRoomDirectorySearchEntriesListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener(
+        `onUpdate`,
+        uniffiFree
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomdirectorysearchentrieslistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeRoomDirectorySearchEntriesListener: FfiConverterCallbackInterface<RoomDirectorySearchEntriesListener>()
+
+
+
+
+
 public interface RoomInfoListener {
     
     fun `call`(`roomInfo`: RoomInfo)
@@ -28564,6 +29472,35 @@ public object FfiConverterOptionalTypeMembershipChange: FfiConverterRustBuffer<M
 
 
 
+public object FfiConverterOptionalTypePublicRoomJoinRule: FfiConverterRustBuffer<PublicRoomJoinRule?> {
+    override fun read(buf: ByteBuffer): PublicRoomJoinRule? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypePublicRoomJoinRule.read(buf)
+    }
+
+    override fun allocationSize(value: PublicRoomJoinRule?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypePublicRoomJoinRule.allocationSize(value)
+        }
+    }
+
+    override fun write(value: PublicRoomJoinRule?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypePublicRoomJoinRule.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypePushFormat: FfiConverterRustBuffer<PushFormat?> {
     override fun read(buf: ByteBuffer): PushFormat? {
         if (buf.get().toInt() == 0) {
@@ -29274,6 +30211,31 @@ public object FfiConverterSequenceTypeRequiredState: FfiConverterRustBuffer<List
 
 
 
+public object FfiConverterSequenceTypeRoomDescription: FfiConverterRustBuffer<List<RoomDescription>> {
+    override fun read(buf: ByteBuffer): List<RoomDescription> {
+        val len = buf.getInt()
+        return List<RoomDescription>(len) {
+            FfiConverterTypeRoomDescription.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomDescription>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomDescription.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomDescription>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomDescription.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeRoomListRange: FfiConverterRustBuffer<List<RoomListRange>> {
     override fun read(buf: ByteBuffer): List<RoomListRange> {
         val len = buf.getInt()
@@ -29392,6 +30354,31 @@ public object FfiConverterSequenceTypeFilterTimelineEventType: FfiConverterRustB
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeFilterTimelineEventType.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeRoomDirectorySearchEntryUpdate: FfiConverterRustBuffer<List<RoomDirectorySearchEntryUpdate>> {
+    override fun read(buf: ByteBuffer): List<RoomDirectorySearchEntryUpdate> {
+        val len = buf.getInt()
+        return List<RoomDirectorySearchEntryUpdate>(len) {
+            FfiConverterTypeRoomDirectorySearchEntryUpdate.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomDirectorySearchEntryUpdate>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomDirectorySearchEntryUpdate.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomDirectorySearchEntryUpdate>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomDirectorySearchEntryUpdate.write(it, buf)
         }
     }
 }
