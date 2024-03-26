@@ -1701,6 +1701,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1969,6 +1971,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_proxy(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_password_login(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2911,6 +2915,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_proxy(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login(
@@ -3737,6 +3743,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id() != 40338.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_proxy() != 46815.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login() != 46090.toShort()) {
@@ -7564,6 +7573,12 @@ public object FfiConverterTypeEventTimelineItem: FfiConverter<EventTimelineItem,
 public interface HomeserverLoginDetailsInterface {
     
     /**
+     * The URL of the discovered or manually set sliding sync proxy,
+     * if any.
+     */
+    fun `slidingSyncProxy`(): kotlin.String?
+    
+    /**
      * Whether the current homeserver supports login using OIDC.
      */
     fun `supportsOidcLogin`(): kotlin.Boolean
@@ -7662,6 +7677,21 @@ open class HomeserverLoginDetails: Disposable, AutoCloseable, HomeserverLoginDet
         }
     }
 
+    
+    /**
+     * The URL of the discovered or manually set sliding sync proxy,
+     * if any.
+     */override fun `slidingSyncProxy`(): kotlin.String? =
+        callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_proxy(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterOptionalString.lift(it)
+        }
+    
     
     /**
      * Whether the current homeserver supports login using OIDC.
