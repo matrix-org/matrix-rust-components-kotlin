@@ -1703,6 +1703,14 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1767,16 +1775,16 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_constructor_authenticationservice_new(`basePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,`additionalRootCertificates`: RustBuffer.ByValue,`proxy`: RustBuffer.ByValue,`oidcConfiguration`: RustBuffer.ByValue,`customSlidingSyncProxy`: RustBuffer.ByValue,`sessionDelegate`: RustBuffer.ByValue,`crossProcessRefreshLockId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(`ptr`: Pointer,`serverNameOrHomeserverUrl`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_homeserver_details(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login_with_oidc_callback(`ptr`: Pointer,`authenticationData`: Pointer,`callbackUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_url_for_oidc_login(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login_with_oidc_callback(`ptr`: Pointer,`authenticationData`: Pointer,`callbackUrl`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_authenticationservice_url_for_oidc_login(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_client(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_client(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1811,6 +1819,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_profile(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_session_verification_controller(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1821,8 +1831,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Pointer,`processSetup`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1851,6 +1861,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Pointer,`room`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1869,8 +1881,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_base_path(`ptr`: Pointer,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2136,6 +2148,10 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_event_permalink(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_permalink(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
@@ -2773,6 +2789,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_profile(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver(
@@ -2812,6 +2830,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
     ): Short
@@ -3052,6 +3072,10 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_event_permalink(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_permalink(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_member(
     ): Short
@@ -3472,19 +3496,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions() != 8867.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_configure_homeserver() != 39888.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_configure_homeserver() != 13406.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_homeserver_details() != 39542.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login() != 50794.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login() != 30740.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login_with_oidc_callback() != 32717.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_login_with_oidc_callback() != 52385.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_url_for_oidc_login() != 47926.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_authenticationservice_url_for_oidc_login() != 64804.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_data() != 42952.toShort()) {
@@ -3532,6 +3556,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_profile() != 54768.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller() != 62335.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3547,7 +3574,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() != 61264.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 55564.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 32848.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 7127.toShort()) {
@@ -3592,6 +3619,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_service() != 52812.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room() != 37070.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user() != 9349.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3610,7 +3640,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_base_path() != 40888.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 22728.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 56018.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh() != 43839.toShort()) {
@@ -3950,6 +3980,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 43726.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_event_permalink() != 14417.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_permalink() != 47781.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() != 53375.toShort()) {
@@ -4978,26 +5014,26 @@ public interface AuthenticationServiceInterface {
      * Updates the service to authenticate with the homeserver for the
      * specified address.
      */
-    fun `configureHomeserver`(`serverNameOrHomeserverUrl`: kotlin.String)
+    suspend fun `configureHomeserver`(`serverNameOrHomeserverUrl`: kotlin.String)
     
     fun `homeserverDetails`(): HomeserverLoginDetails?
     
     /**
      * Performs a password login using the current homeserver.
      */
-    fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?): Client
+    suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?): Client
     
     /**
      * Completes the OIDC login process.
      */
-    fun `loginWithOidcCallback`(`authenticationData`: OidcAuthenticationData, `callbackUrl`: kotlin.String): Client
+    suspend fun `loginWithOidcCallback`(`authenticationData`: OidcAuthenticationData, `callbackUrl`: kotlin.String): Client
     
     /**
      * Requests the URL needed for login in a web view using OIDC. Once the web
      * view has succeeded, call `login_with_oidc_callback` with the callback it
      * returns.
      */
-    fun `urlForOidcLogin`(): OidcAuthenticationData
+    suspend fun `urlForOidcLogin`(): OidcAuthenticationData
     
     companion object
 }
@@ -5096,16 +5132,26 @@ open class AuthenticationService: Disposable, AutoCloseable, AuthenticationServi
      * Updates the service to authenticate with the homeserver for the
      * specified address.
      */
-    @Throws(AuthenticationException::class)override fun `configureHomeserver`(`serverNameOrHomeserverUrl`: kotlin.String) =
-        callWithPointer {
-    uniffiRustCallWithError(AuthenticationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(it,
-        FfiConverterString.lower(`serverNameOrHomeserverUrl`),
-        _status)
-}
-        }
-    
-    
+    @Throws(AuthenticationException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `configureHomeserver`(`serverNameOrHomeserverUrl`: kotlin.String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_configure_homeserver(
+                    thisPtr,
+                    FfiConverterString.lower(`serverNameOrHomeserverUrl`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            AuthenticationException.ErrorHandler,
+        )
+    }
     override fun `homeserverDetails`(): HomeserverLoginDetails? =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -5121,49 +5167,73 @@ open class AuthenticationService: Disposable, AutoCloseable, AuthenticationServi
     /**
      * Performs a password login using the current homeserver.
      */
-    @Throws(AuthenticationException::class)override fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?): Client =
-        callWithPointer {
-    uniffiRustCallWithError(AuthenticationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login(it,
-        FfiConverterString.lower(`username`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeClient.lift(it)
-        }
-    
+    @Throws(AuthenticationException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?) : Client {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login(
+                    thisPtr,
+                    FfiConverterString.lower(`username`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeClient.lift(it) },
+            // Error FFI converter
+            AuthenticationException.ErrorHandler,
+        )
+    }
     
     /**
      * Completes the OIDC login process.
      */
-    @Throws(AuthenticationException::class)override fun `loginWithOidcCallback`(`authenticationData`: OidcAuthenticationData, `callbackUrl`: kotlin.String): Client =
-        callWithPointer {
-    uniffiRustCallWithError(AuthenticationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login_with_oidc_callback(it,
-        FfiConverterTypeOidcAuthenticationData.lower(`authenticationData`),FfiConverterString.lower(`callbackUrl`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeClient.lift(it)
-        }
-    
+    @Throws(AuthenticationException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `loginWithOidcCallback`(`authenticationData`: OidcAuthenticationData, `callbackUrl`: kotlin.String) : Client {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_login_with_oidc_callback(
+                    thisPtr,
+                    FfiConverterTypeOidcAuthenticationData.lower(`authenticationData`),FfiConverterString.lower(`callbackUrl`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeClient.lift(it) },
+            // Error FFI converter
+            AuthenticationException.ErrorHandler,
+        )
+    }
     
     /**
      * Requests the URL needed for login in a web view using OIDC. Once the web
      * view has succeeded, call `login_with_oidc_callback` with the callback it
      * returns.
      */
-    @Throws(AuthenticationException::class)override fun `urlForOidcLogin`(): OidcAuthenticationData =
-        callWithPointer {
-    uniffiRustCallWithError(AuthenticationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_url_for_oidc_login(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeOidcAuthenticationData.lift(it)
-        }
-    
+    @Throws(AuthenticationException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `urlForOidcLogin`() : OidcAuthenticationData {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_authenticationservice_url_for_oidc_login(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeOidcAuthenticationData.lift(it) },
+            // Error FFI converter
+            AuthenticationException.ErrorHandler,
+        )
+    }
     
 
     
@@ -5337,6 +5407,8 @@ public interface ClientInterface {
     
     fun `getProfile`(`userId`: kotlin.String): UserProfile
     
+    suspend fun `getRecentlyVisitedRooms`(): List<kotlin.String>
+    
     fun `getSessionVerificationController`(): SessionVerificationController
     
     /**
@@ -5353,7 +5425,7 @@ public interface ClientInterface {
     /**
      * Login using a username and password.
      */
-    fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
+    suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
     
     /**
      * Log out the current user. This method returns an optional URL that
@@ -5398,6 +5470,8 @@ public interface ClientInterface {
     fun `subscribeToIgnoredUsers`(`listener`: IgnoredUsersListener): TaskHandle
     
     fun `syncService`(): SyncServiceBuilder
+    
+    suspend fun `trackRecentlyVisitedRoom`(`room`: kotlin.String)
     
     suspend fun `unignoreUser`(`userId`: kotlin.String)
     
@@ -5712,6 +5786,26 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         }
     
     
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getRecentlyVisitedRooms`() : List<kotlin.String> {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterSequenceString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
     @Throws(ClientException::class)override fun `getSessionVerificationController`(): SessionVerificationController =
         callWithPointer {
     uniffiRustCallWithError(ClientException) { _status ->
@@ -5802,16 +5896,26 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     /**
      * Login using a username and password.
      */
-    @Throws(ClientException::class)override fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?) =
-        callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login(it,
-        FfiConverterString.lower(`username`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
-        _status)
-}
-        }
-    
-    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login(
+                    thisPtr,
+                    FfiConverterString.lower(`username`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     /**
      * Log out the current user. This method returns an optional URL that
@@ -5996,6 +6100,27 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
             FfiConverterTypeSyncServiceBuilder.lift(it)
         }
     
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `trackRecentlyVisitedRoom`(`room`: kotlin.String) {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(
+                    thisPtr,
+                    FfiConverterString.lower(`room`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+            
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -6198,7 +6323,7 @@ public interface ClientBuilderInterface {
     
     fun `basePath`(`path`: kotlin.String): ClientBuilder
     
-    fun `build`(): Client
+    suspend fun `build`(): Client
     
     fun `disableAutomaticTokenRefresh`(): ClientBuilder
     
@@ -6338,17 +6463,25 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
         }
     
     
-    @Throws(ClientBuildException::class)override fun `build`(): Client =
-        callWithPointer {
-    uniffiRustCallWithError(ClientBuildException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeClient.lift(it)
-        }
-    
+    @Throws(ClientBuildException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `build`() : Client {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+            // lift function
+            { FfiConverterTypeClient.lift(it) },
+            // Error FFI converter
+            ClientBuildException.ErrorHandler,
+        )
+    }
     override fun `disableAutomaticTokenRefresh`(): ClientBuilder =
         callWithPointer {
     uniffiRustCall() { _status ->
@@ -10344,6 +10477,10 @@ public interface RoomInterface {
      */
     suspend fun `markAsRead`(`receiptType`: ReceiptType)
     
+    suspend fun `matrixToEventPermalink`(`eventId`: kotlin.String): kotlin.String
+    
+    suspend fun `matrixToPermalink`(): kotlin.String
+    
     suspend fun `member`(`userId`: kotlin.String): RoomMember
     
     fun `memberAvatarUrl`(`userId`: kotlin.String): kotlin.String?
@@ -11091,6 +11228,46 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             // lift function
             { Unit },
             
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `matrixToEventPermalink`(`eventId`: kotlin.String) : kotlin.String {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_event_permalink(
+                    thisPtr,
+                    FfiConverterString.lower(`eventId`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `matrixToPermalink`() : kotlin.String {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_permalink(
+                    thisPtr,
+                    
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterString.lift(it) },
             // Error FFI converter
             ClientException.ErrorHandler,
         )
