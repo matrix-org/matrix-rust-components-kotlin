@@ -1711,6 +1711,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2573,6 +2577,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_media_source_from_url(`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -2586,6 +2592,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -2719,6 +2727,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html(
@@ -2732,6 +2742,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha(
     ): Short
@@ -3451,6 +3463,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() != 11382.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink() != 56419.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url() != 33587.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3470,6 +3485,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 39901.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() != 20064.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha() != 4038.toShort()) {
@@ -19277,6 +19295,39 @@ public object FfiConverterTypeLocationContent: FfiConverterRustBuffer<LocationCo
 
 
 
+/**
+ * A Matrix entity that can be a room, room alias, user, or event, and a list
+ * of via servers.
+ */
+data class MatrixEntity (
+    var `id`: MatrixId, 
+    var `via`: List<kotlin.String>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMatrixEntity: FfiConverterRustBuffer<MatrixEntity> {
+    override fun read(buf: ByteBuffer): MatrixEntity {
+        return MatrixEntity(
+            FfiConverterTypeMatrixId.read(buf),
+            FfiConverterSequenceString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MatrixEntity) = (
+            FfiConverterTypeMatrixId.allocationSize(value.`id`) +
+            FfiConverterSequenceString.allocationSize(value.`via`)
+    )
+
+    override fun write(value: MatrixEntity, buf: ByteBuffer) {
+            FfiConverterTypeMatrixId.write(value.`id`, buf)
+            FfiConverterSequenceString.write(value.`via`, buf)
+    }
+}
+
+
+
 data class Mentions (
     var `userIds`: List<kotlin.String>, 
     var `room`: kotlin.Boolean
@@ -22386,6 +22437,144 @@ public object FfiConverterTypeLogLevel: FfiConverterRustBuffer<LogLevel> {
 
     override fun write(value: LogLevel, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * A Matrix ID that can be a room, room alias, user, or event.
+ */
+sealed class MatrixId {
+    
+    data class Room(
+        val `id`: kotlin.String) : MatrixId() {
+        companion object
+    }
+    
+    data class RoomAlias(
+        val `alias`: kotlin.String) : MatrixId() {
+        companion object
+    }
+    
+    data class User(
+        val `id`: kotlin.String) : MatrixId() {
+        companion object
+    }
+    
+    data class EventOnRoomId(
+        val `roomId`: kotlin.String, 
+        val `eventId`: kotlin.String) : MatrixId() {
+        companion object
+    }
+    
+    data class EventOnRoomAlias(
+        val `alias`: kotlin.String, 
+        val `eventId`: kotlin.String) : MatrixId() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeMatrixId : FfiConverterRustBuffer<MatrixId>{
+    override fun read(buf: ByteBuffer): MatrixId {
+        return when(buf.getInt()) {
+            1 -> MatrixId.Room(
+                FfiConverterString.read(buf),
+                )
+            2 -> MatrixId.RoomAlias(
+                FfiConverterString.read(buf),
+                )
+            3 -> MatrixId.User(
+                FfiConverterString.read(buf),
+                )
+            4 -> MatrixId.EventOnRoomId(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            5 -> MatrixId.EventOnRoomAlias(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: MatrixId) = when(value) {
+        is MatrixId.Room -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`id`)
+            )
+        }
+        is MatrixId.RoomAlias -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`alias`)
+            )
+        }
+        is MatrixId.User -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`id`)
+            )
+        }
+        is MatrixId.EventOnRoomId -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`roomId`)
+                + FfiConverterString.allocationSize(value.`eventId`)
+            )
+        }
+        is MatrixId.EventOnRoomAlias -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`alias`)
+                + FfiConverterString.allocationSize(value.`eventId`)
+            )
+        }
+    }
+
+    override fun write(value: MatrixId, buf: ByteBuffer) {
+        when(value) {
+            is MatrixId.Room -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`id`, buf)
+                Unit
+            }
+            is MatrixId.RoomAlias -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`alias`, buf)
+                Unit
+            }
+            is MatrixId.User -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`id`, buf)
+                Unit
+            }
+            is MatrixId.EventOnRoomId -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`roomId`, buf)
+                FfiConverterString.write(value.`eventId`, buf)
+                Unit
+            }
+            is MatrixId.EventOnRoomAlias -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`alias`, buf)
+                FfiConverterString.write(value.`eventId`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -29215,6 +29404,35 @@ public object FfiConverterOptionalTypeInsertData: FfiConverterRustBuffer<InsertD
 
 
 
+public object FfiConverterOptionalTypeMatrixEntity: FfiConverterRustBuffer<MatrixEntity?> {
+    override fun read(buf: ByteBuffer): MatrixEntity? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeMatrixEntity.read(buf)
+    }
+
+    override fun allocationSize(value: MatrixEntity?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeMatrixEntity.allocationSize(value)
+        }
+    }
+
+    override fun write(value: MatrixEntity?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeMatrixEntity.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeNotificationItem: FfiConverterRustBuffer<NotificationItem?> {
     override fun read(buf: ByteBuffer): NotificationItem? {
         if (buf.get().toInt() == 0) {
@@ -30970,6 +31188,18 @@ fun `makeWidgetDriver`(`settings`: WidgetSettings): WidgetDriverAndHandle {
 })
 }
 
+        /**
+         * Generates a `matrix.to` permalink from to the given userID.
+         */
+@Throws(ClientException::class)
+
+fun `matrixToUserPermalink`(`userId`: kotlin.String): kotlin.String {
+    return FfiConverterString.lift(
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(FfiConverterString.lower(`userId`),_status)
+})
+}
+
 
 fun `mediaSourceFromUrl`(`url`: kotlin.String): MediaSource {
     return FfiConverterTypeMediaSource.lift(
@@ -31038,6 +31268,18 @@ fun `newVirtualElementCallWidget`(`props`: VirtualElementCallWidgetOptions): Wid
     return FfiConverterTypeWidgetSettings.lift(
     uniffiRustCallWithError(ParseException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(FfiConverterTypeVirtualElementCallWidgetOptions.lower(`props`),_status)
+})
+}
+
+        /**
+         * Parse a matrix entity from a given URI, be it either
+         * a `matrix.to` link or a `matrix:` URI
+         */
+
+fun `parseMatrixEntityFrom`(`uri`: kotlin.String): MatrixEntity? {
+    return FfiConverterOptionalTypeMatrixEntity.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(FfiConverterString.lower(`uri`),_status)
 })
 }
 
