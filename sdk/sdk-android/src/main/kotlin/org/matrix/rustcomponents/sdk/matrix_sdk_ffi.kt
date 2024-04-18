@@ -1715,6 +1715,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1825,6 +1829,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview(`ptr`: Pointer,`roomIdOrAlias`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_session_verification_controller(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1843,6 +1849,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_remove_avatar(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(`ptr`: Pointer,`roomAlias`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_room_directory_search(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2803,6 +2811,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver(
@@ -2820,6 +2830,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_notification_client(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session(
     ): Short
@@ -3577,6 +3589,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview() != 16738.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller() != 62335.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -3602,6 +3617,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar() != 60365.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() != 40454.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() != 19641.toShort()) {
@@ -5427,6 +5445,11 @@ public interface ClientInterface {
     
     suspend fun `getRecentlyVisitedRooms`(): List<kotlin.String>
     
+    /**
+     * Get the preview of a room, to interact with it.
+     */
+    suspend fun `getRoomPreview`(`roomIdOrAlias`: kotlin.String): RoomPreview
+    
     fun `getSessionVerificationController`(): SessionVerificationController
     
     /**
@@ -5455,6 +5478,11 @@ public interface ClientInterface {
     fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClientBuilder
     
     fun `removeAvatar`()
+    
+    /**
+     * Resolves the given room alias to a room id, if possible.
+     */
+    suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String): kotlin.String
     
     /**
      * Restores the client from a `Session`.
@@ -5824,6 +5852,29 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         )
     }
     
+    /**
+     * Get the preview of a room, to interact with it.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getRoomPreview`(`roomIdOrAlias`: kotlin.String) : RoomPreview {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview(
+                    thisPtr,
+                    FfiConverterString.lower(`roomIdOrAlias`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterTypeRoomPreview.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
+    
     @Throws(ClientException::class)override fun `getSessionVerificationController`(): SessionVerificationController =
         callWithPointer {
     uniffiRustCallWithError(ClientException) { _status ->
@@ -5974,6 +6025,29 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         }
     
     
+    
+    /**
+     * Resolves the given room alias to a room id, if possible.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String) : kotlin.String {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(
+                    thisPtr,
+                    FfiConverterString.lower(`roomAlias`),
+                )
+            },
+            { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+            { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+            { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterString.lift(it) },
+            // Error FFI converter
+            ClientException.ErrorHandler,
+        )
+    }
     
     /**
      * Restores the client from a `Session`.
@@ -20499,6 +20573,114 @@ public object FfiConverterTypeRoomPowerLevels: FfiConverterRustBuffer<RoomPowerL
             FfiConverterLong.write(value.`roomName`, buf)
             FfiConverterLong.write(value.`roomAvatar`, buf)
             FfiConverterLong.write(value.`roomTopic`, buf)
+    }
+}
+
+
+
+/**
+ * The preview of a room, be it invited/joined/left, or not.
+ */
+data class RoomPreview (
+    /**
+     * The room id for this room.
+     */
+    var `roomId`: kotlin.String, 
+    /**
+     * The canonical alias for the room.
+     */
+    var `canonicalAlias`: kotlin.String?, 
+    /**
+     * The room's name, if set.
+     */
+    var `name`: kotlin.String?, 
+    /**
+     * The room's topic, if set.
+     */
+    var `topic`: kotlin.String?, 
+    /**
+     * The MXC URI to the room's avatar, if set.
+     */
+    var `avatarUrl`: kotlin.String?, 
+    /**
+     * The number of joined members.
+     */
+    var `numJoinedMembers`: kotlin.ULong, 
+    /**
+     * The room type (space, custom) or nothing, if it's a regular room.
+     */
+    var `roomType`: kotlin.String?, 
+    /**
+     * Is the history world-readable for this room?
+     */
+    var `isHistoryWorldReadable`: kotlin.Boolean, 
+    /**
+     * Is the room joined by the current user?
+     */
+    var `isJoined`: kotlin.Boolean, 
+    /**
+     * Is the current user invited to this room?
+     */
+    var `isInvited`: kotlin.Boolean, 
+    /**
+     * is the join rule public for this room?
+     */
+    var `isPublic`: kotlin.Boolean, 
+    /**
+     * Can we knock (or restricted-knock) to this room?
+     */
+    var `canKnock`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomPreview: FfiConverterRustBuffer<RoomPreview> {
+    override fun read(buf: ByteBuffer): RoomPreview {
+        return RoomPreview(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomPreview) = (
+            FfiConverterString.allocationSize(value.`roomId`) +
+            FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
+            FfiConverterOptionalString.allocationSize(value.`name`) +
+            FfiConverterOptionalString.allocationSize(value.`topic`) +
+            FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
+            FfiConverterULong.allocationSize(value.`numJoinedMembers`) +
+            FfiConverterOptionalString.allocationSize(value.`roomType`) +
+            FfiConverterBoolean.allocationSize(value.`isHistoryWorldReadable`) +
+            FfiConverterBoolean.allocationSize(value.`isJoined`) +
+            FfiConverterBoolean.allocationSize(value.`isInvited`) +
+            FfiConverterBoolean.allocationSize(value.`isPublic`) +
+            FfiConverterBoolean.allocationSize(value.`canKnock`)
+    )
+
+    override fun write(value: RoomPreview, buf: ByteBuffer) {
+            FfiConverterString.write(value.`roomId`, buf)
+            FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
+            FfiConverterOptionalString.write(value.`name`, buf)
+            FfiConverterOptionalString.write(value.`topic`, buf)
+            FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+            FfiConverterULong.write(value.`numJoinedMembers`, buf)
+            FfiConverterOptionalString.write(value.`roomType`, buf)
+            FfiConverterBoolean.write(value.`isHistoryWorldReadable`, buf)
+            FfiConverterBoolean.write(value.`isJoined`, buf)
+            FfiConverterBoolean.write(value.`isInvited`, buf)
+            FfiConverterBoolean.write(value.`isPublic`, buf)
+            FfiConverterBoolean.write(value.`canKnock`, buf)
     }
 }
 
