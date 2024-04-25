@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.matrix_sdk;
+package uniffi.matrix_sdk_crypto;
 
 // Common helper code.
 //
@@ -55,7 +55,7 @@ open class RustBuffer : Structure() {
     companion object {
         internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
             // Note: need to convert the size to a `Long` value to make this work with JVM.
-            UniffiLib.INSTANCE.ffi_matrix_sdk_rustbuffer_alloc(size.toLong(), status)
+            UniffiLib.INSTANCE.ffi_matrix_sdk_crypto_rustbuffer_alloc(size.toLong(), status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -71,7 +71,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.ffi_matrix_sdk_rustbuffer_free(buf, status)
+            UniffiLib.INSTANCE.ffi_matrix_sdk_crypto_rustbuffer_free(buf, status)
         }
     }
 
@@ -443,7 +443,7 @@ internal open class UniffiForeignFuture(
 internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
-            loadIndirect<UniffiLib>(componentName = "matrix_sdk")
+            loadIndirect<UniffiLib>(componentName = "matrix_sdk_crypto")
             .also { lib: UniffiLib ->
                 uniffiCheckContractApiVersion(lib)
                 uniffiCheckApiChecksums(lib)
@@ -452,119 +452,119 @@ internal interface UniffiLib : Library {
         
     }
 
-    fun ffi_matrix_sdk_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_u8(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_u8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_u8(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_u8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun ffi_matrix_sdk_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_i8(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_i8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_i8(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_i8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun ffi_matrix_sdk_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_u16(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_u16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_u16(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_u16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    fun ffi_matrix_sdk_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_i16(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_i16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_i16(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_i16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    fun ffi_matrix_sdk_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_u32(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_u32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_u32(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_u32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    fun ffi_matrix_sdk_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_i32(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_i32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_i32(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_i32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    fun ffi_matrix_sdk_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_u64(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_u64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_u64(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_u64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun ffi_matrix_sdk_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_i64(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_i64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_i64(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_i64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun ffi_matrix_sdk_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_f32(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_f32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_f32(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_f32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Float
-    fun ffi_matrix_sdk_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_f64(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_f64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_f64(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_f64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
-    fun ffi_matrix_sdk_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_pointer(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_pointer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_pointer(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_pointer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun ffi_matrix_sdk_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_rust_buffer(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_rust_buffer(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_cancel_void(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_cancel_void(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_free_void(`handle`: Long,
+    fun ffi_matrix_sdk_crypto_rust_future_free_void(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_crypto_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_uniffi_contract_version(
+    fun ffi_matrix_sdk_crypto_uniffi_contract_version(
     ): Int
     
 }
@@ -573,7 +573,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
     // Get the bindings contract version from our ComponentInterface
     val bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_matrix_sdk_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_matrix_sdk_crypto_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
@@ -620,26 +620,6 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
-
-public object FfiConverterLong: FfiConverter<Long, Long> {
-    override fun lift(value: Long): Long {
-        return value
-    }
-
-    override fun read(buf: ByteBuffer): Long {
-        return buf.getLong()
-    }
-
-    override fun lower(value: Long): Long {
-        return value
-    }
-
-    override fun allocationSize(value: Long) = 8UL
-
-    override fun write(value: Long, buf: ByteBuffer) {
-        buf.putLong(value)
-    }
-}
 
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
@@ -698,145 +678,41 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 /**
- * A set of common power levels required for various operations within a room,
- * that can be applied as a single operation. When updating these
- * settings, any levels that are `None` will remain unchanged.
- */
-data class RoomPowerLevelChanges (
-    /**
-     * The level required to ban a user.
-     */
-    var `ban`: kotlin.Long? = null, 
-    /**
-     * The level required to invite a user.
-     */
-    var `invite`: kotlin.Long? = null, 
-    /**
-     * The level required to kick a user.
-     */
-    var `kick`: kotlin.Long? = null, 
-    /**
-     * The level required to redact an event.
-     */
-    var `redact`: kotlin.Long? = null, 
-    /**
-     * The default level required to send message events.
-     */
-    var `eventsDefault`: kotlin.Long? = null, 
-    /**
-     * The default level required to send state events.
-     */
-    var `stateDefault`: kotlin.Long? = null, 
-    /**
-     * The default power level for every user in the room.
-     */
-    var `usersDefault`: kotlin.Long? = null, 
-    /**
-     * The level required to change the room's name.
-     */
-    var `roomName`: kotlin.Long? = null, 
-    /**
-     * The level required to change the room's avatar.
-     */
-    var `roomAvatar`: kotlin.Long? = null, 
-    /**
-     * The level required to change the room's topic.
-     */
-    var `roomTopic`: kotlin.Long? = null
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomPowerLevelChanges: FfiConverterRustBuffer<RoomPowerLevelChanges> {
-    override fun read(buf: ByteBuffer): RoomPowerLevelChanges {
-        return RoomPowerLevelChanges(
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-            FfiConverterOptionalLong.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: RoomPowerLevelChanges) = (
-            FfiConverterOptionalLong.allocationSize(value.`ban`) +
-            FfiConverterOptionalLong.allocationSize(value.`invite`) +
-            FfiConverterOptionalLong.allocationSize(value.`kick`) +
-            FfiConverterOptionalLong.allocationSize(value.`redact`) +
-            FfiConverterOptionalLong.allocationSize(value.`eventsDefault`) +
-            FfiConverterOptionalLong.allocationSize(value.`stateDefault`) +
-            FfiConverterOptionalLong.allocationSize(value.`usersDefault`) +
-            FfiConverterOptionalLong.allocationSize(value.`roomName`) +
-            FfiConverterOptionalLong.allocationSize(value.`roomAvatar`) +
-            FfiConverterOptionalLong.allocationSize(value.`roomTopic`)
-    )
-
-    override fun write(value: RoomPowerLevelChanges, buf: ByteBuffer) {
-            FfiConverterOptionalLong.write(value.`ban`, buf)
-            FfiConverterOptionalLong.write(value.`invite`, buf)
-            FfiConverterOptionalLong.write(value.`kick`, buf)
-            FfiConverterOptionalLong.write(value.`redact`, buf)
-            FfiConverterOptionalLong.write(value.`eventsDefault`, buf)
-            FfiConverterOptionalLong.write(value.`stateDefault`, buf)
-            FfiConverterOptionalLong.write(value.`usersDefault`, buf)
-            FfiConverterOptionalLong.write(value.`roomName`, buf)
-            FfiConverterOptionalLong.write(value.`roomAvatar`, buf)
-            FfiConverterOptionalLong.write(value.`roomTopic`, buf)
-    }
-}
-
-
-
-/**
- * Settings for end-to-end encryption features.
+ * The local trust state of a device.
  */
 
-enum class BackupDownloadStrategy {
+enum class LocalTrust {
     
     /**
-     * Automatically download all room keys from the backup when the backup
-     * recovery key has been received. The backup recovery key can be received
-     * in two ways:
-     *
-     * 1. Received as a `m.secret.send` to-device event, after a successful
-     * interactive verification.
-     * 2. Imported from secret storage (4S) using the
-     * [`SecretStore::import_secrets()`] method.
-     *
-     * [`SecretStore::import_secrets()`]: crate::encryption::secret_storage::SecretStore::import_secrets
+     * The device has been verified and is trusted.
      */
-    ONE_SHOT,
+    VERIFIED,
     /**
-     * Attempt to download a single room key if an event fails to be decrypted.
+     * The device been blacklisted from communicating.
      */
-    AFTER_DECRYPTION_FAILURE,
+    BLACK_LISTED,
     /**
-     * Don't download any room keys automatically. The user can manually
-     * download room keys using the [`Backups::download_room_key()`] methods.
-     *
-     * This is the default option.
+     * The trust state of the device is being ignored.
      */
-    MANUAL;
+    IGNORED,
+    /**
+     * The trust state is unset.
+     */
+    UNSET;
     companion object
 }
 
 
-public object FfiConverterTypeBackupDownloadStrategy: FfiConverterRustBuffer<BackupDownloadStrategy> {
+public object FfiConverterTypeLocalTrust: FfiConverterRustBuffer<LocalTrust> {
     override fun read(buf: ByteBuffer) = try {
-        BackupDownloadStrategy.values()[buf.getInt() - 1]
+        LocalTrust.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: BackupDownloadStrategy) = 4UL
+    override fun allocationSize(value: LocalTrust) = 4UL
 
-    override fun write(value: BackupDownloadStrategy, buf: ByteBuffer) {
+    override fun write(value: LocalTrust, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -846,37 +722,43 @@ public object FfiConverterTypeBackupDownloadStrategy: FfiConverterRustBuffer<Bac
 
 
 /**
- * The role of a member in a room.
+ * The result of a signature check.
  */
 
-enum class RoomMemberRole {
+enum class SignatureState {
     
     /**
-     * The member is an administrator.
+     * The signature is missing.
      */
-    ADMINISTRATOR,
+    MISSING,
     /**
-     * The member is a moderator.
+     * The signature is invalid.
      */
-    MODERATOR,
+    INVALID,
     /**
-     * The member is a regular user.
+     * The signature is valid but the device or user identity that created the
+     * signature is not trusted.
      */
-    USER;
+    VALID_BUT_NOT_TRUSTED,
+    /**
+     * The signature is valid and the device or user identity that created the
+     * signature is trusted.
+     */
+    VALID_AND_TRUSTED;
     companion object
 }
 
 
-public object FfiConverterTypeRoomMemberRole: FfiConverterRustBuffer<RoomMemberRole> {
+public object FfiConverterTypeSignatureState: FfiConverterRustBuffer<SignatureState> {
     override fun read(buf: ByteBuffer) = try {
-        RoomMemberRole.values()[buf.getInt() - 1]
+        SignatureState.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: RoomMemberRole) = 4UL
+    override fun allocationSize(value: SignatureState) = 4UL
 
-    override fun write(value: RoomMemberRole, buf: ByteBuffer) {
+    override fun write(value: SignatureState, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -885,30 +767,39 @@ public object FfiConverterTypeRoomMemberRole: FfiConverterRustBuffer<RoomMemberR
 
 
 
+/**
+ * Our best guess at the reason why an event can't be decrypted.
+ */
 
-public object FfiConverterOptionalLong: FfiConverterRustBuffer<kotlin.Long?> {
-    override fun read(buf: ByteBuffer): kotlin.Long? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterLong.read(buf)
+enum class UtdCause {
+    
+    /**
+     * We don't have an explanation for why this UTD happened - it is probably
+     * a bug, or a network split between the two homeservers.
+     */
+    UNKNOWN,
+    /**
+     * This event was sent when we were not a member of the room (or invited),
+     * so it is impossible to decrypt (without MSC3061).
+     */
+    MEMBERSHIP;
+    companion object
+}
+
+
+public object FfiConverterTypeUtdCause: FfiConverterRustBuffer<UtdCause> {
+    override fun read(buf: ByteBuffer) = try {
+        UtdCause.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: kotlin.Long?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterLong.allocationSize(value)
-        }
-    }
+    override fun allocationSize(value: UtdCause) = 4UL
 
-    override fun write(value: kotlin.Long?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterLong.write(value, buf)
-        }
+    override fun write(value: UtdCause, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
+
+
 

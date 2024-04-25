@@ -677,34 +677,6 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 
-
-enum class BackPaginationStatus {
-    
-    IDLE,
-    PAGINATING,
-    TIMELINE_START_REACHED;
-    companion object
-}
-
-
-public object FfiConverterTypeBackPaginationStatus: FfiConverterRustBuffer<BackPaginationStatus> {
-    override fun read(buf: ByteBuffer) = try {
-        BackPaginationStatus.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: BackPaginationStatus) = 4UL
-
-    override fun write(value: BackPaginationStatus, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
 /**
  * Where this event came.
  */
@@ -737,6 +709,47 @@ public object FfiConverterTypeEventItemOrigin: FfiConverterRustBuffer<EventItemO
     override fun allocationSize(value: EventItemOrigin) = 4UL
 
     override fun write(value: EventItemOrigin, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * The status of a pagination.
+ */
+
+enum class PaginationStatus {
+    
+    /**
+     * No pagination happening.
+     */
+    IDLE,
+    /**
+     * Timeline is paginating for this end.
+     */
+    PAGINATING,
+    /**
+     * An end of the timeline (front or back) has been reached by this
+     * pagination.
+     */
+    TIMELINE_END_REACHED;
+    companion object
+}
+
+
+public object FfiConverterTypePaginationStatus: FfiConverterRustBuffer<PaginationStatus> {
+    override fun read(buf: ByteBuffer) = try {
+        PaginationStatus.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: PaginationStatus) = 4UL
+
+    override fun write(value: PaginationStatus, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
