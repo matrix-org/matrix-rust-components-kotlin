@@ -32,9 +32,9 @@ def read_version_numbers_from_kotlin_file(file_path):
     with open(file_path, "r") as file:
         content = file.read()
 
-    major_version = int(re.search(r"majorVersion\s*=\s*(\d+)", content).group(1))
-    minor_version = int(re.search(r"minorVersion\s*=\s*(\d+)", content).group(1))
-    patch_version = int(re.search(r"patchVersion\s*=\s*(\d+)", content).group(1))
+    major_version = int(re.search(r"majorVersion\s*=\s*\"(\.+)\"", content).group(1))
+    minor_version = int(re.search(r"minorVersion\s*=\s*\"(\.+)\"", content).group(1))
+    patch_version = int(re.search(r"patchVersion\s*=\s*\"(\.+)\"", content).group(1))
 
     return major_version, minor_version, patch_version
 
@@ -89,6 +89,8 @@ parser.add_argument("-p", "--path-to-sdk", type=str, required=False,
                     help="Choose a module (SDK or CRYPTO)")
 parser.add_argument("-s", "--skip-clone", action="store_true", required=False,
                     help="Skip cloning the Rust SDK repository")
+parser.add_argument("-c", "--skip-version-check", action="store_true", required=False,
+                    help="Skip a version check")
 
 args = parser.parse_args()
 
@@ -108,15 +110,19 @@ print(f"Selected module: {args.module}")
 print(f"Version: {args.version}")
 print(f"SDK git ref: {args.ref}")
 
-build_version_file_path = get_build_version_file_path(args.module, project_root)
-major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
-if is_provided_version_higher(major, minor, patch, args.version):
-    print(
-        f"The provided version ({args.version}) is higher than the previous version ({major}.{minor}.{patch}) so we can start the release process")
-else:
-    print(
-        f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
-    exit(0)
+if '-' in args.version:
+    args.skip_version_check = True
+
+if args.skip_version_check != True:
+    build_version_file_path = get_build_version_file_path(args.module, project_root)
+    major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
+    if is_provided_version_higher(major, minor, patch, args.version):
+        print(
+            f"The provided version ({args.version}) is higher than the previous version ({major}.{minor}.{patch}) so we can start the release process")
+    else:
+        print(
+            f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
+        exit(0)
 
 if skip_clone is False:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
@@ -125,6 +131,6 @@ execute_build_script(current_dir, sdk_path, args.module, args.target)
 
 # Export Rust SDK path for next steps, if running in GitHub Actions
 env_file_path = os.getenv('GITHUB_ENV')
-if os.path.exists(env_file_path):
+if env_file_path and os.path.exists(env_file_path):
     with open(env_file_path, "a") as file:
         file.write(f"RUST_SDK_PATH={sdk_path}")
