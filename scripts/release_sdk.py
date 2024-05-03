@@ -155,7 +155,7 @@ def get_asset_path(root_project_dir: str, module: Module) -> str:
 
 def get_publish_task(module: Module) -> str:
     if module == Module.SDK:
-        return ":sdk:sdk-android:publishToSonatype"
+        return ":sdk:sdk-android:publishAllPublicationsToSonatypeRepository"
     elif module == Module.CRYPTO:
         return ":crypto:crypto-android:publishToSonatype"
     else:
