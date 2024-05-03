@@ -22,6 +22,9 @@ if (secretPropsFile.exists()) {
 }
 
 nexusPublishing {
+    useStaging.set(provider {
+        !project.version.toString().contains("-SNAPSHOT")
+    })
     repositories {
         sonatype {
             stagingProfileId = sonatypeStagingProfileId
