@@ -163,7 +163,7 @@ def get_publish_task(module: Module) -> str:
 
 
 def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
-    gradle_command = f"./gradlew {publish_task} closeAndReleaseStagingRepository"
+    gradle_command = f"./gradlew {publish_task}"
     result = subprocess.run(gradle_command, shell=True, cwd=root_project_dir, text=True)
     if result.returncode != 0:
         raise Exception(f"Gradle tasks failed with return code {result.returncode}")
