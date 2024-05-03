@@ -32,9 +32,9 @@ def read_version_numbers_from_kotlin_file(file_path):
     with open(file_path, "r") as file:
         content = file.read()
 
-    major_version = int(re.search(r"majorVersion\s*=\s*\"(\.+)\"", content).group(1))
-    minor_version = int(re.search(r"minorVersion\s*=\s*\"(\.+)\"", content).group(1))
-    patch_version = int(re.search(r"patchVersion\s*=\s*\"(\.+)\"", content).group(1))
+    major_version = int(re.search(r"majorVersion\s*=\s*\"(.+)\"", content).group(1))
+    minor_version = int(re.search(r"minorVersion\s*=\s*\"(.+)\"", content).group(1))
+    patch_version = int(re.search(r"patchVersion\s*=\s*\"(.+)\"", content).group(1))
 
     return major_version, minor_version, patch_version
 

@@ -27,9 +27,9 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
 
     new_major, new_minor, new_patch = new_version.split('.')
 
-    content = re.sub(r"(majorVersion\s*=\s*)\"(\.+)\"", rf"\g<1>\"{new_major}\"", content)
-    content = re.sub(r"(minorVersion\s*=\s*)\"(\.+)\"", rf"\g<1>\"{new_minor}\"", content)
-    content = re.sub(r"(patchVersion\s*=\s*)\"(\.+)\"", rf"\g<1>\"{new_patch}\"", content)
+    content = re.sub(r"(majorVersion\s*=\s*)\"(.+)\"", rf'\g<1>"{new_major}"', content)
+    content = re.sub(r"(minorVersion\s*=\s*)\"(.+)\"", rf'\g<1>"{new_minor}"', content)
+    content = re.sub(r"(patchVersion\s*=\s*)\"(.+)\"", rf'\g<1>"{new_patch}"', content)
 
     with open(file_path, 'w') as file:
         file.write(content)
