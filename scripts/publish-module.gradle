@@ -53,4 +53,5 @@ signing {
             rootProject.ext["signing.password"],
     )
     sign publishing.publications
+    required { !PUBLISH_VERSION.endsWith("-SNAPSHOT") }
 }
