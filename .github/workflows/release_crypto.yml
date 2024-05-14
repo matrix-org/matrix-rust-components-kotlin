@@ -60,10 +60,10 @@ jobs:
         with:
           ndk-version: r25c
 
-      - name: Create symlinks for buildchain
-        run: |
-          export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
-          echo $PATH
+      # - name: Create symlinks for buildchain
+      #   run: |
+      #     export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
+      #     echo $PATH
 
       - uses: actions/cache@v4
         with:
