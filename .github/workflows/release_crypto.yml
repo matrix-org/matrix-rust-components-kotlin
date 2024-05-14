@@ -111,7 +111,7 @@ jobs:
       - name: Run build script
         env:
           ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-        run: ./main/scripts/build.sh -r -m crypto -p rust-sdk
+        run: ./scripts/build.sh -r -m crypto -p rust-sdk
 
       - name: Find all .aar files
         run: find . -name "*.aar"
