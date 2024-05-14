@@ -78,8 +78,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          # This value should be updated to the `NIGHTLY` value in: https://github.com/matrix-org/matrix-rust-sdk/blob/main/xtask/src/main.rs
-          toolchain: nightly-2024-02-06
+          toolchain: nightly-2024-05-09
 
       #      - name: Create cargo config
       #        run: |
