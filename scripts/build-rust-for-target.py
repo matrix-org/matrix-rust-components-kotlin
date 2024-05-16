@@ -32,9 +32,9 @@ def read_version_numbers_from_kotlin_file(file_path):
     with open(file_path, "r") as file:
         content = file.read()
 
-    major_version = int(re.search(r"majorVersion\s*=\s*(\d+)", content).group(1))
-    minor_version = int(re.search(r"minorVersion\s*=\s*(\d+)", content).group(1))
-    patch_version = int(re.search(r"patchVersion\s*=\s*(\d+)", content).group(1))
+    major_version = re.search(r"majorVersion\s*=\s*\"(.+)\"", content).group(1)
+    minor_version = re.search(r"minorVersion\s*=\s*\"(.+)\"", content).group(1)
+    patch_version = re.search(r"patchVersion\s*=\s*\"(.+)\"", content).group(1)
 
     return major_version, minor_version, patch_version
 
@@ -110,13 +110,16 @@ print(f"SDK git ref: {args.ref}")
 
 build_version_file_path = get_build_version_file_path(args.module, project_root)
 major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
-if is_provided_version_higher(major, minor, patch, args.version):
-    print(
-        f"The provided version ({args.version}) is higher than the previous version ({major}.{minor}.{patch}) so we can start the release process")
-else:
-    print(
-        f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
-    exit(0)
+is_snapshot_version = args.version.endswith("-SNAPSHOT")
+
+if not is_snapshot_version:
+    if is_provided_version_higher(major, minor, patch, args.version):
+        print(
+            f"The provided version ({args.version}) is higher than the previous version ({major}.{minor}.{patch}) so we can start the release process")
+    else:
+        print(
+            f"The provided version ({args.version}) is not higher than the previous version ({major}.{minor}.{patch}) so bump the version before retrying.")
+        exit(0)
 
 if skip_clone is False:
     clone_repo_and_checkout_ref(sdk_path, sdk_git_url, args.ref)
