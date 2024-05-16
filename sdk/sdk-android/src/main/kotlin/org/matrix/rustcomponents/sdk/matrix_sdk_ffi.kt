@@ -1986,8 +1986,6 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2109,6 +2107,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id_or_alias(`ptr`: Pointer,`roomIdOrAlias`: RustBuffer.ByValue,`serverNames`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     ): Long
@@ -2562,8 +2562,6 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input(`ptr`: Pointer,`input`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites(`ptr`: Pointer,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2645,8 +2643,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(`ptr`: Pointer,`appIdentifier`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_unified_invites_in_room_list(`ptr`: Pointer,`withUnifiedInvites`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_utd_hook(`ptr`: Pointer,`delegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3096,6 +3092,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
@@ -3486,8 +3484,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_apply_input(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_invites(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
@@ -3537,8 +3533,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_unified_invites_in_room_list(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_utd_hook(
     ): Short
@@ -3885,7 +3879,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() != 49620.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() != 51221.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() != 64032.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias() != 18521.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 33276.toShort()) {
@@ -3900,7 +3897,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar() != 29033.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() != 27709.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() != 14306.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() != 40455.toShort()) {
@@ -4473,9 +4470,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_apply_input() != 31607.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_invites() != 18531.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room() != 11566.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4549,9 +4543,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock() != 31599.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_unified_invites_in_room_list() != 19788.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_utd_hook() != 61858.toShort()) {
@@ -5767,7 +5758,24 @@ public interface ClientInterface {
     
     suspend fun `ignoredUsers`(): List<kotlin.String>
     
+    /**
+     * Join a room by its ID.
+     *
+     * Use this method when the homeserver already knows of the given room ID.
+     * Otherwise use `join_room_by_id_or_alias` so you can pass a list of
+     * server names for the homeserver to find the room.
+     */
     suspend fun `joinRoomById`(`roomId`: kotlin.String): Room
+    
+    /**
+     * Join a room by its ID or alias.
+     *
+     * When supplying the room's ID, you can also supply a list of server names
+     * for the homeserver to find the room. Typically these server names
+     * come from a permalink's `via` parameters, or from resolving a room's
+     * alias into an ID.
+     */
+    suspend fun `joinRoomByIdOrAlias`(`roomIdOrAlias`: kotlin.String, `serverNames`: List<kotlin.String>): Room
     
     /**
      * Login using a username and password.
@@ -5786,9 +5794,10 @@ public interface ClientInterface {
     suspend fun `removeAvatar`()
     
     /**
-     * Resolves the given room alias to a room id, if possible.
+     * Resolves the given room alias to a room ID (and a list of servers), if
+     * possible.
      */
-    suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String): kotlin.String
+    suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String): ResolvedRoomAlias
     
     /**
      * Restores the client from a `Session`.
@@ -6332,6 +6341,13 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     }
 
     
+    /**
+     * Join a room by its ID.
+     *
+     * Use this method when the homeserver already knows of the given room ID.
+     * Otherwise use `join_room_by_id_or_alias` so you can pass a list of
+     * server names for the homeserver to find the room.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `joinRoomById`(`roomId`: kotlin.String) : Room {
@@ -6340,6 +6356,35 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(
                 thisPtr,
                 FfiConverterString.lower(`roomId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeRoom.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Join a room by its ID or alias.
+     *
+     * When supplying the room's ID, you can also supply a list of server names
+     * for the homeserver to find the room. Typically these server names
+     * come from a permalink's `via` parameters, or from resolving a room's
+     * alias into an ID.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `joinRoomByIdOrAlias`(`roomIdOrAlias`: kotlin.String, `serverNames`: List<kotlin.String>) : Room {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id_or_alias(
+                thisPtr,
+                FfiConverterString.lower(`roomIdOrAlias`),FfiConverterSequenceString.lower(`serverNames`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
@@ -6448,11 +6493,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
-     * Resolves the given room alias to a room id, if possible.
+     * Resolves the given room alias to a room ID (and a list of servers), if
+     * possible.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String) : kotlin.String {
+    override suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String) : ResolvedRoomAlias {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(
@@ -6464,7 +6510,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterString.lift(it) },
+        { FfiConverterTypeResolvedRoomAlias.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -13980,8 +14026,6 @@ public interface RoomListServiceInterface {
     
     suspend fun `applyInput`(`input`: RoomListInput)
     
-    suspend fun `invites`(): RoomList
-    
     suspend fun `room`(`roomId`: kotlin.String): RoomListItem
     
     fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
@@ -14110,27 +14154,6 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface 
         // lift function
         { Unit },
         
-        // Error FFI converter
-        RoomListException.ErrorHandler,
-    )
-    }
-
-    
-    @Throws(RoomListException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `invites`() : RoomList {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_invites(
-                thisPtr,
-                
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeRoomList.lift(it) },
         // Error FFI converter
         RoomListException.ErrorHandler,
     )
@@ -16267,8 +16290,6 @@ public interface SyncServiceBuilderInterface {
     
     fun `withCrossProcessLock`(`appIdentifier`: kotlin.String?): SyncServiceBuilder
     
-    fun `withUnifiedInvitesInRoomList`(`withUnifiedInvites`: kotlin.Boolean): SyncServiceBuilder
-    
     fun `withUtdHook`(`delegate`: UnableToDecryptDelegate): SyncServiceBuilder
     
     companion object
@@ -16382,18 +16403,6 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(
         it, FfiConverterOptionalString.lower(`appIdentifier`),_status)
-}
-    }
-    )
-    }
-    
-
-    override fun `withUnifiedInvitesInRoomList`(`withUnifiedInvites`: kotlin.Boolean): SyncServiceBuilder {
-            return FfiConverterTypeSyncServiceBuilder.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_unified_invites_in_room_list(
-        it, FfiConverterBoolean.lower(`withUnifiedInvites`),_status)
 }
     }
     )
@@ -20860,6 +20869,44 @@ public object FfiConverterTypeRequiredState: FfiConverterRustBuffer<RequiredStat
     override fun write(value: RequiredState, buf: ByteBuffer) {
             FfiConverterString.write(value.`key`, buf)
             FfiConverterString.write(value.`value`, buf)
+    }
+}
+
+
+
+/**
+ * Information about a room, that was resolved from a room alias.
+ */
+data class ResolvedRoomAlias (
+    /**
+     * The room ID that the alias resolved to.
+     */
+    var `roomId`: kotlin.String, 
+    /**
+     * A list of servers that can be used to find the room by its room ID.
+     */
+    var `servers`: List<kotlin.String>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeResolvedRoomAlias: FfiConverterRustBuffer<ResolvedRoomAlias> {
+    override fun read(buf: ByteBuffer): ResolvedRoomAlias {
+        return ResolvedRoomAlias(
+            FfiConverterString.read(buf),
+            FfiConverterSequenceString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ResolvedRoomAlias) = (
+            FfiConverterString.allocationSize(value.`roomId`) +
+            FfiConverterSequenceString.allocationSize(value.`servers`)
+    )
+
+    override fun write(value: ResolvedRoomAlias, buf: ByteBuffer) {
+            FfiConverterString.write(value.`roomId`, buf)
+            FfiConverterSequenceString.write(value.`servers`, buf)
     }
 }
 
@@ -26435,6 +26482,9 @@ sealed class RoomListEntriesDynamicFilterKind {
     object NonLeft : RoomListEntriesDynamicFilterKind()
     
     
+    object Joined : RoomListEntriesDynamicFilterKind()
+    
+    
     object Unread : RoomListEntriesDynamicFilterKind()
     
     
@@ -26477,17 +26527,18 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.read(buf),
                 )
             3 -> RoomListEntriesDynamicFilterKind.NonLeft
-            4 -> RoomListEntriesDynamicFilterKind.Unread
-            5 -> RoomListEntriesDynamicFilterKind.Favourite
-            6 -> RoomListEntriesDynamicFilterKind.Invite
-            7 -> RoomListEntriesDynamicFilterKind.Category(
+            4 -> RoomListEntriesDynamicFilterKind.Joined
+            5 -> RoomListEntriesDynamicFilterKind.Unread
+            6 -> RoomListEntriesDynamicFilterKind.Favourite
+            7 -> RoomListEntriesDynamicFilterKind.Invite
+            8 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            8 -> RoomListEntriesDynamicFilterKind.None
-            9 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            9 -> RoomListEntriesDynamicFilterKind.None
+            10 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            10 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            11 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -26510,6 +26561,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             )
         }
         is RoomListEntriesDynamicFilterKind.NonLeft -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.Joined -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -26578,34 +26635,38 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(3)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Unread -> {
+            is RoomListEntriesDynamicFilterKind.Joined -> {
                 buf.putInt(4)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Favourite -> {
+            is RoomListEntriesDynamicFilterKind.Unread -> {
                 buf.putInt(5)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Invite -> {
+            is RoomListEntriesDynamicFilterKind.Favourite -> {
                 buf.putInt(6)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.Invite -> {
                 buf.putInt(7)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(8)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
-                buf.putInt(10)
+                buf.putInt(11)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }

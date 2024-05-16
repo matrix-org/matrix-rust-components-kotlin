@@ -15,7 +15,7 @@ on:
 jobs:
   build_native:
     name: Build and generate crypto native libs
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     env:
       OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
@@ -32,8 +32,6 @@ jobs:
 
       - name: Checkout this repo
         uses: actions/checkout@v4
-        with:
-          path: main
 
       - name: Configure git user
         run: |
@@ -62,10 +60,10 @@ jobs:
         with:
           ndk-version: r25c
 
-      - name: Create symlinks for buildchain
-        run: |
-          export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
-          echo $PATH
+      # - name: Create symlinks for buildchain
+      #   run: |
+      #     export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
+      #     echo $PATH
 
       - uses: actions/cache@v4
         with:
@@ -113,7 +111,7 @@ jobs:
       - name: Run build script
         env:
           ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-        run: ./main/scripts/build.sh -r -m crypto -p rust-sdk
+        run: ./scripts/build.sh -r -m crypto -p rust-sdk
 
       - name: Find all .aar files
         run: find . -name "*.aar"
@@ -134,7 +132,7 @@ jobs:
           CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./main/scripts/release_crypto.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk
+          python3 ./scripts/release_crypto.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk
 
 #      - name: Run test python
 #        run: |

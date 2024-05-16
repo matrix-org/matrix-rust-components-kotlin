@@ -63,7 +63,8 @@ def get_git_hash(directory: str) -> str:
 
 def commit_and_push_changes(directory: str, message: str):
     try:
-        subprocess.run(["git", "add", "."], cwd=directory, check=True)
+        subprocess.run(["git", "add", "buildSrc/src/main/kotlin/BuildVersionsCrypto.kt"], cwd=directory, check=True)
+        subprocess.run(["git", "add", "crypto/crypto-android/src/main/kotlin/org/matrix/rustcomponents/sdk/crypto/matrix_sdk_crypto_ffi.kt"], cwd=directory, check=True)
         subprocess.run(["git", "commit", "-m", message], cwd=directory, check=True)
         subprocess.run(["git", "push"], cwd=directory, check=True)
         print("Changes committed and pushed successfully.")
