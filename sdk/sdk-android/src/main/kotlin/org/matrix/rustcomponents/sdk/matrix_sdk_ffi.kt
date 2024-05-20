@@ -42,22 +42,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import uniffi.matrix_sdk.BackupDownloadStrategy
 import uniffi.matrix_sdk.FfiConverterTypeBackupDownloadStrategy
+import uniffi.matrix_sdk.FfiConverterTypePaginatorState
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
+import uniffi.matrix_sdk.PaginatorState
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPowerLevelChanges
 import uniffi.matrix_sdk_crypto.FfiConverterTypeUtdCause
 import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
-import uniffi.matrix_sdk_ui.FfiConverterTypePaginationStatus
-import uniffi.matrix_sdk_ui.PaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
+import uniffi.matrix_sdk.RustBuffer as RustBufferPaginatorState
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
-import uniffi.matrix_sdk_ui.RustBuffer as RustBufferPaginationStatus
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -688,7 +688,7 @@ internal interface UniffiCallbackInterfaceNotificationSettingsDelegateMethod0 : 
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfacePaginationStatusListenerMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginatorState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceProgressWatcherMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`progress`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -1986,6 +1986,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2096,7 +2102,9 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview(`ptr`: Pointer,`roomIdOrAlias`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_alias(`ptr`: Pointer,`roomAlias`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_id(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`viaServers`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_session_verification_controller(`ptr`: Pointer,
     ): Long
@@ -2206,7 +2214,11 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_curve25519_key(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_disable_recovery(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_ed25519_key(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(`ptr`: Pointer,
     ): Long
@@ -3080,7 +3092,9 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview(
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller(
     ): Short
@@ -3180,7 +3194,11 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_ed25519_key(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups(
     ): Short
@@ -3864,7 +3882,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview() != 15212.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias() != 10849.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id() != 6925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller() != 55934.toShort()) {
@@ -4014,7 +4035,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener() != 14246.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key() != 58425.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery() != 18699.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_ed25519_key() != 11864.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups() != 55446.toShort()) {
@@ -4758,7 +4785,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 51708.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update() != 21763.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update() != 58051.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress() != 41133.toShort()) {
@@ -5743,9 +5770,18 @@ public interface ClientInterface {
     suspend fun `getRecentlyVisitedRooms`(): List<kotlin.String>
     
     /**
-     * Get the preview of a room, to interact with it.
+     * Given a room alias, get the preview of a room, to interact with it.
      */
-    suspend fun `getRoomPreview`(`roomIdOrAlias`: kotlin.String): RoomPreview
+    suspend fun `getRoomPreviewFromRoomAlias`(`roomAlias`: kotlin.String): RoomPreview
+    
+    /**
+     * Given a room id, get the preview of a room, to interact with it.
+     *
+     * The list of `via_servers` must be a list of servers that know
+     * about the room and can resolve it, and that may appear as a `via`
+     * parameter in e.g. a permalink URL. This list can be empty.
+     */
+    suspend fun `getRoomPreviewFromRoomId`(`roomId`: kotlin.String, `viaServers`: List<kotlin.String>): RoomPreview
     
     suspend fun `getSessionVerificationController`(): SessionVerificationController
     
@@ -6239,16 +6275,44 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
-     * Get the preview of a room, to interact with it.
+     * Given a room alias, get the preview of a room, to interact with it.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getRoomPreview`(`roomIdOrAlias`: kotlin.String) : RoomPreview {
+    override suspend fun `getRoomPreviewFromRoomAlias`(`roomAlias`: kotlin.String) : RoomPreview {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview(
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_alias(
                 thisPtr,
-                FfiConverterString.lower(`roomIdOrAlias`),
+                FfiConverterString.lower(`roomAlias`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeRoomPreview.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Given a room id, get the preview of a room, to interact with it.
+     *
+     * The list of `via_servers` must be a list of servers that know
+     * about the room and can resolve it, and that may appear as a `via`
+     * parameter in e.g. a permalink URL. This list can be empty.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getRoomPreviewFromRoomId`(`roomId`: kotlin.String, `viaServers`: List<kotlin.String>) : RoomPreview {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_id(
+                thisPtr,
+                FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`viaServers`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7486,7 +7550,19 @@ public interface EncryptionInterface {
     
     fun `backupStateListener`(`listener`: BackupStateListener): TaskHandle
     
+    /**
+     * Get the public curve25519 key of our own device in base64. This is
+     * usually what is called the identity key of the device.
+     */
+    suspend fun `curve25519Key`(): kotlin.String?
+    
     suspend fun `disableRecovery`()
+    
+    /**
+     * Get the public ed25519 key of our own device. This is usually what is
+     * called the fingerprint of the device.
+     */
+    suspend fun `ed25519Key`(): kotlin.String?
     
     suspend fun `enableBackups`()
     
@@ -7657,6 +7733,30 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface {
     
 
     
+    /**
+     * Get the public curve25519 key of our own device in base64. This is
+     * usually what is called the identity key of the device.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `curve25519Key`() : kotlin.String? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_curve25519_key(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalString.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
     @Throws(RecoveryException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `disableRecovery`() {
@@ -7675,6 +7775,30 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface {
         
         // Error FFI converter
         RecoveryException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Get the public ed25519 key of our own device. This is usually what is
+     * called the fingerprint of the device.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ed25519Key`() : kotlin.String? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_ed25519_key(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalString.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -25435,85 +25559,6 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
 
 
 
-sealed class PaginationOptions {
-    
-    data class SimpleRequest(
-        val `eventLimit`: kotlin.UShort, 
-        val `waitForToken`: kotlin.Boolean) : PaginationOptions() {
-        companion object
-    }
-    
-    data class UntilNumItems(
-        val `eventLimit`: kotlin.UShort, 
-        val `items`: kotlin.UShort, 
-        val `waitForToken`: kotlin.Boolean) : PaginationOptions() {
-        companion object
-    }
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypePaginationOptions : FfiConverterRustBuffer<PaginationOptions>{
-    override fun read(buf: ByteBuffer): PaginationOptions {
-        return when(buf.getInt()) {
-            1 -> PaginationOptions.SimpleRequest(
-                FfiConverterUShort.read(buf),
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> PaginationOptions.UntilNumItems(
-                FfiConverterUShort.read(buf),
-                FfiConverterUShort.read(buf),
-                FfiConverterBoolean.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: PaginationOptions) = when(value) {
-        is PaginationOptions.SimpleRequest -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterUShort.allocationSize(value.`eventLimit`)
-                + FfiConverterBoolean.allocationSize(value.`waitForToken`)
-            )
-        }
-        is PaginationOptions.UntilNumItems -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterUShort.allocationSize(value.`eventLimit`)
-                + FfiConverterUShort.allocationSize(value.`items`)
-                + FfiConverterBoolean.allocationSize(value.`waitForToken`)
-            )
-        }
-    }
-
-    override fun write(value: PaginationOptions, buf: ByteBuffer) {
-        when(value) {
-            is PaginationOptions.SimpleRequest -> {
-                buf.putInt(1)
-                FfiConverterUShort.write(value.`eventLimit`, buf)
-                FfiConverterBoolean.write(value.`waitForToken`, buf)
-                Unit
-            }
-            is PaginationOptions.UntilNumItems -> {
-                buf.putInt(2)
-                FfiConverterUShort.write(value.`eventLimit`, buf)
-                FfiConverterUShort.write(value.`items`, buf)
-                FfiConverterBoolean.write(value.`waitForToken`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
 
 
 sealed class ParseException(message: String): Exception(message) {
@@ -28227,6 +28272,7 @@ sealed class TimelineItemContentKind: Disposable  {
     
     data class RoomMembership(
         val `userId`: kotlin.String, 
+        val `userDisplayName`: kotlin.String?, 
         val `change`: MembershipChange?) : TimelineItemContentKind() {
         companion object
     }
@@ -28299,6 +28345,7 @@ sealed class TimelineItemContentKind: Disposable  {
                 
     Disposable.destroy(
         this.`userId`, 
+        this.`userDisplayName`, 
         this.`change`)
                 
             }
@@ -28364,6 +28411,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 )
             7 -> TimelineItemContentKind.RoomMembership(
                 FfiConverterString.read(buf),
+                FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeMembershipChange.read(buf),
                 )
             8 -> TimelineItemContentKind.ProfileChange(
@@ -28442,6 +28490,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
             (
                 4UL
                 + FfiConverterString.allocationSize(value.`userId`)
+                + FfiConverterOptionalString.allocationSize(value.`userDisplayName`)
                 + FfiConverterOptionalTypeMembershipChange.allocationSize(value.`change`)
             )
         }
@@ -28522,6 +28571,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
             is TimelineItemContentKind.RoomMembership -> {
                 buf.putInt(7)
                 FfiConverterString.write(value.`userId`, buf)
+                FfiConverterOptionalString.write(value.`userDisplayName`, buf)
                 FfiConverterOptionalTypeMembershipChange.write(value.`change`, buf)
                 Unit
             }
@@ -29199,7 +29249,7 @@ public object FfiConverterTypeNotificationSettingsDelegate: FfiConverterCallback
 
 public interface PaginationStatusListener {
     
-    fun `onUpdate`(`status`: PaginationStatus)
+    fun `onUpdate`(`status`: PaginatorState)
     
     companion object
 }
@@ -29209,11 +29259,11 @@ public interface PaginationStatusListener {
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfacePaginationStatusListener {
     internal object `onUpdate`: UniffiCallbackInterfacePaginationStatusListenerMethod0 {
-        override fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginatorState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypePaginationStatusListener.handleMap.get(uniffiHandle)
             val makeCall = { ->
                 uniffiObj.`onUpdate`(
-                    FfiConverterTypePaginationStatus.lift(`status`),
+                    FfiConverterTypePaginatorState.lift(`status`),
                 )
             }
             val writeReturn = { _: Unit -> Unit }

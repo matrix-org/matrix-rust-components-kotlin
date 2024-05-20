@@ -1099,6 +1099,51 @@ public object FfiConverterTypeBackupDownloadStrategy: FfiConverterRustBuffer<Bac
 
 
 /**
+ * Current state of a [`Paginator`].
+ */
+
+enum class PaginatorState {
+    
+    /**
+     * The initial state of the paginator.
+     */
+    INITIAL,
+    /**
+     * The paginator is fetching the target initial event.
+     */
+    FETCHING_TARGET_EVENT,
+    /**
+     * The target initial event could be found, zero or more paginations have
+     * happened since then, and the paginator is at rest now.
+     */
+    IDLE,
+    /**
+     * The paginator is… paginating one direction or another.
+     */
+    PAGINATING;
+    companion object
+}
+
+
+public object FfiConverterTypePaginatorState: FfiConverterRustBuffer<PaginatorState> {
+    override fun read(buf: ByteBuffer) = try {
+        PaginatorState.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: PaginatorState) = 4UL
+
+    override fun write(value: PaginatorState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The role of a member in a room.
  */
 

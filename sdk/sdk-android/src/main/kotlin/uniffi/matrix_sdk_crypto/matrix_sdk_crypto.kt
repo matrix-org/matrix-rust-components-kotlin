@@ -975,6 +975,64 @@ public object FfiConverterTypeLocalTrust: FfiConverterRustBuffer<LocalTrust> {
 
 
 /**
+ * Error type for the decoding of the [`QrCodeData`].
+ */
+
+enum class LoginQrCodeDecodeError {
+    
+    /**
+     * The QR code data is no long enough, it's missing some fields.
+     */
+    NOT_ENOUGH_DATA,
+    /**
+     * One of the URLs in the QR code data is not a valid UTF-8 encoded string.
+     */
+    NOT_UTF8,
+    /**
+     * One of the URLs in the QR code data could not be parsed.
+     */
+    URL_PARSE,
+    /**
+     * The QR code data contains an invalid mode, we expect the login (0x03)
+     * mode or the reciprocate mode (0x04).
+     */
+    INVALID_MODE,
+    /**
+     * The QR code data contains an unsupported version.
+     */
+    INVALID_VERSION,
+    /**
+     * The base64 encoded variant of the QR code data is not a valid base64
+     * string.
+     */
+    BASE64,
+    /**
+     * The QR code data doesn't contain the expected `MATRIX` prefix.
+     */
+    INVALID_PREFIX;
+    companion object
+}
+
+
+public object FfiConverterTypeLoginQrCodeDecodeError: FfiConverterRustBuffer<LoginQrCodeDecodeError> {
+    override fun read(buf: ByteBuffer) = try {
+        LoginQrCodeDecodeError.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: LoginQrCodeDecodeError) = 4UL
+
+    override fun write(value: LoginQrCodeDecodeError, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The result of a signature check.
  */
 
