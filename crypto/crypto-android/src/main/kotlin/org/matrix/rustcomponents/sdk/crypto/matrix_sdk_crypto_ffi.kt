@@ -28,11 +28,15 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import uniffi.matrix_sdk_crypto.FfiConverterTypeLocalTrust
+import uniffi.matrix_sdk_crypto.FfiConverterTypeSignatureState
+import uniffi.matrix_sdk_crypto.LocalTrust
+import uniffi.matrix_sdk_crypto.SignatureState
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferLocalTrust
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSignatureState
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -40,24 +44,41 @@ import kotlin.concurrent.withLock
 
 @Structure.FieldOrder("capacity", "len", "data")
 open class RustBuffer : Structure() {
-    @JvmField var capacity: Int = 0
-    @JvmField var len: Int = 0
+    // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
+    // When dealing with these fields, make sure to call `toULong()`.
+    @JvmField var capacity: Long = 0
+    @JvmField var len: Long = 0
     @JvmField var data: Pointer? = null
 
     class ByValue: RustBuffer(), Structure.ByValue
     class ByReference: RustBuffer(), Structure.ByReference
 
+   internal fun setValue(other: RustBuffer) {
+        capacity = other.capacity
+        len = other.len
+        data = other.data
+    }
+
     companion object {
-        internal fun alloc(size: Int = 0) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(size, status).also {
-                if(it.data == null) {
-                   throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
-               }
-            }
+        internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
+            // Note: need to convert the size to a `Long` value to make this work with JVM.
+            UniffiLib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(size.toLong(), status)
+        }.also {
+            if(it.data == null) {
+               throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
+           }
         }
 
-        internal fun free(buf: RustBuffer.ByValue) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_free(buf, status)
+        internal fun create(capacity: ULong, len: ULong, data: Pointer?): RustBuffer.ByValue {
+            var buf = RustBuffer.ByValue()
+            buf.capacity = capacity.toLong()
+            buf.len = len.toLong()
+            buf.data = data
+            return buf
+        }
+
+        internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_free(buf, status)
         }
     }
 
@@ -81,9 +102,9 @@ class RustBufferByReference : ByReference(16) {
     fun setValue(value: RustBuffer.ByValue) {
         // NOTE: The offsets are as they are in the C-like struct.
         val pointer = getPointer()
-        pointer.setInt(0, value.capacity)
-        pointer.setInt(4, value.len)
-        pointer.setPointer(8, value.data)
+        pointer.setLong(0, value.capacity)
+        pointer.setLong(8, value.len)
+        pointer.setPointer(16, value.data)
     }
 
     /**
@@ -92,9 +113,9 @@ class RustBufferByReference : ByReference(16) {
     fun getValue(): RustBuffer.ByValue {
         val pointer = getPointer()
         val value = RustBuffer.ByValue()
-        value.writeField("capacity", pointer.getInt(0))
-        value.writeField("len", pointer.getInt(4))
-        value.writeField("data", pointer.getPointer(8))
+        value.writeField("capacity", pointer.getLong(0))
+        value.writeField("len", pointer.getLong(8))
+        value.writeField("data", pointer.getLong(16))
 
         return value
     }
@@ -135,7 +156,7 @@ public interface FfiConverter<KotlinType, FfiType> {
     // encoding, so we pessimistically allocate the largest size possible (3
     // bytes per codepoint).  Allocating extra bytes is not really a big deal
     // because the `RustBuffer` is short-lived.
-    fun allocationSize(value: KotlinType): Int
+    fun allocationSize(value: KotlinType): ULong
 
     // Write a Kotlin type to a `ByteBuffer`
     fun write(value: KotlinType, buf: ByteBuffer)
@@ -149,11 +170,11 @@ public interface FfiConverter<KotlinType, FfiType> {
     fun lowerIntoRustBuffer(value: KotlinType): RustBuffer.ByValue {
         val rbuf = RustBuffer.alloc(allocationSize(value))
         try {
-            val bbuf = rbuf.data!!.getByteBuffer(0, rbuf.capacity.toLong()).also {
+            val bbuf = rbuf.data!!.getByteBuffer(0, rbuf.capacity).also {
                 it.order(ByteOrder.BIG_ENDIAN)
             }
             write(value, bbuf)
-            rbuf.writeField("len", bbuf.position())
+            rbuf.writeField("len", bbuf.position().toLong())
             return rbuf
         } catch (e: Throwable) {
             RustBuffer.free(rbuf)
@@ -186,31 +207,44 @@ public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, Ru
 }
 // A handful of classes and functions to support the generated data structures.
 // This would be a good candidate for isolating in its own ffi-support lib.
-// Error runtime.
+
+internal const val UNIFFI_CALL_SUCCESS = 0.toByte()
+internal const val UNIFFI_CALL_ERROR = 1.toByte()
+internal const val UNIFFI_CALL_UNEXPECTED_ERROR = 2.toByte()
+
 @Structure.FieldOrder("code", "error_buf")
-internal open class RustCallStatus : Structure() {
+internal open class UniffiRustCallStatus : Structure() {
     @JvmField var code: Byte = 0
     @JvmField var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
 
-    class ByValue: RustCallStatus(), Structure.ByValue
+    class ByValue: UniffiRustCallStatus(), Structure.ByValue
 
     fun isSuccess(): Boolean {
-        return code == 0.toByte()
+        return code == UNIFFI_CALL_SUCCESS
     }
 
     fun isError(): Boolean {
-        return code == 1.toByte()
+        return code == UNIFFI_CALL_ERROR
     }
 
     fun isPanic(): Boolean {
-        return code == 2.toByte()
+        return code == UNIFFI_CALL_UNEXPECTED_ERROR
+    }
+
+    companion object {
+        fun create(code: Byte, errorBuf: RustBuffer.ByValue): UniffiRustCallStatus.ByValue {
+            val callStatus = UniffiRustCallStatus.ByValue()
+            callStatus.code = code
+            callStatus.error_buf = errorBuf
+            return callStatus
+        }
     }
 }
 
 class InternalException(message: String) : Exception(message)
 
 // Each top-level error class has a companion object that can lift the error from the call status's rust buffer
-interface CallStatusErrorHandler<E> {
+interface UniffiRustCallStatusErrorHandler<E> {
     fun lift(error_buf: RustBuffer.ByValue): E;
 }
 
@@ -219,15 +253,15 @@ interface CallStatusErrorHandler<E> {
 // synchronize itself
 
 // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-private inline fun <U, E: Exception> rustCallWithError(errorHandler: CallStatusErrorHandler<E>, callback: (RustCallStatus) -> U): U {
-    var status = RustCallStatus();
+private inline fun <U, E: Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
+    var status = UniffiRustCallStatus();
     val return_value = callback(status)
-    checkCallStatus(errorHandler, status)
+    uniffiCheckCallStatus(errorHandler, status)
     return return_value
 }
 
-// Check RustCallStatus and throw an error if the call wasn't successful
-private fun<E: Exception> checkCallStatus(errorHandler: CallStatusErrorHandler<E>, status: RustCallStatus) {
+// Check UniffiRustCallStatus and throw an error if the call wasn't successful
+private fun<E: Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
     if (status.isSuccess()) {
         return
     } else if (status.isError()) {
@@ -246,8 +280,8 @@ private fun<E: Exception> checkCallStatus(errorHandler: CallStatusErrorHandler<E
     }
 }
 
-// CallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
-object NullCallStatusErrorHandler: CallStatusErrorHandler<InternalException> {
+// UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
         return InternalException("Unexpected CALL_ERROR")
@@ -255,89 +289,66 @@ object NullCallStatusErrorHandler: CallStatusErrorHandler<InternalException> {
 }
 
 // Call a rust function that returns a plain value
-private inline fun <U> rustCall(callback: (RustCallStatus) -> U): U {
-    return rustCallWithError(NullCallStatusErrorHandler, callback);
+private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U {
+    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback);
 }
 
-// IntegerType that matches Rust's `usize` / C's `size_t`
-public class USize(value: Long = 0) : IntegerType(Native.SIZE_T_SIZE, value, true) {
-    // This is needed to fill in the gaps of IntegerType's implementation of Number for Kotlin.
-    override fun toByte() = toInt().toByte()
-    // Needed until https://youtrack.jetbrains.com/issue/KT-47902 is fixed.
-    @Deprecated("`toInt().toChar()` is deprecated")
-    override fun toChar() = toInt().toChar()
-    override fun toShort() = toInt().toShort()
-
-    fun writeToBuffer(buf: ByteBuffer) {
-        // Make sure we always write usize integers using native byte-order, since they may be
-        // casted to pointer values
-        buf.order(ByteOrder.nativeOrder())
-        try {
-            when (Native.SIZE_T_SIZE) {
-                4 -> buf.putInt(toInt())
-                8 -> buf.putLong(toLong())
-                else -> throw RuntimeException("Invalid SIZE_T_SIZE: ${Native.SIZE_T_SIZE}")
-            }
-        } finally {
-            buf.order(ByteOrder.BIG_ENDIAN)
-        }
-    }
-
-    companion object {
-        val size: Int
-            get() = Native.SIZE_T_SIZE
-
-        fun readFromBuffer(buf: ByteBuffer) : USize {
-            // Make sure we always read usize integers using native byte-order, since they may be
-            // casted from pointer values
-            buf.order(ByteOrder.nativeOrder())
-            try {
-                return when (Native.SIZE_T_SIZE) {
-                    4 -> USize(buf.getInt().toLong())
-                    8 -> USize(buf.getLong())
-                    else -> throw RuntimeException("Invalid SIZE_T_SIZE: ${Native.SIZE_T_SIZE}")
-                }
-            } finally {
-                buf.order(ByteOrder.BIG_ENDIAN)
-            }
-        }
+internal inline fun<T> uniffiTraitInterfaceCall(
+    callStatus: UniffiRustCallStatus,
+    makeCall: () -> T,
+    writeReturn: (T) -> Unit,
+) {
+    try {
+        writeReturn(makeCall())
+    } catch(e: Exception) {
+        callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
+        callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
 }
 
-
+internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
+    callStatus: UniffiRustCallStatus,
+    makeCall: () -> T,
+    writeReturn: (T) -> Unit,
+    lowerError: (E) -> RustBuffer.ByValue
+) {
+    try {
+        writeReturn(makeCall())
+    } catch(e: Exception) {
+        if (e is E) {
+            callStatus.code = UNIFFI_CALL_ERROR
+            callStatus.error_buf = lowerError(e)
+        } else {
+            callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
+            callStatus.error_buf = FfiConverterString.lower(e.toString())
+        }
+    }
+}
 // Map handles to objects
 //
-// This is used when the Rust code expects an opaque pointer to represent some foreign object.
-// Normally we would pass a pointer to the object, but JNA doesn't support getting a pointer from an
-// object reference , nor does it support leaking a reference to Rust.
-//
-// Instead, this class maps USize values to objects so that we can pass a pointer-sized type to
-// Rust when it needs an opaque pointer.
-//
-// TODO: refactor callbacks to use this class
-internal class UniFfiHandleMap<T: Any> {
-    private val map = ConcurrentHashMap<USize, T>()
-    // Use AtomicInteger for our counter, since we may be on a 32-bit system.  4 billion possible
-    // values seems like enough. If somehow we generate 4 billion handles, then this will wrap
-    // around back to zero and we can assume the first handle generated will have been dropped by
-    // then.
-    private val counter = java.util.concurrent.atomic.AtomicInteger(0)
+// This is used pass an opaque 64-bit handle representing a foreign object to the Rust code.
+internal class UniffiHandleMap<T: Any> {
+    private val map = ConcurrentHashMap<Long, T>()
+    private val counter = java.util.concurrent.atomic.AtomicLong(0)
 
     val size: Int
         get() = map.size
 
-    fun insert(obj: T): USize {
-        val handle = USize(counter.getAndAdd(1).toLong())
+    // Insert a new object into the handle map and get a handle for it
+    fun insert(obj: T): Long {
+        val handle = counter.getAndAdd(1)
         map.put(handle, obj)
         return handle
     }
 
-    fun get(handle: USize): T? {
-        return map.get(handle)
+    // Get an object from the handle map
+    fun get(handle: Long): T {
+        return map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
     }
 
-    fun remove(handle: USize) {
-        map.remove(handle)
+    // Remove an entry from the handlemap and get the Kotlin object back
+    fun remove(handle: Long): T {
+        return map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
     }
 }
 
@@ -358,315 +369,1153 @@ private inline fun <reified Lib : Library> loadIndirect(
     return Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
 }
 
+// Define FFI callback types
+internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
+    fun callback(`data`: Long,`pollResult`: Byte,)
+}
+internal interface UniffiForeignFutureFree : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+}
+internal interface UniffiCallbackInterfaceFree : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+}
+@Structure.FieldOrder("handle", "free")
+internal open class UniffiForeignFuture(
+    @JvmField internal var `handle`: Long = 0.toLong(),
+    @JvmField internal var `free`: UniffiForeignFutureFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `handle`: Long = 0.toLong(),
+        `free`: UniffiForeignFutureFree? = null,
+    ): UniffiForeignFuture(`handle`,`free`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFuture) {
+        `handle` = other.`handle`
+        `free` = other.`free`
+    }
+
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU8(
+    @JvmField internal var `returnValue`: Byte = 0.toByte(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Byte = 0.toByte(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU8(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU8) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU8 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU8.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI8(
+    @JvmField internal var `returnValue`: Byte = 0.toByte(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Byte = 0.toByte(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI8(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI8) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI8 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI8.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU16(
+    @JvmField internal var `returnValue`: Short = 0.toShort(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Short = 0.toShort(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU16(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU16) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU16 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU16.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI16(
+    @JvmField internal var `returnValue`: Short = 0.toShort(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Short = 0.toShort(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI16(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI16) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI16 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI16.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU32(
+    @JvmField internal var `returnValue`: Int = 0,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Int = 0,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU32(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU32) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU32 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU32.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI32(
+    @JvmField internal var `returnValue`: Int = 0,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Int = 0,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI32(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI32) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI32 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI32.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU64(
+    @JvmField internal var `returnValue`: Long = 0.toLong(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Long = 0.toLong(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU64(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU64) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU64 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU64.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI64(
+    @JvmField internal var `returnValue`: Long = 0.toLong(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Long = 0.toLong(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI64(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI64) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI64 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI64.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructF32(
+    @JvmField internal var `returnValue`: Float = 0.0f,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Float = 0.0f,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructF32(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructF32) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteF32 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF32.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructF64(
+    @JvmField internal var `returnValue`: Double = 0.0,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Double = 0.0,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructF64(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructF64) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteF64 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF64.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructPointer(
+    @JvmField internal var `returnValue`: Pointer = Pointer.NULL,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Pointer = Pointer.NULL,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructPointer(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructPointer) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompletePointer : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructPointer.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructRustBuffer(
+    @JvmField internal var `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructRustBuffer(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructRustBuffer) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteRustBuffer : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructRustBuffer.UniffiByValue,)
+}
+@Structure.FieldOrder("callStatus")
+internal open class UniffiForeignFutureStructVoid(
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructVoid(`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructVoid) {
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructVoid.UniffiByValue,)
+}
+internal interface UniffiCallbackInterfaceLoggerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`logLine`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceProgressListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`progress`: Int,`total`: Int,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceQrCodeListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceSasListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceVerificationRequestListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+@Structure.FieldOrder("log", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceLogger(
+    @JvmField internal var `log`: UniffiCallbackInterfaceLoggerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `log`: UniffiCallbackInterfaceLoggerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceLogger(`log`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLogger) {
+        `log` = other.`log`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onProgress", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceProgressListener(
+    @JvmField internal var `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceProgressListener(`onProgress`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceProgressListener) {
+        `onProgress` = other.`onProgress`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onChange", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceQrCodeListener(
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceQrCodeListener(`onChange`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceQrCodeListener) {
+        `onChange` = other.`onChange`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onChange", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSasListener(
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceSasListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onChange`: UniffiCallbackInterfaceSasListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSasListener(`onChange`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSasListener) {
+        `onChange` = other.`onChange`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onChange", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceVerificationRequestListener(
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceVerificationRequestListener(`onChange`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceVerificationRequestListener) {
+        `onChange` = other.`onChange`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
-internal interface _UniFFILib : Library {
+internal interface UniffiLib : Library {
     companion object {
-        internal val INSTANCE: _UniFFILib by lazy {
-            loadIndirect<_UniFFILib>(componentName = "matrix_sdk_crypto_ffi")
-            .also { lib: _UniFFILib ->
+        internal val INSTANCE: UniffiLib by lazy {
+            loadIndirect<UniffiLib>(componentName = "matrix_sdk_crypto_ffi")
+            .also { lib: UniffiLib ->
                 uniffiCheckContractApiVersion(lib)
                 uniffiCheckApiChecksums(lib)
-                FfiConverterTypeLogger.register(lib)
-                FfiConverterTypeProgressListener.register(lib)
-                FfiConverterTypeQrCodeListener.register(lib)
-                FfiConverterTypeSasListener.register(lib)
-                FfiConverterTypeVerificationRequestListener.register(lib)
+                uniffiCallbackInterfaceLogger.register(lib)
+                uniffiCallbackInterfaceProgressListener.register(lib)
+                uniffiCallbackInterfaceQrCodeListener.register(lib)
+                uniffiCallbackInterfaceSasListener.register(lib)
+                uniffiCallbackInterfaceVerificationRequestListener.register(lib)
                 }
+        }
+        
+        // The Cleaner for the whole library
+        internal val CLEANER: UniffiCleaner by lazy {
+            UniffiCleaner.create()
         }
     }
 
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_backupkeys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(`key`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(`key`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_backuprecoverykey(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(`passphrase`: RustBuffer.ByValue,`salt`: RustBuffer.ByValue,`rounds`: Int,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(`passphrase`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(`passphrase`: RustBuffer.ByValue,`salt`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(`ptr`: Pointer,`ephemeralKey`: RustBuffer.ByValue,`mac`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(`ptr`: Pointer,`deviceDisplayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(`ptr`: Pointer,`pickleKey`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`deviceData`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(`ptr`: Pointer,`ephemeralKey`: RustBuffer.ByValue,`mac`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(`ptr`: Pointer,`deviceDisplayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`handleVerificationEvents`: Byte,`strictShields`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(`ptr`: Pointer,`pickleKey`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`deviceData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,`rounds`: Int,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(`ptr`: Pointer,`users`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_create_encrypted_to_device_request(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`handleVerificationEvents`: Byte,`strictShields`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(`ptr`: Pointer,`export`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(`ptr`: Pointer,`users`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(`ptr`: Pointer,`export`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(`ptr`: Pointer,`requestId`: RustBuffer.ByValue,`requestType`: RustBuffer.ByValue,`responseBody`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(`ptr`: Pointer,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,`nextBatchToken`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(`ptr`: Pointer,`requestId`: RustBuffer.ByValue,`requestType`: RustBuffer.ByValue,`responseBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(`ptr`: Pointer,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`trustState`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(`ptr`: Pointer,`onlyAllowTrustedDevices`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`algorithm`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`onlyAllowTrustedDevices`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`users`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(`ptr`: Pointer,`message`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(`ptr`: Pointer,`users`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(`ptr`: Pointer,`backupInfo`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(`ptr`: Pointer,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,`nextBatchToken`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(`ptr`: Pointer,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`trustState`: RustBufferLocalTrust.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(`ptr`: Pointer,`onlyAllowTrustedDevices`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`algorithm`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`onlyAllowTrustedDevices`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`users`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(`ptr`: Pointer,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(`ptr`: Pointer,`users`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(`ptr`: Pointer,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_qrcode(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(`ptr`: Pointer,`events`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_sas(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_rehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(`ptr`: Pointer,`events`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_sas(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_sas(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(`ptr`: Pointer,`methods`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_verificationrequest(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(`ptr`: Pointer,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(`ptr`: Pointer,`data`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(`ptr`: Pointer,`listener`: Long,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_logger(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_progresslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_qrcodelistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_saslistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_verificationrequestlistener(`callbackStub`: ForeignCallback,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(`roomSettings`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(`logger`: Long,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version(_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(`ptr`: Pointer,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_logger(`vtable`: UniffiVTableCallbackInterfaceLogger,
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_progresslistener(`vtable`: UniffiVTableCallbackInterfaceProgressListener,
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_qrcodelistener(`vtable`: UniffiVTableCallbackInterfaceQrCodeListener,
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_saslistener(`vtable`: UniffiVTableCallbackInterfaceSasListener,
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_verificationrequestlistener(`vtable`: UniffiVTableCallbackInterfaceVerificationRequestListener,
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(`roomSettings`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(`logger`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version(uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u8(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u8(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i8(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i8(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u16(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u16(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Short
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i16(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i16(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Short
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u32(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u32(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i32(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i32(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u64(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u64(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i64(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i64(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_f32(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_f32(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Float
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_f64(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_f64(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Double
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_pointer(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_pointer(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_rust_buffer(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_void(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_void(`handle`: Long,
+    ): Unit
+    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate(
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings(
@@ -704,6 +1553,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys(
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_create_encrypted_to_device_request(
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status(
     ): Short
@@ -934,9 +1785,9 @@ internal interface _UniFFILib : Library {
     
 }
 
-private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
+private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 23
+    val bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_matrix_sdk_crypto_ffi_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
@@ -945,578 +1796,408 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 }
 
 @Suppress("UNUSED_PARAMETER")
-private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate() != 7719.toShort()) {
+private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate() != 17018.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings() != 60199.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings() != 42084.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions() != 6565.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions() != 57389.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger() != 5690.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger() != 11288.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_version() != 3558.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_version() != 18282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_version_info() != 6655.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_version_info() != 38713.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version() != 57553.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version() != 31430.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version() != 20065.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version() != 56634.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key() != 282.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key() != 59286.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1() != 30957.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1() != 63819.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key() != 60161.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key() != 54235.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58() != 12924.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58() != 15954.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64() != 20586.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64() != 3854.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload() != 815.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload() != 49513.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create() != 63063.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create() != 20431.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate() != 48844.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate() != 16901.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled() != 56538.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled() != 55573.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys() != 54771.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys() != 36224.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing() != 39610.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing() != 16272.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status() != 58286.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_create_encrypted_to_device_request() != 26155.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event() != 12589.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status() != 60700.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_dehydrated_devices() != 59153.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event() != 22810.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id() != 42401.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_dehydrated_devices() != 29352.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup() != 34924.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id() != 8368.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key() != 27091.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup() != 41418.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1() != 53539.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key() != 51133.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt() != 60621.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1() != 32528.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys() != 17889.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt() != 30553.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 35722.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys() != 5979.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 53143.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 20478.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device() != 63551.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 32402.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity() != 53827.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device() != 32103.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions() != 52693.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity() != 48002.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices() != 44229.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions() != 24314.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings() != 27344.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices() != 41002.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices() != 61462.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings() != 11972.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification() != 63845.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices() != 34578.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request() != 18172.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification() != 26313.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests() != 54863.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request() != 52941.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys() != 51817.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests() != 22986.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys() != 42815.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys() != 27954.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys() != 36003.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys() != 52001.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys() != 4173.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys() != 25170.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified() != 45888.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys() != 6715.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked() != 60268.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified() != 19282.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent() != 52551.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked() != 38133.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests() != 59999.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent() != 62014.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions() != 53304.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests() != 60867.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes() != 42547.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions() != 33649.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event() != 33700.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes() != 38842.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event() != 28100.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event() != 46523.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key() != 3237.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event() != 40029.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification() != 12393.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key() != 55933.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification() != 31686.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification() != 47311.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device() != 51643.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification() != 38259.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts() != 40676.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device() != 2015.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key() != 14775.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts() != 50492.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust() != 455.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key() != 43674.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices() != 46236.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust() != 10978.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm() != 14381.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices() != 5049.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices() != 55781.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm() != 47962.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key() != 16055.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices() != 38231.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign() != 19948.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key() != 57647.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device() != 51470.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign() != 11388.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users() != 37800.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device() != 39343.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id() != 22260.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users() != 47867.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content() != 2536.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id() != 28648.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup() != 35385.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content() != 54088.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device() != 30128.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup() != 2751.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity() != 60719.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device() != 57316.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel() != 33752.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity() != 39267.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info() != 38875.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel() != 56240.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm() != 23522.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info() != 797.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id() != 6460.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm() != 7766.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code() != 25050.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id() != 38858.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned() != 54492.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code() != 38303.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled() != 24341.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned() != 34711.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done() != 28598.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled() != 17076.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id() != 49521.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done() != 64647.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id() != 64961.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id() != 18546.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated() != 48822.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id() != 32903.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id() != 32340.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated() != 29284.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener() != 51960.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id() != 42325.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state() != 19937.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener() != 42360.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started() != 62911.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state() != 26065.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_rehydrateddevice_receive_events() != 390.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started() != 39359.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept() != 16853.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_rehydrateddevice_receive_events() != 55015.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel() != 20964.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept() != 23750.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm() != 23100.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel() != 32584.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id() != 13532.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm() != 2955.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals() != 9029.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id() != 8039.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices() != 61898.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals() != 6633.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done() != 26210.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices() != 21471.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id() != 12640.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done() != 23641.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id() != 19408.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id() != 55711.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id() != 38046.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id() != 5587.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 46449.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id() != 56710.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state() != 41548.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 45460.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started() != 27788.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state() != 5148.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr() != 37226.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started() != 20077.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas() != 5105.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr() != 38638.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept() != 26607.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas() != 62612.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel() != 28302.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept() != 41324.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info() != 10258.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel() != 45120.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id() != 58598.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info() != 58718.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled() != 29475.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id() != 48899.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done() != 29518.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled() != 5406.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive() != 2445.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done() != 6301.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready() != 13517.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive() != 29071.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id() != 55914.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready() != 46804.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id() != 4081.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id() != 57800.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods() != 2149.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id() != 32763.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id() != 23019.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods() != 59504.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code() != 24269.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id() != 15921.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener() != 42442.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code() != 28766.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification() != 4100.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener() != 44931.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification() != 29922.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification() != 1161.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state() != 41117.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification() != 31406.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods() != 16773.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state() != 50283.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started() != 54177.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods() != 50334.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base58() != 16125.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started() != 30926.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base64() != 51840.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base58() != 42204.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_passphrase() != 3432.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base64() != 3338.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new() != 39969.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_passphrase() != 31417.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new_from_passphrase() != 19749.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new() != 6408.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_olmmachine_new() != 55076.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new_from_passphrase() != 29227.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_logger_log() != 11403.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_olmmachine_new() != 21121.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_progresslistener_on_progress() != 2487.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_logger_log() != 3112.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcodelistener_on_change() != 32544.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_progresslistener_on_progress() != 49805.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_saslistener_on_change() != 26082.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcodelistener_on_change() != 48097.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequestlistener_on_change() != 7850.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_saslistener_on_change() != 32441.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequestlistener_on_change() != 9094.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
+
+// Async support
 
 // Public interface members begin here.
-
-
-public object FfiConverterUByte: FfiConverter<UByte, Byte> {
-    override fun lift(value: Byte): UByte {
-        return value.toUByte()
-    }
-
-    override fun read(buf: ByteBuffer): UByte {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: UByte): Byte {
-        return value.toByte()
-    }
-
-    override fun allocationSize(value: UByte) = 1
-
-    override fun write(value: UByte, buf: ByteBuffer) {
-        buf.put(value.toByte())
-    }
-}
-
-public object FfiConverterUInt: FfiConverter<UInt, Int> {
-    override fun lift(value: Int): UInt {
-        return value.toUInt()
-    }
-
-    override fun read(buf: ByteBuffer): UInt {
-        return lift(buf.getInt())
-    }
-
-    override fun lower(value: UInt): Int {
-        return value.toInt()
-    }
-
-    override fun allocationSize(value: UInt) = 4
-
-    override fun write(value: UInt, buf: ByteBuffer) {
-        buf.putInt(value.toInt())
-    }
-}
-
-public object FfiConverterInt: FfiConverter<Int, Int> {
-    override fun lift(value: Int): Int {
-        return value
-    }
-
-    override fun read(buf: ByteBuffer): Int {
-        return buf.getInt()
-    }
-
-    override fun lower(value: Int): Int {
-        return value
-    }
-
-    override fun allocationSize(value: Int) = 4
-
-    override fun write(value: Int, buf: ByteBuffer) {
-        buf.putInt(value)
-    }
-}
-
-public object FfiConverterULong: FfiConverter<ULong, Long> {
-    override fun lift(value: Long): ULong {
-        return value.toULong()
-    }
-
-    override fun read(buf: ByteBuffer): ULong {
-        return lift(buf.getLong())
-    }
-
-    override fun lower(value: ULong): Long {
-        return value.toLong()
-    }
-
-    override fun allocationSize(value: ULong) = 8
-
-    override fun write(value: ULong, buf: ByteBuffer) {
-        buf.putLong(value.toLong())
-    }
-}
-
-public object FfiConverterLong: FfiConverter<Long, Long> {
-    override fun lift(value: Long): Long {
-        return value
-    }
-
-    override fun read(buf: ByteBuffer): Long {
-        return buf.getLong()
-    }
-
-    override fun lower(value: Long): Long {
-        return value
-    }
-
-    override fun allocationSize(value: Long) = 8
-
-    override fun write(value: Long, buf: ByteBuffer) {
-        buf.putLong(value)
-    }
-}
-
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
-
-public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
-    // Note: we don't inherit from FfiConverterRustBuffer, because we use a
-    // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
-    // store our length and avoid writing it out to the buffer.
-    override fun lift(value: RustBuffer.ByValue): String {
-        try {
-            val byteArr = ByteArray(value.len)
-            value.asByteBuffer()!!.get(byteArr)
-            return byteArr.toString(Charsets.UTF_8)
-        } finally {
-            RustBuffer.free(value)
-        }
-    }
-
-    override fun read(buf: ByteBuffer): String {
-        val len = buf.getInt()
-        val byteArr = ByteArray(len)
-        buf.get(byteArr)
-        return byteArr.toString(Charsets.UTF_8)
-    }
-
-    fun toUtf8(value: String): ByteBuffer {
-        // Make sure we don't have invalid UTF-16, check for lone surrogates.
-        return Charsets.UTF_8.newEncoder().run {
-            onMalformedInput(CodingErrorAction.REPORT)
-            encode(CharBuffer.wrap(value))
-        }
-    }
-
-    override fun lower(value: String): RustBuffer.ByValue {
-        val byteBuf = toUtf8(value)
-        // Ideally we'd pass these bytes to `ffi_bytebuffer_from_bytes`, but doing so would require us
-        // to copy them into a JNA `Memory`. So we might as well directly copy them into a `RustBuffer`.
-        val rbuf = RustBuffer.alloc(byteBuf.limit())
-        rbuf.asByteBuffer()!!.put(byteBuf)
-        return rbuf
-    }
-
-    // We aren't sure exactly how many bytes our string will be once it's UTF-8
-    // encoded.  Allocate 3 bytes per UTF-16 code unit which will always be
-    // enough.
-    override fun allocationSize(value: String): Int {
-        val sizeForLength = 4
-        val sizeForString = value.length * 3
-        return sizeForLength + sizeForString
-    }
-
-    override fun write(value: String, buf: ByteBuffer) {
-        val byteBuf = toUtf8(value)
-        buf.putInt(byteBuf.limit())
-        buf.put(byteBuf)
-    }
-}
 
 
 // Interface implemented by anything that can contain an object reference.
@@ -1549,27 +2230,202 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-// The base class for all UniFFI Object types.
+/** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
+object NoPointer
+
+public object FfiConverterUInt: FfiConverter<UInt, Int> {
+    override fun lift(value: Int): UInt {
+        return value.toUInt()
+    }
+
+    override fun read(buf: ByteBuffer): UInt {
+        return lift(buf.getInt())
+    }
+
+    override fun lower(value: UInt): Int {
+        return value.toInt()
+    }
+
+    override fun allocationSize(value: UInt) = 4UL
+
+    override fun write(value: UInt, buf: ByteBuffer) {
+        buf.putInt(value.toInt())
+    }
+}
+
+public object FfiConverterInt: FfiConverter<Int, Int> {
+    override fun lift(value: Int): Int {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Int {
+        return buf.getInt()
+    }
+
+    override fun lower(value: Int): Int {
+        return value
+    }
+
+    override fun allocationSize(value: Int) = 4UL
+
+    override fun write(value: Int, buf: ByteBuffer) {
+        buf.putInt(value)
+    }
+}
+
+public object FfiConverterULong: FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8UL
+
+    override fun write(value: ULong, buf: ByteBuffer) {
+        buf.putLong(value.toLong())
+    }
+}
+
+public object FfiConverterLong: FfiConverter<Long, Long> {
+    override fun lift(value: Long): Long {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Long {
+        return buf.getLong()
+    }
+
+    override fun lower(value: Long): Long {
+        return value
+    }
+
+    override fun allocationSize(value: Long) = 8UL
+
+    override fun write(value: Long, buf: ByteBuffer) {
+        buf.putLong(value)
+    }
+}
+
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
+
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
+
+    override fun allocationSize(value: Boolean) = 1UL
+
+    override fun write(value: Boolean, buf: ByteBuffer) {
+        buf.put(lower(value))
+    }
+}
+
+public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
+    // Note: we don't inherit from FfiConverterRustBuffer, because we use a
+    // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
+    // store our length and avoid writing it out to the buffer.
+    override fun lift(value: RustBuffer.ByValue): String {
+        try {
+            val byteArr = ByteArray(value.len.toInt())
+            value.asByteBuffer()!!.get(byteArr)
+            return byteArr.toString(Charsets.UTF_8)
+        } finally {
+            RustBuffer.free(value)
+        }
+    }
+
+    override fun read(buf: ByteBuffer): String {
+        val len = buf.getInt()
+        val byteArr = ByteArray(len)
+        buf.get(byteArr)
+        return byteArr.toString(Charsets.UTF_8)
+    }
+
+    fun toUtf8(value: String): ByteBuffer {
+        // Make sure we don't have invalid UTF-16, check for lone surrogates.
+        return Charsets.UTF_8.newEncoder().run {
+            onMalformedInput(CodingErrorAction.REPORT)
+            encode(CharBuffer.wrap(value))
+        }
+    }
+
+    override fun lower(value: String): RustBuffer.ByValue {
+        val byteBuf = toUtf8(value)
+        // Ideally we'd pass these bytes to `ffi_bytebuffer_from_bytes`, but doing so would require us
+        // to copy them into a JNA `Memory`. So we might as well directly copy them into a `RustBuffer`.
+        val rbuf = RustBuffer.alloc(byteBuf.limit().toULong())
+        rbuf.asByteBuffer()!!.put(byteBuf)
+        return rbuf
+    }
+
+    // We aren't sure exactly how many bytes our string will be once it's UTF-8
+    // encoded.  Allocate 3 bytes per UTF-16 code unit which will always be
+    // enough.
+    override fun allocationSize(value: String): ULong {
+        val sizeForLength = 4UL
+        val sizeForString = value.length.toULong() * 3UL
+        return sizeForLength + sizeForString
+    }
+
+    override fun write(value: String, buf: ByteBuffer) {
+        val byteBuf = toUtf8(value)
+        buf.putInt(byteBuf.limit())
+        buf.put(byteBuf)
+    }
+}
+
+public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
+    override fun read(buf: ByteBuffer): ByteArray {
+        val len = buf.getInt()
+        val byteArr = ByteArray(len)
+        buf.get(byteArr)
+        return byteArr
+    }
+    override fun allocationSize(value: ByteArray): ULong {
+        return 4UL + value.size.toULong()
+    }
+    override fun write(value: ByteArray, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        buf.put(value)
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
 //
-// This class provides core operations for working with the Rust `Arc<T>` pointer to
-// the live Rust struct on the other side of the FFI.
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
-// the Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each `FFIObject` instance holds an opaque pointer to the underlying Rust struct.
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
 //     Method calls need to read this pointer from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an `FFIObject` is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its pointer should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
-//   * Given an `FFIObject` instance, calling code is expected to call the special
+//   * Given an instance, calling code is expected to call the special
 //     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so will
-//     leak the underlying Rust struct.
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
 //
 //   * We can't assume that calling code will do the right thing, and must be prepared
 //     to handle Kotlin method calls executing concurrently with or even after a call to
@@ -1578,6 +2434,14 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 //   * We must never allow Rust code to operate on the underlying Rust struct after
 //     the destructor has been called, and must never call the destructor more than once.
 //     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
 // If we try to implement this with mutual exclusion on access to the pointer, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
@@ -1594,7 +2458,7 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 // generate methods with any hidden blocking semantics, and a `destroy` method that might
 // block if called incorrectly seems to meet that bar.
 //
-// So, we achieve our goals by giving each `FFIObject` an associated `AtomicLong` counter to track
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
 // the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
 // has been called. These are updated according to the following rules:
 //
@@ -1620,26 +2484,127 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 // called *and* all in-flight method calls have completed, avoiding violating any of the expectations
 // of the underlying Rust code.
 //
-// In the future we may be able to replace some of this with automatic finalization logic, such as using
-// the new "Cleaner" functionaility in Java 9. The above scheme has been designed to work even if `destroy` is
-// invoked by garbage-collection machinery rather than by calling code (which by the way, it's apparently also
-// possible for the JVM to finalize an object while there is an in-flight call to one of its methods [1],
-// so there would still be some complexity here).
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
 //
-// Sigh...all of this for want of a robust finalization mechanism.
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
 //
 // [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
 //
-abstract class FFIObject(
-    protected val pointer: Pointer
-): Disposable, AutoCloseable {
+
+
+// The cleaner interface for Object finalization code to run.
+// This is the entry point to any implementation that we're using.
+//
+// The cleaner registers objects and returns cleanables, so now we are
+// defining a `UniffiCleaner` with a `UniffiClenaer.Cleanable` to abstract the
+// different implmentations available at compile time.
+interface UniffiCleaner {
+    interface Cleanable {
+        fun clean()
+    }
+
+    fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable
+
+    companion object
+}
+
+// The fallback Jna cleaner, which is available for both Android, and the JVM.
+private class UniffiJnaCleaner : UniffiCleaner {
+    private val cleaner = com.sun.jna.internal.Cleaner.getCleaner()
+
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
+}
+
+private class UniffiJnaCleanable(
+    private val cleanable: com.sun.jna.internal.Cleaner.Cleanable,
+) : UniffiCleaner.Cleanable {
+    override fun clean() = cleanable.clean()
+}
+
+// We decide at uniffi binding generation time whether we were
+// using Android or not.
+// There are further runtime checks to chose the correct implementation
+// of the cleaner.
+private fun UniffiCleaner.Companion.create(): UniffiCleaner =
+    try {
+        // For safety's sake: if the library hasn't been run in android_cleaner = true
+        // mode, but is being run on Android, then we still need to think about
+        // Android API versions.
+        // So we check if java.lang.ref.Cleaner is there, and use that…
+        java.lang.Class.forName("java.lang.ref.Cleaner")
+        JavaLangRefCleaner()
+    } catch (e: ClassNotFoundException) {
+        // … otherwise, fallback to the JNA cleaner.
+        UniffiJnaCleaner()
+    }
+
+private class JavaLangRefCleaner : UniffiCleaner {
+    val cleaner = java.lang.ref.Cleaner.create()
+
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        JavaLangRefCleanable(cleaner.register(value, cleanUpTask))
+}
+
+private class JavaLangRefCleanable(
+    val cleanable: java.lang.ref.Cleaner.Cleanable
+) : UniffiCleaner.Cleanable {
+    override fun clean() = cleanable.clean()
+}
+/**
+ * Backup keys and information we load from the store.
+ */
+public interface BackupKeysInterface {
+    
+    /**
+     * Get the backups version that we're holding on to.
+     */
+    fun `backupVersion`(): kotlin.String
+    
+    /**
+     * Get the recovery key that we're holding on to.
+     */
+    fun `recoveryKey`(): BackupRecoveryKey
+    
+    companion object
+}
+
+/**
+ * Backup keys and information we load from the store.
+ */
+open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
-
-    open protected fun freeRustArcPtr() {
-        // To be overridden in subclasses.
-    }
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -1647,7 +2612,7 @@ abstract class FFIObject(
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                this.freeRustArcPtr()
+                cleanable.clean()
             }
         }
     }
@@ -1671,69 +2636,76 @@ abstract class FFIObject(
         } while (! this.callCounter.compareAndSet(c, c + 1L))
         // Now we can safely do the method call without the pointer being freed concurrently.
         try {
-            return block(this.pointer)
+            return block(this.uniffiClonePointer())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                this.freeRustArcPtr()
+                cleanable.clean()
             }
         }
     }
-}
 
-public interface BackupKeysInterface {
-    
-    fun `backupVersion`(): String
-    fun `recoveryKey`(): BackupRecoveryKey
-}
-
-class BackupKeys(
-    pointer: Pointer
-) : FFIObject(pointer), BackupKeysInterface {
-
-    /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
-     */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(this.pointer, status)
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(ptr, status)
+                }
+            }
         }
     }
 
-    override fun `backupVersion`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_backupkeys(pointer!!, status)
         }
+    }
+
     
-    override fun `recoveryKey`(): BackupRecoveryKey =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(it,
-        
-        _status)
+    /**
+     * Get the backups version that we're holding on to.
+     */override fun `backupVersion`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(
+        it, _status)
 }
-        }.let {
-            FfiConverterTypeBackupRecoveryKey.lift(it)
-        }
-    
+    }
+    )
+    }
     
 
+    
+    /**
+     * Get the recovery key that we're holding on to.
+     */override fun `recoveryKey`(): BackupRecoveryKey {
+            return FfiConverterTypeBackupRecoveryKey.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeBackupKeys: FfiConverter<BackupKeys, Pointer> {
-    override fun lower(value: BackupKeys): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: BackupKeys): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): BackupKeys {
         return BackupKeys(value)
@@ -1745,7 +2717,7 @@ public object FfiConverterTypeBackupKeys: FfiConverter<BackupKeys, Pointer> {
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: BackupKeys) = 8
+    override fun allocationSize(value: BackupKeys) = 8UL
 
     override fun write(value: BackupKeys, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -1755,114 +2727,357 @@ public object FfiConverterTypeBackupKeys: FfiConverter<BackupKeys, Pointer> {
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
+/**
+ * The private part of the backup key, the one used for recovery.
+ */
 public interface BackupRecoveryKeyInterface {
-    @Throws(PkDecryptionException::class)
-    fun `decryptV1`(`ephemeralKey`: String, `mac`: String, `ciphertext`: String): String
+    
+    /**
+     * Try to decrypt a message that was encrypted using the public part of the
+     * backup key.
+     */
+    fun `decryptV1`(`ephemeralKey`: kotlin.String, `mac`: kotlin.String, `ciphertext`: kotlin.String): kotlin.String
+    
+    /**
+     * Get the public part of the backup key.
+     */
     fun `megolmV1PublicKey`(): MegolmV1BackupKey
-    fun `toBase58`(): String
-    fun `toBase64`(): String
+    
+    /**
+     * Convert the recovery key to a base 58 encoded string.
+     */
+    fun `toBase58`(): kotlin.String
+    
+    /**
+     * Convert the recovery key to a base 64 encoded string.
+     */
+    fun `toBase64`(): kotlin.String
+    
+    companion object
 }
 
-class BackupRecoveryKey(
-    pointer: Pointer
-) : FFIObject(pointer), BackupRecoveryKeyInterface {
-    constructor() :
-        this(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(_status)
-})
+/**
+ * The private part of the backup key, the one used for recovery.
+ */
+open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+    /**
+     * Create a new random [`BackupRecoveryKey`].
+     */
+    constructor() :
+        this(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(
+        _status)
+}
+    )
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_backuprecoverykey(pointer!!, status)
         }
     }
 
     
-    @Throws(PkDecryptionException::class)override fun `decryptV1`(`ephemeralKey`: String, `mac`: String, `ciphertext`: String): String =
-        callWithPointer {
-    rustCallWithError(PkDecryptionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(it,
-        FfiConverterString.lower(`ephemeralKey`),FfiConverterString.lower(`mac`),FfiConverterString.lower(`ciphertext`),
-        _status)
+    /**
+     * Try to decrypt a message that was encrypted using the public part of the
+     * backup key.
+     */
+    @Throws(PkDecryptionException::class)override fun `decryptV1`(`ephemeralKey`: kotlin.String, `mac`: kotlin.String, `ciphertext`: kotlin.String): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(PkDecryptionException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(
+        it, FfiConverterString.lower(`ephemeralKey`),FfiConverterString.lower(`mac`),FfiConverterString.lower(`ciphertext`),_status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    override fun `megolmV1PublicKey`(): MegolmV1BackupKey =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeMegolmV1BackupKey.lift(it)
-        }
-    
-    override fun `toBase58`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    override fun `toBase64`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
+    }
+    )
+    }
     
 
+    
+    /**
+     * Get the public part of the backup key.
+     */override fun `megolmV1PublicKey`(): MegolmV1BackupKey {
+            return FfiConverterTypeMegolmV1BackupKey.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Convert the recovery key to a base 58 encoded string.
+     */override fun `toBase58`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Convert the recovery key to a base 64 encoded string.
+     */override fun `toBase64`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
     companion object {
-        fun `fromBase58`(`key`: String): BackupRecoveryKey =
-            BackupRecoveryKey(
-    rustCallWithError(DecodeException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(FfiConverterString.lower(`key`),_status)
-})
-        fun `fromBase64`(`key`: String): BackupRecoveryKey =
-            BackupRecoveryKey(
-    rustCallWithError(DecodeException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(FfiConverterString.lower(`key`),_status)
-})
-        fun `fromPassphrase`(`passphrase`: String, `salt`: String, `rounds`: Int): BackupRecoveryKey =
-            BackupRecoveryKey(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(FfiConverterString.lower(`passphrase`),FfiConverterString.lower(`salt`),FfiConverterInt.lower(`rounds`),_status)
-})
-        fun `newFromPassphrase`(`passphrase`: String): BackupRecoveryKey =
-            BackupRecoveryKey(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(FfiConverterString.lower(`passphrase`),_status)
-})
+        
+    /**
+     * Try to create a [`BackupRecoveryKey`] from a base 58 encoded string.
+     */
+    @Throws(DecodeException::class) fun `fromBase58`(`key`: kotlin.String): BackupRecoveryKey {
+            return FfiConverterTypeBackupRecoveryKey.lift(
+    uniffiRustCallWithError(DecodeException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(
+        FfiConverterString.lower(`key`),_status)
+}
+    )
+    }
+    
+
+        
+    /**
+     * Try to create a [`BackupRecoveryKey`] from a base 64 encoded string.
+     */
+    @Throws(DecodeException::class) fun `fromBase64`(`key`: kotlin.String): BackupRecoveryKey {
+            return FfiConverterTypeBackupRecoveryKey.lift(
+    uniffiRustCallWithError(DecodeException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(
+        FfiConverterString.lower(`key`),_status)
+}
+    )
+    }
+    
+
+        
+    /**
+     * Restore a [`BackupRecoveryKey`] from the given passphrase.
+     */ fun `fromPassphrase`(`passphrase`: kotlin.String, `salt`: kotlin.String, `rounds`: kotlin.Int): BackupRecoveryKey {
+            return FfiConverterTypeBackupRecoveryKey.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(
+        FfiConverterString.lower(`passphrase`),FfiConverterString.lower(`salt`),FfiConverterInt.lower(`rounds`),_status)
+}
+    )
+    }
+    
+
+        
+    /**
+     * Create a new [`BackupRecoveryKey`] from the given passphrase.
+     */ fun `newFromPassphrase`(`passphrase`: kotlin.String): BackupRecoveryKey {
+            return FfiConverterTypeBackupRecoveryKey.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(
+        FfiConverterString.lower(`passphrase`),_status)
+}
+    )
+    }
+    
+
         
     }
     
 }
 
 public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey, Pointer> {
-    override fun lower(value: BackupRecoveryKey): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: BackupRecoveryKey): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): BackupRecoveryKey {
         return BackupRecoveryKey(value)
@@ -1874,7 +3089,7 @@ public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey,
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: BackupRecoveryKey) = 8
+    override fun allocationSize(value: BackupRecoveryKey) = 8UL
 
     override fun write(value: BackupRecoveryKey, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -1884,50 +3099,218 @@ public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey,
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
 public interface DehydratedDeviceInterface {
-    @Throws(DehydrationException::class)
-    fun `keysForUpload`(`deviceDisplayName`: String, `pickleKey`: List<UByte>): UploadDehydratedDeviceRequest
+    
+    fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: kotlin.ByteArray): UploadDehydratedDeviceRequest
+    
+    companion object
 }
 
-class DehydratedDevice(
-    pointer: Pointer
-) : FFIObject(pointer), DehydratedDeviceInterface {
+open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevice(pointer!!, status)
         }
     }
 
     
-    @Throws(DehydrationException::class)override fun `keysForUpload`(`deviceDisplayName`: String, `pickleKey`: List<UByte>): UploadDehydratedDeviceRequest =
-        callWithPointer {
-    rustCallWithError(DehydrationException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(it,
-        FfiConverterString.lower(`deviceDisplayName`),FfiConverterSequenceUByte.lower(`pickleKey`),
-        _status)
+    @Throws(DehydrationException::class)override fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: kotlin.ByteArray): UploadDehydratedDeviceRequest {
+            return FfiConverterTypeUploadDehydratedDeviceRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(DehydrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(
+        it, FfiConverterString.lower(`deviceDisplayName`),FfiConverterByteArray.lower(`pickleKey`),_status)
 }
-        }.let {
-            FfiConverterTypeUploadDehydratedDeviceRequest.lift(it)
-        }
-    
+    }
+    )
+    }
     
 
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeDehydratedDevice: FfiConverter<DehydratedDevice, Pointer> {
-    override fun lower(value: DehydratedDevice): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: DehydratedDevice): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): DehydratedDevice {
         return DehydratedDevice(value)
@@ -1939,7 +3322,7 @@ public object FfiConverterTypeDehydratedDevice: FfiConverter<DehydratedDevice, P
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: DehydratedDevice) = 8
+    override fun allocationSize(value: DehydratedDevice) = 8UL
 
     override fun write(value: DehydratedDevice, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -1949,62 +3332,233 @@ public object FfiConverterTypeDehydratedDevice: FfiConverter<DehydratedDevice, P
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
 public interface DehydratedDevicesInterface {
     
-    fun `create`(): DehydratedDevice@Throws(DehydrationException::class)
-    fun `rehydrate`(`pickleKey`: List<UByte>, `deviceId`: String, `deviceData`: String): RehydratedDevice
+    fun `create`(): DehydratedDevice
+    
+    fun `rehydrate`(`pickleKey`: kotlin.ByteArray, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice
+    
+    companion object
 }
 
-class DehydratedDevices(
-    pointer: Pointer
-) : FFIObject(pointer), DehydratedDevicesInterface {
+open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
     }
 
-    override fun `create`(): DehydratedDevice =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeDehydratedDevice.lift(it)
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
-    
-    
-    @Throws(DehydrationException::class)override fun `rehydrate`(`pickleKey`: List<UByte>, `deviceId`: String, `deviceData`: String): RehydratedDevice =
-        callWithPointer {
-    rustCallWithError(DehydrationException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(it,
-        FfiConverterSequenceUByte.lower(`pickleKey`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`deviceData`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeRehydratedDevice.lift(it)
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(ptr, status)
+                }
+            }
         }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevices(pointer!!, status)
+        }
+    }
+
     
+    @Throws(DehydrationException::class)override fun `create`(): DehydratedDevice {
+            return FfiConverterTypeDehydratedDevice.lift(
+    callWithPointer {
+    uniffiRustCallWithError(DehydrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(
+        it, _status)
+}
+    }
+    )
+    }
     
 
+    
+    @Throws(DehydrationException::class)override fun `rehydrate`(`pickleKey`: kotlin.ByteArray, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice {
+            return FfiConverterTypeRehydratedDevice.lift(
+    callWithPointer {
+    uniffiRustCallWithError(DehydrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(
+        it, FfiConverterByteArray.lower(`pickleKey`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`deviceData`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeDehydratedDevices: FfiConverter<DehydratedDevices, Pointer> {
-    override fun lower(value: DehydratedDevices): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: DehydratedDevices): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): DehydratedDevices {
         return DehydratedDevices(value)
@@ -2016,7 +3570,7 @@ public object FfiConverterTypeDehydratedDevices: FfiConverter<DehydratedDevices,
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: DehydratedDevices) = 8
+    override fun allocationSize(value: DehydratedDevices) = 8UL
 
     override fun write(value: DehydratedDevices, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -2026,721 +3580,2134 @@ public object FfiConverterTypeDehydratedDevices: FfiConverter<DehydratedDevices,
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
+/**
+ * A high level state machine that handles E2EE for Matrix.
+ */
 public interface OlmMachineInterface {
     
-    fun `backupEnabled`(): Boolean@Throws(CryptoStoreException::class)
-    fun `backupRoomKeys`(): Request?@Throws(CryptoStoreException::class)
+    /**
+     * Are we able to encrypt room keys.
+     *
+     * This returns true if we have an active `BackupKey` and backup version
+     * registered with the state machine.
+     */
+    fun `backupEnabled`(): kotlin.Boolean
+    
+    /**
+     * Encrypt a batch of room keys and return a request that needs to be sent
+     * out to backup the room keys.
+     */
+    fun `backupRoomKeys`(): Request?
+    
+    /**
+     * Create a new private cross signing identity and create a request to
+     * upload the public part of it to the server.
+     */
     fun `bootstrapCrossSigning`(): BootstrapCrossSigningResult
-    fun `crossSigningStatus`(): CrossSigningStatus@Throws(DecryptionException::class)
-    fun `decryptRoomEvent`(`event`: String, `roomId`: String, `handleVerificationEvents`: Boolean, `strictShields`: Boolean): DecryptedEvent
+    
+    /**
+     * Encrypt the given event with the given type and content for the given
+     * device. This method is used to send an event to a specific device.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user who owns the target device.
+     * * `device_id` - The ID of the device to which the message will be sent.
+     * * `event_type` - The event type.
+     * * `content` - The serialized content of the event.
+     *
+     * # Returns
+     * A `Result` containing the request to be sent out if the encryption was
+     * successful. If the device is not found, the result will be `Ok(None)`.
+     *
+     * The caller should ensure that there is an olm session (see
+     * `get_missing_sessions`) with the target device before calling this
+     * method.
+     */
+    fun `createEncryptedToDeviceRequest`(`userId`: kotlin.String, `deviceId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): Request?
+    
+    /**
+     * Get the status of the private cross signing keys.
+     *
+     * This can be used to check which private cross signing keys we have
+     * stored locally.
+     */
+    fun `crossSigningStatus`(): CrossSigningStatus
+    
+    /**
+     * Decrypt the given event that was sent in the given room.
+     *
+     * # Arguments
+     *
+     * * `event` - The serialized encrypted version of the event.
+     *
+     * * `room_id` - The unique id of the room where the event was sent to.
+     *
+     * * `strict_shields` - If `true`, messages will be decorated with strict
+     * warnings (use `false` to match legacy behaviour where unsafe keys have
+     * lower severity warnings and unverified identities are not decorated).
+     */
+    fun `decryptRoomEvent`(`event`: kotlin.String, `roomId`: kotlin.String, `handleVerificationEvents`: kotlin.Boolean, `strictShields`: kotlin.Boolean): DecryptedEvent
+    
+    /**
+     * Manage dehydrated devices.
+     */
     fun `dehydratedDevices`(): DehydratedDevices
-    fun `deviceId`(): String@Throws(CryptoStoreException::class)
-    fun `disableBackup`()@Throws(CryptoStoreException::class)
-    fun `discardRoomKey`(`roomId`: String)@Throws(DecodeException::class)
-    fun `enableBackupV1`(`key`: MegolmV1BackupKey, `version`: String)@Throws(CryptoStoreException::class)
-    fun `encrypt`(`roomId`: String, `eventType`: String, `content`: String): String@Throws(CryptoStoreException::class)
-    fun `exportCrossSigningKeys`(): CrossSigningKeyExport?@Throws(CryptoStoreException::class)
-    fun `exportRoomKeys`(`passphrase`: String, `rounds`: Int): String@Throws(CryptoStoreException::class)
-    fun `getBackupKeys`(): BackupKeys?@Throws(CryptoStoreException::class)
-    fun `getDevice`(`userId`: String, `deviceId`: String, `timeout`: UInt): Device?@Throws(CryptoStoreException::class)
-    fun `getIdentity`(`userId`: String, `timeout`: UInt): UserIdentity?@Throws(CryptoStoreException::class)
-    fun `getMissingSessions`(`users`: List<String>): Request?@Throws(CryptoStoreException::class)
-    fun `getOnlyAllowTrustedDevices`(): Boolean@Throws(CryptoStoreException::class)
-    fun `getRoomSettings`(`roomId`: String): RoomSettings?@Throws(CryptoStoreException::class)
-    fun `getUserDevices`(`userId`: String, `timeout`: UInt): List<Device>
-    fun `getVerification`(`userId`: String, `flowId`: String): Verification?
-    fun `getVerificationRequest`(`userId`: String, `flowId`: String): VerificationRequest?
-    fun `getVerificationRequests`(`userId`: String): List<VerificationRequest>
-    fun `identityKeys`(): Map<String, String>@Throws(SecretImportException::class)
-    fun `importCrossSigningKeys`(`export`: CrossSigningKeyExport)@Throws(KeyImportException::class)
-    fun `importDecryptedRoomKeys`(`keys`: String, `progressListener`: ProgressListener): KeysImportResult@Throws(KeyImportException::class)
-    fun `importRoomKeys`(`keys`: String, `passphrase`: String, `progressListener`: ProgressListener): KeysImportResult@Throws(CryptoStoreException::class)
-    fun `isIdentityVerified`(`userId`: String): Boolean@Throws(CryptoStoreException::class)
-    fun `isUserTracked`(`userId`: String): Boolean@Throws(CryptoStoreException::class)
-    fun `markRequestAsSent`(`requestId`: String, `requestType`: RequestType, `responseBody`: String)@Throws(CryptoStoreException::class)
-    fun `outgoingRequests`(): List<Request>@Throws(CryptoStoreException::class)
-    fun `queryMissingSecretsFromOtherSessions`(): Boolean@Throws(CryptoStoreException::class)
-    fun `receiveSyncChanges`(`events`: String, `deviceChanges`: DeviceLists, `keyCounts`: Map<String, Int>, `unusedFallbackKeys`: List<String>?, `nextBatchToken`: String): SyncChangesResult@Throws(CryptoStoreException::class)
-    fun `receiveUnencryptedVerificationEvent`(`event`: String, `roomId`: String)@Throws(CryptoStoreException::class)
-    fun `receiveVerificationEvent`(`event`: String, `roomId`: String)@Throws(DecryptionException::class)
-    fun `requestRoomKey`(`event`: String, `roomId`: String): KeyRequestPair@Throws(CryptoStoreException::class)
-    fun `requestSelfVerification`(`methods`: List<String>): RequestVerificationResult?@Throws(CryptoStoreException::class)
-    fun `requestVerification`(`userId`: String, `roomId`: String, `eventId`: String, `methods`: List<String>): VerificationRequest?@Throws(CryptoStoreException::class)
-    fun `requestVerificationWithDevice`(`userId`: String, `deviceId`: String, `methods`: List<String>): RequestVerificationResult?@Throws(CryptoStoreException::class)
-    fun `roomKeyCounts`(): RoomKeyCounts@Throws(CryptoStoreException::class)
-    fun `saveRecoveryKey`(`key`: BackupRecoveryKey?, `version`: String?)@Throws(CryptoStoreException::class)
-    fun `setLocalTrust`(`userId`: String, `deviceId`: String, `trustState`: LocalTrust)@Throws(CryptoStoreException::class)
-    fun `setOnlyAllowTrustedDevices`(`onlyAllowTrustedDevices`: Boolean)@Throws(CryptoStoreException::class)
-    fun `setRoomAlgorithm`(`roomId`: String, `algorithm`: EventEncryptionAlgorithm)@Throws(CryptoStoreException::class)
-    fun `setRoomOnlyAllowTrustedDevices`(`roomId`: String, `onlyAllowTrustedDevices`: Boolean)@Throws(CryptoStoreException::class)
-    fun `shareRoomKey`(`roomId`: String, `users`: List<String>, `settings`: EncryptionSettings): List<Request>
-    fun `sign`(`message`: String): Map<String, Map<String, String>>@Throws(CryptoStoreException::class)
-    fun `startSasWithDevice`(`userId`: String, `deviceId`: String): StartSasResult?@Throws(CryptoStoreException::class)
-    fun `updateTrackedUsers`(`users`: List<String>)
-    fun `userId`(): String@Throws(CryptoStoreException::class)
-    fun `verificationRequestContent`(`userId`: String, `methods`: List<String>): String?@Throws(CryptoStoreException::class)
-    fun `verifyBackup`(`backupInfo`: String): SignatureVerification@Throws(SignatureException::class)
-    fun `verifyDevice`(`userId`: String, `deviceId`: String): SignatureUploadRequest@Throws(SignatureException::class)
-    fun `verifyIdentity`(`userId`: String): SignatureUploadRequest
+    
+    /**
+     * Get the device ID of the device of this `OlmMachine`.
+     */
+    fun `deviceId`(): kotlin.String
+    
+    /**
+     * Disable and reset our backup state.
+     *
+     * This will remove any pending backup request, remove the backup key and
+     * reset the backup state of each room key we have.
+     */
+    fun `disableBackup`()
+    
+    /**
+     * Discard the currently active room key for the given room if there is
+     * one.
+     */
+    fun `discardRoomKey`(`roomId`: kotlin.String)
+    
+    /**
+     * Activate the given backup key to be used with the given backup version.
+     *
+     * **Warning**: The caller needs to make sure that the given `BackupKey` is
+     * trusted, otherwise we might be encrypting room keys that a malicious
+     * party could decrypt.
+     *
+     * The [`OlmMachine::verify_backup`] method can be used to so.
+     */
+    fun `enableBackupV1`(`key`: MegolmV1BackupKey, `version`: kotlin.String)
+    
+    /**
+     * Encrypt the given event with the given type and content for the given
+     * room.
+     *
+     * **Note**: A room key needs to be shared with the group of users that are
+     * members in the given room. If this is not done this method will panic.
+     *
+     * The usual flow to encrypt an event using this state machine is as
+     * follows:
+     *
+     * 1. Get the one-time key claim request to establish 1:1 Olm sessions for
+     * the room members of the room we wish to participate in. This is done
+     * using the [`get_missing_sessions()`](Self::get_missing_sessions)
+     * method. This method call should be locked per call.
+     *
+     * 2. Share a room key with all the room members using the
+     * [`share_room_key()`](Self::share_room_key). This method call should
+     * be locked per room.
+     *
+     * 3. Encrypt the event using this method.
+     *
+     * 4. Send the encrypted event to the server.
+     *
+     * After the room key is shared steps 1 and 2 will become noops, unless
+     * there's some changes in the room membership or in the list of devices a
+     * member has.
+     *
+     * # Arguments
+     *
+     * * `room_id` - The unique id of the room where the event will be sent to.
+     *
+     * * `even_type` - The type of the event.
+     *
+     * * `content` - The serialized content of the event.
+     */
+    fun `encrypt`(`roomId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): kotlin.String
+    
+    /**
+     * Export all our private cross signing keys.
+     *
+     * The export will contain the seed for the ed25519 keys as a base64
+     * encoded string.
+     *
+     * This method returns `None` if we don't have any private cross signing
+     * keys.
+     */
+    fun `exportCrossSigningKeys`(): CrossSigningKeyExport?
+    
+    /**
+     * Export all of our room keys.
+     *
+     * # Arguments
+     *
+     * * `passphrase` - The passphrase that should be used to encrypt the key
+     * export.
+     *
+     * * `rounds` - The number of rounds that should be used when expanding the
+     * passphrase into an key.
+     */
+    fun `exportRoomKeys`(`passphrase`: kotlin.String, `rounds`: kotlin.Int): kotlin.String
+    
+    /**
+     * Get the backup keys we have saved in our crypto store.
+     */
+    fun `getBackupKeys`(): BackupKeys?
+    
+    /**
+     * Get a `Device` from the store.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The id of the device owner.
+     *
+     * * `device_id` - The id of the device itself.
+     *
+     * * `timeout` - The time in seconds we should wait before returning if
+     * the user's device list has been marked as stale. Passing a 0 as the
+     * timeout means that we won't wait at all. **Note**, this assumes that
+     * the requests from [`OlmMachine::outgoing_requests`] are being processed
+     * and sent out. Namely, this waits for a `/keys/query` response to be
+     * received.
+     */
+    fun `getDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String, `timeout`: kotlin.UInt): Device?
+    
+    /**
+     * Get a cross signing user identity for the given user ID.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The unique id of the user that the identity belongs to
+     *
+     * * `timeout` - The time in seconds we should wait before returning if
+     * the user's device list has been marked as stale. Passing a 0 as the
+     * timeout means that we won't wait at all. **Note**, this assumes that
+     * the requests from [`OlmMachine::outgoing_requests`] are being processed
+     * and sent out. Namely, this waits for a `/keys/query` response to be
+     * received.
+     */
+    fun `getIdentity`(`userId`: kotlin.String, `timeout`: kotlin.UInt): UserIdentity?
+    
+    /**
+     * Generate one-time key claiming requests for all the users we are missing
+     * sessions for.
+     *
+     * After the request was sent out and a successful response was received
+     * the response body should be passed back to the state machine using the
+     * [mark_request_as_sent()](Self::mark_request_as_sent) method.
+     *
+     * This method should be called every time before a call to
+     * [`share_room_key()`](Self::share_room_key) is made.
+     *
+     * # Arguments
+     *
+     * * `users` - The list of users for which we would like to establish 1:1
+     * Olm sessions for.
+     */
+    fun `getMissingSessions`(`users`: List<kotlin.String>): Request?
+    
+    /**
+     * Check whether there is a global flag to only encrypt messages for
+     * trusted devices or for everyone.
+     *
+     * Note that if the global flag is false, individual rooms may still be
+     * encrypting only for trusted devices, depending on the per-room
+     * `only_allow_trusted_devices` flag.
+     */
+    fun `getOnlyAllowTrustedDevices`(): kotlin.Boolean
+    
+    /**
+     * Get the stored room settings, such as the encryption algorithm or
+     * whether to encrypt only for trusted devices.
+     *
+     * These settings can be modified via
+     * [set_room_algorithm()](Self::set_room_algorithm) and
+     * [set_room_only_allow_trusted_devices()](Self::set_room_only_allow_trusted_devices)
+     * methods.
+     */
+    fun `getRoomSettings`(`roomId`: kotlin.String): RoomSettings?
+    
+    /**
+     * Get all devices of an user.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The id of the device owner.
+     *
+     * * `timeout` - The time in seconds we should wait before returning if
+     * the user's device list has been marked as stale. Passing a 0 as the
+     * timeout means that we won't wait at all. **Note**, this assumes that
+     * the requests from [`OlmMachine::outgoing_requests`] are being processed
+     * and sent out. Namely, this waits for a `/keys/query` response to be
+     * received.
+     */
+    fun `getUserDevices`(`userId`: kotlin.String, `timeout`: kotlin.UInt): List<Device>
+    
+    /**
+     * Get a verification flow object for the given user with the given flow
+     * id.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to fetch the
+     * verification.
+     *
+     * * `flow_id` - The ID that uniquely identifies the verification flow.
+     */
+    fun `getVerification`(`userId`: kotlin.String, `flowId`: kotlin.String): Verification?
+    
+    /**
+     * Get a verification requests that we share with the given user with the
+     * given flow id.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to fetch the
+     * verification requests.
+     *
+     * * `flow_id` - The ID that uniquely identifies the verification flow.
+     */
+    fun `getVerificationRequest`(`userId`: kotlin.String, `flowId`: kotlin.String): VerificationRequest?
+    
+    /**
+     * Get all the verification requests that we share with the given user.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to fetch the
+     * verification requests.
+     */
+    fun `getVerificationRequests`(`userId`: kotlin.String): List<VerificationRequest>
+    
+    /**
+     * Get our own identity keys.
+     */
+    fun `identityKeys`(): Map<kotlin.String, kotlin.String>
+    
+    /**
+     * Import our private cross signing keys.
+     *
+     * The export needs to contain the seed for the ed25519 keys as a base64
+     * encoded string.
+     */
+    fun `importCrossSigningKeys`(`export`: CrossSigningKeyExport)
+    
+    /**
+     * Import room keys from the given serialized unencrypted key export.
+     *
+     * This method is the same as [`OlmMachine::import_room_keys`] but the
+     * decryption step is skipped and should be performed by the caller. This
+     * should be used if the room keys are coming from the server-side backup,
+     * the method will mark all imported room keys as backed up.
+     *
+     * # Arguments
+     *
+     * * `keys` - The serialized version of the unencrypted key export.
+     *
+     * * `progress_listener` - A callback that can be used to introspect the
+     * progress of the key import.
+     */
+    fun `importDecryptedRoomKeys`(`keys`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult
+    
+    /**
+     * Import room keys from the given serialized key export.
+     *
+     * # Arguments
+     *
+     * * `keys` - The serialized version of the key export.
+     *
+     * * `passphrase` - The passphrase that was used to encrypt the key export.
+     *
+     * * `progress_listener` - A callback that can be used to introspect the
+     * progress of the key import.
+     */
+    fun `importRoomKeys`(`keys`: kotlin.String, `passphrase`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult
+    
+    /**
+     * Check if a user identity is considered to be verified by us.
+     */
+    fun `isIdentityVerified`(`userId`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Check if the given user is considered to be tracked.
+     *
+     * A user can be marked for tracking using the
+     * [`OlmMachine::update_tracked_users()`] method.
+     */
+    fun `isUserTracked`(`userId`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Mark a request that was sent to the server as sent.
+     *
+     * # Arguments
+     *
+     * * `request_id` - The unique ID of the request that was sent out. This
+     * needs to be an UUID.
+     *
+     * * `request_type` - The type of the request that was sent out.
+     *
+     * * `response_body` - The body of the response that was received.
+     */
+    fun `markRequestAsSent`(`requestId`: kotlin.String, `requestType`: RequestType, `responseBody`: kotlin.String)
+    
+    /**
+     * Get the list of outgoing requests that need to be sent to the
+     * homeserver.
+     *
+     * After the request was sent out and a successful response was received
+     * the response body should be passed back to the state machine using the
+     * [mark_request_as_sent()](Self::mark_request_as_sent) method.
+     *
+     * **Note**: This method call should be locked per call.
+     */
+    fun `outgoingRequests`(): List<Request>
+    
+    /**
+     * Request missing local secrets from our devices (cross signing private
+     * keys, megolm backup). This will ask the sdk to create outgoing
+     * request to get the missing secrets.
+     *
+     * The requests will be processed as soon as `outgoing_requests()` is
+     * called to process them.
+     */
+    fun `queryMissingSecretsFromOtherSessions`(): kotlin.Boolean
+    
+    /**
+     * Let the state machine know about E2EE related sync changes that we
+     * received from the server.
+     *
+     * This needs to be called after every sync, ideally before processing
+     * any other sync changes.
+     *
+     * # Arguments
+     *
+     * * `events` - A serialized array of to-device events we received in the
+     * current sync response.
+     *
+     * * `device_changes` - The list of devices that have changed in some way
+     * since the previous sync.
+     *
+     * * `key_counts` - The map of uploaded one-time key types and counts.
+     */
+    fun `receiveSyncChanges`(`events`: kotlin.String, `deviceChanges`: DeviceLists, `keyCounts`: Map<kotlin.String, kotlin.Int>, `unusedFallbackKeys`: List<kotlin.String>?, `nextBatchToken`: kotlin.String): SyncChangesResult
+    
+    /**
+     * Receive an unencrypted verification event.
+     *
+     * This method can be used to pass verification events that are happening
+     * in unencrypted rooms to the `OlmMachine`.
+     *
+     * **Note**: This has been deprecated.
+     */
+    fun `receiveUnencryptedVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
+    
+    /**
+     * Receive a verification event.
+     *
+     * This method can be used to pass verification events that are happening
+     * in rooms to the `OlmMachine`. The event should be in the decrypted form.
+     */
+    fun `receiveVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
+    
+    /**
+     * Request or re-request a room key that was used to encrypt the given
+     * event.
+     *
+     * # Arguments
+     *
+     * * `event` - The undecryptable event that we would wish to request a room
+     * key for.
+     *
+     * * `room_id` - The id of the room the event was sent to.
+     */
+    fun `requestRoomKey`(`event`: kotlin.String, `roomId`: kotlin.String): KeyRequestPair
+    
+    /**
+     * Request a verification flow to begin with our other devices.
+     *
+     * # Arguments
+     *
+     * `methods` - The list of verification methods we want to advertise to
+     * support.
+     */
+    fun `requestSelfVerification`(`methods`: List<kotlin.String>): RequestVerificationResult?
+    
+    /**
+     * Request a verification flow to begin with the given user in the given
+     * room.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user which we would like to request to
+     * verify.
+     *
+     * * `room_id` - The ID of the room that represents a DM with the given
+     * user.
+     *
+     * * `event_id` - The event ID of the `m.key.verification.request` event
+     * that we sent out to request the verification to begin. The content for
+     * this request can be created using the [verification_request_content()]
+     * method.
+     *
+     * * `methods` - The list of verification methods we advertised as
+     * supported in the `m.key.verification.request` event.
+     *
+     * [verification_request_content()]: Self::verification_request_content
+     */
+    fun `requestVerification`(`userId`: kotlin.String, `roomId`: kotlin.String, `eventId`: kotlin.String, `methods`: List<kotlin.String>): VerificationRequest?
+    
+    /**
+     * Request a verification flow to begin with the given user's device.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user which we would like to request to
+     * verify.
+     *
+     * * `device_id` - The ID of the device that we wish to verify.
+     *
+     * * `methods` - The list of verification methods we advertised as
+     * supported in the `m.key.verification.request` event.
+     */
+    fun `requestVerificationWithDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String, `methods`: List<kotlin.String>): RequestVerificationResult?
+    
+    /**
+     * Get the number of backed up room keys and the total number of room keys.
+     */
+    fun `roomKeyCounts`(): RoomKeyCounts
+    
+    /**
+     * Store the recovery key in the crypto store.
+     *
+     * This is useful if the client wants to support gossiping of the backup
+     * key.
+     */
+    fun `saveRecoveryKey`(`key`: BackupRecoveryKey?, `version`: kotlin.String?)
+    
+    /**
+     * Set local trust state for the device of the given user without creating
+     * or uploading any signatures if verified
+     */
+    fun `setLocalTrust`(`userId`: kotlin.String, `deviceId`: kotlin.String, `trustState`: LocalTrust)
+    
+    /**
+     * Set global flag whether to encrypt messages for untrusted devices, or
+     * whether they should be excluded from the conversation.
+     *
+     * Note that if enabled, it will override any per-room settings.
+     */
+    fun `setOnlyAllowTrustedDevices`(`onlyAllowTrustedDevices`: kotlin.Boolean)
+    
+    /**
+     * Set the room algorithm used for encrypting messages to one of the
+     * available variants
+     */
+    fun `setRoomAlgorithm`(`roomId`: kotlin.String, `algorithm`: EventEncryptionAlgorithm)
+    
+    /**
+     * Set flag whether this room should encrypt messages for untrusted
+     * devices, or whether they should be excluded from the conversation.
+     *
+     * Note that per-room setting may be overridden by a global
+     * [set_only_allow_trusted_devices()](Self::set_only_allow_trusted_devices)
+     * method.
+     */
+    fun `setRoomOnlyAllowTrustedDevices`(`roomId`: kotlin.String, `onlyAllowTrustedDevices`: kotlin.Boolean)
+    
+    /**
+     * Share a room key with the given list of users for the given room.
+     *
+     * After the request was sent out and a successful response was received
+     * the response body should be passed back to the state machine using the
+     * [mark_request_as_sent()](Self::mark_request_as_sent) method.
+     *
+     * This method should be called every time before a call to
+     * [`encrypt()`](Self::encrypt) with the given `room_id` is made.
+     *
+     * # Arguments
+     *
+     * * `room_id` - The unique id of the room, note that this doesn't strictly
+     * need to be a Matrix room, it just needs to be an unique identifier for
+     * the group that will participate in the conversation.
+     *
+     * * `users` - The list of users which are considered to be members of the
+     * room and should receive the room key.
+     *
+     * * `settings` - The settings that should be used for the room key.
+     */
+    fun `shareRoomKey`(`roomId`: kotlin.String, `users`: List<kotlin.String>, `settings`: EncryptionSettings): List<Request>
+    
+    /**
+     * Sign the given message using our device key and if available cross
+     * signing master key.
+     */
+    fun `sign`(`message`: kotlin.String): Map<kotlin.String, Map<kotlin.String, kotlin.String>>
+    
+    /**
+     * Start short auth string verification with a device without going
+     * through a verification request first.
+     *
+     * **Note**: This has been largely deprecated and the
+     * [request_verification_with_device()] method should be used instead.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * SAS verification.
+     *
+     * * `device_id` - The ID of device we would like to verify.
+     *
+     * [request_verification_with_device()]: Self::request_verification_with_device
+     */
+    fun `startSasWithDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String): StartSasResult?
+    
+    /**
+     * Add the given list of users to be tracked, triggering a key query
+     * request for them.
+     *
+     * The OlmMachine maintains a list of users whose devices we are keeping
+     * track of: these are known as "tracked users". These must be users
+     * that we share a room with, so that the server sends us updates for
+     * their device lists.
+     *
+     * *Note*: Only users that aren't already tracked will be considered for an
+     * update. It's safe to call this with already tracked users, it won't
+     * result in excessive `/keys/query` requests.
+     *
+     * # Arguments
+     *
+     * `users` - The users that should be queued up for a key query.
+     */
+    fun `updateTrackedUsers`(`users`: List<kotlin.String>)
+    
+    /**
+     * Get the user ID of the owner of this `OlmMachine`.
+     */
+    fun `userId`(): kotlin.String
+    
+    /**
+     * Get an m.key.verification.request content for the given user.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user which we would like to request to
+     * verify.
+     *
+     * * `methods` - The list of verification methods we want to advertise to
+     * support.
+     */
+    fun `verificationRequestContent`(`userId`: kotlin.String, `methods`: List<kotlin.String>): kotlin.String?
+    
+    /**
+     * Check if the given backup has been verified by us or by another of our
+     * devices that we trust.
+     *
+     * The `backup_info` should be a JSON encoded object with the following
+     * format:
+     *
+     * ```json
+     * {
+     * "algorithm": "m.megolm_backup.v1.curve25519-aes-sha2",
+     * "auth_data": {
+     * "public_key":"XjhWTCjW7l59pbfx9tlCBQolfnIQWARoKOzjTOPSlWM",
+     * "signatures": {}
+     * }
+     * }
+     * ```
+     */
+    fun `verifyBackup`(`backupInfo`: kotlin.String): SignatureVerification
+    
+    /**
+     * Manually the device of the given user with the given device ID.
+     *
+     * This method will attempt to sign the device using our private cross
+     * signing key.
+     *
+     * This method will always fail if the device belongs to someone else, we
+     * can only sign our own devices.
+     *
+     * It can also fail if we don't have the private part of our self-signing
+     * key.
+     *
+     * Returns a request that needs to be sent out for the device to be marked
+     * as verified.
+     */
+    fun `verifyDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String): SignatureUploadRequest
+    
+    /**
+     * Manually the user with the given user ID.
+     *
+     * This method will attempt to sign the user identity using either our
+     * private cross signing key, for other user identities, or our device keys
+     * for our own user identity.
+     *
+     * This method can fail if we don't have the private part of our
+     * user-signing key.
+     *
+     * Returns a request that needs to be sent out for the user identity to be
+     * marked as verified.
+     */
+    fun `verifyIdentity`(`userId`: kotlin.String): SignatureUploadRequest
+    
+    companion object
 }
 
-class OlmMachine(
-    pointer: Pointer
-) : FFIObject(pointer), OlmMachineInterface {
-    constructor(`userId`: String, `deviceId`: String, `path`: String, `passphrase`: String?) :
-        this(
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),_status)
-})
+/**
+ * A high level state machine that handles E2EE for Matrix.
+ */
+open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+    /**
+     * Create a new `OlmMachine`
+     *
+     * # Arguments
+     *
+     * * `user_id` - The unique ID of the user that owns this machine.
+     *
+     * * `device_id` - The unique ID of the device that owns this machine.
+     *
+     * * `path` - The path where the state of the machine should be persisted.
+     *
+     * * `passphrase` - The passphrase that should be used to encrypt the data
+     * at rest in the crypto store. **Warning**, if no passphrase is given,
+     * the store and all its data will remain unencrypted.
+     */
+    constructor(`userId`: kotlin.String, `deviceId`: kotlin.String, `path`: kotlin.String, `passphrase`: kotlin.String?) :
+        this(
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),_status)
+}
+    )
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
     }
 
-    override fun `backupEnabled`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `backupRoomKeys`(): Request? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeRequest.lift(it)
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(ptr, status)
+                }
+            }
         }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `bootstrapCrossSigning`(): BootstrapCrossSigningResult =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeBootstrapCrossSigningResult.lift(it)
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(pointer!!, status)
         }
+    }
+
     
-    override fun `crossSigningStatus`(): CrossSigningStatus =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(it,
-        
-        _status)
+    /**
+     * Are we able to encrypt room keys.
+     *
+     * This returns true if we have an active `BackupKey` and backup version
+     * registered with the state machine.
+     */override fun `backupEnabled`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(
+        it, _status)
 }
-        }.let {
-            FfiConverterTypeCrossSigningStatus.lift(it)
-        }
+    }
+    )
+    }
     
+
     
-    @Throws(DecryptionException::class)override fun `decryptRoomEvent`(`event`: String, `roomId`: String, `handleVerificationEvents`: Boolean, `strictShields`: Boolean): DecryptedEvent =
-        callWithPointer {
-    rustCallWithError(DecryptionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(it,
-        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`handleVerificationEvents`),FfiConverterBoolean.lower(`strictShields`),
-        _status)
+    /**
+     * Encrypt a batch of room keys and return a request that needs to be sent
+     * out to backup the room keys.
+     */
+    @Throws(CryptoStoreException::class)override fun `backupRoomKeys`(): Request? {
+            return FfiConverterOptionalTypeRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(
+        it, _status)
 }
-        }.let {
-            FfiConverterTypeDecryptedEvent.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `dehydratedDevices`(): DehydratedDevices =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(it,
-        
-        _status)
+
+    
+    /**
+     * Create a new private cross signing identity and create a request to
+     * upload the public part of it to the server.
+     */
+    @Throws(CryptoStoreException::class)override fun `bootstrapCrossSigning`(): BootstrapCrossSigningResult {
+            return FfiConverterTypeBootstrapCrossSigningResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(
+        it, _status)
 }
-        }.let {
-            FfiConverterTypeDehydratedDevices.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `deviceId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(it,
-        
-        _status)
+
+    
+    /**
+     * Encrypt the given event with the given type and content for the given
+     * device. This method is used to send an event to a specific device.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user who owns the target device.
+     * * `device_id` - The ID of the device to which the message will be sent.
+     * * `event_type` - The event type.
+     * * `content` - The serialized content of the event.
+     *
+     * # Returns
+     * A `Result` containing the request to be sent out if the encryption was
+     * successful. If the device is not found, the result will be `Ok(None)`.
+     *
+     * The caller should ensure that there is an olm session (see
+     * `get_missing_sessions`) with the target device before calling this
+     * method.
+     */
+    @Throws(CryptoStoreException::class)override fun `createEncryptedToDeviceRequest`(`userId`: kotlin.String, `deviceId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): Request? {
+            return FfiConverterOptionalTypeRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_create_encrypted_to_device_request(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),_status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
+
     
-    @Throws(CryptoStoreException::class)override fun `disableBackup`() =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(it,
-        
-        _status)
+    /**
+     * Get the status of the private cross signing keys.
+     *
+     * This can be used to check which private cross signing keys we have
+     * stored locally.
+     */override fun `crossSigningStatus`(): CrossSigningStatus {
+            return FfiConverterTypeCrossSigningStatus.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(
+        it, _status)
 }
-        }
+    }
+    )
+    }
     
+
     
-    
-    @Throws(CryptoStoreException::class)override fun `discardRoomKey`(`roomId`: String) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(it,
-        FfiConverterString.lower(`roomId`),
-        _status)
+    /**
+     * Decrypt the given event that was sent in the given room.
+     *
+     * # Arguments
+     *
+     * * `event` - The serialized encrypted version of the event.
+     *
+     * * `room_id` - The unique id of the room where the event was sent to.
+     *
+     * * `strict_shields` - If `true`, messages will be decorated with strict
+     * warnings (use `false` to match legacy behaviour where unsafe keys have
+     * lower severity warnings and unverified identities are not decorated).
+     */
+    @Throws(DecryptionException::class)override fun `decryptRoomEvent`(`event`: kotlin.String, `roomId`: kotlin.String, `handleVerificationEvents`: kotlin.Boolean, `strictShields`: kotlin.Boolean): DecryptedEvent {
+            return FfiConverterTypeDecryptedEvent.lift(
+    callWithPointer {
+    uniffiRustCallWithError(DecryptionException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(
+        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`handleVerificationEvents`),FfiConverterBoolean.lower(`strictShields`),_status)
 }
-        }
+    }
+    )
+    }
     
+
     
-    
-    @Throws(DecodeException::class)override fun `enableBackupV1`(`key`: MegolmV1BackupKey, `version`: String) =
-        callWithPointer {
-    rustCallWithError(DecodeException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(it,
-        FfiConverterTypeMegolmV1BackupKey.lower(`key`),FfiConverterString.lower(`version`),
-        _status)
+    /**
+     * Manage dehydrated devices.
+     */override fun `dehydratedDevices`(): DehydratedDevices {
+            return FfiConverterTypeDehydratedDevices.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(
+        it, _status)
 }
-        }
+    }
+    )
+    }
     
+
     
-    
-    @Throws(CryptoStoreException::class)override fun `encrypt`(`roomId`: String, `eventType`: String, `content`: String): String =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(it,
-        FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),
-        _status)
+    /**
+     * Get the device ID of the device of this `OlmMachine`.
+     */override fun `deviceId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
+
     
-    @Throws(CryptoStoreException::class)override fun `exportCrossSigningKeys`(): CrossSigningKeyExport? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(it,
-        
-        _status)
+    /**
+     * Disable and reset our backup state.
+     *
+     * This will remove any pending backup request, remove the backup key and
+     * reset the backup state of each room key we have.
+     */
+    @Throws(CryptoStoreException::class)override fun `disableBackup`()
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalTypeCrossSigningKeyExport.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `exportRoomKeys`(`passphrase`: String, `rounds`: Int): String =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(it,
-        FfiConverterString.lower(`passphrase`),FfiConverterInt.lower(`rounds`),
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getBackupKeys`(): BackupKeys? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeBackupKeys.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getDevice`(`userId`: String, `deviceId`: String, `timeout`: UInt): Device? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterUInt.lower(`timeout`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeDevice.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getIdentity`(`userId`: String, `timeout`: UInt): UserIdentity? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(it,
-        FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeUserIdentity.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getMissingSessions`(`users`: List<String>): Request? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(it,
-        FfiConverterSequenceString.lower(`users`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeRequest.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getOnlyAllowTrustedDevices`(): Boolean =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getRoomSettings`(`roomId`: String): RoomSettings? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(it,
-        FfiConverterString.lower(`roomId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeRoomSettings.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `getUserDevices`(`userId`: String, `timeout`: UInt): List<Device> =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(it,
-        FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),
-        _status)
-}
-        }.let {
-            FfiConverterSequenceTypeDevice.lift(it)
-        }
-    
-    override fun `getVerification`(`userId`: String, `flowId`: String): Verification? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeVerification.lift(it)
-        }
-    
-    override fun `getVerificationRequest`(`userId`: String, `flowId`: String): VerificationRequest? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeVerificationRequest.lift(it)
-        }
-    
-    override fun `getVerificationRequests`(`userId`: String): List<VerificationRequest> =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterSequenceTypeVerificationRequest.lift(it)
-        }
-    
-    override fun `identityKeys`(): Map<String, String> =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterMapStringString.lift(it)
-        }
-    
-    
-    @Throws(SecretImportException::class)override fun `importCrossSigningKeys`(`export`: CrossSigningKeyExport) =
-        callWithPointer {
-    rustCallWithError(SecretImportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(it,
-        FfiConverterTypeCrossSigningKeyExport.lower(`export`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(KeyImportException::class)override fun `importDecryptedRoomKeys`(`keys`: String, `progressListener`: ProgressListener): KeysImportResult =
-        callWithPointer {
-    rustCallWithError(KeyImportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(it,
-        FfiConverterString.lower(`keys`),FfiConverterTypeProgressListener.lower(`progressListener`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeKeysImportResult.lift(it)
-        }
-    
-    
-    @Throws(KeyImportException::class)override fun `importRoomKeys`(`keys`: String, `passphrase`: String, `progressListener`: ProgressListener): KeysImportResult =
-        callWithPointer {
-    rustCallWithError(KeyImportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(it,
-        FfiConverterString.lower(`keys`),FfiConverterString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeKeysImportResult.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `isIdentityVerified`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `isUserTracked`(`userId`: String): Boolean =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `markRequestAsSent`(`requestId`: String, `requestType`: RequestType, `responseBody`: String) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(it,
-        FfiConverterString.lower(`requestId`),FfiConverterTypeRequestType.lower(`requestType`),FfiConverterString.lower(`responseBody`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `outgoingRequests`(): List<Request> =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterSequenceTypeRequest.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `queryMissingSecretsFromOtherSessions`(): Boolean =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `receiveSyncChanges`(`events`: String, `deviceChanges`: DeviceLists, `keyCounts`: Map<String, Int>, `unusedFallbackKeys`: List<String>?, `nextBatchToken`: String): SyncChangesResult =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(it,
-        FfiConverterString.lower(`events`),FfiConverterTypeDeviceLists.lower(`deviceChanges`),FfiConverterMapStringInt.lower(`keyCounts`),FfiConverterOptionalSequenceString.lower(`unusedFallbackKeys`),FfiConverterString.lower(`nextBatchToken`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeSyncChangesResult.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `receiveUnencryptedVerificationEvent`(`event`: String, `roomId`: String) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(it,
-        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `receiveVerificationEvent`(`event`: String, `roomId`: String) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(it,
-        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(DecryptionException::class)override fun `requestRoomKey`(`event`: String, `roomId`: String): KeyRequestPair =
-        callWithPointer {
-    rustCallWithError(DecryptionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(it,
-        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeKeyRequestPair.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `requestSelfVerification`(`methods`: List<String>): RequestVerificationResult? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(it,
-        FfiConverterSequenceString.lower(`methods`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeRequestVerificationResult.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `requestVerification`(`userId`: String, `roomId`: String, `eventId`: String, `methods`: List<String>): VerificationRequest? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),FfiConverterSequenceString.lower(`methods`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeVerificationRequest.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `requestVerificationWithDevice`(`userId`: String, `deviceId`: String, `methods`: List<String>): RequestVerificationResult? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterSequenceString.lower(`methods`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeRequestVerificationResult.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `roomKeyCounts`(): RoomKeyCounts =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeRoomKeyCounts.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `saveRecoveryKey`(`key`: BackupRecoveryKey?, `version`: String?) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(it,
-        FfiConverterOptionalTypeBackupRecoveryKey.lower(`key`),FfiConverterOptionalString.lower(`version`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `setLocalTrust`(`userId`: String, `deviceId`: String, `trustState`: LocalTrust) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterTypeLocalTrust.lower(`trustState`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `setOnlyAllowTrustedDevices`(`onlyAllowTrustedDevices`: Boolean) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(it,
-        FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `setRoomAlgorithm`(`roomId`: String, `algorithm`: EventEncryptionAlgorithm) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(it,
-        FfiConverterString.lower(`roomId`),FfiConverterTypeEventEncryptionAlgorithm.lower(`algorithm`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `setRoomOnlyAllowTrustedDevices`(`roomId`: String, `onlyAllowTrustedDevices`: Boolean) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(it,
-        FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),
-        _status)
-}
-        }
-    
-    
-    
-    @Throws(CryptoStoreException::class)override fun `shareRoomKey`(`roomId`: String, `users`: List<String>, `settings`: EncryptionSettings): List<Request> =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(it,
-        FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`users`),FfiConverterTypeEncryptionSettings.lower(`settings`),
-        _status)
-}
-        }.let {
-            FfiConverterSequenceTypeRequest.lift(it)
-        }
-    
-    override fun `sign`(`message`: String): Map<String, Map<String, String>> =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(it,
-        FfiConverterString.lower(`message`),
-        _status)
-}
-        }.let {
-            FfiConverterMapStringMapStringString.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `startSasWithDevice`(`userId`: String, `deviceId`: String): StartSasResult? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeStartSasResult.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `updateTrackedUsers`(`users`: List<String>) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(it,
-        FfiConverterSequenceString.lower(`users`),
-        _status)
-}
-        }
-    
-    
-    override fun `userId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterString.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `verificationRequestContent`(`userId`: String, `methods`: List<String>): String? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(it,
-        FfiConverterString.lower(`userId`),FfiConverterSequenceString.lower(`methods`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalString.lift(it)
-        }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `verifyBackup`(`backupInfo`: String): SignatureVerification =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(it,
-        FfiConverterString.lower(`backupInfo`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeSignatureVerification.lift(it)
-        }
-    
-    
-    @Throws(SignatureException::class)override fun `verifyDevice`(`userId`: String, `deviceId`: String): SignatureUploadRequest =
-        callWithPointer {
-    rustCallWithError(SignatureException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(it,
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeSignatureUploadRequest.lift(it)
-        }
-    
-    
-    @Throws(SignatureException::class)override fun `verifyIdentity`(`userId`: String): SignatureUploadRequest =
-        callWithPointer {
-    rustCallWithError(SignatureException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(it,
-        FfiConverterString.lower(`userId`),
-        _status)
-}
-        }.let {
-            FfiConverterTypeSignatureUploadRequest.lift(it)
-        }
+    }
     
     
 
+    
+    /**
+     * Discard the currently active room key for the given room if there is
+     * one.
+     */
+    @Throws(CryptoStoreException::class)override fun `discardRoomKey`(`roomId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(
+        it, FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Activate the given backup key to be used with the given backup version.
+     *
+     * **Warning**: The caller needs to make sure that the given `BackupKey` is
+     * trusted, otherwise we might be encrypting room keys that a malicious
+     * party could decrypt.
+     *
+     * The [`OlmMachine::verify_backup`] method can be used to so.
+     */
+    @Throws(DecodeException::class)override fun `enableBackupV1`(`key`: MegolmV1BackupKey, `version`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(DecodeException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(
+        it, FfiConverterTypeMegolmV1BackupKey.lower(`key`),FfiConverterString.lower(`version`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Encrypt the given event with the given type and content for the given
+     * room.
+     *
+     * **Note**: A room key needs to be shared with the group of users that are
+     * members in the given room. If this is not done this method will panic.
+     *
+     * The usual flow to encrypt an event using this state machine is as
+     * follows:
+     *
+     * 1. Get the one-time key claim request to establish 1:1 Olm sessions for
+     * the room members of the room we wish to participate in. This is done
+     * using the [`get_missing_sessions()`](Self::get_missing_sessions)
+     * method. This method call should be locked per call.
+     *
+     * 2. Share a room key with all the room members using the
+     * [`share_room_key()`](Self::share_room_key). This method call should
+     * be locked per room.
+     *
+     * 3. Encrypt the event using this method.
+     *
+     * 4. Send the encrypted event to the server.
+     *
+     * After the room key is shared steps 1 and 2 will become noops, unless
+     * there's some changes in the room membership or in the list of devices a
+     * member has.
+     *
+     * # Arguments
+     *
+     * * `room_id` - The unique id of the room where the event will be sent to.
+     *
+     * * `even_type` - The type of the event.
+     *
+     * * `content` - The serialized content of the event.
+     */
+    @Throws(CryptoStoreException::class)override fun `encrypt`(`roomId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(
+        it, FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Export all our private cross signing keys.
+     *
+     * The export will contain the seed for the ed25519 keys as a base64
+     * encoded string.
+     *
+     * This method returns `None` if we don't have any private cross signing
+     * keys.
+     */
+    @Throws(CryptoStoreException::class)override fun `exportCrossSigningKeys`(): CrossSigningKeyExport? {
+            return FfiConverterOptionalTypeCrossSigningKeyExport.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Export all of our room keys.
+     *
+     * # Arguments
+     *
+     * * `passphrase` - The passphrase that should be used to encrypt the key
+     * export.
+     *
+     * * `rounds` - The number of rounds that should be used when expanding the
+     * passphrase into an key.
+     */
+    @Throws(CryptoStoreException::class)override fun `exportRoomKeys`(`passphrase`: kotlin.String, `rounds`: kotlin.Int): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(
+        it, FfiConverterString.lower(`passphrase`),FfiConverterInt.lower(`rounds`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get the backup keys we have saved in our crypto store.
+     */
+    @Throws(CryptoStoreException::class)override fun `getBackupKeys`(): BackupKeys? {
+            return FfiConverterOptionalTypeBackupKeys.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get a `Device` from the store.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The id of the device owner.
+     *
+     * * `device_id` - The id of the device itself.
+     *
+     * * `timeout` - The time in seconds we should wait before returning if
+     * the user's device list has been marked as stale. Passing a 0 as the
+     * timeout means that we won't wait at all. **Note**, this assumes that
+     * the requests from [`OlmMachine::outgoing_requests`] are being processed
+     * and sent out. Namely, this waits for a `/keys/query` response to be
+     * received.
+     */
+    @Throws(CryptoStoreException::class)override fun `getDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String, `timeout`: kotlin.UInt): Device? {
+            return FfiConverterOptionalTypeDevice.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterUInt.lower(`timeout`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get a cross signing user identity for the given user ID.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The unique id of the user that the identity belongs to
+     *
+     * * `timeout` - The time in seconds we should wait before returning if
+     * the user's device list has been marked as stale. Passing a 0 as the
+     * timeout means that we won't wait at all. **Note**, this assumes that
+     * the requests from [`OlmMachine::outgoing_requests`] are being processed
+     * and sent out. Namely, this waits for a `/keys/query` response to be
+     * received.
+     */
+    @Throws(CryptoStoreException::class)override fun `getIdentity`(`userId`: kotlin.String, `timeout`: kotlin.UInt): UserIdentity? {
+            return FfiConverterOptionalTypeUserIdentity.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(
+        it, FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Generate one-time key claiming requests for all the users we are missing
+     * sessions for.
+     *
+     * After the request was sent out and a successful response was received
+     * the response body should be passed back to the state machine using the
+     * [mark_request_as_sent()](Self::mark_request_as_sent) method.
+     *
+     * This method should be called every time before a call to
+     * [`share_room_key()`](Self::share_room_key) is made.
+     *
+     * # Arguments
+     *
+     * * `users` - The list of users for which we would like to establish 1:1
+     * Olm sessions for.
+     */
+    @Throws(CryptoStoreException::class)override fun `getMissingSessions`(`users`: List<kotlin.String>): Request? {
+            return FfiConverterOptionalTypeRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(
+        it, FfiConverterSequenceString.lower(`users`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Check whether there is a global flag to only encrypt messages for
+     * trusted devices or for everyone.
+     *
+     * Note that if the global flag is false, individual rooms may still be
+     * encrypting only for trusted devices, depending on the per-room
+     * `only_allow_trusted_devices` flag.
+     */
+    @Throws(CryptoStoreException::class)override fun `getOnlyAllowTrustedDevices`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get the stored room settings, such as the encryption algorithm or
+     * whether to encrypt only for trusted devices.
+     *
+     * These settings can be modified via
+     * [set_room_algorithm()](Self::set_room_algorithm) and
+     * [set_room_only_allow_trusted_devices()](Self::set_room_only_allow_trusted_devices)
+     * methods.
+     */
+    @Throws(CryptoStoreException::class)override fun `getRoomSettings`(`roomId`: kotlin.String): RoomSettings? {
+            return FfiConverterOptionalTypeRoomSettings.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(
+        it, FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get all devices of an user.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The id of the device owner.
+     *
+     * * `timeout` - The time in seconds we should wait before returning if
+     * the user's device list has been marked as stale. Passing a 0 as the
+     * timeout means that we won't wait at all. **Note**, this assumes that
+     * the requests from [`OlmMachine::outgoing_requests`] are being processed
+     * and sent out. Namely, this waits for a `/keys/query` response to be
+     * received.
+     */
+    @Throws(CryptoStoreException::class)override fun `getUserDevices`(`userId`: kotlin.String, `timeout`: kotlin.UInt): List<Device> {
+            return FfiConverterSequenceTypeDevice.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(
+        it, FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get a verification flow object for the given user with the given flow
+     * id.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to fetch the
+     * verification.
+     *
+     * * `flow_id` - The ID that uniquely identifies the verification flow.
+     */override fun `getVerification`(`userId`: kotlin.String, `flowId`: kotlin.String): Verification? {
+            return FfiConverterOptionalTypeVerification.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get a verification requests that we share with the given user with the
+     * given flow id.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to fetch the
+     * verification requests.
+     *
+     * * `flow_id` - The ID that uniquely identifies the verification flow.
+     */override fun `getVerificationRequest`(`userId`: kotlin.String, `flowId`: kotlin.String): VerificationRequest? {
+            return FfiConverterOptionalTypeVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get all the verification requests that we share with the given user.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to fetch the
+     * verification requests.
+     */override fun `getVerificationRequests`(`userId`: kotlin.String): List<VerificationRequest> {
+            return FfiConverterSequenceTypeVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(
+        it, FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get our own identity keys.
+     */override fun `identityKeys`(): Map<kotlin.String, kotlin.String> {
+            return FfiConverterMapStringString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Import our private cross signing keys.
+     *
+     * The export needs to contain the seed for the ed25519 keys as a base64
+     * encoded string.
+     */
+    @Throws(SecretImportException::class)override fun `importCrossSigningKeys`(`export`: CrossSigningKeyExport)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(SecretImportException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(
+        it, FfiConverterTypeCrossSigningKeyExport.lower(`export`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Import room keys from the given serialized unencrypted key export.
+     *
+     * This method is the same as [`OlmMachine::import_room_keys`] but the
+     * decryption step is skipped and should be performed by the caller. This
+     * should be used if the room keys are coming from the server-side backup,
+     * the method will mark all imported room keys as backed up.
+     *
+     * # Arguments
+     *
+     * * `keys` - The serialized version of the unencrypted key export.
+     *
+     * * `progress_listener` - A callback that can be used to introspect the
+     * progress of the key import.
+     */
+    @Throws(KeyImportException::class)override fun `importDecryptedRoomKeys`(`keys`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult {
+            return FfiConverterTypeKeysImportResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(KeyImportException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(
+        it, FfiConverterString.lower(`keys`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Import room keys from the given serialized key export.
+     *
+     * # Arguments
+     *
+     * * `keys` - The serialized version of the key export.
+     *
+     * * `passphrase` - The passphrase that was used to encrypt the key export.
+     *
+     * * `progress_listener` - A callback that can be used to introspect the
+     * progress of the key import.
+     */
+    @Throws(KeyImportException::class)override fun `importRoomKeys`(`keys`: kotlin.String, `passphrase`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult {
+            return FfiConverterTypeKeysImportResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(KeyImportException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(
+        it, FfiConverterString.lower(`keys`),FfiConverterString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Check if a user identity is considered to be verified by us.
+     */
+    @Throws(CryptoStoreException::class)override fun `isIdentityVerified`(`userId`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(
+        it, FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Check if the given user is considered to be tracked.
+     *
+     * A user can be marked for tracking using the
+     * [`OlmMachine::update_tracked_users()`] method.
+     */
+    @Throws(CryptoStoreException::class)override fun `isUserTracked`(`userId`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(
+        it, FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Mark a request that was sent to the server as sent.
+     *
+     * # Arguments
+     *
+     * * `request_id` - The unique ID of the request that was sent out. This
+     * needs to be an UUID.
+     *
+     * * `request_type` - The type of the request that was sent out.
+     *
+     * * `response_body` - The body of the response that was received.
+     */
+    @Throws(CryptoStoreException::class)override fun `markRequestAsSent`(`requestId`: kotlin.String, `requestType`: RequestType, `responseBody`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(
+        it, FfiConverterString.lower(`requestId`),FfiConverterTypeRequestType.lower(`requestType`),FfiConverterString.lower(`responseBody`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Get the list of outgoing requests that need to be sent to the
+     * homeserver.
+     *
+     * After the request was sent out and a successful response was received
+     * the response body should be passed back to the state machine using the
+     * [mark_request_as_sent()](Self::mark_request_as_sent) method.
+     *
+     * **Note**: This method call should be locked per call.
+     */
+    @Throws(CryptoStoreException::class)override fun `outgoingRequests`(): List<Request> {
+            return FfiConverterSequenceTypeRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Request missing local secrets from our devices (cross signing private
+     * keys, megolm backup). This will ask the sdk to create outgoing
+     * request to get the missing secrets.
+     *
+     * The requests will be processed as soon as `outgoing_requests()` is
+     * called to process them.
+     */
+    @Throws(CryptoStoreException::class)override fun `queryMissingSecretsFromOtherSessions`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Let the state machine know about E2EE related sync changes that we
+     * received from the server.
+     *
+     * This needs to be called after every sync, ideally before processing
+     * any other sync changes.
+     *
+     * # Arguments
+     *
+     * * `events` - A serialized array of to-device events we received in the
+     * current sync response.
+     *
+     * * `device_changes` - The list of devices that have changed in some way
+     * since the previous sync.
+     *
+     * * `key_counts` - The map of uploaded one-time key types and counts.
+     */
+    @Throws(CryptoStoreException::class)override fun `receiveSyncChanges`(`events`: kotlin.String, `deviceChanges`: DeviceLists, `keyCounts`: Map<kotlin.String, kotlin.Int>, `unusedFallbackKeys`: List<kotlin.String>?, `nextBatchToken`: kotlin.String): SyncChangesResult {
+            return FfiConverterTypeSyncChangesResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(
+        it, FfiConverterString.lower(`events`),FfiConverterTypeDeviceLists.lower(`deviceChanges`),FfiConverterMapStringInt.lower(`keyCounts`),FfiConverterOptionalSequenceString.lower(`unusedFallbackKeys`),FfiConverterString.lower(`nextBatchToken`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Receive an unencrypted verification event.
+     *
+     * This method can be used to pass verification events that are happening
+     * in unencrypted rooms to the `OlmMachine`.
+     *
+     * **Note**: This has been deprecated.
+     */
+    @Throws(CryptoStoreException::class)override fun `receiveUnencryptedVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(
+        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Receive a verification event.
+     *
+     * This method can be used to pass verification events that are happening
+     * in rooms to the `OlmMachine`. The event should be in the decrypted form.
+     */
+    @Throws(CryptoStoreException::class)override fun `receiveVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(
+        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Request or re-request a room key that was used to encrypt the given
+     * event.
+     *
+     * # Arguments
+     *
+     * * `event` - The undecryptable event that we would wish to request a room
+     * key for.
+     *
+     * * `room_id` - The id of the room the event was sent to.
+     */
+    @Throws(DecryptionException::class)override fun `requestRoomKey`(`event`: kotlin.String, `roomId`: kotlin.String): KeyRequestPair {
+            return FfiConverterTypeKeyRequestPair.lift(
+    callWithPointer {
+    uniffiRustCallWithError(DecryptionException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(
+        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Request a verification flow to begin with our other devices.
+     *
+     * # Arguments
+     *
+     * `methods` - The list of verification methods we want to advertise to
+     * support.
+     */
+    @Throws(CryptoStoreException::class)override fun `requestSelfVerification`(`methods`: List<kotlin.String>): RequestVerificationResult? {
+            return FfiConverterOptionalTypeRequestVerificationResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(
+        it, FfiConverterSequenceString.lower(`methods`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Request a verification flow to begin with the given user in the given
+     * room.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user which we would like to request to
+     * verify.
+     *
+     * * `room_id` - The ID of the room that represents a DM with the given
+     * user.
+     *
+     * * `event_id` - The event ID of the `m.key.verification.request` event
+     * that we sent out to request the verification to begin. The content for
+     * this request can be created using the [verification_request_content()]
+     * method.
+     *
+     * * `methods` - The list of verification methods we advertised as
+     * supported in the `m.key.verification.request` event.
+     *
+     * [verification_request_content()]: Self::verification_request_content
+     */
+    @Throws(CryptoStoreException::class)override fun `requestVerification`(`userId`: kotlin.String, `roomId`: kotlin.String, `eventId`: kotlin.String, `methods`: List<kotlin.String>): VerificationRequest? {
+            return FfiConverterOptionalTypeVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),FfiConverterSequenceString.lower(`methods`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Request a verification flow to begin with the given user's device.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user which we would like to request to
+     * verify.
+     *
+     * * `device_id` - The ID of the device that we wish to verify.
+     *
+     * * `methods` - The list of verification methods we advertised as
+     * supported in the `m.key.verification.request` event.
+     */
+    @Throws(CryptoStoreException::class)override fun `requestVerificationWithDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String, `methods`: List<kotlin.String>): RequestVerificationResult? {
+            return FfiConverterOptionalTypeRequestVerificationResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterSequenceString.lower(`methods`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get the number of backed up room keys and the total number of room keys.
+     */
+    @Throws(CryptoStoreException::class)override fun `roomKeyCounts`(): RoomKeyCounts {
+            return FfiConverterTypeRoomKeyCounts.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Store the recovery key in the crypto store.
+     *
+     * This is useful if the client wants to support gossiping of the backup
+     * key.
+     */
+    @Throws(CryptoStoreException::class)override fun `saveRecoveryKey`(`key`: BackupRecoveryKey?, `version`: kotlin.String?)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(
+        it, FfiConverterOptionalTypeBackupRecoveryKey.lower(`key`),FfiConverterOptionalString.lower(`version`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Set local trust state for the device of the given user without creating
+     * or uploading any signatures if verified
+     */
+    @Throws(CryptoStoreException::class)override fun `setLocalTrust`(`userId`: kotlin.String, `deviceId`: kotlin.String, `trustState`: LocalTrust)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterTypeLocalTrust.lower(`trustState`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Set global flag whether to encrypt messages for untrusted devices, or
+     * whether they should be excluded from the conversation.
+     *
+     * Note that if enabled, it will override any per-room settings.
+     */
+    @Throws(CryptoStoreException::class)override fun `setOnlyAllowTrustedDevices`(`onlyAllowTrustedDevices`: kotlin.Boolean)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(
+        it, FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Set the room algorithm used for encrypting messages to one of the
+     * available variants
+     */
+    @Throws(CryptoStoreException::class)override fun `setRoomAlgorithm`(`roomId`: kotlin.String, `algorithm`: EventEncryptionAlgorithm)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(
+        it, FfiConverterString.lower(`roomId`),FfiConverterTypeEventEncryptionAlgorithm.lower(`algorithm`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Set flag whether this room should encrypt messages for untrusted
+     * devices, or whether they should be excluded from the conversation.
+     *
+     * Note that per-room setting may be overridden by a global
+     * [set_only_allow_trusted_devices()](Self::set_only_allow_trusted_devices)
+     * method.
+     */
+    @Throws(CryptoStoreException::class)override fun `setRoomOnlyAllowTrustedDevices`(`roomId`: kotlin.String, `onlyAllowTrustedDevices`: kotlin.Boolean)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(
+        it, FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Share a room key with the given list of users for the given room.
+     *
+     * After the request was sent out and a successful response was received
+     * the response body should be passed back to the state machine using the
+     * [mark_request_as_sent()](Self::mark_request_as_sent) method.
+     *
+     * This method should be called every time before a call to
+     * [`encrypt()`](Self::encrypt) with the given `room_id` is made.
+     *
+     * # Arguments
+     *
+     * * `room_id` - The unique id of the room, note that this doesn't strictly
+     * need to be a Matrix room, it just needs to be an unique identifier for
+     * the group that will participate in the conversation.
+     *
+     * * `users` - The list of users which are considered to be members of the
+     * room and should receive the room key.
+     *
+     * * `settings` - The settings that should be used for the room key.
+     */
+    @Throws(CryptoStoreException::class)override fun `shareRoomKey`(`roomId`: kotlin.String, `users`: List<kotlin.String>, `settings`: EncryptionSettings): List<Request> {
+            return FfiConverterSequenceTypeRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(
+        it, FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`users`),FfiConverterTypeEncryptionSettings.lower(`settings`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Sign the given message using our device key and if available cross
+     * signing master key.
+     */
+    @Throws(CryptoStoreException::class)override fun `sign`(`message`: kotlin.String): Map<kotlin.String, Map<kotlin.String, kotlin.String>> {
+            return FfiConverterMapStringMapStringString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(
+        it, FfiConverterString.lower(`message`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Start short auth string verification with a device without going
+     * through a verification request first.
+     *
+     * **Note**: This has been largely deprecated and the
+     * [request_verification_with_device()] method should be used instead.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * SAS verification.
+     *
+     * * `device_id` - The ID of device we would like to verify.
+     *
+     * [request_verification_with_device()]: Self::request_verification_with_device
+     */
+    @Throws(CryptoStoreException::class)override fun `startSasWithDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String): StartSasResult? {
+            return FfiConverterOptionalTypeStartSasResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Add the given list of users to be tracked, triggering a key query
+     * request for them.
+     *
+     * The OlmMachine maintains a list of users whose devices we are keeping
+     * track of: these are known as "tracked users". These must be users
+     * that we share a room with, so that the server sends us updates for
+     * their device lists.
+     *
+     * *Note*: Only users that aren't already tracked will be considered for an
+     * update. It's safe to call this with already tracked users, it won't
+     * result in excessive `/keys/query` requests.
+     *
+     * # Arguments
+     *
+     * `users` - The users that should be queued up for a key query.
+     */
+    @Throws(CryptoStoreException::class)override fun `updateTrackedUsers`(`users`: List<kotlin.String>)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(
+        it, FfiConverterSequenceString.lower(`users`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Get the user ID of the owner of this `OlmMachine`.
+     */override fun `userId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get an m.key.verification.request content for the given user.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user which we would like to request to
+     * verify.
+     *
+     * * `methods` - The list of verification methods we want to advertise to
+     * support.
+     */
+    @Throws(CryptoStoreException::class)override fun `verificationRequestContent`(`userId`: kotlin.String, `methods`: List<kotlin.String>): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(
+        it, FfiConverterString.lower(`userId`),FfiConverterSequenceString.lower(`methods`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Check if the given backup has been verified by us or by another of our
+     * devices that we trust.
+     *
+     * The `backup_info` should be a JSON encoded object with the following
+     * format:
+     *
+     * ```json
+     * {
+     * "algorithm": "m.megolm_backup.v1.curve25519-aes-sha2",
+     * "auth_data": {
+     * "public_key":"XjhWTCjW7l59pbfx9tlCBQolfnIQWARoKOzjTOPSlWM",
+     * "signatures": {}
+     * }
+     * }
+     * ```
+     */
+    @Throws(CryptoStoreException::class)override fun `verifyBackup`(`backupInfo`: kotlin.String): SignatureVerification {
+            return FfiConverterTypeSignatureVerification.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(
+        it, FfiConverterString.lower(`backupInfo`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Manually the device of the given user with the given device ID.
+     *
+     * This method will attempt to sign the device using our private cross
+     * signing key.
+     *
+     * This method will always fail if the device belongs to someone else, we
+     * can only sign our own devices.
+     *
+     * It can also fail if we don't have the private part of our self-signing
+     * key.
+     *
+     * Returns a request that needs to be sent out for the device to be marked
+     * as verified.
+     */
+    @Throws(SignatureException::class)override fun `verifyDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String): SignatureUploadRequest {
+            return FfiConverterTypeSignatureUploadRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(SignatureException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(
+        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Manually the user with the given user ID.
+     *
+     * This method will attempt to sign the user identity using either our
+     * private cross signing key, for other user identities, or our device keys
+     * for our own user identity.
+     *
+     * This method can fail if we don't have the private part of our
+     * user-signing key.
+     *
+     * Returns a request that needs to be sent out for the user identity to be
+     * marked as verified.
+     */
+    @Throws(SignatureException::class)override fun `verifyIdentity`(`userId`: kotlin.String): SignatureUploadRequest {
+            return FfiConverterTypeSignatureUploadRequest.lift(
+    callWithPointer {
+    uniffiRustCallWithError(SignatureException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(
+        it, FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeOlmMachine: FfiConverter<OlmMachine, Pointer> {
-    override fun lower(value: OlmMachine): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: OlmMachine): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): OlmMachine {
         return OlmMachine(value)
@@ -2752,7 +5719,7 @@ public object FfiConverterTypeOlmMachine: FfiConverter<OlmMachine, Pointer> {
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: OlmMachine) = 8
+    override fun allocationSize(value: OlmMachine) = 8UL
 
     override fun write(value: OlmMachine, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -2762,216 +5729,558 @@ public object FfiConverterTypeOlmMachine: FfiConverter<OlmMachine, Pointer> {
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
+/**
+ * The `m.qr_code.scan.v1`, `m.qr_code.show.v1`, and `m.reciprocate.v1`
+ * verification flow.
+ */
 public interface QrCodeInterface {
     
-    fun `cancel`(`cancelCode`: String): OutgoingVerificationRequest?
+    /**
+     * Cancel the QR code verification using the given cancel code.
+     *
+     * # Arguments
+     *
+     * * `cancel_code` - The error code for why the verification was cancelled,
+     * manual cancellatio usually happens with `m.user` cancel code. The full
+     * list of cancel codes can be found in the [spec]
+     *
+     * [spec]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel
+     */
+    fun `cancel`(`cancelCode`: kotlin.String): OutgoingVerificationRequest?
+    
+    /**
+     * Get the CancelInfo of this QR code verification object.
+     *
+     * Will be `None` if the flow has not been cancelled.
+     */
     fun `cancelInfo`(): CancelInfo?
+    
+    /**
+     * Confirm a verification was successful.
+     *
+     * This method should be called if we want to confirm that the other side
+     * has scanned our QR code.
+     */
     fun `confirm`(): ConfirmVerificationResult?
-    fun `flowId`(): String
-    fun `generateQrCode`(): String?
-    fun `hasBeenScanned`(): Boolean
-    fun `isCancelled`(): Boolean
-    fun `isDone`(): Boolean
-    fun `otherDeviceId`(): String
-    fun `otherUserId`(): String
-    fun `reciprocated`(): Boolean
-    fun `roomId`(): String?
+    
+    /**
+     * Get the unique ID that identifies this QR code verification flow.
+     */
+    fun `flowId`(): kotlin.String
+    
+    /**
+     * Generate data that should be encoded as a QR code.
+     *
+     * This method should be called right before a QR code should be displayed,
+     * the returned data is base64 encoded (without padding) and needs to be
+     * decoded on the other side before it can be put through a QR code
+     * generator.
+     */
+    fun `generateQrCode`(): kotlin.String?
+    
+    /**
+     * Has the QR verification been scanned by the other side.
+     *
+     * When the verification object is in this state it's required that the
+     * user confirms that the other side has scanned the QR code.
+     */
+    fun `hasBeenScanned`(): kotlin.Boolean
+    
+    /**
+     * Has the verification flow been cancelled.
+     */
+    fun `isCancelled`(): kotlin.Boolean
+    
+    /**
+     * Is the QR code verification done.
+     */
+    fun `isDone`(): kotlin.Boolean
+    
+    /**
+     * Get the device ID of the other side.
+     */
+    fun `otherDeviceId`(): kotlin.String
+    
+    /**
+     * Get the user id of the other side.
+     */
+    fun `otherUserId`(): kotlin.String
+    
+    /**
+     * Have we successfully scanned the QR code and are able to send a
+     * reciprocation event.
+     */
+    fun `reciprocated`(): kotlin.Boolean
+    
+    /**
+     * Get the room id if the verification is happening inside a room.
+     */
+    fun `roomId`(): kotlin.String?
+    
+    /**
+     * Set a listener for changes in the QrCode verification process.
+     *
+     * The given callback will be called whenever the state changes.
+     */
     fun `setChangesListener`(`listener`: QrCodeListener)
+    
+    /**
+     * Get the current state of the QrCode verification process.
+     */
     fun `state`(): QrCodeState
-    fun `weStarted`(): Boolean
+    
+    /**
+     * Did we initiate the verification flow.
+     */
+    fun `weStarted`(): kotlin.Boolean
+    
+    companion object
 }
 
-class QrCode(
-    pointer: Pointer
-) : FFIObject(pointer), QrCodeInterface {
+/**
+ * The `m.qr_code.scan.v1`, `m.qr_code.show.v1`, and `m.reciprocate.v1`
+ * verification flow.
+ */
+open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
     }
 
-    override fun `cancel`(`cancelCode`: String): OutgoingVerificationRequest? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(it,
-        FfiConverterString.lower(`cancelCode`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
-    
-    override fun `cancelInfo`(): CancelInfo? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeCancelInfo.lift(it)
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(ptr, status)
+                }
+            }
         }
-    
-    override fun `confirm`(): ConfirmVerificationResult? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeConfirmVerificationResult.lift(it)
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_qrcode(pointer!!, status)
         }
+    }
+
     
-    override fun `flowId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(it,
-        
-        _status)
+    /**
+     * Cancel the QR code verification using the given cancel code.
+     *
+     * # Arguments
+     *
+     * * `cancel_code` - The error code for why the verification was cancelled,
+     * manual cancellatio usually happens with `m.user` cancel code. The full
+     * list of cancel codes can be found in the [spec]
+     *
+     * [spec]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel
+     */override fun `cancel`(`cancelCode`: kotlin.String): OutgoingVerificationRequest? {
+            return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(
+        it, FfiConverterString.lower(`cancelCode`),_status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `generateQrCode`(): String? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(it,
-        
-        _status)
+
+    
+    /**
+     * Get the CancelInfo of this QR code verification object.
+     *
+     * Will be `None` if the flow has not been cancelled.
+     */override fun `cancelInfo`(): CancelInfo? {
+            return FfiConverterOptionalTypeCancelInfo.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `hasBeenScanned`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(it,
-        
-        _status)
+
+    
+    /**
+     * Confirm a verification was successful.
+     *
+     * This method should be called if we want to confirm that the other side
+     * has scanned our QR code.
+     */override fun `confirm`(): ConfirmVerificationResult? {
+            return FfiConverterOptionalTypeConfirmVerificationResult.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isCancelled`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(it,
-        
-        _status)
+
+    
+    /**
+     * Get the unique ID that identifies this QR code verification flow.
+     */override fun `flowId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isDone`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(it,
-        
-        _status)
+
+    
+    /**
+     * Generate data that should be encoded as a QR code.
+     *
+     * This method should be called right before a QR code should be displayed,
+     * the returned data is base64 encoded (without padding) and needs to be
+     * decoded on the other side before it can be put through a QR code
+     * generator.
+     */override fun `generateQrCode`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `otherDeviceId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(it,
-        
-        _status)
+
+    
+    /**
+     * Has the QR verification been scanned by the other side.
+     *
+     * When the verification object is in this state it's required that the
+     * user confirms that the other side has scanned the QR code.
+     */override fun `hasBeenScanned`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `otherUserId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(it,
-        
-        _status)
+
+    
+    /**
+     * Has the verification flow been cancelled.
+     */override fun `isCancelled`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `reciprocated`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(it,
-        
-        _status)
+
+    
+    /**
+     * Is the QR code verification done.
+     */override fun `isDone`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `roomId`(): String? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(it,
-        
-        _status)
+
+    
+    /**
+     * Get the device ID of the other side.
+     */override fun `otherDeviceId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `setChangesListener`(`listener`: QrCodeListener) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(it,
-        FfiConverterTypeQrCodeListener.lower(`listener`),
-        _status)
+
+    
+    /**
+     * Get the user id of the other side.
+     */override fun `otherUserId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(
+        it, _status)
 }
-        }
+    }
+    )
+    }
     
+
     
-    override fun `state`(): QrCodeState =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(it,
-        
-        _status)
+    /**
+     * Have we successfully scanned the QR code and are able to send a
+     * reciprocation event.
+     */override fun `reciprocated`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(
+        it, _status)
 }
-        }.let {
-            FfiConverterTypeQrCodeState.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `weStarted`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(it,
-        
-        _status)
+
+    
+    /**
+     * Get the room id if the verification is happening inside a room.
+     */override fun `roomId`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set a listener for changes in the QrCode verification process.
+     *
+     * The given callback will be called whenever the state changes.
+     */override fun `setChangesListener`(`listener`: QrCodeListener)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(
+        it, FfiConverterTypeQrCodeListener.lower(`listener`),_status)
+}
+    }
     
     
 
+    
+    /**
+     * Get the current state of the QrCode verification process.
+     */override fun `state`(): QrCodeState {
+            return FfiConverterTypeQrCodeState.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Did we initiate the verification flow.
+     */override fun `weStarted`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeQrCode: FfiConverter<QrCode, Pointer> {
-    override fun lower(value: QrCode): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: QrCode): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): QrCode {
         return QrCode(value)
@@ -2983,7 +6292,7 @@ public object FfiConverterTypeQrCode: FfiConverter<QrCode, Pointer> {
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: QrCode) = 8
+    override fun allocationSize(value: QrCode) = 8UL
 
     override fun write(value: QrCode, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -2993,49 +6302,217 @@ public object FfiConverterTypeQrCode: FfiConverter<QrCode, Pointer> {
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
 public interface RehydratedDeviceInterface {
-    @Throws(CryptoStoreException::class)
-    fun `receiveEvents`(`events`: String)
+    
+    fun `receiveEvents`(`events`: kotlin.String)
+    
+    companion object
 }
 
-class RehydratedDevice(
-    pointer: Pointer
-) : FFIObject(pointer), RehydratedDeviceInterface {
+open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_rehydrateddevice(pointer!!, status)
         }
     }
 
     
-    @Throws(CryptoStoreException::class)override fun `receiveEvents`(`events`: String) =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(it,
-        FfiConverterString.lower(`events`),
-        _status)
+    @Throws(CryptoStoreException::class)override fun `receiveEvents`(`events`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(
+        it, FfiConverterString.lower(`events`),_status)
 }
-        }
-    
+    }
     
     
 
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeRehydratedDevice: FfiConverter<RehydratedDevice, Pointer> {
-    override fun lower(value: RehydratedDevice): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: RehydratedDevice): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): RehydratedDevice {
         return RehydratedDevice(value)
@@ -3047,7 +6524,7 @@ public object FfiConverterTypeRehydratedDevice: FfiConverter<RehydratedDevice, P
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: RehydratedDevice) = 8
+    override fun allocationSize(value: RehydratedDevice) = 8UL
 
     override fun write(value: RehydratedDevice, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -3057,193 +6534,597 @@ public object FfiConverterTypeRehydratedDevice: FfiConverter<RehydratedDevice, P
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
+/**
+ * The `m.sas.v1` verification flow.
+ */
 public interface SasInterface {
     
+    /**
+     * Accept that we're going forward with the short auth string verification.
+     */
     fun `accept`(): OutgoingVerificationRequest?
-    fun `cancel`(`cancelCode`: String): OutgoingVerificationRequest?@Throws(CryptoStoreException::class)
+    
+    /**
+     * Cancel the SAS verification using the given cancel code.
+     *
+     * # Arguments
+     *
+     * * `cancel_code` - The error code for why the verification was cancelled,
+     * manual cancellatio usually happens with `m.user` cancel code. The full
+     * list of cancel codes can be found in the [spec]
+     *
+     * [spec]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel
+     */
+    fun `cancel`(`cancelCode`: kotlin.String): OutgoingVerificationRequest?
+    
+    /**
+     * Confirm a verification was successful.
+     *
+     * This method should be called if a short auth string should be confirmed
+     * as matching.
+     */
     fun `confirm`(): ConfirmVerificationResult?
-    fun `flowId`(): String
-    fun `getDecimals`(): List<Int>?
-    fun `getEmojiIndices`(): List<Int>?
-    fun `isDone`(): Boolean
-    fun `otherDeviceId`(): String
-    fun `otherUserId`(): String
-    fun `roomId`(): String?
+    
+    /**
+     * Get the unique ID that identifies this SAS verification flow.
+     */
+    fun `flowId`(): kotlin.String
+    
+    /**
+     * Get the decimal representation of the short auth string.
+     *
+     * *Note*: A SAS verification needs to be started and in the presentable
+     * state for this to return the list of decimals, otherwise returns
+     * `None`.
+     */
+    fun `getDecimals`(): List<kotlin.Int>?
+    
+    /**
+     * Get a list of emoji indices of the emoji representation of the short
+     * auth string.
+     *
+     * *Note*: A SAS verification needs to be started and in the presentable
+     * state for this to return the list of emoji indices, otherwise returns
+     * `None`.
+     */
+    fun `getEmojiIndices`(): List<kotlin.Int>?
+    
+    /**
+     * Is the SAS flow done.
+     */
+    fun `isDone`(): kotlin.Boolean
+    
+    /**
+     * Get the device ID of the other side.
+     */
+    fun `otherDeviceId`(): kotlin.String
+    
+    /**
+     * Get the user id of the other side.
+     */
+    fun `otherUserId`(): kotlin.String
+    
+    /**
+     * Get the room id if the verification is happening inside a room.
+     */
+    fun `roomId`(): kotlin.String?
+    
+    /**
+     * Set a listener for changes in the SAS verification process.
+     *
+     * The given callback will be called whenever the state changes.
+     *
+     * This method can be used to react to changes in the state of the
+     * verification process, or rather the method can be used to handle
+     * each step of the verification process.
+     *
+     * This method will spawn a tokio task on the Rust side, once we reach the
+     * Done or Cancelled state, the task will stop listening for changes.
+     *
+     * # Flowchart
+     *
+     * The flow of the verification process is pictured bellow. Please note
+     * that the process can be cancelled at each step of the process.
+     * Either side can cancel the process.
+     *
+     * ```text
+     * ┌───────┐
+     * │Started│
+     * └───┬───┘
+     * │
+     * ┌────⌄───┐
+     * │Accepted│
+     * └────┬───┘
+     * │
+     * ┌───────⌄──────┐
+     * │Keys Exchanged│
+     * └───────┬──────┘
+     * │
+     * ________⌄________
+     * ╱                 ╲       ┌─────────┐
+     * ╱   Does the short  ╲______│Cancelled│
+     * ╲ auth string match ╱ no   └─────────┘
+     * ╲_________________╱
+     * │yes
+     * │
+     * ┌────⌄────┐
+     * │Confirmed│
+     * └────┬────┘
+     * │
+     * ┌───⌄───┐
+     * │  Done │
+     * └───────┘
+     * ```
+     */
     fun `setChangesListener`(`listener`: SasListener)
+    
+    /**
+     * Get the current state of the SAS verification process.
+     */
     fun `state`(): SasState
-    fun `weStarted`(): Boolean
+    
+    /**
+     * Did we initiate the verification flow.
+     */
+    fun `weStarted`(): kotlin.Boolean
+    
+    companion object
 }
 
-class Sas(
-    pointer: Pointer
-) : FFIObject(pointer), SasInterface {
+/**
+ * The `m.sas.v1` verification flow.
+ */
+open class Sas: Disposable, AutoCloseable, SasInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_sas(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
     }
 
-    override fun `accept`(): OutgoingVerificationRequest? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
-    
-    override fun `cancel`(`cancelCode`: String): OutgoingVerificationRequest? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(it,
-        FfiConverterString.lower(`cancelCode`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_sas(ptr, status)
+                }
+            }
         }
-    
-    
-    @Throws(CryptoStoreException::class)override fun `confirm`(): ConfirmVerificationResult? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeConfirmVerificationResult.lift(it)
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_sas(pointer!!, status)
         }
+    }
+
     
-    override fun `flowId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(it,
-        
-        _status)
+    /**
+     * Accept that we're going forward with the short auth string verification.
+     */override fun `accept`(): OutgoingVerificationRequest? {
+            return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `getDecimals`(): List<Int>? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(it,
-        
-        _status)
+
+    
+    /**
+     * Cancel the SAS verification using the given cancel code.
+     *
+     * # Arguments
+     *
+     * * `cancel_code` - The error code for why the verification was cancelled,
+     * manual cancellatio usually happens with `m.user` cancel code. The full
+     * list of cancel codes can be found in the [spec]
+     *
+     * [spec]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel
+     */override fun `cancel`(`cancelCode`: kotlin.String): OutgoingVerificationRequest? {
+            return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(
+        it, FfiConverterString.lower(`cancelCode`),_status)
 }
-        }.let {
-            FfiConverterOptionalSequenceInt.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `getEmojiIndices`(): List<Int>? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(it,
-        
-        _status)
+
+    
+    /**
+     * Confirm a verification was successful.
+     *
+     * This method should be called if a short auth string should be confirmed
+     * as matching.
+     */
+    @Throws(CryptoStoreException::class)override fun `confirm`(): ConfirmVerificationResult? {
+            return FfiConverterOptionalTypeConfirmVerificationResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalSequenceInt.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isDone`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(it,
-        
-        _status)
+
+    
+    /**
+     * Get the unique ID that identifies this SAS verification flow.
+     */override fun `flowId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `otherDeviceId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(it,
-        
-        _status)
+
+    
+    /**
+     * Get the decimal representation of the short auth string.
+     *
+     * *Note*: A SAS verification needs to be started and in the presentable
+     * state for this to return the list of decimals, otherwise returns
+     * `None`.
+     */override fun `getDecimals`(): List<kotlin.Int>? {
+            return FfiConverterOptionalSequenceInt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `otherUserId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(it,
-        
-        _status)
+
+    
+    /**
+     * Get a list of emoji indices of the emoji representation of the short
+     * auth string.
+     *
+     * *Note*: A SAS verification needs to be started and in the presentable
+     * state for this to return the list of emoji indices, otherwise returns
+     * `None`.
+     */override fun `getEmojiIndices`(): List<kotlin.Int>? {
+            return FfiConverterOptionalSequenceInt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `roomId`(): String? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(it,
-        
-        _status)
+
+    
+    /**
+     * Is the SAS flow done.
+     */override fun `isDone`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `setChangesListener`(`listener`: SasListener) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(it,
-        FfiConverterTypeSasListener.lower(`listener`),
-        _status)
+
+    
+    /**
+     * Get the device ID of the other side.
+     */override fun `otherDeviceId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(
+        it, _status)
 }
-        }
+    }
+    )
+    }
     
+
     
-    override fun `state`(): SasState =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(it,
-        
-        _status)
+    /**
+     * Get the user id of the other side.
+     */override fun `otherUserId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterTypeSasState.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `weStarted`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(it,
-        
-        _status)
+
+    
+    /**
+     * Get the room id if the verification is happening inside a room.
+     */override fun `roomId`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set a listener for changes in the SAS verification process.
+     *
+     * The given callback will be called whenever the state changes.
+     *
+     * This method can be used to react to changes in the state of the
+     * verification process, or rather the method can be used to handle
+     * each step of the verification process.
+     *
+     * This method will spawn a tokio task on the Rust side, once we reach the
+     * Done or Cancelled state, the task will stop listening for changes.
+     *
+     * # Flowchart
+     *
+     * The flow of the verification process is pictured bellow. Please note
+     * that the process can be cancelled at each step of the process.
+     * Either side can cancel the process.
+     *
+     * ```text
+     * ┌───────┐
+     * │Started│
+     * └───┬───┘
+     * │
+     * ┌────⌄───┐
+     * │Accepted│
+     * └────┬───┘
+     * │
+     * ┌───────⌄──────┐
+     * │Keys Exchanged│
+     * └───────┬──────┘
+     * │
+     * ________⌄________
+     * ╱                 ╲       ┌─────────┐
+     * ╱   Does the short  ╲______│Cancelled│
+     * ╲ auth string match ╱ no   └─────────┘
+     * ╲_________________╱
+     * │yes
+     * │
+     * ┌────⌄────┐
+     * │Confirmed│
+     * └────┬────┘
+     * │
+     * ┌───⌄───┐
+     * │  Done │
+     * └───────┘
+     * ```
+     */override fun `setChangesListener`(`listener`: SasListener)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(
+        it, FfiConverterTypeSasListener.lower(`listener`),_status)
+}
+    }
     
     
 
+    
+    /**
+     * Get the current state of the SAS verification process.
+     */override fun `state`(): SasState {
+            return FfiConverterTypeSasState.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Did we initiate the verification flow.
+     */override fun `weStarted`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeSas: FfiConverter<Sas, Pointer> {
-    override fun lower(value: Sas): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: Sas): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): Sas {
         return Sas(value)
@@ -3255,7 +7136,7 @@ public object FfiConverterTypeSas: FfiConverter<Sas, Pointer> {
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: Sas) = 8
+    override fun allocationSize(value: Sas) = 8UL
 
     override fun write(value: Sas, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -3265,61 +7146,253 @@ public object FfiConverterTypeSas: FfiConverter<Sas, Pointer> {
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
+/**
+ * Enum representing the different verification flows we support.
+ */
 public interface VerificationInterface {
     
+    /**
+     * Try to represent the `Verification` as an `QrCode` verification object,
+     * returns `None` if the verification is not a `QrCode` verification.
+     */
     fun `asQr`(): QrCode?
+    
+    /**
+     * Try to represent the `Verification` as an `Sas` verification object,
+     * returns `None` if the verification is not a `Sas` verification.
+     */
     fun `asSas`(): Sas?
+    
+    companion object
 }
 
-class Verification(
-    pointer: Pointer
-) : FFIObject(pointer), VerificationInterface {
+/**
+ * Enum representing the different verification flows we support.
+ */
+open class Verification: Disposable, AutoCloseable, VerificationInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verification(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
     }
 
-    override fun `asQr`(): QrCode? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeQrCode.lift(it)
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
-    
-    override fun `asSas`(): Sas? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeSas.lift(it)
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verification(ptr, status)
+                }
+            }
         }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_verification(pointer!!, status)
+        }
+    }
+
     
+    /**
+     * Try to represent the `Verification` as an `QrCode` verification object,
+     * returns `None` if the verification is not a `QrCode` verification.
+     */override fun `asQr`(): QrCode? {
+            return FfiConverterOptionalTypeQrCode.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(
+        it, _status)
+}
+    }
+    )
+    }
     
 
+    
+    /**
+     * Try to represent the `Verification` as an `Sas` verification object,
+     * returns `None` if the verification is not a `Sas` verification.
+     */override fun `asSas`(): Sas? {
+            return FfiConverterOptionalTypeSas.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeVerification: FfiConverter<Verification, Pointer> {
-    override fun lower(value: Verification): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: Verification): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): Verification {
         return Verification(value)
@@ -3331,7 +7404,7 @@ public object FfiConverterTypeVerification: FfiConverter<Verification, Pointer> 
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: Verification) = 8
+    override fun allocationSize(value: Verification) = 8UL
 
     override fun write(value: Verification, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -3341,266 +7414,710 @@ public object FfiConverterTypeVerification: FfiConverter<Verification, Pointer> 
 }
 
 
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
 
 
+/**
+ * The verificatoin request object which then can transition into some concrete
+ * verification method
+ */
 public interface VerificationRequestInterface {
     
-    fun `accept`(`methods`: List<String>): OutgoingVerificationRequest?
+    /**
+     * Accept a verification requests that we share with the given user with
+     * the given flow id.
+     *
+     * This will move the verification request into the ready state.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to accept the
+     * verification requests.
+     *
+     * * `flow_id` - The ID that uniquely identifies the verification flow.
+     *
+     * * `methods` - A list of verification methods that we want to advertise
+     * as supported.
+     */
+    fun `accept`(`methods`: List<kotlin.String>): OutgoingVerificationRequest?
+    
+    /**
+     * Cancel a verification for the given user with the given flow id using
+     * the given cancel code.
+     */
     fun `cancel`(): OutgoingVerificationRequest?
+    
+    /**
+     * Get info about the cancellation if the verification request has been
+     * cancelled.
+     */
     fun `cancelInfo`(): CancelInfo?
-    fun `flowId`(): String
-    fun `isCancelled`(): Boolean
-    fun `isDone`(): Boolean
-    fun `isPassive`(): Boolean
-    fun `isReady`(): Boolean
-    fun `otherDeviceId`(): String?
-    fun `otherUserId`(): String
-    fun `ourSupportedMethods`(): List<String>?
-    fun `roomId`(): String?
-    fun `scanQrCode`(`data`: String): ScanResult?
-    fun `setChangesListener`(`listener`: VerificationRequestListener)@Throws(CryptoStoreException::class)
-    fun `startQrVerification`(): QrCode?@Throws(CryptoStoreException::class)
+    
+    /**
+     * Get the unique ID of this verification request
+     */
+    fun `flowId`(): kotlin.String
+    
+    /**
+     * Has the verification flow that been cancelled.
+     */
+    fun `isCancelled`(): kotlin.Boolean
+    
+    /**
+     * Has the verification flow that was started with this request finished.
+     */
+    fun `isDone`(): kotlin.Boolean
+    
+    /**
+     * Has the verification request been answered by another device.
+     */
+    fun `isPassive`(): kotlin.Boolean
+    
+    /**
+     * Is the verification request ready to start a verification flow.
+     */
+    fun `isReady`(): kotlin.Boolean
+    
+    /**
+     * The id of the other device that is participating in this verification.
+     */
+    fun `otherDeviceId`(): kotlin.String?
+    
+    /**
+     * The id of the other user that is participating in this verification
+     * request.
+     */
+    fun `otherUserId`(): kotlin.String
+    
+    /**
+     * Get our own supported verification methods that we advertised.
+     *
+     * Will be present only we requested the verification or if we're in the
+     * ready state.
+     */
+    fun `ourSupportedMethods`(): List<kotlin.String>?
+    
+    /**
+     * Get the room id if the verification is happening inside a room.
+     */
+    fun `roomId`(): kotlin.String?
+    
+    /**
+     * Pass data from a scanned QR code to an active verification request and
+     * transition into QR code verification.
+     *
+     * This requires an active `VerificationRequest` to succeed, returns `None`
+     * if no `VerificationRequest` is found or if the QR code data is invalid.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * QR code verification.
+     *
+     * * `flow_id` - The ID of the verification request that initiated the
+     * verification flow.
+     *
+     * * `data` - The data that was extracted from the scanned QR code as an
+     * base64 encoded string, without padding.
+     */
+    fun `scanQrCode`(`data`: kotlin.String): ScanResult?
+    
+    /**
+     * Set a listener for changes in the verification request
+     *
+     * The given callback will be called whenever the state changes.
+     */
+    fun `setChangesListener`(`listener`: VerificationRequestListener)
+    
+    /**
+     * Transition from a verification request into QR code verification.
+     *
+     * This method should be called when one wants to display a QR code so the
+     * other side can scan it and move the QR code verification forward.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * QR code verification.
+     *
+     * * `flow_id` - The ID of the verification request that initiated the
+     * verification flow.
+     */
+    fun `startQrVerification`(): QrCode?
+    
+    /**
+     * Transition from a verification request into short auth string based
+     * verification.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * SAS verification.
+     *
+     * * `flow_id` - The ID of the verification request that initiated the
+     * verification flow.
+     */
     fun `startSasVerification`(): StartSasResult?
+    
+    /**
+     * Get the current state of the verification request.
+     */
     fun `state`(): VerificationRequestState
-    fun `theirSupportedMethods`(): List<String>?
-    fun `weStarted`(): Boolean
+    
+    /**
+     * Get the supported verification methods of the other side.
+     *
+     * Will be present only if the other side requested the verification or if
+     * we're in the ready state.
+     */
+    fun `theirSupportedMethods`(): List<kotlin.String>?
+    
+    /**
+     * Did we initiate the verification request
+     */
+    fun `weStarted`(): kotlin.Boolean
+    
+    companion object
 }
 
-class VerificationRequest(
-    pointer: Pointer
-) : FFIObject(pointer), VerificationRequestInterface {
+/**
+ * The verificatoin request object which then can transition into some concrete
+ * verification method
+ */
+open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
 
     /**
-     * Disconnect the object from the underlying Rust object.
-     *
-     * It can be called more than once, but once called, interacting with the object
-     * causes an `IllegalStateException`.
-     *
-     * Clients **must** call this method once done with the object, or cause a memory leak.
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
      */
-    override protected fun freeRustArcPtr() {
-        rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(this.pointer, status)
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
     }
 
-    override fun `accept`(`methods`: List<String>): OutgoingVerificationRequest? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(it,
-        FfiConverterSequenceString.lower(`methods`),
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
         }
-    
-    override fun `cancel`(): OutgoingVerificationRequest? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeOutgoingVerificationRequest.lift(it)
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(ptr, status)
+                }
+            }
         }
-    
-    override fun `cancelInfo`(): CancelInfo? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterOptionalTypeCancelInfo.lift(it)
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_verificationrequest(pointer!!, status)
         }
+    }
+
     
-    override fun `flowId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(it,
-        
-        _status)
+    /**
+     * Accept a verification requests that we share with the given user with
+     * the given flow id.
+     *
+     * This will move the verification request into the ready state.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to accept the
+     * verification requests.
+     *
+     * * `flow_id` - The ID that uniquely identifies the verification flow.
+     *
+     * * `methods` - A list of verification methods that we want to advertise
+     * as supported.
+     */override fun `accept`(`methods`: List<kotlin.String>): OutgoingVerificationRequest? {
+            return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(
+        it, FfiConverterSequenceString.lower(`methods`),_status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isCancelled`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(it,
-        
-        _status)
+
+    
+    /**
+     * Cancel a verification for the given user with the given flow id using
+     * the given cancel code.
+     */override fun `cancel`(): OutgoingVerificationRequest? {
+            return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isDone`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(it,
-        
-        _status)
+
+    
+    /**
+     * Get info about the cancellation if the verification request has been
+     * cancelled.
+     */override fun `cancelInfo`(): CancelInfo? {
+            return FfiConverterOptionalTypeCancelInfo.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isPassive`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(it,
-        
-        _status)
+
+    
+    /**
+     * Get the unique ID of this verification request
+     */override fun `flowId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `isReady`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(it,
-        
-        _status)
+
+    
+    /**
+     * Has the verification flow that been cancelled.
+     */override fun `isCancelled`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(
+        it, _status)
 }
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `otherDeviceId`(): String? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(it,
-        
-        _status)
+
+    
+    /**
+     * Has the verification flow that was started with this request finished.
+     */override fun `isDone`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `otherUserId`(): String =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(it,
-        
-        _status)
+
+    
+    /**
+     * Has the verification request been answered by another device.
+     */override fun `isPassive`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(
+        it, _status)
 }
-        }.let {
-            FfiConverterString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `ourSupportedMethods`(): List<String>? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(it,
-        
-        _status)
+
+    
+    /**
+     * Is the verification request ready to start a verification flow.
+     */override fun `isReady`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalSequenceString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `roomId`(): String? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(it,
-        
-        _status)
+
+    
+    /**
+     * The id of the other device that is participating in this verification.
+     */override fun `otherDeviceId`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalString.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `scanQrCode`(`data`: String): ScanResult? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(it,
-        FfiConverterString.lower(`data`),
-        _status)
+
+    
+    /**
+     * The id of the other user that is participating in this verification
+     * request.
+     */override fun `otherUserId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalTypeScanResult.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `setChangesListener`(`listener`: VerificationRequestListener) =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(it,
-        FfiConverterTypeVerificationRequestListener.lower(`listener`),
-        _status)
+
+    
+    /**
+     * Get our own supported verification methods that we advertised.
+     *
+     * Will be present only we requested the verification or if we're in the
+     * ready state.
+     */override fun `ourSupportedMethods`(): List<kotlin.String>? {
+            return FfiConverterOptionalSequenceString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(
+        it, _status)
 }
-        }
+    }
+    )
+    }
     
+
     
-    
-    @Throws(CryptoStoreException::class)override fun `startQrVerification`(): QrCode? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(it,
-        
-        _status)
+    /**
+     * Get the room id if the verification is happening inside a room.
+     */override fun `roomId`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(
+        it, _status)
 }
-        }.let {
-            FfiConverterOptionalTypeQrCode.lift(it)
-        }
+    }
+    )
+    }
     
+
     
-    @Throws(CryptoStoreException::class)override fun `startSasVerification`(): StartSasResult? =
-        callWithPointer {
-    rustCallWithError(CryptoStoreException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(it,
-        
-        _status)
+    /**
+     * Pass data from a scanned QR code to an active verification request and
+     * transition into QR code verification.
+     *
+     * This requires an active `VerificationRequest` to succeed, returns `None`
+     * if no `VerificationRequest` is found or if the QR code data is invalid.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * QR code verification.
+     *
+     * * `flow_id` - The ID of the verification request that initiated the
+     * verification flow.
+     *
+     * * `data` - The data that was extracted from the scanned QR code as an
+     * base64 encoded string, without padding.
+     */override fun `scanQrCode`(`data`: kotlin.String): ScanResult? {
+            return FfiConverterOptionalTypeScanResult.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(
+        it, FfiConverterString.lower(`data`),_status)
 }
-        }.let {
-            FfiConverterOptionalTypeStartSasResult.lift(it)
-        }
+    }
+    )
+    }
     
-    override fun `state`(): VerificationRequestState =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterTypeVerificationRequestState.lift(it)
-        }
+
     
-    override fun `theirSupportedMethods`(): List<String>? =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(it,
-        
-        _status)
+    /**
+     * Set a listener for changes in the verification request
+     *
+     * The given callback will be called whenever the state changes.
+     */override fun `setChangesListener`(`listener`: VerificationRequestListener)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(
+        it, FfiConverterTypeVerificationRequestListener.lower(`listener`),_status)
 }
-        }.let {
-            FfiConverterOptionalSequenceString.lift(it)
-        }
-    
-    override fun `weStarted`(): Boolean =
-        callWithPointer {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(it,
-        
-        _status)
-}
-        }.let {
-            FfiConverterBoolean.lift(it)
-        }
+    }
     
     
 
+    
+    /**
+     * Transition from a verification request into QR code verification.
+     *
+     * This method should be called when one wants to display a QR code so the
+     * other side can scan it and move the QR code verification forward.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * QR code verification.
+     *
+     * * `flow_id` - The ID of the verification request that initiated the
+     * verification flow.
+     */
+    @Throws(CryptoStoreException::class)override fun `startQrVerification`(): QrCode? {
+            return FfiConverterOptionalTypeQrCode.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Transition from a verification request into short auth string based
+     * verification.
+     *
+     * # Arguments
+     *
+     * * `user_id` - The ID of the user for which we would like to start the
+     * SAS verification.
+     *
+     * * `flow_id` - The ID of the verification request that initiated the
+     * verification flow.
+     */
+    @Throws(CryptoStoreException::class)override fun `startSasVerification`(): StartSasResult? {
+            return FfiConverterOptionalTypeStartSasResult.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get the current state of the verification request.
+     */override fun `state`(): VerificationRequestState {
+            return FfiConverterTypeVerificationRequestState.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get the supported verification methods of the other side.
+     *
+     * Will be present only if the other side requested the verification or if
+     * we're in the ready state.
+     */override fun `theirSupportedMethods`(): List<kotlin.String>? {
+            return FfiConverterOptionalSequenceString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Did we initiate the verification request
+     */override fun `weStarted`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
     
 }
 
 public object FfiConverterTypeVerificationRequest: FfiConverter<VerificationRequest, Pointer> {
-    override fun lower(value: VerificationRequest): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: VerificationRequest): Pointer {
+        return value.uniffiClonePointer()
+    }
 
     override fun lift(value: Pointer): VerificationRequest {
         return VerificationRequest(value)
@@ -3612,7 +8129,7 @@ public object FfiConverterTypeVerificationRequest: FfiConverter<VerificationRequ
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: VerificationRequest) = 8
+    override fun allocationSize(value: VerificationRequest) = 8UL
 
     override fun write(value: VerificationRequest, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
@@ -3623,42 +8140,70 @@ public object FfiConverterTypeVerificationRequest: FfiConverter<VerificationRequ
 
 
 
-
 data class BootstrapCrossSigningResult (
+    /**
+     * Optional request to upload some device keys alongside.
+     *
+     * Must be sent first if present, and marked with `mark_request_as_sent`.
+     */
+    var `uploadKeysRequest`: Request?, 
+    /**
+     * Request to upload the signing keys. Must be sent second.
+     */
     var `uploadSigningKeysRequest`: UploadSigningKeysRequest, 
-    var `signatureRequest`: SignatureUploadRequest
+    /**
+     * Request to upload the keys signatures, including for the signing keys
+     * and optionally for the device keys. Must be sent last.
+     */
+    var `uploadSignatureRequest`: SignatureUploadRequest
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeBootstrapCrossSigningResult: FfiConverterRustBuffer<BootstrapCrossSigningResult> {
     override fun read(buf: ByteBuffer): BootstrapCrossSigningResult {
         return BootstrapCrossSigningResult(
+            FfiConverterOptionalTypeRequest.read(buf),
             FfiConverterTypeUploadSigningKeysRequest.read(buf),
             FfiConverterTypeSignatureUploadRequest.read(buf),
         )
     }
 
     override fun allocationSize(value: BootstrapCrossSigningResult) = (
+            FfiConverterOptionalTypeRequest.allocationSize(value.`uploadKeysRequest`) +
             FfiConverterTypeUploadSigningKeysRequest.allocationSize(value.`uploadSigningKeysRequest`) +
-            FfiConverterTypeSignatureUploadRequest.allocationSize(value.`signatureRequest`)
+            FfiConverterTypeSignatureUploadRequest.allocationSize(value.`uploadSignatureRequest`)
     )
 
     override fun write(value: BootstrapCrossSigningResult, buf: ByteBuffer) {
+            FfiConverterOptionalTypeRequest.write(value.`uploadKeysRequest`, buf)
             FfiConverterTypeUploadSigningKeysRequest.write(value.`uploadSigningKeysRequest`, buf)
-            FfiConverterTypeSignatureUploadRequest.write(value.`signatureRequest`, buf)
+            FfiConverterTypeSignatureUploadRequest.write(value.`uploadSignatureRequest`, buf)
     }
 }
 
 
 
-
+/**
+ * Information on why a verification flow has been cancelled and by whom.
+ */
 data class CancelInfo (
-    var `reason`: String, 
-    var `cancelCode`: String, 
-    var `cancelledByUs`: Boolean
+    /**
+     * The textual representation of the cancel reason
+     */
+    var `reason`: kotlin.String, 
+    /**
+     * The code describing the cancel reason
+     */
+    var `cancelCode`: kotlin.String, 
+    /**
+     * Was the verification flow cancelled by us
+     */
+    var `cancelledByUs`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeCancelInfo: FfiConverterRustBuffer<CancelInfo> {
@@ -3685,12 +8230,23 @@ public object FfiConverterTypeCancelInfo: FfiConverterRustBuffer<CancelInfo> {
 
 
 
-
+/**
+ * A result type for confirming verifications.
+ */
 data class ConfirmVerificationResult (
+    /**
+     * The requests that needs to be sent out to notify the other side that we
+     * confirmed the verification.
+     */
     var `requests`: List<OutgoingVerificationRequest>, 
+    /**
+     * A request that will upload signatures of the verified device or user, if
+     * the verification is completed and we're able to sign devices or users
+     */
     var `signatureRequest`: SignatureUploadRequest?
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeConfirmVerificationResult: FfiConverterRustBuffer<ConfirmVerificationResult> {
@@ -3714,13 +8270,26 @@ public object FfiConverterTypeConfirmVerificationResult: FfiConverterRustBuffer<
 
 
 
-
+/**
+ * A struct containing private cross signing keys that can be backed up or
+ * uploaded to the secret store.
+ */
 data class CrossSigningKeyExport (
-    var `masterKey`: String?, 
-    var `selfSigningKey`: String?, 
-    var `userSigningKey`: String?
+    /**
+     * The seed of the master key encoded as unpadded base64.
+     */
+    var `masterKey`: kotlin.String?, 
+    /**
+     * The seed of the self signing key encoded as unpadded base64.
+     */
+    var `selfSigningKey`: kotlin.String?, 
+    /**
+     * The seed of the user signing key encoded as unpadded base64.
+     */
+    var `userSigningKey`: kotlin.String?
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeCrossSigningKeyExport: FfiConverterRustBuffer<CrossSigningKeyExport> {
@@ -3747,13 +8316,28 @@ public object FfiConverterTypeCrossSigningKeyExport: FfiConverterRustBuffer<Cros
 
 
 
-
+/**
+ * Struct representing the state of our private cross signing keys, it shows
+ * which private cross signing keys we have locally stored.
+ */
 data class CrossSigningStatus (
-    var `hasMaster`: Boolean, 
-    var `hasSelfSigning`: Boolean, 
-    var `hasUserSigning`: Boolean
+    /**
+     * Do we have the master key.
+     */
+    var `hasMaster`: kotlin.Boolean, 
+    /**
+     * Do we have the self signing key, this one is necessary to sign our own
+     * devices.
+     */
+    var `hasSelfSigning`: kotlin.Boolean, 
+    /**
+     * Do we have the user signing key, this one is necessary to sign other
+     * users.
+     */
+    var `hasUserSigning`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeCrossSigningStatus: FfiConverterRustBuffer<CrossSigningStatus> {
@@ -3780,15 +8364,42 @@ public object FfiConverterTypeCrossSigningStatus: FfiConverterRustBuffer<CrossSi
 
 
 
-
+/**
+ * An event that was successfully decrypted.
+ */
 data class DecryptedEvent (
-    var `clearEvent`: String, 
-    var `senderCurve25519Key`: String, 
-    var `claimedEd25519Key`: String?, 
-    var `forwardingCurve25519Chain`: List<String>, 
+    /**
+     * The decrypted version of the event.
+     */
+    var `clearEvent`: kotlin.String, 
+    /**
+     * The claimed curve25519 key of the sender.
+     */
+    var `senderCurve25519Key`: kotlin.String, 
+    /**
+     * The claimed ed25519 key of the sender.
+     */
+    var `claimedEd25519Key`: kotlin.String?, 
+    /**
+     * The curve25519 chain of the senders that forwarded the Megolm decryption
+     * key to us. Is empty if the key came directly from the sender of the
+     * event.
+     */
+    var `forwardingCurve25519Chain`: List<kotlin.String>, 
+    /**
+     * The shield state (color and message to display to user) for the event,
+     * representing the event's authenticity. Computed from the properties of
+     * the sender user identity and their Olm device.
+     *
+     * Note that this is computed at time of decryption, so the value reflects
+     * the computed event authenticity at that time. Authenticity-related
+     * properties can change later on, such as when a user identity is
+     * subsequently verified or a device is deleted.
+     */
     var `shieldState`: ShieldState
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeDecryptedEvent: FfiConverterRustBuffer<DecryptedEvent> {
@@ -3821,19 +8432,58 @@ public object FfiConverterTypeDecryptedEvent: FfiConverterRustBuffer<DecryptedEv
 
 
 
-
+/**
+ * An E2EE capable Matrix device.
+ */
 data class Device (
-    var `userId`: String, 
-    var `deviceId`: String, 
-    var `keys`: Map<String, String>, 
-    var `algorithms`: List<String>, 
-    var `displayName`: String?, 
-    var `isBlocked`: Boolean, 
-    var `locallyTrusted`: Boolean, 
-    var `crossSigningTrusted`: Boolean, 
-    var `firstTimeSeenTs`: ULong
+    /**
+     * The device owner.
+     */
+    var `userId`: kotlin.String, 
+    /**
+     * The unique ID of the device.
+     */
+    var `deviceId`: kotlin.String, 
+    /**
+     * The published public identity keys of the devices
+     *
+     * A map from the key type (e.g. curve25519) to the base64 encoded key.
+     */
+    var `keys`: Map<kotlin.String, kotlin.String>, 
+    /**
+     * The supported algorithms of the device.
+     */
+    var `algorithms`: List<kotlin.String>, 
+    /**
+     * The human readable name of the device.
+     */
+    var `displayName`: kotlin.String?, 
+    /**
+     * A flag indicating if the device has been blocked, blocked devices don't
+     * receive any room keys from us.
+     */
+    var `isBlocked`: kotlin.Boolean, 
+    /**
+     * Is the device locally trusted
+     */
+    var `locallyTrusted`: kotlin.Boolean, 
+    /**
+     * Is our cross signing identity trusted and does the identity trust the
+     * device.
+     */
+    var `crossSigningTrusted`: kotlin.Boolean, 
+    /**
+     * The first time this device was seen in local timestamp, milliseconds
+     * since epoch.
+     */
+    var `firstTimeSeenTs`: kotlin.ULong, 
+    /**
+     * Whether or not the device is a dehydrated device.
+     */
+    var `dehydrated`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeDevice: FfiConverterRustBuffer<Device> {
@@ -3848,6 +8498,7 @@ public object FfiConverterTypeDevice: FfiConverterRustBuffer<Device> {
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterULong.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -3860,7 +8511,8 @@ public object FfiConverterTypeDevice: FfiConverterRustBuffer<Device> {
             FfiConverterBoolean.allocationSize(value.`isBlocked`) +
             FfiConverterBoolean.allocationSize(value.`locallyTrusted`) +
             FfiConverterBoolean.allocationSize(value.`crossSigningTrusted`) +
-            FfiConverterULong.allocationSize(value.`firstTimeSeenTs`)
+            FfiConverterULong.allocationSize(value.`firstTimeSeenTs`) +
+            FfiConverterBoolean.allocationSize(value.`dehydrated`)
     )
 
     override fun write(value: Device, buf: ByteBuffer) {
@@ -3873,17 +8525,18 @@ public object FfiConverterTypeDevice: FfiConverterRustBuffer<Device> {
             FfiConverterBoolean.write(value.`locallyTrusted`, buf)
             FfiConverterBoolean.write(value.`crossSigningTrusted`, buf)
             FfiConverterULong.write(value.`firstTimeSeenTs`, buf)
+            FfiConverterBoolean.write(value.`dehydrated`, buf)
     }
 }
 
 
 
-
 data class DeviceLists (
-    var `changed`: List<String>, 
-    var `left`: List<String>
+    var `changed`: List<kotlin.String>, 
+    var `left`: List<kotlin.String>
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeDeviceLists: FfiConverterRustBuffer<DeviceLists> {
@@ -3907,15 +8560,41 @@ public object FfiConverterTypeDeviceLists: FfiConverterRustBuffer<DeviceLists> {
 
 
 
-
+/**
+ * Settings that should be used when a room key is shared.
+ *
+ * These settings control which algorithm the room key should use, how long a
+ * room key should be used and some other important information that determines
+ * the lifetime of a room key.
+ */
 data class EncryptionSettings (
+    /**
+     * The encryption algorithm that should be used in the room.
+     */
     var `algorithm`: EventEncryptionAlgorithm, 
-    var `rotationPeriod`: ULong, 
-    var `rotationPeriodMsgs`: ULong, 
+    /**
+     * How long can the room key be used before it should be rotated. Time in
+     * seconds.
+     */
+    var `rotationPeriod`: kotlin.ULong, 
+    /**
+     * How many messages should be sent before the room key should be rotated.
+     */
+    var `rotationPeriodMsgs`: kotlin.ULong, 
+    /**
+     * The current history visibility of the room. The visibility will be
+     * tracked by the room key and the key will be rotated if the visibility
+     * changes.
+     */
     var `historyVisibility`: HistoryVisibility, 
-    var `onlyAllowTrustedDevices`: Boolean
+    /**
+     * Should untrusted devices receive the room key, or should they be
+     * excluded from the conversation.
+     */
+    var `onlyAllowTrustedDevices`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeEncryptionSettings: FfiConverterRustBuffer<EncryptionSettings> {
@@ -3948,12 +8627,23 @@ public object FfiConverterTypeEncryptionSettings: FfiConverterRustBuffer<Encrypt
 
 
 
-
+/**
+ * A pair of outgoing room key requests, both of those are sendToDevice
+ * requests.
+ */
 data class KeyRequestPair (
+    /**
+     * The optional cancellation, this is None if no previous key request was
+     * sent out for this key, thus it doesn't need to be cancelled.
+     */
     var `cancellation`: Request?, 
+    /**
+     * The actual key request.
+     */
     var `keyRequest`: Request
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeKeyRequestPair: FfiConverterRustBuffer<KeyRequestPair> {
@@ -3977,13 +8667,25 @@ public object FfiConverterTypeKeyRequestPair: FfiConverterRustBuffer<KeyRequestP
 
 
 
-
 data class KeysImportResult (
-    var `imported`: Long, 
-    var `total`: Long, 
-    var `keys`: Map<String, Map<String, List<String>>>
+    /**
+     * The number of room keys that were imported.
+     */
+    var `imported`: kotlin.Long, 
+    /**
+     * The total number of room keys that were found in the export.
+     */
+    var `total`: kotlin.Long, 
+    /**
+     * The map of keys that were imported.
+     *
+     * It's a map from room id to a map of the sender key to a list of session
+     * ids.
+     */
+    var `keys`: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeKeysImportResult: FfiConverterRustBuffer<KeysImportResult> {
@@ -4010,14 +8712,29 @@ public object FfiConverterTypeKeysImportResult: FfiConverterRustBuffer<KeysImpor
 
 
 
-
+/**
+ * The public part of the backup key.
+ */
 data class MegolmV1BackupKey (
-    var `publicKey`: String, 
-    var `signatures`: Map<String, Map<String, String>>, 
+    /**
+     * The actual base64 encoded public key.
+     */
+    var `publicKey`: kotlin.String, 
+    /**
+     * Signatures that have signed our backup key.
+     */
+    var `signatures`: Map<kotlin.String, Map<kotlin.String, kotlin.String>>, 
+    /**
+     * The passphrase info, if the key was derived from one.
+     */
     var `passphraseInfo`: PassphraseInfo?, 
-    var `backupAlgorithm`: String
+    /**
+     * Get the full name of the backup algorithm this backup key supports.
+     */
+    var `backupAlgorithm`: kotlin.String
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeMegolmV1BackupKey: FfiConverterRustBuffer<MegolmV1BackupKey> {
@@ -4047,19 +8764,46 @@ public object FfiConverterTypeMegolmV1BackupKey: FfiConverterRustBuffer<MegolmV1
 
 
 
-
+/**
+ * Struct collecting data that is important to migrate to the rust-sdk
+ */
 data class MigrationData (
+    /**
+     * The pickled version of the Olm Account
+     */
     var `account`: PickledAccount, 
+    /**
+     * The list of pickleds Olm Sessions.
+     */
     var `sessions`: List<PickledSession>, 
+    /**
+     * The list of Megolm inbound group sessions.
+     */
     var `inboundGroupSessions`: List<PickledInboundGroupSession>, 
-    var `pickleKey`: List<UByte>, 
-    var `backupVersion`: String?, 
-    var `backupRecoveryKey`: String?, 
+    /**
+     * The Olm pickle key that was used to pickle all the Olm objects.
+     */
+    var `pickleKey`: kotlin.ByteArray, 
+    /**
+     * The backup version that is currently active.
+     */
+    var `backupVersion`: kotlin.String?, 
+    var `backupRecoveryKey`: kotlin.String?, 
+    /**
+     * The private cross signing keys.
+     */
     var `crossSigning`: CrossSigningKeyExport, 
-    var `trackedUsers`: List<String>, 
-    var `roomSettings`: Map<String, RoomSettings>
+    /**
+     * The list of users that the Rust SDK should track.
+     */
+    var `trackedUsers`: List<kotlin.String>, 
+    /**
+     * Map of room settings
+     */
+    var `roomSettings`: Map<kotlin.String, RoomSettings>
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeMigrationData: FfiConverterRustBuffer<MigrationData> {
@@ -4068,7 +8812,7 @@ public object FfiConverterTypeMigrationData: FfiConverterRustBuffer<MigrationDat
             FfiConverterTypePickledAccount.read(buf),
             FfiConverterSequenceTypePickledSession.read(buf),
             FfiConverterSequenceTypePickledInboundGroupSession.read(buf),
-            FfiConverterSequenceUByte.read(buf),
+            FfiConverterByteArray.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeCrossSigningKeyExport.read(buf),
@@ -4081,7 +8825,7 @@ public object FfiConverterTypeMigrationData: FfiConverterRustBuffer<MigrationDat
             FfiConverterTypePickledAccount.allocationSize(value.`account`) +
             FfiConverterSequenceTypePickledSession.allocationSize(value.`sessions`) +
             FfiConverterSequenceTypePickledInboundGroupSession.allocationSize(value.`inboundGroupSessions`) +
-            FfiConverterSequenceUByte.allocationSize(value.`pickleKey`) +
+            FfiConverterByteArray.allocationSize(value.`pickleKey`) +
             FfiConverterOptionalString.allocationSize(value.`backupVersion`) +
             FfiConverterOptionalString.allocationSize(value.`backupRecoveryKey`) +
             FfiConverterTypeCrossSigningKeyExport.allocationSize(value.`crossSigning`) +
@@ -4093,7 +8837,7 @@ public object FfiConverterTypeMigrationData: FfiConverterRustBuffer<MigrationDat
             FfiConverterTypePickledAccount.write(value.`account`, buf)
             FfiConverterSequenceTypePickledSession.write(value.`sessions`, buf)
             FfiConverterSequenceTypePickledInboundGroupSession.write(value.`inboundGroupSessions`, buf)
-            FfiConverterSequenceUByte.write(value.`pickleKey`, buf)
+            FfiConverterByteArray.write(value.`pickleKey`, buf)
             FfiConverterOptionalString.write(value.`backupVersion`, buf)
             FfiConverterOptionalString.write(value.`backupRecoveryKey`, buf)
             FfiConverterTypeCrossSigningKeyExport.write(value.`crossSigning`, buf)
@@ -4104,12 +8848,22 @@ public object FfiConverterTypeMigrationData: FfiConverterRustBuffer<MigrationDat
 
 
 
-
+/**
+ * Struct containing info about the way the backup key got derived from a
+ * passphrase.
+ */
 data class PassphraseInfo (
-    var `privateKeySalt`: String, 
-    var `privateKeyIterations`: Int
+    /**
+     * The salt that was used during key derivation.
+     */
+    var `privateKeySalt`: kotlin.String, 
+    /**
+     * The number of PBKDF rounds that were used for key derivation.
+     */
+    var `privateKeyIterations`: kotlin.Int
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypePassphraseInfo: FfiConverterRustBuffer<PassphraseInfo> {
@@ -4133,15 +8887,36 @@ public object FfiConverterTypePassphraseInfo: FfiConverterRustBuffer<PassphraseI
 
 
 
-
+/**
+ * A pickled version of an `Account`.
+ *
+ * Holds all the information that needs to be stored in a database to restore
+ * an account.
+ */
 data class PickledAccount (
-    var `userId`: String, 
-    var `deviceId`: String, 
-    var `pickle`: String, 
-    var `shared`: Boolean, 
-    var `uploadedSignedKeyCount`: Long
+    /**
+     * The user id of the account owner.
+     */
+    var `userId`: kotlin.String, 
+    /**
+     * The device ID of the account owner.
+     */
+    var `deviceId`: kotlin.String, 
+    /**
+     * The pickled version of the Olm account.
+     */
+    var `pickle`: kotlin.String, 
+    /**
+     * Was the account shared.
+     */
+    var `shared`: kotlin.Boolean, 
+    /**
+     * The number of uploaded one-time keys we have on the server.
+     */
+    var `uploadedSignedKeyCount`: kotlin.Long
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypePickledAccount: FfiConverterRustBuffer<PickledAccount> {
@@ -4174,17 +8949,46 @@ public object FfiConverterTypePickledAccount: FfiConverterRustBuffer<PickledAcco
 
 
 
-
+/**
+ * A pickled version of an `InboundGroupSession`.
+ *
+ * Holds all the information that needs to be stored in a database to restore
+ * an InboundGroupSession.
+ */
 data class PickledInboundGroupSession (
-    var `pickle`: String, 
-    var `senderKey`: String, 
-    var `signingKey`: Map<String, String>, 
-    var `roomId`: String, 
-    var `forwardingChains`: List<String>, 
-    var `imported`: Boolean, 
-    var `backedUp`: Boolean
+    /**
+     * The pickle string holding the InboundGroupSession.
+     */
+    var `pickle`: kotlin.String, 
+    /**
+     * The public curve25519 key of the account that sent us the session
+     */
+    var `senderKey`: kotlin.String, 
+    /**
+     * The public ed25519 key of the account that sent us the session.
+     */
+    var `signingKey`: Map<kotlin.String, kotlin.String>, 
+    /**
+     * The id of the room that the session is used in.
+     */
+    var `roomId`: kotlin.String, 
+    /**
+     * The list of claimed ed25519 that forwarded us this key. Will be empty if
+     * we directly received this session.
+     */
+    var `forwardingChains`: List<kotlin.String>, 
+    /**
+     * Flag remembering if the session was directly sent to us by the sender
+     * or if it was imported.
+     */
+    var `imported`: kotlin.Boolean, 
+    /**
+     * Flag remembering if the session has been backed up.
+     */
+    var `backedUp`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypePickledInboundGroupSession: FfiConverterRustBuffer<PickledInboundGroupSession> {
@@ -4223,15 +9027,36 @@ public object FfiConverterTypePickledInboundGroupSession: FfiConverterRustBuffer
 
 
 
-
+/**
+ * A pickled version of a `Session`.
+ *
+ * Holds all the information that needs to be stored in a database to restore
+ * a Session.
+ */
 data class PickledSession (
-    var `pickle`: String, 
-    var `senderKey`: String, 
-    var `createdUsingFallbackKey`: Boolean, 
-    var `creationTime`: String, 
-    var `lastUseTime`: String
+    /**
+     * The pickle string holding the Olm Session.
+     */
+    var `pickle`: kotlin.String, 
+    /**
+     * The curve25519 key of the other user that we share this session with.
+     */
+    var `senderKey`: kotlin.String, 
+    /**
+     * Was the session created using a fallback key.
+     */
+    var `createdUsingFallbackKey`: kotlin.Boolean, 
+    /**
+     * Unix timestamp (in seconds) when the session was created.
+     */
+    var `creationTime`: kotlin.ULong, 
+    /**
+     * Unix timestamp (in seconds) when the session was last used.
+     */
+    var `lastUseTime`: kotlin.ULong
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypePickledSession: FfiConverterRustBuffer<PickledSession> {
@@ -4240,8 +9065,8 @@ public object FfiConverterTypePickledSession: FfiConverterRustBuffer<PickledSess
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterBoolean.read(buf),
-            FfiConverterString.read(buf),
-            FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
         )
     }
 
@@ -4249,24 +9074,33 @@ public object FfiConverterTypePickledSession: FfiConverterRustBuffer<PickledSess
             FfiConverterString.allocationSize(value.`pickle`) +
             FfiConverterString.allocationSize(value.`senderKey`) +
             FfiConverterBoolean.allocationSize(value.`createdUsingFallbackKey`) +
-            FfiConverterString.allocationSize(value.`creationTime`) +
-            FfiConverterString.allocationSize(value.`lastUseTime`)
+            FfiConverterULong.allocationSize(value.`creationTime`) +
+            FfiConverterULong.allocationSize(value.`lastUseTime`)
     )
 
     override fun write(value: PickledSession, buf: ByteBuffer) {
             FfiConverterString.write(value.`pickle`, buf)
             FfiConverterString.write(value.`senderKey`, buf)
             FfiConverterBoolean.write(value.`createdUsingFallbackKey`, buf)
-            FfiConverterString.write(value.`creationTime`, buf)
-            FfiConverterString.write(value.`lastUseTime`, buf)
+            FfiConverterULong.write(value.`creationTime`, buf)
+            FfiConverterULong.write(value.`lastUseTime`, buf)
     }
 }
 
 
 
-
+/**
+ * A result type for requesting verifications.
+ */
 data class RequestVerificationResult (
+    /**
+     * The verification request object that got created.
+     */
     var `verification`: VerificationRequest, 
+    /**
+     * The request that needs to be sent out to notify the other side that
+     * we're requesting verification to begin.
+     */
     var `request`: OutgoingVerificationRequest
 ) : Disposable {
     
@@ -4278,6 +9112,7 @@ data class RequestVerificationResult (
         this.`request`)
     }
     
+    companion object
 }
 
 public object FfiConverterTypeRequestVerificationResult: FfiConverterRustBuffer<RequestVerificationResult> {
@@ -4301,12 +9136,21 @@ public object FfiConverterTypeRequestVerificationResult: FfiConverterRustBuffer<
 
 
 
-
+/**
+ * Struct holding the number of room keys we have.
+ */
 data class RoomKeyCounts (
-    var `total`: Long, 
-    var `backedUp`: Long
+    /**
+     * The total number of room keys.
+     */
+    var `total`: kotlin.Long, 
+    /**
+     * The number of backed up room keys.
+     */
+    var `backedUp`: kotlin.Long
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeRoomKeyCounts: FfiConverterRustBuffer<RoomKeyCounts> {
@@ -4330,14 +9174,32 @@ public object FfiConverterTypeRoomKeyCounts: FfiConverterRustBuffer<RoomKeyCount
 
 
 
-
+/**
+ * Information on a room key that has been received or imported.
+ */
 data class RoomKeyInfo (
-    var `algorithm`: String, 
-    var `roomId`: String, 
-    var `senderKey`: String, 
-    var `sessionId`: String
+    /**
+     * The [messaging algorithm] that this key is used for. Will be one of the
+     * `m.megolm.*` algorithms.
+     *
+     * [messaging algorithm]: https://spec.matrix.org/v1.6/client-server-api/#messaging-algorithms
+     */
+    var `algorithm`: kotlin.String, 
+    /**
+     * The room where the key is used.
+     */
+    var `roomId`: kotlin.String, 
+    /**
+     * The Curve25519 key of the device which initiated the session originally.
+     */
+    var `senderKey`: kotlin.String, 
+    /**
+     * The ID of the session that the key is for.
+     */
+    var `sessionId`: kotlin.String
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeRoomKeyInfo: FfiConverterRustBuffer<RoomKeyInfo> {
@@ -4367,12 +9229,22 @@ public object FfiConverterTypeRoomKeyInfo: FfiConverterRustBuffer<RoomKeyInfo> {
 
 
 
-
+/**
+ * Room encryption settings which are modified by state events or user options
+ */
 data class RoomSettings (
+    /**
+     * The encryption algorithm that should be used in the room.
+     */
     var `algorithm`: EventEncryptionAlgorithm, 
-    var `onlyAllowTrustedDevices`: Boolean
+    /**
+     * Should untrusted devices receive the room key, or should they be
+     * excluded from the conversation.
+     */
+    var `onlyAllowTrustedDevices`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeRoomSettings: FfiConverterRustBuffer<RoomSettings> {
@@ -4396,9 +9268,18 @@ public object FfiConverterTypeRoomSettings: FfiConverterRustBuffer<RoomSettings>
 
 
 
-
+/**
+ * A result type for scanning QR codes.
+ */
 data class ScanResult (
+    /**
+     * The QR code verification object that got created.
+     */
     var `qr`: QrCode, 
+    /**
+     * The request that needs to be sent out to notify the other side that a
+     * QR code verification should start.
+     */
     var `request`: OutgoingVerificationRequest
 ) : Disposable {
     
@@ -4410,6 +9291,7 @@ data class ScanResult (
         this.`request`)
     }
     
+    companion object
 }
 
 public object FfiConverterTypeScanResult: FfiConverterRustBuffer<ScanResult> {
@@ -4433,17 +9315,41 @@ public object FfiConverterTypeScanResult: FfiConverterRustBuffer<ScanResult> {
 
 
 
-
+/**
+ * Struct collecting data that is important to migrate sessions to the rust-sdk
+ */
 data class SessionMigrationData (
-    var `userId`: String, 
-    var `deviceId`: String, 
-    var `curve25519Key`: String, 
-    var `ed25519Key`: String, 
+    /**
+     * The user id that the data belongs to.
+     */
+    var `userId`: kotlin.String, 
+    /**
+     * The device id that the data belongs to.
+     */
+    var `deviceId`: kotlin.String, 
+    /**
+     * The Curve25519 public key of the Account that owns this data.
+     */
+    var `curve25519Key`: kotlin.String, 
+    /**
+     * The Ed25519 public key of the Account that owns this data.
+     */
+    var `ed25519Key`: kotlin.String, 
+    /**
+     * The list of pickleds Olm Sessions.
+     */
     var `sessions`: List<PickledSession>, 
+    /**
+     * The list of pickled Megolm inbound group sessions.
+     */
     var `inboundGroupSessions`: List<PickledInboundGroupSession>, 
-    var `pickleKey`: List<UByte>
+    /**
+     * The Olm pickle key that was used to pickle all the Olm objects.
+     */
+    var `pickleKey`: kotlin.ByteArray
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeSessionMigrationData: FfiConverterRustBuffer<SessionMigrationData> {
@@ -4455,7 +9361,7 @@ public object FfiConverterTypeSessionMigrationData: FfiConverterRustBuffer<Sessi
             FfiConverterString.read(buf),
             FfiConverterSequenceTypePickledSession.read(buf),
             FfiConverterSequenceTypePickledInboundGroupSession.read(buf),
-            FfiConverterSequenceUByte.read(buf),
+            FfiConverterByteArray.read(buf),
         )
     }
 
@@ -4466,7 +9372,7 @@ public object FfiConverterTypeSessionMigrationData: FfiConverterRustBuffer<Sessi
             FfiConverterString.allocationSize(value.`ed25519Key`) +
             FfiConverterSequenceTypePickledSession.allocationSize(value.`sessions`) +
             FfiConverterSequenceTypePickledInboundGroupSession.allocationSize(value.`inboundGroupSessions`) +
-            FfiConverterSequenceUByte.allocationSize(value.`pickleKey`)
+            FfiConverterByteArray.allocationSize(value.`pickleKey`)
     )
 
     override fun write(value: SessionMigrationData, buf: ByteBuffer) {
@@ -4476,18 +9382,22 @@ public object FfiConverterTypeSessionMigrationData: FfiConverterRustBuffer<Sessi
             FfiConverterString.write(value.`ed25519Key`, buf)
             FfiConverterSequenceTypePickledSession.write(value.`sessions`, buf)
             FfiConverterSequenceTypePickledInboundGroupSession.write(value.`inboundGroupSessions`, buf)
-            FfiConverterSequenceUByte.write(value.`pickleKey`, buf)
+            FfiConverterByteArray.write(value.`pickleKey`, buf)
     }
 }
 
 
 
-
+/**
+ * Take a look at [`matrix_sdk_common::deserialized_responses::ShieldState`]
+ * for more info.
+ */
 data class ShieldState (
     var `color`: ShieldColor, 
-    var `message`: String?
+    var `message`: kotlin.String?
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeShieldState: FfiConverterRustBuffer<ShieldState> {
@@ -4511,11 +9421,11 @@ public object FfiConverterTypeShieldState: FfiConverterRustBuffer<ShieldState> {
 
 
 
-
 data class SignatureUploadRequest (
-    var `body`: String
+    var `body`: kotlin.String
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeSignatureUploadRequest: FfiConverterRustBuffer<SignatureUploadRequest> {
@@ -4536,14 +9446,39 @@ public object FfiConverterTypeSignatureUploadRequest: FfiConverterRustBuffer<Sig
 
 
 
-
+/**
+ * The result of a signature verification of a signed JSON object.
+ */
 data class SignatureVerification (
+    /**
+     * The result of the signature verification using the public key of our own
+     * device.
+     */
     var `deviceSignature`: SignatureState, 
+    /**
+     * The result of the signature verification using the public key of our own
+     * user identity.
+     */
     var `userIdentitySignature`: SignatureState, 
-    var `otherDevicesSignatures`: Map<String, SignatureState>, 
-    var `trusted`: Boolean
+    /**
+     * The result of the signature verification using public keys of other
+     * devices we own.
+     */
+    var `otherDevicesSignatures`: Map<kotlin.String, SignatureState>, 
+    /**
+     * Is the signed JSON object trusted.
+     *
+     * This flag tells us if the result has a valid signature from any of the
+     * following:
+     *
+     * * Our own device
+     * * Our own user identity, provided the identity is trusted as well
+     * * Any of our own devices, provided the device is trusted as well
+     */
+    var `trusted`: kotlin.Boolean
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeSignatureVerification: FfiConverterRustBuffer<SignatureVerification> {
@@ -4573,9 +9508,18 @@ public object FfiConverterTypeSignatureVerification: FfiConverterRustBuffer<Sign
 
 
 
-
+/**
+ * A result type for starting SAS verifications.
+ */
 data class StartSasResult (
+    /**
+     * The SAS verification object that got created.
+     */
     var `sas`: Sas, 
+    /**
+     * The request that needs to be sent out to notify the other side that a
+     * SAS verification should start.
+     */
     var `request`: OutgoingVerificationRequest
 ) : Disposable {
     
@@ -4587,6 +9531,7 @@ data class StartSasResult (
         this.`request`)
     }
     
+    companion object
 }
 
 public object FfiConverterTypeStartSasResult: FfiConverterRustBuffer<StartSasResult> {
@@ -4610,12 +9555,26 @@ public object FfiConverterTypeStartSasResult: FfiConverterRustBuffer<StartSasRes
 
 
 
-
+/**
+ * The return value for the [`OlmMachine::receive_sync_changes()`] method.
+ *
+ * Will contain various information about the `/sync` changes the
+ * [`OlmMachine`] processed.
+ */
 data class SyncChangesResult (
-    var `toDeviceEvents`: List<String>, 
+    /**
+     * The, now possibly decrypted, to-device events the [`OlmMachine`]
+     * received, decrypted, and processed.
+     */
+    var `toDeviceEvents`: List<kotlin.String>, 
+    /**
+     * Information about the room keys that were extracted out of the to-device
+     * events.
+     */
     var `roomKeyInfos`: List<RoomKeyInfo>
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeSyncChangesResult: FfiConverterRustBuffer<SyncChangesResult> {
@@ -4639,11 +9598,14 @@ public object FfiConverterTypeSyncChangesResult: FfiConverterRustBuffer<SyncChan
 
 
 
-
 data class UploadDehydratedDeviceRequest (
-    var `body`: String
+    /**
+     * The serialized JSON body of the request.
+     */
+    var `body`: kotlin.String
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeUploadDehydratedDeviceRequest: FfiConverterRustBuffer<UploadDehydratedDeviceRequest> {
@@ -4664,13 +9626,13 @@ public object FfiConverterTypeUploadDehydratedDeviceRequest: FfiConverterRustBuf
 
 
 
-
 data class UploadSigningKeysRequest (
-    var `masterKey`: String, 
-    var `selfSigningKey`: String, 
-    var `userSigningKey`: String
+    var `masterKey`: kotlin.String, 
+    var `selfSigningKey`: kotlin.String, 
+    var `userSigningKey`: kotlin.String
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeUploadSigningKeysRequest: FfiConverterRustBuffer<UploadSigningKeysRequest> {
@@ -4697,14 +9659,30 @@ public object FfiConverterTypeUploadSigningKeysRequest: FfiConverterRustBuffer<U
 
 
 
-
+/**
+ * Build-time information about important crates that are used.
+ */
 data class VersionInfo (
-    var `version`: String, 
-    var `vodozemacVersion`: String, 
-    var `gitSha`: String, 
-    var `gitDescription`: String
+    /**
+     * The version of the matrix-sdk-crypto crate.
+     */
+    var `version`: kotlin.String, 
+    /**
+     * The version of the vodozemac crate.
+     */
+    var `vodozemacVersion`: kotlin.String, 
+    /**
+     * The Git commit hash of the crate's source tree at build time.
+     */
+    var `gitSha`: kotlin.String, 
+    /**
+     * The build-time output of the `git describe` command of the source tree
+     * of crate.
+     */
+    var `gitDescription`: kotlin.String
 ) {
     
+    companion object
 }
 
 public object FfiConverterTypeVersionInfo: FfiConverterRustBuffer<VersionInfo> {
@@ -4737,17 +9715,21 @@ public object FfiConverterTypeVersionInfo: FfiConverterRustBuffer<VersionInfo> {
 
 
 sealed class CryptoStoreException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
         class OpenStore(message: String) : CryptoStoreException(message)
+        
         class CryptoStore(message: String) : CryptoStoreException(message)
+        
         class OlmException(message: String) : CryptoStoreException(message)
+        
         class Serialization(message: String) : CryptoStoreException(message)
+        
         class InvalidUserId(message: String) : CryptoStoreException(message)
+        
         class Identifier(message: String) : CryptoStoreException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<CryptoStoreException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<CryptoStoreException> {
         override fun lift(error_buf: RustBuffer.ByValue): CryptoStoreException = FfiConverterTypeCryptoStoreError.lift(error_buf)
     }
 }
@@ -4767,8 +9749,8 @@ public object FfiConverterTypeCryptoStoreError : FfiConverterRustBuffer<CryptoSt
         
     }
 
-    override fun allocationSize(value: CryptoStoreException): Int {
-        return 4
+    override fun allocationSize(value: CryptoStoreException): ULong {
+        return 4UL
     }
 
     override fun write(value: CryptoStoreException, buf: ByteBuffer) {
@@ -4806,14 +9788,24 @@ public object FfiConverterTypeCryptoStoreError : FfiConverterRustBuffer<CryptoSt
 
 
 
+/**
+ * Error type for the decoding and storing of the backup key.
+ */
 sealed class DecodeException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
+    /**
+     * An error happened while decoding the recovery key.
+     */
         class Decode(message: String) : DecodeException(message)
+        
+    /**
+     * An error happened in the storage layer while trying to save the
+     * decoded recovery key.
+     */
         class CryptoStore(message: String) : DecodeException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<DecodeException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<DecodeException> {
         override fun lift(error_buf: RustBuffer.ByValue): DecodeException = FfiConverterTypeDecodeError.lift(error_buf)
     }
 }
@@ -4829,8 +9821,8 @@ public object FfiConverterTypeDecodeError : FfiConverterRustBuffer<DecodeExcepti
         
     }
 
-    override fun allocationSize(value: DecodeException): Int {
-        return 4
+    override fun allocationSize(value: DecodeException): ULong {
+        return 4UL
     }
 
     override fun write(value: DecodeException, buf: ByteBuffer) {
@@ -4853,46 +9845,51 @@ public object FfiConverterTypeDecodeError : FfiConverterRustBuffer<DecodeExcepti
 
 
 sealed class DecryptionException: Exception() {
-    // Each variant is a nested class
     
     class Serialization(
-        val `error`: String
+        
+        val `error`: kotlin.String
         ) : DecryptionException() {
         override val message
             get() = "error=${ `error` }"
     }
     
     class Identifier(
-        val `error`: String
+        
+        val `error`: kotlin.String
         ) : DecryptionException() {
         override val message
             get() = "error=${ `error` }"
     }
     
     class Megolm(
-        val `error`: String
+        
+        val `error`: kotlin.String
         ) : DecryptionException() {
         override val message
             get() = "error=${ `error` }"
     }
     
     class MissingRoomKey(
-        val `error`: String, 
-        val `withheldCode`: String?
+        
+        val `error`: kotlin.String, 
+        
+        val `withheldCode`: kotlin.String?
         ) : DecryptionException() {
         override val message
             get() = "error=${ `error` }, withheldCode=${ `withheldCode` }"
     }
     
     class Store(
-        val `error`: String
+        
+        val `error`: kotlin.String
         ) : DecryptionException() {
         override val message
             get() = "error=${ `error` }"
     }
     
 
-    companion object ErrorHandler : CallStatusErrorHandler<DecryptionException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<DecryptionException> {
         override fun lift(error_buf: RustBuffer.ByValue): DecryptionException = FfiConverterTypeDecryptionError.lift(error_buf)
     }
 
@@ -4924,32 +9921,32 @@ public object FfiConverterTypeDecryptionError : FfiConverterRustBuffer<Decryptio
         }
     }
 
-    override fun allocationSize(value: DecryptionException): Int {
+    override fun allocationSize(value: DecryptionException): ULong {
         return when(value) {
             is DecryptionException.Serialization -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`error`)
             )
             is DecryptionException.Identifier -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`error`)
             )
             is DecryptionException.Megolm -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`error`)
             )
             is DecryptionException.MissingRoomKey -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`error`)
                 + FfiConverterOptionalString.allocationSize(value.`withheldCode`)
             )
             is DecryptionException.Store -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`error`)
             )
         }
@@ -4993,15 +9990,19 @@ public object FfiConverterTypeDecryptionError : FfiConverterRustBuffer<Decryptio
 
 
 sealed class DehydrationException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
         class Pickle(message: String) : DehydrationException(message)
+        
         class MissingSigningKey(message: String) : DehydrationException(message)
+        
         class Json(message: String) : DehydrationException(message)
+        
+        class Store(message: String) : DehydrationException(message)
+        
         class PickleKeyLength(message: String) : DehydrationException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<DehydrationException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<DehydrationException> {
         override fun lift(error_buf: RustBuffer.ByValue): DehydrationException = FfiConverterTypeDehydrationError.lift(error_buf)
     }
 }
@@ -5013,14 +10014,15 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
             1 -> DehydrationException.Pickle(FfiConverterString.read(buf))
             2 -> DehydrationException.MissingSigningKey(FfiConverterString.read(buf))
             3 -> DehydrationException.Json(FfiConverterString.read(buf))
-            4 -> DehydrationException.PickleKeyLength(FfiConverterString.read(buf))
+            4 -> DehydrationException.Store(FfiConverterString.read(buf))
+            5 -> DehydrationException.PickleKeyLength(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
     }
 
-    override fun allocationSize(value: DehydrationException): Int {
-        return 4
+    override fun allocationSize(value: DehydrationException): ULong {
+        return 4UL
     }
 
     override fun write(value: DehydrationException, buf: ByteBuffer) {
@@ -5037,8 +10039,12 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
                 buf.putInt(3)
                 Unit
             }
-            is DehydrationException.PickleKeyLength -> {
+            is DehydrationException.Store -> {
                 buf.putInt(4)
+                Unit
+            }
+            is DehydrationException.PickleKeyLength -> {
+                buf.putInt(5)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -5048,10 +10054,23 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
 
 
 
+/**
+ * An encryption algorithm to be used to encrypt messages sent to a room.
+ */
 
 enum class EventEncryptionAlgorithm {
-    OLM_V1_CURVE25519_AES_SHA2,MEGOLM_V1_AES_SHA2;
+    
+    /**
+     * Olm version 1 using Curve25519, AES-256, and SHA-256.
+     */
+    OLM_V1_CURVE25519_AES_SHA2,
+    /**
+     * Megolm version 1 using AES-256 and SHA-256.
+     */
+    MEGOLM_V1_AES_SHA2;
+    companion object
 }
+
 
 public object FfiConverterTypeEventEncryptionAlgorithm: FfiConverterRustBuffer<EventEncryptionAlgorithm> {
     override fun read(buf: ByteBuffer) = try {
@@ -5060,7 +10079,7 @@ public object FfiConverterTypeEventEncryptionAlgorithm: FfiConverterRustBuffer<E
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: EventEncryptionAlgorithm) = 4
+    override fun allocationSize(value: EventEncryptionAlgorithm) = 4UL
 
     override fun write(value: EventEncryptionAlgorithm, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
@@ -5071,10 +10090,43 @@ public object FfiConverterTypeEventEncryptionAlgorithm: FfiConverterRustBuffer<E
 
 
 
+/**
+ * Who can see a room's history.
+ */
 
 enum class HistoryVisibility {
-    INVITED,JOINED,SHARED,WORLD_READABLE;
+    
+    /**
+     * Previous events are accessible to newly joined members from the point
+     * they were invited onwards.
+     *
+     * Events stop being accessible when the member's state changes to
+     * something other than *invite* or *join*.
+     */
+    INVITED,
+    /**
+     * Previous events are accessible to newly joined members from the point
+     * they joined the room onwards.
+     * Events stop being accessible when the member's state changes to
+     * something other than *join*.
+     */
+    JOINED,
+    /**
+     * Previous events are always accessible to newly joined members.
+     *
+     * All events in the room are accessible, even those sent when the member
+     * was not a part of the room.
+     */
+    SHARED,
+    /**
+     * All events while this is the `HistoryVisibility` value may be shared by
+     * any participating homeserver with anyone, regardless of whether they
+     * have ever joined the room.
+     */
+    WORLD_READABLE;
+    companion object
 }
+
 
 public object FfiConverterTypeHistoryVisibility: FfiConverterRustBuffer<HistoryVisibility> {
     override fun read(buf: ByteBuffer) = try {
@@ -5083,7 +10135,7 @@ public object FfiConverterTypeHistoryVisibility: FfiConverterRustBuffer<HistoryV
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: HistoryVisibility) = 4
+    override fun allocationSize(value: HistoryVisibility) = 4UL
 
     override fun write(value: HistoryVisibility, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
@@ -5097,14 +10149,15 @@ public object FfiConverterTypeHistoryVisibility: FfiConverterRustBuffer<HistoryV
 
 
 sealed class KeyImportException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
         class Export(message: String) : KeyImportException(message)
+        
         class CryptoStore(message: String) : KeyImportException(message)
+        
         class Json(message: String) : KeyImportException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<KeyImportException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<KeyImportException> {
         override fun lift(error_buf: RustBuffer.ByValue): KeyImportException = FfiConverterTypeKeyImportError.lift(error_buf)
     }
 }
@@ -5121,8 +10174,8 @@ public object FfiConverterTypeKeyImportError : FfiConverterRustBuffer<KeyImportE
         
     }
 
-    override fun allocationSize(value: KeyImportException): Int {
-        return 4
+    override fun allocationSize(value: KeyImportException): ULong {
+        return 4UL
     }
 
     override fun write(value: KeyImportException, buf: ByteBuffer) {
@@ -5147,42 +10200,28 @@ public object FfiConverterTypeKeyImportError : FfiConverterRustBuffer<KeyImportE
 
 
 
-enum class LocalTrust {
-    VERIFIED,BLACK_LISTED,IGNORED,UNSET;
-}
 
-public object FfiConverterTypeLocalTrust: FfiConverterRustBuffer<LocalTrust> {
-    override fun read(buf: ByteBuffer) = try {
-        LocalTrust.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: LocalTrust) = 4
-
-    override fun write(value: LocalTrust, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-
-
+/**
+ * Error type for the migration process.
+ */
 sealed class MigrationException: Exception() {
-    // Each variant is a nested class
     
+    /**
+     * Generic catch all error variant.
+     */
     class Generic(
-        val `errorMessage`: String
+        
+        /**
+         * The error message
+         */
+        val `errorMessage`: kotlin.String
         ) : MigrationException() {
         override val message
             get() = "errorMessage=${ `errorMessage` }"
     }
     
 
-    companion object ErrorHandler : CallStatusErrorHandler<MigrationException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<MigrationException> {
         override fun lift(error_buf: RustBuffer.ByValue): MigrationException = FfiConverterTypeMigrationError.lift(error_buf)
     }
 
@@ -5201,11 +10240,11 @@ public object FfiConverterTypeMigrationError : FfiConverterRustBuffer<MigrationE
         }
     }
 
-    override fun allocationSize(value: MigrationException): Int {
+    override fun allocationSize(value: MigrationException): ULong {
         return when(value) {
             is MigrationException.Generic -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`errorMessage`)
             )
         }
@@ -5225,22 +10264,26 @@ public object FfiConverterTypeMigrationError : FfiConverterRustBuffer<MigrationE
 
 
 
-
 sealed class OutgoingVerificationRequest {
+    
     data class ToDevice(
-        val `requestId`: String, 
-        val `eventType`: String, 
-        val `body`: String
-        ) : OutgoingVerificationRequest()
+        val `requestId`: kotlin.String, 
+        val `eventType`: kotlin.String, 
+        val `body`: kotlin.String) : OutgoingVerificationRequest() {
+        companion object
+    }
+    
     data class InRoom(
-        val `requestId`: String, 
-        val `roomId`: String, 
-        val `eventType`: String, 
-        val `content`: String
-        ) : OutgoingVerificationRequest()
+        val `requestId`: kotlin.String, 
+        val `roomId`: kotlin.String, 
+        val `eventType`: kotlin.String, 
+        val `content`: kotlin.String) : OutgoingVerificationRequest() {
+        companion object
+    }
     
 
     
+    companion object
 }
 
 public object FfiConverterTypeOutgoingVerificationRequest : FfiConverterRustBuffer<OutgoingVerificationRequest>{
@@ -5265,7 +10308,7 @@ public object FfiConverterTypeOutgoingVerificationRequest : FfiConverterRustBuff
         is OutgoingVerificationRequest.ToDevice -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`eventType`)
                 + FfiConverterString.allocationSize(value.`body`)
@@ -5274,7 +10317,7 @@ public object FfiConverterTypeOutgoingVerificationRequest : FfiConverterRustBuff
         is OutgoingVerificationRequest.InRoom -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`roomId`)
                 + FfiConverterString.allocationSize(value.`eventType`)
@@ -5310,13 +10353,18 @@ public object FfiConverterTypeOutgoingVerificationRequest : FfiConverterRustBuff
 
 
 
+/**
+ * Error type for the decryption of backed up room keys.
+ */
 sealed class PkDecryptionException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
+    /**
+     * An internal libolm error happened during decryption.
+     */
         class Olm(message: String) : PkDecryptionException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<PkDecryptionException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<PkDecryptionException> {
         override fun lift(error_buf: RustBuffer.ByValue): PkDecryptionException = FfiConverterTypePkDecryptionError.lift(error_buf)
     }
 }
@@ -5331,8 +10379,8 @@ public object FfiConverterTypePkDecryptionError : FfiConverterRustBuffer<PkDecry
         
     }
 
-    override fun allocationSize(value: PkDecryptionException): Int {
-        return 4
+    override fun allocationSize(value: PkDecryptionException): ULong {
+        return 4UL
     }
 
     override fun write(value: PkDecryptionException, buf: ByteBuffer) {
@@ -5348,24 +10396,56 @@ public object FfiConverterTypePkDecryptionError : FfiConverterRustBuffer<PkDecry
 
 
 
-
+/**
+ * An Enum describing the state the QrCode verification is in.
+ */
 sealed class QrCodeState {
+    
+    /**
+     * The QR verification has been started.
+     */
     object Started : QrCodeState()
     
+    
+    /**
+     * The QR verification has been scanned by the other side.
+     */
     object Scanned : QrCodeState()
     
+    
+    /**
+     * The scanning of the QR code has been confirmed by us.
+     */
     object Confirmed : QrCodeState()
     
+    
+    /**
+     * We have successfully scanned the QR code and are able to send a
+     * reciprocation event.
+     */
     object Reciprocated : QrCodeState()
     
+    
+    /**
+     * The verification process has been successfully concluded.
+     */
     object Done : QrCodeState()
     
+    
+    /**
+     * The verification process has been cancelled.
+     */
     data class Cancelled(
-        val `cancelInfo`: CancelInfo
-        ) : QrCodeState()
+        /**
+         * Information about the reason of the cancellation.
+         */
+        val `cancelInfo`: CancelInfo) : QrCodeState() {
+        companion object
+    }
     
 
     
+    companion object
 }
 
 public object FfiConverterTypeQrCodeState : FfiConverterRustBuffer<QrCodeState>{
@@ -5387,37 +10467,37 @@ public object FfiConverterTypeQrCodeState : FfiConverterRustBuffer<QrCodeState>{
         is QrCodeState.Started -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is QrCodeState.Scanned -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is QrCodeState.Confirmed -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is QrCodeState.Reciprocated -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is QrCodeState.Done -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is QrCodeState.Cancelled -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterTypeCancelInfo.allocationSize(value.`cancelInfo`)
             )
         }
@@ -5458,43 +10538,57 @@ public object FfiConverterTypeQrCodeState : FfiConverterRustBuffer<QrCodeState>{
 
 
 
-
 sealed class Request {
+    
     data class ToDevice(
-        val `requestId`: String, 
-        val `eventType`: String, 
-        val `body`: String
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `eventType`: kotlin.String, 
+        val `body`: kotlin.String) : Request() {
+        companion object
+    }
+    
     data class KeysUpload(
-        val `requestId`: String, 
-        val `body`: String
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `body`: kotlin.String) : Request() {
+        companion object
+    }
+    
     data class KeysQuery(
-        val `requestId`: String, 
-        val `users`: List<String>
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `users`: List<kotlin.String>) : Request() {
+        companion object
+    }
+    
     data class KeysClaim(
-        val `requestId`: String, 
-        val `oneTimeKeys`: Map<String, Map<String, String>>
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `oneTimeKeys`: Map<kotlin.String, Map<kotlin.String, kotlin.String>>) : Request() {
+        companion object
+    }
+    
     data class KeysBackup(
-        val `requestId`: String, 
-        val `version`: String, 
-        val `rooms`: String
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `version`: kotlin.String, 
+        val `rooms`: kotlin.String) : Request() {
+        companion object
+    }
+    
     data class RoomMessage(
-        val `requestId`: String, 
-        val `roomId`: String, 
-        val `eventType`: String, 
-        val `content`: String
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `roomId`: kotlin.String, 
+        val `eventType`: kotlin.String, 
+        val `content`: kotlin.String) : Request() {
+        companion object
+    }
+    
     data class SignatureUpload(
-        val `requestId`: String, 
-        val `body`: String
-        ) : Request()
+        val `requestId`: kotlin.String, 
+        val `body`: kotlin.String) : Request() {
+        companion object
+    }
     
 
     
+    companion object
 }
 
 public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
@@ -5540,7 +10634,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.ToDevice -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`eventType`)
                 + FfiConverterString.allocationSize(value.`body`)
@@ -5549,7 +10643,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.KeysUpload -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`body`)
             )
@@ -5557,7 +10651,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.KeysQuery -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterSequenceString.allocationSize(value.`users`)
             )
@@ -5565,7 +10659,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.KeysClaim -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterMapStringMapStringString.allocationSize(value.`oneTimeKeys`)
             )
@@ -5573,7 +10667,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.KeysBackup -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`version`)
                 + FfiConverterString.allocationSize(value.`rooms`)
@@ -5582,7 +10676,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.RoomMessage -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`roomId`)
                 + FfiConverterString.allocationSize(value.`eventType`)
@@ -5592,7 +10686,7 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
         is Request.SignatureUpload -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`requestId`)
                 + FfiConverterString.allocationSize(value.`body`)
             )
@@ -5657,8 +10751,17 @@ public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
 
 
 enum class RequestType {
-    KEYS_QUERY,KEYS_CLAIM,KEYS_UPLOAD,TO_DEVICE,SIGNATURE_UPLOAD,KEYS_BACKUP,ROOM_MESSAGE;
+    
+    KEYS_QUERY,
+    KEYS_CLAIM,
+    KEYS_UPLOAD,
+    TO_DEVICE,
+    SIGNATURE_UPLOAD,
+    KEYS_BACKUP,
+    ROOM_MESSAGE;
+    companion object
 }
+
 
 public object FfiConverterTypeRequestType: FfiConverterRustBuffer<RequestType> {
     override fun read(buf: ByteBuffer) = try {
@@ -5667,7 +10770,7 @@ public object FfiConverterTypeRequestType: FfiConverterRustBuffer<RequestType> {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: RequestType) = 4
+    override fun allocationSize(value: RequestType) = 4UL
 
     override fun write(value: RequestType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
@@ -5678,26 +10781,69 @@ public object FfiConverterTypeRequestType: FfiConverterRustBuffer<RequestType> {
 
 
 
-
+/**
+ * An Enum describing the state the SAS verification is in.
+ */
 sealed class SasState {
+    
+    /**
+     * The verification has been started, the protocols that should be used
+     * have been proposed and can be accepted.
+     */
     object Started : SasState()
     
+    
+    /**
+     * The verification has been accepted and both sides agreed to a set of
+     * protocols that will be used for the verification process.
+     */
     object Accepted : SasState()
     
+    
+    /**
+     * The public keys have been exchanged and the short auth string can be
+     * presented to the user.
+     */
     data class KeysExchanged(
-        val `emojis`: List<Int>?, 
-        val `decimals`: List<Int>
-        ) : SasState()
+        /**
+         * The emojis that represent the short auth string, will be `None` if
+         * the emoji SAS method wasn't one of accepted protocols.
+         */
+        val `emojis`: List<kotlin.Int>?, 
+        /**
+         * The list of decimals that represent the short auth string.
+         */
+        val `decimals`: List<kotlin.Int>) : SasState() {
+        companion object
+    }
+    
+    /**
+     * The verification process has been confirmed from our side, we're waiting
+     * for the other side to confirm as well.
+     */
     object Confirmed : SasState()
     
+    
+    /**
+     * The verification process has been successfully concluded.
+     */
     object Done : SasState()
     
+    
+    /**
+     * The verification process has been cancelled.
+     */
     data class Cancelled(
-        val `cancelInfo`: CancelInfo
-        ) : SasState()
+        /**
+         * Information about the reason of the cancellation.
+         */
+        val `cancelInfo`: CancelInfo) : SasState() {
+        companion object
+    }
     
 
     
+    companion object
 }
 
 public object FfiConverterTypeSasState : FfiConverterRustBuffer<SasState>{
@@ -5722,19 +10868,19 @@ public object FfiConverterTypeSasState : FfiConverterRustBuffer<SasState>{
         is SasState.Started -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is SasState.Accepted -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is SasState.KeysExchanged -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterOptionalSequenceInt.allocationSize(value.`emojis`)
                 + FfiConverterSequenceInt.allocationSize(value.`decimals`)
             )
@@ -5742,19 +10888,19 @@ public object FfiConverterTypeSasState : FfiConverterRustBuffer<SasState>{
         is SasState.Confirmed -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is SasState.Done -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is SasState.Cancelled -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterTypeCancelInfo.allocationSize(value.`cancelInfo`)
             )
         }
@@ -5800,13 +10946,13 @@ public object FfiConverterTypeSasState : FfiConverterRustBuffer<SasState>{
 
 
 sealed class SecretImportException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
         class CryptoStore(message: String) : SecretImportException(message)
+        
         class Import(message: String) : SecretImportException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<SecretImportException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<SecretImportException> {
         override fun lift(error_buf: RustBuffer.ByValue): SecretImportException = FfiConverterTypeSecretImportError.lift(error_buf)
     }
 }
@@ -5822,8 +10968,8 @@ public object FfiConverterTypeSecretImportError : FfiConverterRustBuffer<SecretI
         
     }
 
-    override fun allocationSize(value: SecretImportException): Int {
-        return 4
+    override fun allocationSize(value: SecretImportException): ULong {
+        return 4UL
     }
 
     override fun write(value: SecretImportException, buf: ByteBuffer) {
@@ -5843,10 +10989,19 @@ public object FfiConverterTypeSecretImportError : FfiConverterRustBuffer<SecretI
 
 
 
+/**
+ * Take a look at [`matrix_sdk_common::deserialized_responses::ShieldState`]
+ * for more info.
+ */
 
 enum class ShieldColor {
-    RED,GREY,NONE;
+    
+    RED,
+    GREY,
+    NONE;
+    companion object
 }
+
 
 public object FfiConverterTypeShieldColor: FfiConverterRustBuffer<ShieldColor> {
     override fun read(buf: ByteBuffer) = try {
@@ -5855,7 +11010,7 @@ public object FfiConverterTypeShieldColor: FfiConverterRustBuffer<ShieldColor> {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: ShieldColor) = 4
+    override fun allocationSize(value: ShieldColor) = 4UL
 
     override fun write(value: ShieldColor, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
@@ -5869,16 +11024,19 @@ public object FfiConverterTypeShieldColor: FfiConverterRustBuffer<ShieldColor> {
 
 
 sealed class SignatureException(message: String): Exception(message) {
-        // Each variant is a nested class
-        // Flat enums carries a string error message, so no special implementation is necessary.
+        
         class Signature(message: String) : SignatureException(message)
+        
         class Identifier(message: String) : SignatureException(message)
+        
         class CryptoStore(message: String) : SignatureException(message)
+        
         class UnknownDevice(message: String) : SignatureException(message)
+        
         class UnknownUserIdentity(message: String) : SignatureException(message)
         
 
-    companion object ErrorHandler : CallStatusErrorHandler<SignatureException> {
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<SignatureException> {
         override fun lift(error_buf: RustBuffer.ByValue): SignatureException = FfiConverterTypeSignatureError.lift(error_buf)
     }
 }
@@ -5897,8 +11055,8 @@ public object FfiConverterTypeSignatureError : FfiConverterRustBuffer<SignatureE
         
     }
 
-    override fun allocationSize(value: SignatureException): Int {
-        return 4
+    override fun allocationSize(value: SignatureException): ULong {
+        return 4UL
     }
 
     override fun write(value: SignatureException, buf: ByteBuffer) {
@@ -5930,46 +11088,61 @@ public object FfiConverterTypeSignatureError : FfiConverterRustBuffer<SignatureE
 
 
 
-
-enum class SignatureState {
-    MISSING,INVALID,VALID_BUT_NOT_TRUSTED,VALID_AND_TRUSTED;
-}
-
-public object FfiConverterTypeSignatureState: FfiConverterRustBuffer<SignatureState> {
-    override fun read(buf: ByteBuffer) = try {
-        SignatureState.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: SignatureState) = 4
-
-    override fun write(value: SignatureState, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-
+/**
+ * Enum representing cross signing identities of our own user or some other
+ * user.
+ */
 sealed class UserIdentity {
+    
+    /**
+     * Our own user identity.
+     */
     data class Own(
-        val `userId`: String, 
-        val `trustsOurOwnDevice`: Boolean, 
-        val `masterKey`: String, 
-        val `userSigningKey`: String, 
-        val `selfSigningKey`: String
-        ) : UserIdentity()
+        /**
+         * The unique id of our own user.
+         */
+        val `userId`: kotlin.String, 
+        /**
+         * Does our own user identity trust our own device.
+         */
+        val `trustsOurOwnDevice`: kotlin.Boolean, 
+        /**
+         * The public master key of our identity.
+         */
+        val `masterKey`: kotlin.String, 
+        /**
+         * The public user-signing key of our identity.
+         */
+        val `userSigningKey`: kotlin.String, 
+        /**
+         * The public self-signing key of our identity.
+         */
+        val `selfSigningKey`: kotlin.String) : UserIdentity() {
+        companion object
+    }
+    
+    /**
+     * The user identity of other users.
+     */
     data class Other(
-        val `userId`: String, 
-        val `masterKey`: String, 
-        val `selfSigningKey`: String
-        ) : UserIdentity()
+        /**
+         * The unique id of the user.
+         */
+        val `userId`: kotlin.String, 
+        /**
+         * The public master key of the identity.
+         */
+        val `masterKey`: kotlin.String, 
+        /**
+         * The public self-signing key of our identity.
+         */
+        val `selfSigningKey`: kotlin.String) : UserIdentity() {
+        companion object
+    }
     
 
     
+    companion object
 }
 
 public object FfiConverterTypeUserIdentity : FfiConverterRustBuffer<UserIdentity>{
@@ -5995,7 +11168,7 @@ public object FfiConverterTypeUserIdentity : FfiConverterRustBuffer<UserIdentity
         is UserIdentity.Own -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`userId`)
                 + FfiConverterBoolean.allocationSize(value.`trustsOurOwnDevice`)
                 + FfiConverterString.allocationSize(value.`masterKey`)
@@ -6006,7 +11179,7 @@ public object FfiConverterTypeUserIdentity : FfiConverterRustBuffer<UserIdentity
         is UserIdentity.Other -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterString.allocationSize(value.`userId`)
                 + FfiConverterString.allocationSize(value.`masterKey`)
                 + FfiConverterString.allocationSize(value.`selfSigningKey`)
@@ -6040,22 +11213,52 @@ public object FfiConverterTypeUserIdentity : FfiConverterRustBuffer<UserIdentity
 
 
 
-
+/**
+ * An Enum describing the state the QrCode verification is in.
+ */
 sealed class VerificationRequestState {
+    
+    /**
+     * The verification request was sent
+     */
     object Requested : VerificationRequestState()
     
+    
+    /**
+     * The verification request is ready to start a verification flow.
+     */
     data class Ready(
-        val `theirMethods`: List<String>, 
-        val `ourMethods`: List<String>
-        ) : VerificationRequestState()
+        /**
+         * The verification methods supported by the other side.
+         */
+        val `theirMethods`: List<kotlin.String>, 
+        /**
+         * The verification methods supported by the us.
+         */
+        val `ourMethods`: List<kotlin.String>) : VerificationRequestState() {
+        companion object
+    }
+    
+    /**
+     * The verification flow that was started with this request has finished.
+     */
     object Done : VerificationRequestState()
     
+    
+    /**
+     * The verification process has been cancelled.
+     */
     data class Cancelled(
-        val `cancelInfo`: CancelInfo
-        ) : VerificationRequestState()
+        /**
+         * Information about the reason of the cancellation.
+         */
+        val `cancelInfo`: CancelInfo) : VerificationRequestState() {
+        companion object
+    }
     
 
     
+    companion object
 }
 
 public object FfiConverterTypeVerificationRequestState : FfiConverterRustBuffer<VerificationRequestState>{
@@ -6078,13 +11281,13 @@ public object FfiConverterTypeVerificationRequestState : FfiConverterRustBuffer<
         is VerificationRequestState.Requested -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is VerificationRequestState.Ready -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterSequenceString.allocationSize(value.`theirMethods`)
                 + FfiConverterSequenceString.allocationSize(value.`ourMethods`)
             )
@@ -6092,13 +11295,13 @@ public object FfiConverterTypeVerificationRequestState : FfiConverterRustBuffer<
         is VerificationRequestState.Done -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
             )
         }
         is VerificationRequestState.Cancelled -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                4
+                4UL
                 + FfiConverterTypeCancelInfo.allocationSize(value.`cancelInfo`)
             )
         }
@@ -6134,44 +11337,19 @@ public object FfiConverterTypeVerificationRequestState : FfiConverterRustBuffer<
 
 
 
-internal typealias Handle = Long
-internal class ConcurrentHandleMap<T>(
-    private val leftMap: MutableMap<Handle, T> = mutableMapOf(),
-    private val rightMap: MutableMap<T, Handle> = mutableMapOf()
-) {
-    private val lock = java.util.concurrent.locks.ReentrantLock()
-    private val currentHandle = AtomicLong(0L)
-    private val stride = 1L
 
-    fun insert(obj: T): Handle =
-        lock.withLock {
-            rightMap[obj] ?:
-                currentHandle.getAndAdd(stride)
-                    .also { handle ->
-                        leftMap[handle] = obj
-                        rightMap[obj] = handle
-                    }
-            }
-
-    fun get(handle: Handle) = lock.withLock {
-        leftMap[handle]
-    }
-
-    fun delete(handle: Handle) {
-        this.remove(handle)
-    }
-
-    fun remove(handle: Handle): T? =
-        lock.withLock {
-            leftMap.remove(handle)?.let { obj ->
-                rightMap.remove(obj)
-                obj
-            }
-        }
-}
-
-interface ForeignCallback : com.sun.jna.Callback {
-    public fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int
+/**
+ * Trait that can be used to forward Rust logs over FFI to a language specific
+ * logger.
+ */
+public interface Logger {
+    
+    /**
+     * Called every time the Rust side wants to post a log line.
+     */
+    fun `log`(`logLine`: kotlin.String)
+    
+    companion object
 }
 
 // Magic number for the Rust proxy to call using the same mechanism as every other method,
@@ -6182,478 +11360,326 @@ internal const val UNIFFI_CALLBACK_SUCCESS = 0
 internal const val UNIFFI_CALLBACK_ERROR = 1
 internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
 
-public abstract class FfiConverterCallbackInterface<CallbackInterface>(
-    protected val foreignCallback: ForeignCallback
-): FfiConverter<CallbackInterface, Handle> {
-    private val handleMap = ConcurrentHandleMap<CallbackInterface>()
+public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: FfiConverter<CallbackInterface, Long> {
+    internal val handleMap = UniffiHandleMap<CallbackInterface>()
 
-    // Registers the foreign callback with the Rust side.
-    // This method is generated for each callback interface.
-    internal abstract fun register(lib: _UniFFILib)
-
-    fun drop(handle: Handle): RustBuffer.ByValue {
-        return handleMap.remove(handle).let { RustBuffer.ByValue() }
+    internal fun drop(handle: Long) {
+        handleMap.remove(handle)
     }
 
-    override fun lift(value: Handle): CallbackInterface {
-        return handleMap.get(value) ?: throw InternalException("No callback in handlemap; this is a Uniffi bug")
+    override fun lift(value: Long): CallbackInterface {
+        return handleMap.get(value)
     }
 
     override fun read(buf: ByteBuffer) = lift(buf.getLong())
 
-    override fun lower(value: CallbackInterface) =
-        handleMap.insert(value).also {
-            assert(handleMap.get(it) === value) { "Handle map is not returning the object we just placed there. This is a bug in the HandleMap." }
-        }
+    override fun lower(value: CallbackInterface) = handleMap.insert(value)
 
-    override fun allocationSize(value: CallbackInterface) = 8
+    override fun allocationSize(value: CallbackInterface) = 8UL
 
     override fun write(value: CallbackInterface, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
 
-// Declaration and FfiConverters for Logger Callback Interface
-
-public interface Logger {
-    fun `log`(`logLine`: String)
-    
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeLogger : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeLogger.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeLogger.drop(handle)
-                // Successful return
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                UNIFFI_CALLBACK_SUCCESS
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceLogger {
+    internal object `log`: UniffiCallbackInterfaceLoggerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`logLine`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeLogger.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`log`(
+                    FfiConverterString.lift(`logLine`),
+                )
             }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    this.`invokeLog`(cb, argsData, argsLen, outBuf)
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                UNIFFI_CALLBACK_UNEXPECTED_ERROR
-            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
 
-    
-    @Suppress("UNUSED_PARAMETER")
-    private fun `invokeLog`(kotlinCallbackInterface: Logger, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
-            it.order(ByteOrder.BIG_ENDIAN)
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeLogger.handleMap.remove(handle)
         }
-        fun makeCall() : Int {
-            kotlinCallbackInterface.`log`(
-                FfiConverterString.read(argsBuf)
-            )
-            return UNIFFI_CALLBACK_SUCCESS
-        }
-        fun makeCallAndHandleError() : Int = makeCall()
-
-        return makeCallAndHandleError()
     }
-    
-}
 
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeLogger: FfiConverterCallbackInterface<Logger>(
-    foreignCallback = ForeignCallbackTypeLogger()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_logger(this.foreignCallback, status)
-        }
+    internal var vtable = UniffiVTableCallbackInterfaceLogger.UniffiByValue(
+        `log`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_logger(vtable)
     }
 }
 
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeLogger: FfiConverterCallbackInterface<Logger>()
 
 
 
 
 
-// Declaration and FfiConverters for ProgressListener Callback Interface
-
+/**
+ * Callback that will be passed over the FFI to report progress
+ */
 public interface ProgressListener {
-    fun `onProgress`(`progress`: Int, `total`: Int)
     
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeProgressListener : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeProgressListener.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeProgressListener.drop(handle)
-                // Successful return
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                UNIFFI_CALLBACK_SUCCESS
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    this.`invokeOnProgress`(cb, argsData, argsLen, outBuf)
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                UNIFFI_CALLBACK_UNEXPECTED_ERROR
-            }
-        }
-    }
-
+    /**
+     * The callback that should be called on the Rust side
+     *
+     * # Arguments
+     *
+     * * `progress` - The current number of items that have been handled
+     *
+     * * `total` - The total number of items that will be handled
+     */
+    fun `onProgress`(`progress`: kotlin.Int, `total`: kotlin.Int)
     
-    @Suppress("UNUSED_PARAMETER")
-    private fun `invokeOnProgress`(kotlinCallbackInterface: ProgressListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
-            it.order(ByteOrder.BIG_ENDIAN)
-        }
-        fun makeCall() : Int {
-            kotlinCallbackInterface.`onProgress`(
-                FfiConverterInt.read(argsBuf), 
-                FfiConverterInt.read(argsBuf)
-            )
-            return UNIFFI_CALLBACK_SUCCESS
-        }
-        fun makeCallAndHandleError() : Int = makeCall()
-
-        return makeCallAndHandleError()
-    }
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeProgressListener: FfiConverterCallbackInterface<ProgressListener>(
-    foreignCallback = ForeignCallbackTypeProgressListener()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_progresslistener(this.foreignCallback, status)
-        }
-    }
+    companion object
 }
 
 
 
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceProgressListener {
+    internal object `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`progress`: Int,`total`: Int,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeProgressListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onProgress`(
+                    FfiConverterInt.lift(`progress`),
+                    FfiConverterInt.lift(`total`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeProgressListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceProgressListener.UniffiByValue(
+        `onProgress`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_progresslistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeProgressListener: FfiConverterCallbackInterface<ProgressListener>()
 
 
 
-// Declaration and FfiConverters for QrCodeListener Callback Interface
 
+
+/**
+ * Listener that will be passed over the FFI to report changes to a QrCode
+ * verification.
+ */
 public interface QrCodeListener {
+    
+    /**
+     * The callback that should be called on the Rust side
+     *
+     * # Arguments
+     *
+     * * `state` - The current state of the QrCode verification.
+     */
     fun `onChange`(`state`: QrCodeState)
     
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeQrCodeListener : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeQrCodeListener.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeQrCodeListener.drop(handle)
-                // Successful return
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                UNIFFI_CALLBACK_SUCCESS
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    this.`invokeOnChange`(cb, argsData, argsLen, outBuf)
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                UNIFFI_CALLBACK_UNEXPECTED_ERROR
-            }
-        }
-    }
-
-    
-    @Suppress("UNUSED_PARAMETER")
-    private fun `invokeOnChange`(kotlinCallbackInterface: QrCodeListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
-            it.order(ByteOrder.BIG_ENDIAN)
-        }
-        fun makeCall() : Int {
-            kotlinCallbackInterface.`onChange`(
-                FfiConverterTypeQrCodeState.read(argsBuf)
-            )
-            return UNIFFI_CALLBACK_SUCCESS
-        }
-        fun makeCallAndHandleError() : Int = makeCall()
-
-        return makeCallAndHandleError()
-    }
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeQrCodeListener: FfiConverterCallbackInterface<QrCodeListener>(
-    foreignCallback = ForeignCallbackTypeQrCodeListener()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_qrcodelistener(this.foreignCallback, status)
-        }
-    }
+    companion object
 }
 
 
 
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceQrCodeListener {
+    internal object `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeQrCodeListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onChange`(
+                    FfiConverterTypeQrCodeState.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeQrCodeListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceQrCodeListener.UniffiByValue(
+        `onChange`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_qrcodelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeQrCodeListener: FfiConverterCallbackInterface<QrCodeListener>()
 
 
 
-// Declaration and FfiConverters for SasListener Callback Interface
 
+
+/**
+ * Listener that will be passed over the FFI to report changes to a SAS
+ * verification.
+ */
 public interface SasListener {
+    
+    /**
+     * The callback that should be called on the Rust side
+     *
+     * # Arguments
+     *
+     * * `state` - The current state of the SAS verification.
+     */
     fun `onChange`(`state`: SasState)
     
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeSasListener : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeSasListener.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeSasListener.drop(handle)
-                // Successful return
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                UNIFFI_CALLBACK_SUCCESS
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    this.`invokeOnChange`(cb, argsData, argsLen, outBuf)
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                UNIFFI_CALLBACK_UNEXPECTED_ERROR
-            }
-        }
-    }
-
-    
-    @Suppress("UNUSED_PARAMETER")
-    private fun `invokeOnChange`(kotlinCallbackInterface: SasListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
-            it.order(ByteOrder.BIG_ENDIAN)
-        }
-        fun makeCall() : Int {
-            kotlinCallbackInterface.`onChange`(
-                FfiConverterTypeSasState.read(argsBuf)
-            )
-            return UNIFFI_CALLBACK_SUCCESS
-        }
-        fun makeCallAndHandleError() : Int = makeCall()
-
-        return makeCallAndHandleError()
-    }
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeSasListener: FfiConverterCallbackInterface<SasListener>(
-    foreignCallback = ForeignCallbackTypeSasListener()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_saslistener(this.foreignCallback, status)
-        }
-    }
+    companion object
 }
 
 
 
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSasListener {
+    internal object `onChange`: UniffiCallbackInterfaceSasListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSasListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onChange`(
+                    FfiConverterTypeSasState.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSasListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSasListener.UniffiByValue(
+        `onChange`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_saslistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSasListener: FfiConverterCallbackInterface<SasListener>()
 
 
 
-// Declaration and FfiConverters for VerificationRequestListener Callback Interface
 
+
+/**
+ * Listener that will be passed over the FFI to report changes to a
+ * verification request.
+ */
 public interface VerificationRequestListener {
+    
+    /**
+     * The callback that should be called on the Rust side
+     *
+     * # Arguments
+     *
+     * * `state` - The current state of the verification request.
+     */
     fun `onChange`(`state`: VerificationRequestState)
     
-}
-
-// The ForeignCallback that is passed to Rust.
-internal class ForeignCallbackTypeVerificationRequestListener : ForeignCallback {
-    @Suppress("TooGenericExceptionCaught")
-    override fun callback(handle: Handle, method: Int, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val cb = FfiConverterTypeVerificationRequestListener.lift(handle)
-        return when (method) {
-            IDX_CALLBACK_FREE -> {
-                FfiConverterTypeVerificationRequestListener.drop(handle)
-                // Successful return
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                UNIFFI_CALLBACK_SUCCESS
-            }
-            1 -> {
-                // Call the method, write to outBuf and return a status code
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs` for info
-                try {
-                    this.`invokeOnChange`(cb, argsData, argsLen, outBuf)
-                } catch (e: Throwable) {
-                    // Unexpected error
-                    try {
-                        // Try to serialize the error into a string
-                        outBuf.setValue(FfiConverterString.lower(e.toString()))
-                    } catch (e: Throwable) {
-                        // If that fails, then it's time to give up and just return
-                    }
-                    UNIFFI_CALLBACK_UNEXPECTED_ERROR
-                }
-            }
-            
-            else -> {
-                // An unexpected error happened.
-                // See docs of ForeignCallback in `uniffi_core/src/ffi/foreigncallbacks.rs`
-                try {
-                    // Try to serialize the error into a string
-                    outBuf.setValue(FfiConverterString.lower("Invalid Callback index"))
-                } catch (e: Throwable) {
-                    // If that fails, then it's time to give up and just return
-                }
-                UNIFFI_CALLBACK_UNEXPECTED_ERROR
-            }
-        }
-    }
-
-    
-    @Suppress("UNUSED_PARAMETER")
-    private fun `invokeOnChange`(kotlinCallbackInterface: VerificationRequestListener, argsData: Pointer, argsLen: Int, outBuf: RustBufferByReference): Int {
-        val argsBuf = argsData.getByteBuffer(0, argsLen.toLong()).also {
-            it.order(ByteOrder.BIG_ENDIAN)
-        }
-        fun makeCall() : Int {
-            kotlinCallbackInterface.`onChange`(
-                FfiConverterTypeVerificationRequestState.read(argsBuf)
-            )
-            return UNIFFI_CALLBACK_SUCCESS
-        }
-        fun makeCallAndHandleError() : Int = makeCall()
-
-        return makeCallAndHandleError()
-    }
-    
-}
-
-// The ffiConverter which transforms the Callbacks in to Handles to pass to Rust.
-public object FfiConverterTypeVerificationRequestListener: FfiConverterCallbackInterface<VerificationRequestListener>(
-    foreignCallback = ForeignCallbackTypeVerificationRequestListener()
-) {
-    override fun register(lib: _UniFFILib) {
-        rustCall() { status ->
-            lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_verificationrequestlistener(this.foreignCallback, status)
-        }
-    }
+    companion object
 }
 
 
 
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceVerificationRequestListener {
+    internal object `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeVerificationRequestListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onChange`(
+                    FfiConverterTypeVerificationRequestState.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
 
-public object FfiConverterOptionalString: FfiConverterRustBuffer<String?> {
-    override fun read(buf: ByteBuffer): String? {
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeVerificationRequestListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceVerificationRequestListener.UniffiByValue(
+        `onChange`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_verificationrequestlistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeVerificationRequestListener: FfiConverterCallbackInterface<VerificationRequestListener>()
+
+
+
+
+public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
+    override fun read(buf: ByteBuffer): kotlin.String? {
         if (buf.get().toInt() == 0) {
             return null
         }
         return FfiConverterString.read(buf)
     }
 
-    override fun allocationSize(value: String?): Int {
+    override fun allocationSize(value: kotlin.String?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterString.allocationSize(value)
+            return 1UL + FfiConverterString.allocationSize(value)
         }
     }
 
-    override fun write(value: String?, buf: ByteBuffer) {
+    override fun write(value: kotlin.String?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -6674,11 +11700,11 @@ public object FfiConverterOptionalTypeBackupKeys: FfiConverterRustBuffer<BackupK
         return FfiConverterTypeBackupKeys.read(buf)
     }
 
-    override fun allocationSize(value: BackupKeys?): Int {
+    override fun allocationSize(value: BackupKeys?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeBackupKeys.allocationSize(value)
+            return 1UL + FfiConverterTypeBackupKeys.allocationSize(value)
         }
     }
 
@@ -6703,11 +11729,11 @@ public object FfiConverterOptionalTypeBackupRecoveryKey: FfiConverterRustBuffer<
         return FfiConverterTypeBackupRecoveryKey.read(buf)
     }
 
-    override fun allocationSize(value: BackupRecoveryKey?): Int {
+    override fun allocationSize(value: BackupRecoveryKey?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeBackupRecoveryKey.allocationSize(value)
+            return 1UL + FfiConverterTypeBackupRecoveryKey.allocationSize(value)
         }
     }
 
@@ -6732,11 +11758,11 @@ public object FfiConverterOptionalTypeQrCode: FfiConverterRustBuffer<QrCode?> {
         return FfiConverterTypeQrCode.read(buf)
     }
 
-    override fun allocationSize(value: QrCode?): Int {
+    override fun allocationSize(value: QrCode?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeQrCode.allocationSize(value)
+            return 1UL + FfiConverterTypeQrCode.allocationSize(value)
         }
     }
 
@@ -6761,11 +11787,11 @@ public object FfiConverterOptionalTypeSas: FfiConverterRustBuffer<Sas?> {
         return FfiConverterTypeSas.read(buf)
     }
 
-    override fun allocationSize(value: Sas?): Int {
+    override fun allocationSize(value: Sas?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeSas.allocationSize(value)
+            return 1UL + FfiConverterTypeSas.allocationSize(value)
         }
     }
 
@@ -6790,11 +11816,11 @@ public object FfiConverterOptionalTypeVerification: FfiConverterRustBuffer<Verif
         return FfiConverterTypeVerification.read(buf)
     }
 
-    override fun allocationSize(value: Verification?): Int {
+    override fun allocationSize(value: Verification?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeVerification.allocationSize(value)
+            return 1UL + FfiConverterTypeVerification.allocationSize(value)
         }
     }
 
@@ -6819,11 +11845,11 @@ public object FfiConverterOptionalTypeVerificationRequest: FfiConverterRustBuffe
         return FfiConverterTypeVerificationRequest.read(buf)
     }
 
-    override fun allocationSize(value: VerificationRequest?): Int {
+    override fun allocationSize(value: VerificationRequest?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeVerificationRequest.allocationSize(value)
+            return 1UL + FfiConverterTypeVerificationRequest.allocationSize(value)
         }
     }
 
@@ -6848,11 +11874,11 @@ public object FfiConverterOptionalTypeCancelInfo: FfiConverterRustBuffer<CancelI
         return FfiConverterTypeCancelInfo.read(buf)
     }
 
-    override fun allocationSize(value: CancelInfo?): Int {
+    override fun allocationSize(value: CancelInfo?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeCancelInfo.allocationSize(value)
+            return 1UL + FfiConverterTypeCancelInfo.allocationSize(value)
         }
     }
 
@@ -6877,11 +11903,11 @@ public object FfiConverterOptionalTypeConfirmVerificationResult: FfiConverterRus
         return FfiConverterTypeConfirmVerificationResult.read(buf)
     }
 
-    override fun allocationSize(value: ConfirmVerificationResult?): Int {
+    override fun allocationSize(value: ConfirmVerificationResult?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeConfirmVerificationResult.allocationSize(value)
+            return 1UL + FfiConverterTypeConfirmVerificationResult.allocationSize(value)
         }
     }
 
@@ -6906,11 +11932,11 @@ public object FfiConverterOptionalTypeCrossSigningKeyExport: FfiConverterRustBuf
         return FfiConverterTypeCrossSigningKeyExport.read(buf)
     }
 
-    override fun allocationSize(value: CrossSigningKeyExport?): Int {
+    override fun allocationSize(value: CrossSigningKeyExport?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeCrossSigningKeyExport.allocationSize(value)
+            return 1UL + FfiConverterTypeCrossSigningKeyExport.allocationSize(value)
         }
     }
 
@@ -6935,11 +11961,11 @@ public object FfiConverterOptionalTypeDevice: FfiConverterRustBuffer<Device?> {
         return FfiConverterTypeDevice.read(buf)
     }
 
-    override fun allocationSize(value: Device?): Int {
+    override fun allocationSize(value: Device?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeDevice.allocationSize(value)
+            return 1UL + FfiConverterTypeDevice.allocationSize(value)
         }
     }
 
@@ -6964,11 +11990,11 @@ public object FfiConverterOptionalTypePassphraseInfo: FfiConverterRustBuffer<Pas
         return FfiConverterTypePassphraseInfo.read(buf)
     }
 
-    override fun allocationSize(value: PassphraseInfo?): Int {
+    override fun allocationSize(value: PassphraseInfo?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypePassphraseInfo.allocationSize(value)
+            return 1UL + FfiConverterTypePassphraseInfo.allocationSize(value)
         }
     }
 
@@ -6993,11 +12019,11 @@ public object FfiConverterOptionalTypeRequestVerificationResult: FfiConverterRus
         return FfiConverterTypeRequestVerificationResult.read(buf)
     }
 
-    override fun allocationSize(value: RequestVerificationResult?): Int {
+    override fun allocationSize(value: RequestVerificationResult?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeRequestVerificationResult.allocationSize(value)
+            return 1UL + FfiConverterTypeRequestVerificationResult.allocationSize(value)
         }
     }
 
@@ -7022,11 +12048,11 @@ public object FfiConverterOptionalTypeRoomSettings: FfiConverterRustBuffer<RoomS
         return FfiConverterTypeRoomSettings.read(buf)
     }
 
-    override fun allocationSize(value: RoomSettings?): Int {
+    override fun allocationSize(value: RoomSettings?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeRoomSettings.allocationSize(value)
+            return 1UL + FfiConverterTypeRoomSettings.allocationSize(value)
         }
     }
 
@@ -7051,11 +12077,11 @@ public object FfiConverterOptionalTypeScanResult: FfiConverterRustBuffer<ScanRes
         return FfiConverterTypeScanResult.read(buf)
     }
 
-    override fun allocationSize(value: ScanResult?): Int {
+    override fun allocationSize(value: ScanResult?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeScanResult.allocationSize(value)
+            return 1UL + FfiConverterTypeScanResult.allocationSize(value)
         }
     }
 
@@ -7080,11 +12106,11 @@ public object FfiConverterOptionalTypeSignatureUploadRequest: FfiConverterRustBu
         return FfiConverterTypeSignatureUploadRequest.read(buf)
     }
 
-    override fun allocationSize(value: SignatureUploadRequest?): Int {
+    override fun allocationSize(value: SignatureUploadRequest?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeSignatureUploadRequest.allocationSize(value)
+            return 1UL + FfiConverterTypeSignatureUploadRequest.allocationSize(value)
         }
     }
 
@@ -7109,11 +12135,11 @@ public object FfiConverterOptionalTypeStartSasResult: FfiConverterRustBuffer<Sta
         return FfiConverterTypeStartSasResult.read(buf)
     }
 
-    override fun allocationSize(value: StartSasResult?): Int {
+    override fun allocationSize(value: StartSasResult?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeStartSasResult.allocationSize(value)
+            return 1UL + FfiConverterTypeStartSasResult.allocationSize(value)
         }
     }
 
@@ -7138,11 +12164,11 @@ public object FfiConverterOptionalTypeOutgoingVerificationRequest: FfiConverterR
         return FfiConverterTypeOutgoingVerificationRequest.read(buf)
     }
 
-    override fun allocationSize(value: OutgoingVerificationRequest?): Int {
+    override fun allocationSize(value: OutgoingVerificationRequest?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeOutgoingVerificationRequest.allocationSize(value)
+            return 1UL + FfiConverterTypeOutgoingVerificationRequest.allocationSize(value)
         }
     }
 
@@ -7167,11 +12193,11 @@ public object FfiConverterOptionalTypeRequest: FfiConverterRustBuffer<Request?> 
         return FfiConverterTypeRequest.read(buf)
     }
 
-    override fun allocationSize(value: Request?): Int {
+    override fun allocationSize(value: Request?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeRequest.allocationSize(value)
+            return 1UL + FfiConverterTypeRequest.allocationSize(value)
         }
     }
 
@@ -7196,11 +12222,11 @@ public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserI
         return FfiConverterTypeUserIdentity.read(buf)
     }
 
-    override fun allocationSize(value: UserIdentity?): Int {
+    override fun allocationSize(value: UserIdentity?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterTypeUserIdentity.allocationSize(value)
+            return 1UL + FfiConverterTypeUserIdentity.allocationSize(value)
         }
     }
 
@@ -7217,23 +12243,23 @@ public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserI
 
 
 
-public object FfiConverterOptionalSequenceInt: FfiConverterRustBuffer<List<Int>?> {
-    override fun read(buf: ByteBuffer): List<Int>? {
+public object FfiConverterOptionalSequenceInt: FfiConverterRustBuffer<List<kotlin.Int>?> {
+    override fun read(buf: ByteBuffer): List<kotlin.Int>? {
         if (buf.get().toInt() == 0) {
             return null
         }
         return FfiConverterSequenceInt.read(buf)
     }
 
-    override fun allocationSize(value: List<Int>?): Int {
+    override fun allocationSize(value: List<kotlin.Int>?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterSequenceInt.allocationSize(value)
+            return 1UL + FfiConverterSequenceInt.allocationSize(value)
         }
     }
 
-    override fun write(value: List<Int>?, buf: ByteBuffer) {
+    override fun write(value: List<kotlin.Int>?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -7246,23 +12272,23 @@ public object FfiConverterOptionalSequenceInt: FfiConverterRustBuffer<List<Int>?
 
 
 
-public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<String>?> {
-    override fun read(buf: ByteBuffer): List<String>? {
+public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<kotlin.String>?> {
+    override fun read(buf: ByteBuffer): List<kotlin.String>? {
         if (buf.get().toInt() == 0) {
             return null
         }
         return FfiConverterSequenceString.read(buf)
     }
 
-    override fun allocationSize(value: List<String>?): Int {
+    override fun allocationSize(value: List<kotlin.String>?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterSequenceString.allocationSize(value)
+            return 1UL + FfiConverterSequenceString.allocationSize(value)
         }
     }
 
-    override fun write(value: List<String>?, buf: ByteBuffer) {
+    override fun write(value: List<kotlin.String>?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -7275,48 +12301,23 @@ public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<St
 
 
 
-public object FfiConverterSequenceUByte: FfiConverterRustBuffer<List<UByte>> {
-    override fun read(buf: ByteBuffer): List<UByte> {
+public object FfiConverterSequenceInt: FfiConverterRustBuffer<List<kotlin.Int>> {
+    override fun read(buf: ByteBuffer): List<kotlin.Int> {
         val len = buf.getInt()
-        return List<UByte>(len) {
-            FfiConverterUByte.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<UByte>): Int {
-        val sizeForLength = 4
-        val sizeForItems = value.map { FfiConverterUByte.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(value: List<UByte>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        value.forEach {
-            FfiConverterUByte.write(it, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterSequenceInt: FfiConverterRustBuffer<List<Int>> {
-    override fun read(buf: ByteBuffer): List<Int> {
-        val len = buf.getInt()
-        return List<Int>(len) {
+        return List<kotlin.Int>(len) {
             FfiConverterInt.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<Int>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<kotlin.Int>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterInt.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<Int>, buf: ByteBuffer) {
+    override fun write(value: List<kotlin.Int>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterInt.write(it, buf)
         }
     }
@@ -7325,23 +12326,23 @@ public object FfiConverterSequenceInt: FfiConverterRustBuffer<List<Int>> {
 
 
 
-public object FfiConverterSequenceString: FfiConverterRustBuffer<List<String>> {
-    override fun read(buf: ByteBuffer): List<String> {
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
+    override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
-        return List<String>(len) {
+        return List<kotlin.String>(len) {
             FfiConverterString.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<String>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<kotlin.String>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterString.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<String>, buf: ByteBuffer) {
+    override fun write(value: List<kotlin.String>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterString.write(it, buf)
         }
     }
@@ -7358,15 +12359,15 @@ public object FfiConverterSequenceTypeVerificationRequest: FfiConverterRustBuffe
         }
     }
 
-    override fun allocationSize(value: List<VerificationRequest>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<VerificationRequest>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypeVerificationRequest.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<VerificationRequest>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypeVerificationRequest.write(it, buf)
         }
     }
@@ -7383,15 +12384,15 @@ public object FfiConverterSequenceTypeDevice: FfiConverterRustBuffer<List<Device
         }
     }
 
-    override fun allocationSize(value: List<Device>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<Device>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypeDevice.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<Device>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypeDevice.write(it, buf)
         }
     }
@@ -7408,15 +12409,15 @@ public object FfiConverterSequenceTypePickledInboundGroupSession: FfiConverterRu
         }
     }
 
-    override fun allocationSize(value: List<PickledInboundGroupSession>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<PickledInboundGroupSession>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypePickledInboundGroupSession.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<PickledInboundGroupSession>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypePickledInboundGroupSession.write(it, buf)
         }
     }
@@ -7433,15 +12434,15 @@ public object FfiConverterSequenceTypePickledSession: FfiConverterRustBuffer<Lis
         }
     }
 
-    override fun allocationSize(value: List<PickledSession>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<PickledSession>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypePickledSession.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<PickledSession>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypePickledSession.write(it, buf)
         }
     }
@@ -7458,15 +12459,15 @@ public object FfiConverterSequenceTypeRoomKeyInfo: FfiConverterRustBuffer<List<R
         }
     }
 
-    override fun allocationSize(value: List<RoomKeyInfo>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<RoomKeyInfo>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypeRoomKeyInfo.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<RoomKeyInfo>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypeRoomKeyInfo.write(it, buf)
         }
     }
@@ -7483,15 +12484,15 @@ public object FfiConverterSequenceTypeOutgoingVerificationRequest: FfiConverterR
         }
     }
 
-    override fun allocationSize(value: List<OutgoingVerificationRequest>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<OutgoingVerificationRequest>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypeOutgoingVerificationRequest.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<OutgoingVerificationRequest>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypeOutgoingVerificationRequest.write(it, buf)
         }
     }
@@ -7508,15 +12509,15 @@ public object FfiConverterSequenceTypeRequest: FfiConverterRustBuffer<List<Reque
         }
     }
 
-    override fun allocationSize(value: List<Request>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<Request>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypeRequest.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<Request>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypeRequest.write(it, buf)
         }
     }
@@ -7524,21 +12525,20 @@ public object FfiConverterSequenceTypeRequest: FfiConverterRustBuffer<List<Reque
 
 
 
-public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<String, Int>> {
-    override fun read(buf: ByteBuffer): Map<String, Int> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, Int> = mutableMapOf()
+public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<kotlin.String, kotlin.Int>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.Int> {
         val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterInt.read(buf)
-            items[k] = v
+        return buildMap<kotlin.String, kotlin.Int>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterInt.read(buf)
+                this[k] = v
+            }
         }
-        return items
     }
 
-    override fun allocationSize(value: Map<String, Int>): Int {
-        val spaceForMapSize = 4
+    override fun allocationSize(value: Map<kotlin.String, kotlin.Int>): ULong {
+        val spaceForMapSize = 4UL
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
             FfiConverterInt.allocationSize(v)
@@ -7546,7 +12546,7 @@ public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<String, Int>>
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, Int>, buf: ByteBuffer) {
+    override fun write(value: Map<kotlin.String, kotlin.Int>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -7560,21 +12560,20 @@ public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<String, Int>>
 
 
 
-public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<String, String>> {
-    override fun read(buf: ByteBuffer): Map<String, String> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, String> = mutableMapOf()
+public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.String, kotlin.String>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.String> {
         val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterString.read(buf)
-            items[k] = v
+        return buildMap<kotlin.String, kotlin.String>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterString.read(buf)
+                this[k] = v
+            }
         }
-        return items
     }
 
-    override fun allocationSize(value: Map<String, String>): Int {
-        val spaceForMapSize = 4
+    override fun allocationSize(value: Map<kotlin.String, kotlin.String>): ULong {
+        val spaceForMapSize = 4UL
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
             FfiConverterString.allocationSize(v)
@@ -7582,7 +12581,7 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<String, St
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, String>, buf: ByteBuffer) {
+    override fun write(value: Map<kotlin.String, kotlin.String>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -7596,21 +12595,20 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<String, St
 
 
 
-public object FfiConverterMapStringTypeRoomSettings: FfiConverterRustBuffer<Map<String, RoomSettings>> {
-    override fun read(buf: ByteBuffer): Map<String, RoomSettings> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, RoomSettings> = mutableMapOf()
+public object FfiConverterMapStringTypeRoomSettings: FfiConverterRustBuffer<Map<kotlin.String, RoomSettings>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, RoomSettings> {
         val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterTypeRoomSettings.read(buf)
-            items[k] = v
+        return buildMap<kotlin.String, RoomSettings>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterTypeRoomSettings.read(buf)
+                this[k] = v
+            }
         }
-        return items
     }
 
-    override fun allocationSize(value: Map<String, RoomSettings>): Int {
-        val spaceForMapSize = 4
+    override fun allocationSize(value: Map<kotlin.String, RoomSettings>): ULong {
+        val spaceForMapSize = 4UL
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
             FfiConverterTypeRoomSettings.allocationSize(v)
@@ -7618,7 +12616,7 @@ public object FfiConverterMapStringTypeRoomSettings: FfiConverterRustBuffer<Map<
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, RoomSettings>, buf: ByteBuffer) {
+    override fun write(value: Map<kotlin.String, RoomSettings>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -7632,57 +12630,20 @@ public object FfiConverterMapStringTypeRoomSettings: FfiConverterRustBuffer<Map<
 
 
 
-public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Map<String, SignatureState>> {
-    override fun read(buf: ByteBuffer): Map<String, SignatureState> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, SignatureState> = mutableMapOf()
+public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, List<kotlin.String>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, List<kotlin.String>> {
         val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterTypeSignatureState.read(buf)
-            items[k] = v
-        }
-        return items
-    }
-
-    override fun allocationSize(value: Map<String, SignatureState>): Int {
-        val spaceForMapSize = 4
-        val spaceForChildren = value.map { (k, v) ->
-            FfiConverterString.allocationSize(k) +
-            FfiConverterTypeSignatureState.allocationSize(v)
-        }.sum()
-        return spaceForMapSize + spaceForChildren
-    }
-
-    override fun write(value: Map<String, SignatureState>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterString.write(k, buf)
-            FfiConverterTypeSignatureState.write(v, buf)
+        return buildMap<kotlin.String, List<kotlin.String>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterSequenceString.read(buf)
+                this[k] = v
+            }
         }
     }
-}
 
-
-
-public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<String, List<String>>> {
-    override fun read(buf: ByteBuffer): Map<String, List<String>> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, List<String>> = mutableMapOf()
-        val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterSequenceString.read(buf)
-            items[k] = v
-        }
-        return items
-    }
-
-    override fun allocationSize(value: Map<String, List<String>>): Int {
-        val spaceForMapSize = 4
+    override fun allocationSize(value: Map<kotlin.String, List<kotlin.String>>): ULong {
+        val spaceForMapSize = 4UL
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
             FfiConverterSequenceString.allocationSize(v)
@@ -7690,7 +12651,7 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<St
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, List<String>>, buf: ByteBuffer) {
+    override fun write(value: Map<kotlin.String, List<kotlin.String>>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -7704,21 +12665,20 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<St
 
 
 
-public object FfiConverterMapStringMapStringString: FfiConverterRustBuffer<Map<String, Map<String, String>>> {
-    override fun read(buf: ByteBuffer): Map<String, Map<String, String>> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, Map<String, String>> = mutableMapOf()
+public object FfiConverterMapStringMapStringString: FfiConverterRustBuffer<Map<kotlin.String, Map<kotlin.String, kotlin.String>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, Map<kotlin.String, kotlin.String>> {
         val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterMapStringString.read(buf)
-            items[k] = v
+        return buildMap<kotlin.String, Map<kotlin.String, kotlin.String>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterMapStringString.read(buf)
+                this[k] = v
+            }
         }
-        return items
     }
 
-    override fun allocationSize(value: Map<String, Map<String, String>>): Int {
-        val spaceForMapSize = 4
+    override fun allocationSize(value: Map<kotlin.String, Map<kotlin.String, kotlin.String>>): ULong {
+        val spaceForMapSize = 4UL
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
             FfiConverterMapStringString.allocationSize(v)
@@ -7726,7 +12686,7 @@ public object FfiConverterMapStringMapStringString: FfiConverterRustBuffer<Map<S
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, Map<String, String>>, buf: ByteBuffer) {
+    override fun write(value: Map<kotlin.String, Map<kotlin.String, kotlin.String>>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -7740,21 +12700,20 @@ public object FfiConverterMapStringMapStringString: FfiConverterRustBuffer<Map<S
 
 
 
-public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuffer<Map<String, Map<String, List<String>>>> {
-    override fun read(buf: ByteBuffer): Map<String, Map<String, List<String>>> {
-        // TODO: Once Kotlin's `buildMap` API is stabilized we should use it here.
-        val items : MutableMap<String, Map<String, List<String>>> = mutableMapOf()
+public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>> {
         val len = buf.getInt()
-        repeat(len) {
-            val k = FfiConverterString.read(buf)
-            val v = FfiConverterMapStringSequenceString.read(buf)
-            items[k] = v
+        return buildMap<kotlin.String, Map<kotlin.String, List<kotlin.String>>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterMapStringSequenceString.read(buf)
+                this[k] = v
+            }
         }
-        return items
     }
 
-    override fun allocationSize(value: Map<String, Map<String, List<String>>>): Int {
-        val spaceForMapSize = 4
+    override fun allocationSize(value: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>): ULong {
+        val spaceForMapSize = 4UL
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
             FfiConverterMapStringSequenceString.allocationSize(v)
@@ -7762,7 +12721,7 @@ public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuff
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, Map<String, List<String>>>, buf: ByteBuffer) {
+    override fun write(value: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
@@ -7773,63 +12732,168 @@ public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuff
         }
     }
 }
-@Throws(MigrationException::class)
 
-fun `migrate`(`data`: MigrationData, `path`: String, `passphrase`: String?, `progressListener`: ProgressListener) =
+
+
+public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Map<kotlin.String, SignatureState>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, SignatureState> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, SignatureState>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterTypeSignatureState.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, SignatureState>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterTypeSignatureState.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, SignatureState>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterTypeSignatureState.write(v, buf)
+        }
+    }
+}
+
+
+
+
+
+
+
+
+        /**
+         * Migrate a libolm based setup to a vodozemac based setup stored in a SQLite
+         * store.
+         *
+         * # Arguments
+         *
+         * * `data` - The data that should be migrated over to the SQLite store.
+         *
+         * * `path` - The path where the SQLite store should be created.
+         *
+         * * `passphrase` - The passphrase that should be used to encrypt the data at
+         * rest in the SQLite store. **Warning**, if no passphrase is given, the store
+         * and all its data will remain unencrypted.
+         *
+         * * `progress_listener` - A callback that can be used to introspect the
+         * progress of the migration.
+         */
+    @Throws(MigrationException::class) fun `migrate`(`data`: MigrationData, `path`: kotlin.String, `passphrase`: kotlin.String?, `progressListener`: ProgressListener)
+        = 
+    uniffiRustCallWithError(MigrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(
+        FfiConverterTypeMigrationData.lower(`data`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
+}
     
-    rustCallWithError(MigrationException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(FfiConverterTypeMigrationData.lower(`data`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
-}
-
-
-@Throws(MigrationException::class)
-
-fun `migrateRoomSettings`(`roomSettings`: Map<String, RoomSettings>, `path`: String, `passphrase`: String?) =
     
-    rustCallWithError(MigrationException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(FfiConverterMapStringTypeRoomSettings.lower(`roomSettings`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),_status)
+
+        /**
+         * Migrate room settings, including room algorithm and whether to block
+         * untrusted devices from legacy store to Sqlite store.
+         *
+         * Note that this method should only be used if a client has already migrated
+         * account data via [migrate](#method.migrate) method, which did not include
+         * room settings. For a brand new migration, the [migrate](#method.migrate)
+         * method will take care of room settings automatically, if provided.
+         *
+         * # Arguments
+         *
+         * * `room_settings` - Map of room settings
+         *
+         * * `path` - The path where the Sqlite store should be created.
+         *
+         * * `passphrase` - The passphrase that should be used to encrypt the data at
+         * rest in the Sqlite store. **Warning**, if no passphrase is given, the store
+         * and all its data will remain unencrypted.
+         */
+    @Throws(MigrationException::class) fun `migrateRoomSettings`(`roomSettings`: Map<kotlin.String, RoomSettings>, `path`: kotlin.String, `passphrase`: kotlin.String?)
+        = 
+    uniffiRustCallWithError(MigrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(
+        FfiConverterMapStringTypeRoomSettings.lower(`roomSettings`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),_status)
 }
-
-
-@Throws(MigrationException::class)
-
-fun `migrateSessions`(`data`: SessionMigrationData, `path`: String, `passphrase`: String?, `progressListener`: ProgressListener) =
     
-    rustCallWithError(MigrationException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(FfiConverterTypeSessionMigrationData.lower(`data`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
-}
-
-
-
-fun `setLogger`(`logger`: Logger) =
     
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(FfiConverterTypeLogger.lower(`logger`),_status)
+
+        /**
+         * Migrate sessions and group sessions of a libolm based setup to a vodozemac
+         * based setup stored in a SQLite store.
+         *
+         * This method allows you to migrate a subset of the data, it should only be
+         * used after the [`migrate()`] method has been already used.
+         *
+         * # Arguments
+         *
+         * * `data` - The data that should be migrated over to the SQLite store.
+         *
+         * * `path` - The path where the SQLite store should be created.
+         *
+         * * `passphrase` - The passphrase that should be used to encrypt the data at
+         * rest in the SQLite store. **Warning**, if no passphrase is given, the store
+         * and all its data will remain unencrypted.
+         *
+         * * `progress_listener` - A callback that can be used to introspect the
+         * progress of the migration.
+         */
+    @Throws(MigrationException::class) fun `migrateSessions`(`data`: SessionMigrationData, `path`: kotlin.String, `passphrase`: kotlin.String?, `progressListener`: ProgressListener)
+        = 
+    uniffiRustCallWithError(MigrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(
+        FfiConverterTypeSessionMigrationData.lower(`data`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
 }
+    
+    
 
-
-
-fun `version`(): String {
-    return FfiConverterString.lift(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version(_status)
-})
+        /**
+         * Set the logger that should be used to forward Rust logs over FFI.
+         */ fun `setLogger`(`logger`: Logger)
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(
+        FfiConverterTypeLogger.lower(`logger`),_status)
 }
-
-
-fun `versionInfo`(): VersionInfo {
-    return FfiConverterTypeVersionInfo.lift(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(_status)
-})
+    
+    
+ fun `version`(): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version(
+        _status)
 }
-
-
-fun `vodozemacVersion`(): String {
-    return FfiConverterString.lift(
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(_status)
-})
+    )
+    }
+    
+ fun `versionInfo`(): VersionInfo {
+            return FfiConverterTypeVersionInfo.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(
+        _status)
 }
+    )
+    }
+    
+ fun `vodozemacVersion`(): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(
+        _status)
+}
+    )
+    }
+    
 
 
