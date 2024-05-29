@@ -1144,6 +1144,74 @@ public object FfiConverterTypePaginatorState: FfiConverterRustBuffer<PaginatorSt
 
 
 /**
+ * The error type for failures while trying to log in a new device using a QR
+ * code.
+ */
+
+enum class QrCodeLoginError {
+    
+    /**
+     * An error happened while we were communicating with the OIDC provider.
+     */
+    OIDC,
+    /**
+     * The other device has signaled to us that the login has failed.
+     */
+    LOGIN_FAILURE,
+    /**
+     * An unexpected message was received from the other device.
+     */
+    UNEXPECTED_MESSAGE,
+    /**
+     * An error happened while exchanging messages with the other device.
+     */
+    SECURE_CHANNEL,
+    /**
+     * The cross-process refresh lock failed to be initialized.
+     */
+    CROSS_PROCESS_REFRESH_LOCK,
+    /**
+     * An error happened while we were trying to discover our user and device
+     * ID, after we have acquired an access token from the OIDC provider.
+     */
+    USER_ID_DISCOVERY,
+    /**
+     * We failed to set the session tokens after we figured out our device and
+     * user IDs.
+     */
+    SESSION_TOKENS,
+    /**
+     * The device keys failed to be uploaded after we successfully logged in.
+     */
+    DEVICE_KEY_UPLOAD,
+    /**
+     * The secrets bundle we received from the existing device failed to be
+     * imported.
+     */
+    SECRET_IMPORT;
+    companion object
+}
+
+
+public object FfiConverterTypeQRCodeLoginError: FfiConverterRustBuffer<QrCodeLoginError> {
+    override fun read(buf: ByteBuffer) = try {
+        QrCodeLoginError.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: QrCodeLoginError) = 4UL
+
+    override fun write(value: QrCodeLoginError, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The role of a member in a room.
  */
 
