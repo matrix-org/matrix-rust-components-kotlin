@@ -24323,12 +24323,6 @@ sealed class HumanQrLoginException: Exception() {
             get() = ""
     }
     
-    class InvalidQrCode(
-        ) : HumanQrLoginException() {
-        override val message
-            get() = ""
-    }
-    
     class SlidingSyncNotAvailable(
         ) : HumanQrLoginException() {
         override val message
@@ -24336,6 +24330,12 @@ sealed class HumanQrLoginException: Exception() {
     }
     
     class OidcMetadataInvalid(
+        ) : HumanQrLoginException() {
+        override val message
+            get() = ""
+    }
+    
+    class OtherDeviceNotSignedIn(
         ) : HumanQrLoginException() {
         override val message
             get() = ""
@@ -24360,9 +24360,9 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
             4 -> HumanQrLoginException.ConnectionInsecure()
             5 -> HumanQrLoginException.Declined()
             6 -> HumanQrLoginException.Unknown()
-            7 -> HumanQrLoginException.InvalidQrCode()
-            8 -> HumanQrLoginException.SlidingSyncNotAvailable()
-            9 -> HumanQrLoginException.OidcMetadataInvalid()
+            7 -> HumanQrLoginException.SlidingSyncNotAvailable()
+            8 -> HumanQrLoginException.OidcMetadataInvalid()
+            9 -> HumanQrLoginException.OtherDeviceNotSignedIn()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -24393,15 +24393,15 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
-            is HumanQrLoginException.InvalidQrCode -> (
-                // Add the size for the Int that specifies the variant plus the size needed for all fields
-                4UL
-            )
             is HumanQrLoginException.SlidingSyncNotAvailable -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
             is HumanQrLoginException.OidcMetadataInvalid -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is HumanQrLoginException.OtherDeviceNotSignedIn -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
@@ -24434,15 +24434,15 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
                 buf.putInt(6)
                 Unit
             }
-            is HumanQrLoginException.InvalidQrCode -> {
+            is HumanQrLoginException.SlidingSyncNotAvailable -> {
                 buf.putInt(7)
                 Unit
             }
-            is HumanQrLoginException.SlidingSyncNotAvailable -> {
+            is HumanQrLoginException.OidcMetadataInvalid -> {
                 buf.putInt(8)
                 Unit
             }
-            is HumanQrLoginException.OidcMetadataInvalid -> {
+            is HumanQrLoginException.OtherDeviceNotSignedIn -> {
                 buf.putInt(9)
                 Unit
             }
