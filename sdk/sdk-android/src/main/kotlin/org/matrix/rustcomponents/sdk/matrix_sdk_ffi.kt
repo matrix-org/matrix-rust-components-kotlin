@@ -2340,6 +2340,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_message_body(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_message_content(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_message_in_reply_to(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_message_is_edited(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2733,8 +2735,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_focused_paginate_forwards(`ptr`: Pointer,`numEvents`: Short,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_event_timeline_item_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_timeline_event_content_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event(`ptr`: Pointer,
     ): Long
@@ -3318,6 +3318,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_body(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_message_content(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_in_reply_to(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_message_is_edited(
@@ -3629,8 +3631,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_focused_paginate_forwards(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_timeline_event_content_by_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event(
     ): Short
@@ -4208,6 +4208,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_body() != 21198.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_content() != 57046.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_in_reply_to() != 16154.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4674,9 +4677,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() != 36555.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_timeline_event_content_by_event_id() != 31042.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event() != 11115.toShort()) {
@@ -9545,6 +9545,8 @@ public interface MessageInterface {
     
     fun `body`(): kotlin.String
     
+    fun `content`(): RoomMessageEventContentWithoutRelation
+    
     fun `inReplyTo`(): InReplyToDetails?
     
     fun `isEdited`(): kotlin.Boolean
@@ -9642,6 +9644,18 @@ open class Message: Disposable, AutoCloseable, MessageInterface {
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_body(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `content`(): RoomMessageEventContentWithoutRelation {
+            return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_content(
         it, _status)
 }
     }
@@ -17430,8 +17444,6 @@ public interface TimelineInterface {
     
     suspend fun `getEventTimelineItemByEventId`(`eventId`: kotlin.String): EventTimelineItem
     
-    suspend fun `getTimelineEventContentByEventId`(`eventId`: kotlin.String): RoomMessageEventContentWithoutRelation
-    
     suspend fun `latestEvent`(): EventTimelineItem?
     
     /**
@@ -17747,27 +17759,6 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
         { FfiConverterTypeEventTimelineItem.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getTimelineEventContentByEventId`(`eventId`: kotlin.String) : RoomMessageEventContentWithoutRelation {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_get_timeline_event_content_by_event_id(
-                thisPtr,
-                FfiConverterString.lower(`eventId`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -24832,16 +24823,16 @@ sealed class MessageLikeEventContent: Disposable  {
     object CallInvite : MessageLikeEventContent()
     
     
+    data class CallNotify(
+        val `notifyType`: NotifyType) : MessageLikeEventContent() {
+        companion object
+    }
+    
     object CallHangup : MessageLikeEventContent()
     
     
     object CallCandidates : MessageLikeEventContent()
     
-    
-    data class CallNotify(
-        val `notifyType`: NotifyType) : MessageLikeEventContent() {
-        companion object
-    }
     
     object KeyVerificationReady : MessageLikeEventContent()
     
@@ -24898,15 +24889,15 @@ sealed class MessageLikeEventContent: Disposable  {
             }
             is MessageLikeEventContent.CallInvite -> {// Nothing to destroy
             }
-            is MessageLikeEventContent.CallHangup -> {// Nothing to destroy
-            }
-            is MessageLikeEventContent.CallCandidates -> {// Nothing to destroy
-            }
             is MessageLikeEventContent.CallNotify -> {
                 
     Disposable.destroy(
         this.`notifyType`)
                 
+            }
+            is MessageLikeEventContent.CallHangup -> {// Nothing to destroy
+            }
+            is MessageLikeEventContent.CallCandidates -> {// Nothing to destroy
             }
             is MessageLikeEventContent.KeyVerificationReady -> {// Nothing to destroy
             }
@@ -24958,11 +24949,11 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
         return when(buf.getInt()) {
             1 -> MessageLikeEventContent.CallAnswer
             2 -> MessageLikeEventContent.CallInvite
-            3 -> MessageLikeEventContent.CallHangup
-            4 -> MessageLikeEventContent.CallCandidates
-            5 -> MessageLikeEventContent.CallNotify(
+            3 -> MessageLikeEventContent.CallNotify(
                 FfiConverterTypeNotifyType.read(buf),
                 )
+            4 -> MessageLikeEventContent.CallHangup
+            5 -> MessageLikeEventContent.CallCandidates
             6 -> MessageLikeEventContent.KeyVerificationReady
             7 -> MessageLikeEventContent.KeyVerificationStart
             8 -> MessageLikeEventContent.KeyVerificationCancel
@@ -25000,6 +24991,13 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 4UL
             )
         }
+        is MessageLikeEventContent.CallNotify -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeNotifyType.allocationSize(value.`notifyType`)
+            )
+        }
         is MessageLikeEventContent.CallHangup -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -25010,13 +25008,6 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-            )
-        }
-        is MessageLikeEventContent.CallNotify -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterTypeNotifyType.allocationSize(value.`notifyType`)
             )
         }
         is MessageLikeEventContent.KeyVerificationReady -> {
@@ -25113,17 +25104,17 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 buf.putInt(2)
                 Unit
             }
-            is MessageLikeEventContent.CallHangup -> {
+            is MessageLikeEventContent.CallNotify -> {
                 buf.putInt(3)
+                FfiConverterTypeNotifyType.write(value.`notifyType`, buf)
                 Unit
             }
-            is MessageLikeEventContent.CallCandidates -> {
+            is MessageLikeEventContent.CallHangup -> {
                 buf.putInt(4)
                 Unit
             }
-            is MessageLikeEventContent.CallNotify -> {
+            is MessageLikeEventContent.CallCandidates -> {
                 buf.putInt(5)
-                FfiConverterTypeNotifyType.write(value.`notifyType`, buf)
                 Unit
             }
             is MessageLikeEventContent.KeyVerificationReady -> {
@@ -25197,6 +25188,7 @@ enum class MessageLikeEventType {
     CALL_CANDIDATES,
     CALL_HANGUP,
     CALL_INVITE,
+    CALL_NOTIFY,
     KEY_VERIFICATION_ACCEPT,
     KEY_VERIFICATION_CANCEL,
     KEY_VERIFICATION_DONE,
@@ -29155,6 +29147,9 @@ sealed class TimelineItemContentKind: Disposable  {
     object CallInvite : TimelineItemContentKind()
     
     
+    object CallNotify : TimelineItemContentKind()
+    
+    
     data class UnableToDecrypt(
         val `msg`: EncryptedMessage) : TimelineItemContentKind() {
         companion object
@@ -29224,6 +29219,8 @@ sealed class TimelineItemContentKind: Disposable  {
                 
             }
             is TimelineItemContentKind.CallInvite -> {// Nothing to destroy
+            }
+            is TimelineItemContentKind.CallNotify -> {// Nothing to destroy
             }
             is TimelineItemContentKind.UnableToDecrypt -> {
                 
@@ -29296,29 +29293,30 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterBoolean.read(buf),
                 )
             5 -> TimelineItemContentKind.CallInvite
-            6 -> TimelineItemContentKind.UnableToDecrypt(
+            6 -> TimelineItemContentKind.CallNotify
+            7 -> TimelineItemContentKind.UnableToDecrypt(
                 FfiConverterTypeEncryptedMessage.read(buf),
                 )
-            7 -> TimelineItemContentKind.RoomMembership(
+            8 -> TimelineItemContentKind.RoomMembership(
                 FfiConverterString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeMembershipChange.read(buf),
                 )
-            8 -> TimelineItemContentKind.ProfileChange(
+            9 -> TimelineItemContentKind.ProfileChange(
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 )
-            9 -> TimelineItemContentKind.State(
+            10 -> TimelineItemContentKind.State(
                 FfiConverterString.read(buf),
                 FfiConverterTypeOtherState.read(buf),
                 )
-            10 -> TimelineItemContentKind.FailedToParseMessageLike(
+            11 -> TimelineItemContentKind.FailedToParseMessageLike(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 )
-            11 -> TimelineItemContentKind.FailedToParseState(
+            12 -> TimelineItemContentKind.FailedToParseState(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
@@ -29363,6 +29361,12 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
             )
         }
         is TimelineItemContentKind.CallInvite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineItemContentKind.CallNotify -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -29453,20 +29457,24 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 buf.putInt(5)
                 Unit
             }
-            is TimelineItemContentKind.UnableToDecrypt -> {
+            is TimelineItemContentKind.CallNotify -> {
                 buf.putInt(6)
+                Unit
+            }
+            is TimelineItemContentKind.UnableToDecrypt -> {
+                buf.putInt(7)
                 FfiConverterTypeEncryptedMessage.write(value.`msg`, buf)
                 Unit
             }
             is TimelineItemContentKind.RoomMembership -> {
-                buf.putInt(7)
+                buf.putInt(8)
                 FfiConverterString.write(value.`userId`, buf)
                 FfiConverterOptionalString.write(value.`userDisplayName`, buf)
                 FfiConverterOptionalTypeMembershipChange.write(value.`change`, buf)
                 Unit
             }
             is TimelineItemContentKind.ProfileChange -> {
-                buf.putInt(8)
+                buf.putInt(9)
                 FfiConverterOptionalString.write(value.`displayName`, buf)
                 FfiConverterOptionalString.write(value.`prevDisplayName`, buf)
                 FfiConverterOptionalString.write(value.`avatarUrl`, buf)
@@ -29474,19 +29482,19 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 Unit
             }
             is TimelineItemContentKind.State -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterTypeOtherState.write(value.`content`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseMessageLike -> {
-                buf.putInt(10)
+                buf.putInt(11)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`error`, buf)
                 Unit
             }
             is TimelineItemContentKind.FailedToParseState -> {
-                buf.putInt(11)
+                buf.putInt(12)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterString.write(value.`error`, buf)
