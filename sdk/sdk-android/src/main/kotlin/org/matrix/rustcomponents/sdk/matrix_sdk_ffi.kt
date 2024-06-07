@@ -29129,7 +29129,7 @@ sealed class TimelineItemContentKind: Disposable  {
     data class Sticker(
         val `body`: kotlin.String, 
         val `info`: ImageInfo, 
-        val `url`: kotlin.String) : TimelineItemContentKind() {
+        val `source`: MediaSource) : TimelineItemContentKind() {
         companion object
     }
     
@@ -29203,7 +29203,7 @@ sealed class TimelineItemContentKind: Disposable  {
     Disposable.destroy(
         this.`body`, 
         this.`info`, 
-        this.`url`)
+        this.`source`)
                 
             }
             is TimelineItemContentKind.Poll -> {
@@ -29281,7 +29281,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
             3 -> TimelineItemContentKind.Sticker(
                 FfiConverterString.read(buf),
                 FfiConverterTypeImageInfo.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeMediaSource.read(buf),
                 )
             4 -> TimelineItemContentKind.Poll(
                 FfiConverterString.read(buf),
@@ -29344,7 +29344,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 4UL
                 + FfiConverterString.allocationSize(value.`body`)
                 + FfiConverterTypeImageInfo.allocationSize(value.`info`)
-                + FfiConverterString.allocationSize(value.`url`)
+                + FfiConverterTypeMediaSource.allocationSize(value.`source`)
             )
         }
         is TimelineItemContentKind.Poll -> {
@@ -29439,7 +29439,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 buf.putInt(3)
                 FfiConverterString.write(value.`body`, buf)
                 FfiConverterTypeImageInfo.write(value.`info`, buf)
-                FfiConverterString.write(value.`url`, buf)
+                FfiConverterTypeMediaSource.write(value.`source`, buf)
                 Unit
             }
             is TimelineItemContentKind.Poll -> {
