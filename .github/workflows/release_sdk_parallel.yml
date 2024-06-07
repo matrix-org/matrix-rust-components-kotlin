@@ -95,13 +95,9 @@ jobs:
         id: set_linkable_ref
         run: |
           pushd ${{ env.RUST_SDK_PATH }}
-          if COMMIT_HASH=$(git show-ref --verify refs/heads/${{ github.event.inputs.rust-checkout-ref }} | awk '{print $1}'); then
-            echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
-            echo "Using commit hash $COMMIT_HASH"
-          else
-            echo linkable_ref=${{ github.event.inputs.rust-checkout-ref }} >> $GITHUB_OUTPUT
-            echo "Using commit hash ${{ github.event.inputs.rust-checkout-ref }}"
-          fi
+          COMMIT_HASH=$(git rev-parse --verify ${{ github.event.inputs.rust-checkout-ref }})
+          echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
+          echo "Using commit hash $COMMIT_HASH"
           popd
 
       - name: Upload target artifacts
