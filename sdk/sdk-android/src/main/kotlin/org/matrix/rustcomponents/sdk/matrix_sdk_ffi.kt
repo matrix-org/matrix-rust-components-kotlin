@@ -2065,6 +2065,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2511,6 +2513,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_room_heroes(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
@@ -3485,6 +3489,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_heroes(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user(
@@ -4442,6 +4448,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call() != 33588.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_heroes() != 22313.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_id() != 61990.toShort()) {
@@ -11978,6 +11987,11 @@ public interface RoomInterface {
      */
     fun `hasActiveRoomCall`(): kotlin.Boolean
     
+    /**
+     * Returns the room heroes for this room.
+     */
+    fun `heroes`(): List<RoomHero>
+    
     fun `id`(): kotlin.String
     
     /**
@@ -12681,6 +12695,21 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns the room heroes for this room.
+     */override fun `heroes`(): List<RoomHero> {
+            return FfiConverterSequenceTypeRoomHero.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_heroes(
         it, _status)
 }
     }
@@ -22322,6 +22351,51 @@ public object FfiConverterTypeRoomDirectorySearchEntriesResult: FfiConverterRust
 
 
 
+/**
+ * Information about a member considered to be a room hero.
+ */
+data class RoomHero (
+    /**
+     * The user ID of the hero.
+     */
+    var `userId`: kotlin.String, 
+    /**
+     * The display name of the hero.
+     */
+    var `displayName`: kotlin.String?, 
+    /**
+     * The avatar URL of the hero.
+     */
+    var `avatarUrl`: kotlin.String?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomHero: FfiConverterRustBuffer<RoomHero> {
+    override fun read(buf: ByteBuffer): RoomHero {
+        return RoomHero(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomHero) = (
+            FfiConverterString.allocationSize(value.`userId`) +
+            FfiConverterOptionalString.allocationSize(value.`displayName`) +
+            FfiConverterOptionalString.allocationSize(value.`avatarUrl`)
+    )
+
+    override fun write(value: RoomHero, buf: ByteBuffer) {
+            FfiConverterString.write(value.`userId`, buf)
+            FfiConverterOptionalString.write(value.`displayName`, buf)
+            FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+    }
+}
+
+
+
 data class RoomInfo (
     var `id`: kotlin.String, 
     /**
@@ -22351,6 +22425,7 @@ data class RoomInfo (
      * store.
      */
     var `inviter`: RoomMember?, 
+    var `heroes`: List<RoomHero>, 
     var `activeMembersCount`: kotlin.ULong, 
     var `invitedMembersCount`: kotlin.ULong, 
     var `joinedMembersCount`: kotlin.ULong, 
@@ -22401,6 +22476,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterSequenceString.read(buf),
             FfiConverterTypeMembership.read(buf),
             FfiConverterOptionalTypeRoomMember.read(buf),
+            FfiConverterSequenceTypeRoomHero.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
@@ -22432,6 +22508,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterSequenceString.allocationSize(value.`alternativeAliases`) +
             FfiConverterTypeMembership.allocationSize(value.`membership`) +
             FfiConverterOptionalTypeRoomMember.allocationSize(value.`inviter`) +
+            FfiConverterSequenceTypeRoomHero.allocationSize(value.`heroes`) +
             FfiConverterULong.allocationSize(value.`activeMembersCount`) +
             FfiConverterULong.allocationSize(value.`invitedMembersCount`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
@@ -22462,6 +22539,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterSequenceString.write(value.`alternativeAliases`, buf)
             FfiConverterTypeMembership.write(value.`membership`, buf)
             FfiConverterOptionalTypeRoomMember.write(value.`inviter`, buf)
+            FfiConverterSequenceTypeRoomHero.write(value.`heroes`, buf)
             FfiConverterULong.write(value.`activeMembersCount`, buf)
             FfiConverterULong.write(value.`invitedMembersCount`, buf)
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
@@ -33681,6 +33759,31 @@ public object FfiConverterSequenceTypeRoomDescription: FfiConverterRustBuffer<Li
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomDescription.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeRoomHero: FfiConverterRustBuffer<List<RoomHero>> {
+    override fun read(buf: ByteBuffer): List<RoomHero> {
+        val len = buf.getInt()
+        return List<RoomHero>(len) {
+            FfiConverterTypeRoomHero.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomHero>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomHero.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomHero>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomHero.write(it, buf)
         }
     }
 }
