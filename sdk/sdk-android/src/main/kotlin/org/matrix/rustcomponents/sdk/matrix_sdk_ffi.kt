@@ -2069,6 +2069,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2622,9 +2626,9 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(`ptr`: Pointer,`pageSize`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -2639,6 +2643,14 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_set_filter(`ptr`: Pointer,`kind`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_clone_roomlistentrieswithdynamicadaptersresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_roomlistentrieswithdynamicadaptersresult(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_controller(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_entries_stream(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlistitem(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roomlistitem(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2674,8 +2686,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms(`ptr`: Pointer,
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input(`ptr`: Pointer,`input`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3617,6 +3627,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_controller(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_entries_stream(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_avatar_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_canonical_alias(
@@ -3644,8 +3658,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unsubscribe(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_apply_input(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
     ): Short
@@ -4627,10 +4639,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() != 26558.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries() != 26697.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries() != 25290.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() != 46829.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() != 36097.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state() != 21585.toShort()) {
@@ -4646,6 +4658,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter() != 61202.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_controller() != 36258.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_entries_stream() != 56632.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_avatar_url() != 39097.toShort()) {
@@ -4688,9 +4706,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms() != 49704.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_apply_input() != 31607.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room() != 5185.toShort()) {
@@ -13560,7 +13575,7 @@ public object FfiConverterTypeRoomDirectorySearch: FfiConverter<RoomDirectorySea
 
 public interface RoomListInterface {
     
-    fun `entries`(`listener`: RoomListEntriesListener): RoomListEntriesResult
+    fun `entries`(`listener`: RoomListEntriesListener): TaskHandle
     
     fun `entriesWithDynamicAdapters`(`pageSize`: kotlin.UInt, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult
     
@@ -13652,8 +13667,8 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface {
         }
     }
 
-    override fun `entries`(`listener`: RoomListEntriesListener): RoomListEntriesResult {
-            return FfiConverterTypeRoomListEntriesResult.lift(
+    override fun `entries`(`listener`: RoomListEntriesListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries(
@@ -13987,6 +14002,252 @@ public object FfiConverterTypeRoomListDynamicEntriesController: FfiConverter<Roo
     override fun allocationSize(value: RoomListDynamicEntriesController) = 8UL
 
     override fun write(value: RoomListDynamicEntriesController, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface RoomListEntriesWithDynamicAdaptersResultInterface {
+    
+    fun `controller`(): RoomListDynamicEntriesController
+    
+    fun `entriesStream`(): TaskHandle
+    
+    companion object
+}
+
+open class RoomListEntriesWithDynamicAdaptersResult: Disposable, AutoCloseable, RoomListEntriesWithDynamicAdaptersResultInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_roomlistentrieswithdynamicadaptersresult(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_roomlistentrieswithdynamicadaptersresult(pointer!!, status)
+        }
+    }
+
+    override fun `controller`(): RoomListDynamicEntriesController {
+            return FfiConverterTypeRoomListDynamicEntriesController.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_controller(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `entriesStream`(): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_entries_stream(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult: FfiConverter<RoomListEntriesWithDynamicAdaptersResult, Pointer> {
+
+    override fun lower(value: RoomListEntriesWithDynamicAdaptersResult): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): RoomListEntriesWithDynamicAdaptersResult {
+        return RoomListEntriesWithDynamicAdaptersResult(value)
+    }
+
+    override fun read(buf: ByteBuffer): RoomListEntriesWithDynamicAdaptersResult {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: RoomListEntriesWithDynamicAdaptersResult) = 8UL
+
+    override fun write(value: RoomListEntriesWithDynamicAdaptersResult, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -14588,8 +14849,6 @@ public interface RoomListServiceInterface {
     
     suspend fun `allRooms`(): RoomList
     
-    suspend fun `applyInput`(`input`: RoomListInput)
-    
     fun `room`(`roomId`: kotlin.String): RoomListItem
     
     fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
@@ -14696,28 +14955,6 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface 
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
         { FfiConverterTypeRoomList.lift(it) },
-        // Error FFI converter
-        RoomListException.ErrorHandler,
-    )
-    }
-
-    
-    @Throws(RoomListException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `applyInput`(`input`: RoomListInput) {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_apply_input(
-                thisPtr,
-                FfiConverterTypeRoomListInput.lower(`input`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
         // Error FFI converter
         RoomListException.ErrorHandler,
     )
@@ -22185,7 +22422,6 @@ data class RoomInfo (
     var `isSpace`: kotlin.Boolean, 
     var `isTombstoned`: kotlin.Boolean, 
     var `isFavourite`: kotlin.Boolean, 
-    var `isEncrypted`: kotlin.Boolean, 
     var `canonicalAlias`: kotlin.String?, 
     var `alternativeAliases`: List<kotlin.String>, 
     var `membership`: Membership, 
@@ -22244,7 +22480,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterTypeMembership.read(buf),
@@ -22277,7 +22512,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.allocationSize(value.`isSpace`) +
             FfiConverterBoolean.allocationSize(value.`isTombstoned`) +
             FfiConverterBoolean.allocationSize(value.`isFavourite`) +
-            FfiConverterBoolean.allocationSize(value.`isEncrypted`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
             FfiConverterSequenceString.allocationSize(value.`alternativeAliases`) +
             FfiConverterTypeMembership.allocationSize(value.`membership`) +
@@ -22309,7 +22543,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.write(value.`isSpace`, buf)
             FfiConverterBoolean.write(value.`isTombstoned`, buf)
             FfiConverterBoolean.write(value.`isFavourite`, buf)
-            FfiConverterBoolean.write(value.`isEncrypted`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
             FfiConverterSequenceString.write(value.`alternativeAliases`, buf)
             FfiConverterTypeMembership.write(value.`membership`, buf)
@@ -22328,80 +22561,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`numUnreadMessages`, buf)
             FfiConverterULong.write(value.`numUnreadNotifications`, buf)
             FfiConverterULong.write(value.`numUnreadMentions`, buf)
-    }
-}
-
-
-
-data class RoomListEntriesResult (
-    var `entries`: List<RoomListEntry>, 
-    var `entriesStream`: TaskHandle
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-    Disposable.destroy(
-        this.`entries`, 
-        this.`entriesStream`)
-    }
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomListEntriesResult: FfiConverterRustBuffer<RoomListEntriesResult> {
-    override fun read(buf: ByteBuffer): RoomListEntriesResult {
-        return RoomListEntriesResult(
-            FfiConverterSequenceTypeRoomListEntry.read(buf),
-            FfiConverterTypeTaskHandle.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: RoomListEntriesResult) = (
-            FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`entries`) +
-            FfiConverterTypeTaskHandle.allocationSize(value.`entriesStream`)
-    )
-
-    override fun write(value: RoomListEntriesResult, buf: ByteBuffer) {
-            FfiConverterSequenceTypeRoomListEntry.write(value.`entries`, buf)
-            FfiConverterTypeTaskHandle.write(value.`entriesStream`, buf)
-    }
-}
-
-
-
-data class RoomListEntriesWithDynamicAdaptersResult (
-    var `controller`: RoomListDynamicEntriesController, 
-    var `entriesStream`: TaskHandle
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-    Disposable.destroy(
-        this.`controller`, 
-        this.`entriesStream`)
-    }
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult: FfiConverterRustBuffer<RoomListEntriesWithDynamicAdaptersResult> {
-    override fun read(buf: ByteBuffer): RoomListEntriesWithDynamicAdaptersResult {
-        return RoomListEntriesWithDynamicAdaptersResult(
-            FfiConverterTypeRoomListDynamicEntriesController.read(buf),
-            FfiConverterTypeTaskHandle.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: RoomListEntriesWithDynamicAdaptersResult) = (
-            FfiConverterTypeRoomListDynamicEntriesController.allocationSize(value.`controller`) +
-            FfiConverterTypeTaskHandle.allocationSize(value.`entriesStream`)
-    )
-
-    override fun write(value: RoomListEntriesWithDynamicAdaptersResult, buf: ByteBuffer) {
-            FfiConverterTypeRoomListDynamicEntriesController.write(value.`controller`, buf)
-            FfiConverterTypeTaskHandle.write(value.`entriesStream`, buf)
     }
 }
 
@@ -22439,35 +22598,6 @@ public object FfiConverterTypeRoomListLoadingStateResult: FfiConverterRustBuffer
     override fun write(value: RoomListLoadingStateResult, buf: ByteBuffer) {
             FfiConverterTypeRoomListLoadingState.write(value.`state`, buf)
             FfiConverterTypeTaskHandle.write(value.`stateStream`, buf)
-    }
-}
-
-
-
-data class RoomListRange (
-    var `start`: kotlin.UInt, 
-    var `endInclusive`: kotlin.UInt
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomListRange: FfiConverterRustBuffer<RoomListRange> {
-    override fun read(buf: ByteBuffer): RoomListRange {
-        return RoomListRange(
-            FfiConverterUInt.read(buf),
-            FfiConverterUInt.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: RoomListRange) = (
-            FfiConverterUInt.allocationSize(value.`start`) +
-            FfiConverterUInt.allocationSize(value.`endInclusive`)
-    )
-
-    override fun write(value: RoomListRange, buf: ByteBuffer) {
-            FfiConverterUInt.write(value.`start`, buf)
-            FfiConverterUInt.write(value.`endInclusive`, buf)
     }
 }
 
@@ -23006,12 +23136,19 @@ public object FfiConverterTypeThumbnailInfo: FfiConverterRustBuffer<ThumbnailInf
 
 
 data class TracingConfiguration (
+    /**
+     * A filter line following the [RUST_LOG format].
+     *
+     * [RUST_LOG format]: https://rust-lang-nursery.github.io/rust-cookbook/development_tools/debugging/config_log.html
+     */
     var `filter`: kotlin.String, 
     /**
-     * Controls whether to print to stdout or, equivalent, the system logs on
-     * Android.
+     * Whether to log to stdout, or in the logcat on Android.
      */
     var `writeToStdoutOrSystem`: kotlin.Boolean, 
+    /**
+     * If set, configures rotated log files where to write additional logs.
+     */
     var `writeToFiles`: TracingFileConfiguration?
 ) {
     
@@ -23042,10 +23179,28 @@ public object FfiConverterTypeTracingConfiguration: FfiConverterRustBuffer<Traci
 
 
 
+/**
+ * Configuration to save logs to (rotated) log-files.
+ */
 data class TracingFileConfiguration (
+    /**
+     * Base location for all the log files.
+     */
     var `path`: kotlin.String, 
+    /**
+     * Prefix for the log files' names.
+     */
     var `filePrefix`: kotlin.String, 
+    /**
+     * Optional suffix for the log file's names.
+     */
     var `fileSuffix`: kotlin.String?, 
+    /**
+     * Maximum number of rotated files.
+     *
+     * If not set, there's no max limit, i.e. the number of log files is
+     * unlimited.
+     */
     var `maxFiles`: kotlin.ULong?
 ) {
     
@@ -28163,10 +28318,10 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
 
 
 
-sealed class RoomListEntriesUpdate {
+sealed class RoomListEntriesUpdate: Disposable  {
     
     data class Append(
-        val `values`: List<RoomListEntry>) : RoomListEntriesUpdate() {
+        val `values`: List<RoomListItem>) : RoomListEntriesUpdate() {
         companion object
     }
     
@@ -28174,12 +28329,12 @@ sealed class RoomListEntriesUpdate {
     
     
     data class PushFront(
-        val `value`: RoomListEntry) : RoomListEntriesUpdate() {
+        val `value`: RoomListItem) : RoomListEntriesUpdate() {
         companion object
     }
     
     data class PushBack(
-        val `value`: RoomListEntry) : RoomListEntriesUpdate() {
+        val `value`: RoomListItem) : RoomListEntriesUpdate() {
         companion object
     }
     
@@ -28191,13 +28346,13 @@ sealed class RoomListEntriesUpdate {
     
     data class Insert(
         val `index`: kotlin.UInt, 
-        val `value`: RoomListEntry) : RoomListEntriesUpdate() {
+        val `value`: RoomListItem) : RoomListEntriesUpdate() {
         companion object
     }
     
     data class Set(
         val `index`: kotlin.UInt, 
-        val `value`: RoomListEntry) : RoomListEntriesUpdate() {
+        val `value`: RoomListItem) : RoomListEntriesUpdate() {
         companion object
     }
     
@@ -28212,11 +28367,73 @@ sealed class RoomListEntriesUpdate {
     }
     
     data class Reset(
-        val `values`: List<RoomListEntry>) : RoomListEntriesUpdate() {
+        val `values`: List<RoomListItem>) : RoomListEntriesUpdate() {
         companion object
     }
     
 
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is RoomListEntriesUpdate.Append -> {
+                
+    Disposable.destroy(
+        this.`values`)
+                
+            }
+            is RoomListEntriesUpdate.Clear -> {// Nothing to destroy
+            }
+            is RoomListEntriesUpdate.PushFront -> {
+                
+    Disposable.destroy(
+        this.`value`)
+                
+            }
+            is RoomListEntriesUpdate.PushBack -> {
+                
+    Disposable.destroy(
+        this.`value`)
+                
+            }
+            is RoomListEntriesUpdate.PopFront -> {// Nothing to destroy
+            }
+            is RoomListEntriesUpdate.PopBack -> {// Nothing to destroy
+            }
+            is RoomListEntriesUpdate.Insert -> {
+                
+    Disposable.destroy(
+        this.`index`, 
+        this.`value`)
+                
+            }
+            is RoomListEntriesUpdate.Set -> {
+                
+    Disposable.destroy(
+        this.`index`, 
+        this.`value`)
+                
+            }
+            is RoomListEntriesUpdate.Remove -> {
+                
+    Disposable.destroy(
+        this.`index`)
+                
+            }
+            is RoomListEntriesUpdate.Truncate -> {
+                
+    Disposable.destroy(
+        this.`length`)
+                
+            }
+            is RoomListEntriesUpdate.Reset -> {
+                
+    Disposable.destroy(
+        this.`values`)
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
     
     companion object
 }
@@ -28225,24 +28442,24 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
     override fun read(buf: ByteBuffer): RoomListEntriesUpdate {
         return when(buf.getInt()) {
             1 -> RoomListEntriesUpdate.Append(
-                FfiConverterSequenceTypeRoomListEntry.read(buf),
+                FfiConverterSequenceTypeRoomListItem.read(buf),
                 )
             2 -> RoomListEntriesUpdate.Clear
             3 -> RoomListEntriesUpdate.PushFront(
-                FfiConverterTypeRoomListEntry.read(buf),
+                FfiConverterTypeRoomListItem.read(buf),
                 )
             4 -> RoomListEntriesUpdate.PushBack(
-                FfiConverterTypeRoomListEntry.read(buf),
+                FfiConverterTypeRoomListItem.read(buf),
                 )
             5 -> RoomListEntriesUpdate.PopFront
             6 -> RoomListEntriesUpdate.PopBack
             7 -> RoomListEntriesUpdate.Insert(
                 FfiConverterUInt.read(buf),
-                FfiConverterTypeRoomListEntry.read(buf),
+                FfiConverterTypeRoomListItem.read(buf),
                 )
             8 -> RoomListEntriesUpdate.Set(
                 FfiConverterUInt.read(buf),
-                FfiConverterTypeRoomListEntry.read(buf),
+                FfiConverterTypeRoomListItem.read(buf),
                 )
             9 -> RoomListEntriesUpdate.Remove(
                 FfiConverterUInt.read(buf),
@@ -28251,7 +28468,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
                 FfiConverterUInt.read(buf),
                 )
             11 -> RoomListEntriesUpdate.Reset(
-                FfiConverterSequenceTypeRoomListEntry.read(buf),
+                FfiConverterSequenceTypeRoomListItem.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -28262,7 +28479,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`values`)
+                + FfiConverterSequenceTypeRoomListItem.allocationSize(value.`values`)
             )
         }
         is RoomListEntriesUpdate.Clear -> {
@@ -28275,14 +28492,14 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+                + FfiConverterTypeRoomListItem.allocationSize(value.`value`)
             )
         }
         is RoomListEntriesUpdate.PushBack -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+                + FfiConverterTypeRoomListItem.allocationSize(value.`value`)
             )
         }
         is RoomListEntriesUpdate.PopFront -> {
@@ -28302,7 +28519,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             (
                 4UL
                 + FfiConverterUInt.allocationSize(value.`index`)
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+                + FfiConverterTypeRoomListItem.allocationSize(value.`value`)
             )
         }
         is RoomListEntriesUpdate.Set -> {
@@ -28310,7 +28527,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             (
                 4UL
                 + FfiConverterUInt.allocationSize(value.`index`)
-                + FfiConverterTypeRoomListEntry.allocationSize(value.`value`)
+                + FfiConverterTypeRoomListItem.allocationSize(value.`value`)
             )
         }
         is RoomListEntriesUpdate.Remove -> {
@@ -28331,7 +28548,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterSequenceTypeRoomListEntry.allocationSize(value.`values`)
+                + FfiConverterSequenceTypeRoomListItem.allocationSize(value.`values`)
             )
         }
     }
@@ -28340,7 +28557,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
         when(value) {
             is RoomListEntriesUpdate.Append -> {
                 buf.putInt(1)
-                FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
+                FfiConverterSequenceTypeRoomListItem.write(value.`values`, buf)
                 Unit
             }
             is RoomListEntriesUpdate.Clear -> {
@@ -28349,12 +28566,12 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             }
             is RoomListEntriesUpdate.PushFront -> {
                 buf.putInt(3)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                FfiConverterTypeRoomListItem.write(value.`value`, buf)
                 Unit
             }
             is RoomListEntriesUpdate.PushBack -> {
                 buf.putInt(4)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                FfiConverterTypeRoomListItem.write(value.`value`, buf)
                 Unit
             }
             is RoomListEntriesUpdate.PopFront -> {
@@ -28368,13 +28585,13 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             is RoomListEntriesUpdate.Insert -> {
                 buf.putInt(7)
                 FfiConverterUInt.write(value.`index`, buf)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                FfiConverterTypeRoomListItem.write(value.`value`, buf)
                 Unit
             }
             is RoomListEntriesUpdate.Set -> {
                 buf.putInt(8)
                 FfiConverterUInt.write(value.`index`, buf)
-                FfiConverterTypeRoomListEntry.write(value.`value`, buf)
+                FfiConverterTypeRoomListItem.write(value.`value`, buf)
                 Unit
             }
             is RoomListEntriesUpdate.Remove -> {
@@ -28389,88 +28606,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
             }
             is RoomListEntriesUpdate.Reset -> {
                 buf.putInt(11)
-                FfiConverterSequenceTypeRoomListEntry.write(value.`values`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-sealed class RoomListEntry {
-    
-    object Empty : RoomListEntry()
-    
-    
-    data class Invalidated(
-        val `roomId`: kotlin.String) : RoomListEntry() {
-        companion object
-    }
-    
-    data class Filled(
-        val `roomId`: kotlin.String) : RoomListEntry() {
-        companion object
-    }
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomListEntry : FfiConverterRustBuffer<RoomListEntry>{
-    override fun read(buf: ByteBuffer): RoomListEntry {
-        return when(buf.getInt()) {
-            1 -> RoomListEntry.Empty
-            2 -> RoomListEntry.Invalidated(
-                FfiConverterString.read(buf),
-                )
-            3 -> RoomListEntry.Filled(
-                FfiConverterString.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: RoomListEntry) = when(value) {
-        is RoomListEntry.Empty -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is RoomListEntry.Invalidated -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterString.allocationSize(value.`roomId`)
-            )
-        }
-        is RoomListEntry.Filled -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterString.allocationSize(value.`roomId`)
-            )
-        }
-    }
-
-    override fun write(value: RoomListEntry, buf: ByteBuffer) {
-        when(value) {
-            is RoomListEntry.Empty -> {
-                buf.putInt(1)
-                Unit
-            }
-            is RoomListEntry.Invalidated -> {
-                buf.putInt(2)
-                FfiConverterString.write(value.`roomId`, buf)
-                Unit
-            }
-            is RoomListEntry.Filled -> {
-                buf.putInt(3)
-                FfiConverterString.write(value.`roomId`, buf)
+                FfiConverterSequenceTypeRoomListItem.write(value.`values`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -28719,53 +28855,6 @@ public object FfiConverterTypeRoomListFilterCategory: FfiConverterRustBuffer<Roo
 
     override fun write(value: RoomListFilterCategory, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-sealed class RoomListInput {
-    
-    data class Viewport(
-        val `ranges`: List<RoomListRange>) : RoomListInput() {
-        companion object
-    }
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomListInput : FfiConverterRustBuffer<RoomListInput>{
-    override fun read(buf: ByteBuffer): RoomListInput {
-        return when(buf.getInt()) {
-            1 -> RoomListInput.Viewport(
-                FfiConverterSequenceTypeRoomListRange.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: RoomListInput) = when(value) {
-        is RoomListInput.Viewport -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterSequenceTypeRoomListRange.allocationSize(value.`ranges`)
-            )
-        }
-    }
-
-    override fun write(value: RoomListInput, buf: ByteBuffer) {
-        when(value) {
-            is RoomListInput.Viewport -> {
-                buf.putInt(1)
-                FfiConverterSequenceTypeRoomListRange.write(value.`ranges`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -33325,6 +33414,31 @@ public object FfiConverterSequenceTypeRoom: FfiConverterRustBuffer<List<Room>> {
 
 
 
+public object FfiConverterSequenceTypeRoomListItem: FfiConverterRustBuffer<List<RoomListItem>> {
+    override fun read(buf: ByteBuffer): List<RoomListItem> {
+        val len = buf.getInt()
+        return List<RoomListItem>(len) {
+            FfiConverterTypeRoomListItem.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomListItem>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomListItem.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomListItem>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomListItem.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeSessionVerificationEmoji: FfiConverterRustBuffer<List<SessionVerificationEmoji>> {
     override fun read(buf: ByteBuffer): List<SessionVerificationEmoji> {
         val len = buf.getInt()
@@ -33550,31 +33664,6 @@ public object FfiConverterSequenceTypeRoomHero: FfiConverterRustBuffer<List<Room
 
 
 
-public object FfiConverterSequenceTypeRoomListRange: FfiConverterRustBuffer<List<RoomListRange>> {
-    override fun read(buf: ByteBuffer): List<RoomListRange> {
-        val len = buf.getInt()
-        return List<RoomListRange>(len) {
-            FfiConverterTypeRoomListRange.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<RoomListRange>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeRoomListRange.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(value: List<RoomListRange>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterTypeRoomListRange.write(it, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterSequenceTypeRoomMember: FfiConverterRustBuffer<List<RoomMember>> {
     override fun read(buf: ByteBuffer): List<RoomMember> {
         val len = buf.getInt()
@@ -33743,31 +33832,6 @@ public object FfiConverterSequenceTypeRoomListEntriesUpdate: FfiConverterRustBuf
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomListEntriesUpdate.write(it, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterSequenceTypeRoomListEntry: FfiConverterRustBuffer<List<RoomListEntry>> {
-    override fun read(buf: ByteBuffer): List<RoomListEntry> {
-        val len = buf.getInt()
-        return List<RoomListEntry>(len) {
-            FfiConverterTypeRoomListEntry.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<RoomListEntry>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeRoomListEntry.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(value: List<RoomListEntry>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterTypeRoomListEntry.write(it, buf)
         }
     }
 }
