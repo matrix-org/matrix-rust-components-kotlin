@@ -55,10 +55,7 @@ jobs:
           ndk-version: r25c
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          # This value should be updated to the `NIGHTLY` value in: https://github.com/matrix-org/matrix-rust-sdk/blob/main/xtask/src/main.rs
-          toolchain: nightly-2024-02-06
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
