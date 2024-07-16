@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.matrix_sdk_crypto;
+package uniffi.matrix_sdk_crypto
 
 // Common helper code.
 //
@@ -234,7 +234,7 @@ internal open class UniffiRustCallStatus : Structure() {
     }
 }
 
-class InternalException(message: String) : Exception(message)
+class InternalException(message: String) : kotlin.Exception(message)
 
 // Each top-level error class has a companion object that can lift the error from the call status's rust buffer
 interface UniffiRustCallStatusErrorHandler<E> {
@@ -246,15 +246,15 @@ interface UniffiRustCallStatusErrorHandler<E> {
 // synchronize itself
 
 // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-private inline fun <U, E: Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
-    var status = UniffiRustCallStatus();
+private inline fun <U, E: kotlin.Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
+    var status = UniffiRustCallStatus()
     val return_value = callback(status)
     uniffiCheckCallStatus(errorHandler, status)
     return return_value
 }
 
 // Check UniffiRustCallStatus and throw an error if the call wasn't successful
-private fun<E: Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
+private fun<E: kotlin.Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
     if (status.isSuccess()) {
         return
     } else if (status.isError()) {
@@ -283,7 +283,7 @@ object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<In
 
 // Call a rust function that returns a plain value
 private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U {
-    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback);
+    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback)
 }
 
 internal inline fun<T> uniffiTraitInterfaceCall(
@@ -293,7 +293,7 @@ internal inline fun<T> uniffiTraitInterfaceCall(
 ) {
     try {
         writeReturn(makeCall())
-    } catch(e: Exception) {
+    } catch(e: kotlin.Exception) {
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
         callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
@@ -307,7 +307,7 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
 ) {
     try {
         writeReturn(makeCall())
-    } catch(e: Exception) {
+    } catch(e: kotlin.Exception) {
         if (e is E) {
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
@@ -974,61 +974,110 @@ public object FfiConverterTypeLocalTrust: FfiConverterRustBuffer<LocalTrust> {
 
 
 
+
+
 /**
  * Error type for the decoding of the [`QrCodeData`].
  */
-
-enum class LoginQrCodeDecodeError {
-    
+sealed class LoginQrCodeDecodeException(message: String): kotlin.Exception(message) {
+        
     /**
      * The QR code data is no long enough, it's missing some fields.
      */
-    NOT_ENOUGH_DATA,
+        class NotEnoughData(message: String) : LoginQrCodeDecodeException(message)
+        
     /**
      * One of the URLs in the QR code data is not a valid UTF-8 encoded string.
      */
-    NOT_UTF8,
+        class NotUtf8(message: String) : LoginQrCodeDecodeException(message)
+        
     /**
      * One of the URLs in the QR code data could not be parsed.
      */
-    URL_PARSE,
+        class UrlParse(message: String) : LoginQrCodeDecodeException(message)
+        
     /**
      * The QR code data contains an invalid mode, we expect the login (0x03)
      * mode or the reciprocate mode (0x04).
      */
-    INVALID_MODE,
+        class InvalidMode(message: String) : LoginQrCodeDecodeException(message)
+        
     /**
      * The QR code data contains an unsupported version.
      */
-    INVALID_VERSION,
+        class InvalidVersion(message: String) : LoginQrCodeDecodeException(message)
+        
     /**
      * The base64 encoded variant of the QR code data is not a valid base64
      * string.
      */
-    BASE64,
+        class Base64(message: String) : LoginQrCodeDecodeException(message)
+        
     /**
      * The QR code data doesn't contain the expected `MATRIX` prefix.
      */
-    INVALID_PREFIX;
-    companion object
-}
+        class InvalidPrefix(message: String) : LoginQrCodeDecodeException(message)
+        
 
-
-public object FfiConverterTypeLoginQrCodeDecodeError: FfiConverterRustBuffer<LoginQrCodeDecodeError> {
-    override fun read(buf: ByteBuffer) = try {
-        LoginQrCodeDecodeError.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: LoginQrCodeDecodeError) = 4UL
-
-    override fun write(value: LoginQrCodeDecodeError, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<LoginQrCodeDecodeException> {
+        override fun lift(error_buf: RustBuffer.ByValue): LoginQrCodeDecodeException = FfiConverterTypeLoginQrCodeDecodeError.lift(error_buf)
     }
 }
 
+public object FfiConverterTypeLoginQrCodeDecodeError : FfiConverterRustBuffer<LoginQrCodeDecodeException> {
+    override fun read(buf: ByteBuffer): LoginQrCodeDecodeException {
+        
+            return when(buf.getInt()) {
+            1 -> LoginQrCodeDecodeException.NotEnoughData(FfiConverterString.read(buf))
+            2 -> LoginQrCodeDecodeException.NotUtf8(FfiConverterString.read(buf))
+            3 -> LoginQrCodeDecodeException.UrlParse(FfiConverterString.read(buf))
+            4 -> LoginQrCodeDecodeException.InvalidMode(FfiConverterString.read(buf))
+            5 -> LoginQrCodeDecodeException.InvalidVersion(FfiConverterString.read(buf))
+            6 -> LoginQrCodeDecodeException.Base64(FfiConverterString.read(buf))
+            7 -> LoginQrCodeDecodeException.InvalidPrefix(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
 
+    override fun allocationSize(value: LoginQrCodeDecodeException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: LoginQrCodeDecodeException, buf: ByteBuffer) {
+        when(value) {
+            is LoginQrCodeDecodeException.NotEnoughData -> {
+                buf.putInt(1)
+                Unit
+            }
+            is LoginQrCodeDecodeException.NotUtf8 -> {
+                buf.putInt(2)
+                Unit
+            }
+            is LoginQrCodeDecodeException.UrlParse -> {
+                buf.putInt(3)
+                Unit
+            }
+            is LoginQrCodeDecodeException.InvalidMode -> {
+                buf.putInt(4)
+                Unit
+            }
+            is LoginQrCodeDecodeException.InvalidVersion -> {
+                buf.putInt(5)
+                Unit
+            }
+            is LoginQrCodeDecodeException.Base64 -> {
+                buf.putInt(6)
+                Unit
+            }
+            is LoginQrCodeDecodeException.InvalidPrefix -> {
+                buf.putInt(7)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 

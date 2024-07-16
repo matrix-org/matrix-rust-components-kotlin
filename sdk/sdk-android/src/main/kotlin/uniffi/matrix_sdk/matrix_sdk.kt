@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.matrix_sdk;
+package uniffi.matrix_sdk
 
 // Common helper code.
 //
@@ -235,7 +235,7 @@ internal open class UniffiRustCallStatus : Structure() {
     }
 }
 
-class InternalException(message: String) : Exception(message)
+class InternalException(message: String) : kotlin.Exception(message)
 
 // Each top-level error class has a companion object that can lift the error from the call status's rust buffer
 interface UniffiRustCallStatusErrorHandler<E> {
@@ -247,15 +247,15 @@ interface UniffiRustCallStatusErrorHandler<E> {
 // synchronize itself
 
 // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-private inline fun <U, E: Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
-    var status = UniffiRustCallStatus();
+private inline fun <U, E: kotlin.Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
+    var status = UniffiRustCallStatus()
     val return_value = callback(status)
     uniffiCheckCallStatus(errorHandler, status)
     return return_value
 }
 
 // Check UniffiRustCallStatus and throw an error if the call wasn't successful
-private fun<E: Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
+private fun<E: kotlin.Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
     if (status.isSuccess()) {
         return
     } else if (status.isError()) {
@@ -284,7 +284,7 @@ object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<In
 
 // Call a rust function that returns a plain value
 private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U {
-    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback);
+    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback)
 }
 
 internal inline fun<T> uniffiTraitInterfaceCall(
@@ -294,7 +294,7 @@ internal inline fun<T> uniffiTraitInterfaceCall(
 ) {
     try {
         writeReturn(makeCall())
-    } catch(e: Exception) {
+    } catch(e: kotlin.Exception) {
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
         callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
@@ -308,7 +308,7 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
 ) {
     try {
         writeReturn(makeCall())
-    } catch(e: Exception) {
+    } catch(e: kotlin.Exception) {
         if (e is E) {
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
@@ -1466,71 +1466,132 @@ public object FfiConverterTypePaginatorState: FfiConverterRustBuffer<PaginatorSt
 
 
 
+
+
 /**
  * The error type for failures while trying to log in a new device using a QR
  * code.
  */
-
-enum class QrCodeLoginError {
-    
+sealed class QrCodeLoginException(message: String): kotlin.Exception(message) {
+        
     /**
      * An error happened while we were communicating with the OIDC provider.
      */
-    OIDC,
+        class Oidc(message: String) : QrCodeLoginException(message)
+        
     /**
      * The other device has signaled to us that the login has failed.
      */
-    LOGIN_FAILURE,
+        class LoginFailure(message: String) : QrCodeLoginException(message)
+        
     /**
      * An unexpected message was received from the other device.
      */
-    UNEXPECTED_MESSAGE,
+        class UnexpectedMessage(message: String) : QrCodeLoginException(message)
+        
     /**
      * An error happened while exchanging messages with the other device.
      */
-    SECURE_CHANNEL,
+        class SecureChannel(message: String) : QrCodeLoginException(message)
+        
     /**
      * The cross-process refresh lock failed to be initialized.
      */
-    CROSS_PROCESS_REFRESH_LOCK,
+        class CrossProcessRefreshLock(message: String) : QrCodeLoginException(message)
+        
     /**
      * An error happened while we were trying to discover our user and device
      * ID, after we have acquired an access token from the OIDC provider.
      */
-    USER_ID_DISCOVERY,
+        class UserIdDiscovery(message: String) : QrCodeLoginException(message)
+        
     /**
      * We failed to set the session tokens after we figured out our device and
      * user IDs.
      */
-    SESSION_TOKENS,
+        class SessionTokens(message: String) : QrCodeLoginException(message)
+        
     /**
      * The device keys failed to be uploaded after we successfully logged in.
      */
-    DEVICE_KEY_UPLOAD,
+        class DeviceKeyUpload(message: String) : QrCodeLoginException(message)
+        
     /**
      * The secrets bundle we received from the existing device failed to be
      * imported.
      */
-    SECRET_IMPORT;
-    companion object
-}
+        class SecretImport(message: String) : QrCodeLoginException(message)
+        
 
-
-public object FfiConverterTypeQRCodeLoginError: FfiConverterRustBuffer<QrCodeLoginError> {
-    override fun read(buf: ByteBuffer) = try {
-        QrCodeLoginError.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: QrCodeLoginError) = 4UL
-
-    override fun write(value: QrCodeLoginError, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<QrCodeLoginException> {
+        override fun lift(error_buf: RustBuffer.ByValue): QrCodeLoginException = FfiConverterTypeQRCodeLoginError.lift(error_buf)
     }
 }
 
+public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLoginException> {
+    override fun read(buf: ByteBuffer): QrCodeLoginException {
+        
+            return when(buf.getInt()) {
+            1 -> QrCodeLoginException.Oidc(FfiConverterString.read(buf))
+            2 -> QrCodeLoginException.LoginFailure(FfiConverterString.read(buf))
+            3 -> QrCodeLoginException.UnexpectedMessage(FfiConverterString.read(buf))
+            4 -> QrCodeLoginException.SecureChannel(FfiConverterString.read(buf))
+            5 -> QrCodeLoginException.CrossProcessRefreshLock(FfiConverterString.read(buf))
+            6 -> QrCodeLoginException.UserIdDiscovery(FfiConverterString.read(buf))
+            7 -> QrCodeLoginException.SessionTokens(FfiConverterString.read(buf))
+            8 -> QrCodeLoginException.DeviceKeyUpload(FfiConverterString.read(buf))
+            9 -> QrCodeLoginException.SecretImport(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
 
+    override fun allocationSize(value: QrCodeLoginException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: QrCodeLoginException, buf: ByteBuffer) {
+        when(value) {
+            is QrCodeLoginException.Oidc -> {
+                buf.putInt(1)
+                Unit
+            }
+            is QrCodeLoginException.LoginFailure -> {
+                buf.putInt(2)
+                Unit
+            }
+            is QrCodeLoginException.UnexpectedMessage -> {
+                buf.putInt(3)
+                Unit
+            }
+            is QrCodeLoginException.SecureChannel -> {
+                buf.putInt(4)
+                Unit
+            }
+            is QrCodeLoginException.CrossProcessRefreshLock -> {
+                buf.putInt(5)
+                Unit
+            }
+            is QrCodeLoginException.UserIdDiscovery -> {
+                buf.putInt(6)
+                Unit
+            }
+            is QrCodeLoginException.SessionTokens -> {
+                buf.putInt(7)
+                Unit
+            }
+            is QrCodeLoginException.DeviceKeyUpload -> {
+                buf.putInt(8)
+                Unit
+            }
+            is QrCodeLoginException.SecretImport -> {
+                buf.putInt(9)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
