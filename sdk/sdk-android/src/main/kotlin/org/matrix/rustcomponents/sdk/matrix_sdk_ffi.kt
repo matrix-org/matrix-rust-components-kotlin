@@ -2083,6 +2083,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2277,6 +2279,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_cross_process_refresh_lock(`ptr`: Pointer,`processId`: RustBuffer.ByValue,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2296,6 +2300,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_path(`ptr`: Pointer,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(`ptr`: Pointer,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_simplified_sliding_sync(`ptr`: Pointer,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_proxy(`ptr`: Pointer,`slidingSyncProxy`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2695,8 +2701,6 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_subscribe(`ptr`: Pointer,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_unsubscribe(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3005,7 +3009,7 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Pointer,`props`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(`ownUserId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(`ownUserId`: RustBuffer.ByValue,`ownDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -3323,6 +3327,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_cross_process_refresh_lock(
@@ -3342,6 +3348,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_path(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_simplified_sliding_sync(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_proxy(
     ): Short
@@ -3683,8 +3691,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unsubscribe(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
@@ -3952,7 +3958,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() != 6844.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() != 51419.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() != 30181.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 62286.toShort()) {
@@ -4201,6 +4207,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh() != 43839.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates() != 47525.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification() != 2334.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4229,6 +4238,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate() != 8576.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_simplified_sliding_sync() != 7554.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_proxy() != 15622.toShort()) {
@@ -4739,9 +4751,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe() != 60003.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_unsubscribe() != 45026.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms() != 49704.toShort()) {
@@ -7253,6 +7262,13 @@ public interface ClientBuilderInterface {
     
     fun `disableAutomaticTokenRefresh`(): ClientBuilder
     
+    /**
+     * Don't trust any system root certificates, only trust the certificates
+     * provided through
+     * [`add_root_certificates`][ClientBuilder::add_root_certificates].
+     */
+    fun `disableBuiltInRootCertificates`(): ClientBuilder
+    
     fun `disableSslVerification`(): ClientBuilder
     
     fun `enableCrossProcessRefreshLock`(`processId`: kotlin.String, `sessionDelegate`: ClientSessionDelegate): ClientBuilder
@@ -7279,6 +7295,8 @@ public interface ClientBuilderInterface {
     fun `sessionPath`(`path`: kotlin.String): ClientBuilder
     
     fun `setSessionDelegate`(`sessionDelegate`: ClientSessionDelegate): ClientBuilder
+    
+    fun `simplifiedSlidingSync`(`enable`: kotlin.Boolean): ClientBuilder
     
     fun `slidingSyncProxy`(`slidingSyncProxy`: kotlin.String?): ClientBuilder
     
@@ -7502,6 +7520,23 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     }
     
 
+    
+    /**
+     * Don't trust any system root certificates, only trust the certificates
+     * provided through
+     * [`add_root_certificates`][ClientBuilder::add_root_certificates].
+     */override fun `disableBuiltInRootCertificates`(): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
     override fun `disableSslVerification`(): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithPointer {
@@ -7623,6 +7658,18 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(
         it, FfiConverterTypeClientSessionDelegate.lower(`sessionDelegate`),_status)
+}
+    }
+    )
+    }
+    
+
+    override fun `simplifiedSlidingSync`(`enable`: kotlin.Boolean): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_simplified_sliding_sync(
+        it, FfiConverterBoolean.lower(`enable`),_status)
 }
     }
     )
@@ -14561,8 +14608,6 @@ public interface RoomListItemInterface {
     
     fun `subscribe`(`settings`: RoomSubscription?)
     
-    fun `unsubscribe`()
-    
     companion object
 }
 
@@ -14850,17 +14895,6 @@ open class RoomListItem: Disposable, AutoCloseable, RoomListItemInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_subscribe(
         it, FfiConverterOptionalTypeRoomSubscription.lower(`settings`),_status)
-}
-    }
-    
-    
-
-    override fun `unsubscribe`()
-        = 
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_unsubscribe(
-        it, _status)
 }
     }
     
@@ -34777,11 +34811,11 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
          * Editing and extending the capabilities from this function is also possible,
          * but should only be done as temporal workarounds until this function is
          * adjusted
-         */ fun `getElementCallRequiredPermissions`(`ownUserId`: kotlin.String): WidgetCapabilities {
+         */ fun `getElementCallRequiredPermissions`(`ownUserId`: kotlin.String, `ownDeviceId`: kotlin.String): WidgetCapabilities {
             return FfiConverterTypeWidgetCapabilities.lift(
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(
-        FfiConverterString.lower(`ownUserId`),_status)
+        FfiConverterString.lower(`ownUserId`),FfiConverterString.lower(`ownDeviceId`),_status)
 }
     )
     }
