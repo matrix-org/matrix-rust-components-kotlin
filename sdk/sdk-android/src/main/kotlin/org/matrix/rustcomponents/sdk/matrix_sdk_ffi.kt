@@ -2085,6 +2085,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2501,6 +2507,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_pin_unpin(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_other(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_can_user_redact_own(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
@@ -2843,6 +2851,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(`ptr`: Pointer,`numEvents`: Short,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(`ptr`: Pointer,`item`: Pointer,`reason`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(`ptr`: Pointer,`sessionIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -2870,6 +2880,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Pointer,`listener`: Long,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_timelinediff(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3511,6 +3523,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_kick(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_pin_unpin(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact_other(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact_own(
@@ -3781,6 +3795,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption(
@@ -3808,6 +3824,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_append(
     ): Short
@@ -4483,6 +4501,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_kick() != 12773.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_pin_unpin() != 8341.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_can_user_redact_other() != 13274.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4888,6 +4909,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() != 65175.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event() != 41687.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event() != 8574.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4928,6 +4952,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 10294.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event() != 52414.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_append() != 8453.toShort()) {
@@ -11435,6 +11462,8 @@ public interface RoomInterface {
     
     suspend fun `canUserKick`(`userId`: kotlin.String): kotlin.Boolean
     
+    suspend fun `canUserPinUnpin`(`userId`: kotlin.String): kotlin.Boolean
+    
     suspend fun `canUserRedactOther`(`userId`: kotlin.String): kotlin.Boolean
     
     suspend fun `canUserRedactOwn`(`userId`: kotlin.String): kotlin.Boolean
@@ -11952,6 +11981,27 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_kick(
+                thisPtr,
+                FfiConverterString.lower(`userId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `canUserPinUnpin`(`userId`: kotlin.String) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_can_user_pin_unpin(
                 thisPtr,
                 FfiConverterString.lower(`userId`),
             )
@@ -18425,6 +18475,15 @@ public interface TimelineInterface {
     suspend fun `paginateBackwards`(`numEvents`: kotlin.UShort): kotlin.Boolean
     
     /**
+     * Adds a new pinned event by sending an updated `m.room.pinned_events`
+     * event containing the new event id.
+     *
+     * Returns `true` if we sent the request, `false` if the event was already
+     * pinned.
+     */
+    suspend fun `pinEvent`(`eventId`: kotlin.String): kotlin.Boolean
+    
+    /**
      * Redacts an event from the timeline.
      *
      * Only works for events that exist as timeline items.
@@ -18470,6 +18529,15 @@ public interface TimelineInterface {
     suspend fun `subscribeToBackPaginationStatus`(`listener`: PaginationStatusListener): TaskHandle
     
     suspend fun `toggleReaction`(`eventId`: kotlin.String, `key`: kotlin.String)
+    
+    /**
+     * Adds a new pinned event by sending an updated `m.room.pinned_events`
+     * event without the event id we want to remove.
+     *
+     * Returns `true` if we sent the request, `false` if the event wasn't
+     * pinned
+     */
+    suspend fun `unpinEvent`(`eventId`: kotlin.String): kotlin.Boolean
     
     companion object
 }
@@ -18877,6 +18945,34 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
 
     
     /**
+     * Adds a new pinned event by sending an updated `m.room.pinned_events`
+     * event containing the new event id.
+     *
+     * Returns `true` if we sent the request, `false` if the event was already
+     * pinned.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `pinEvent`(`eventId`: kotlin.String) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(
+                thisPtr,
+                FfiConverterString.lower(`eventId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Redacts an event from the timeline.
      *
      * Only works for events that exist as timeline items.
@@ -19132,6 +19228,34 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         // lift function
         { Unit },
         
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Adds a new pinned event by sending an updated `m.room.pinned_events`
+     * event without the event id we want to remove.
+     *
+     * Returns `true` if we sent the request, `false` if the event wasn't
+     * pinned
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `unpinEvent`(`eventId`: kotlin.String) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(
+                thisPtr,
+                FfiConverterString.lower(`eventId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -22580,7 +22704,6 @@ public object FfiConverterTypePusherIdentifiers: FfiConverterRustBuffer<PusherId
 
 data class Reaction (
     var `key`: kotlin.String, 
-    var `count`: kotlin.ULong, 
     var `senders`: List<ReactionSenderData>
 ) {
     
@@ -22591,20 +22714,17 @@ public object FfiConverterTypeReaction: FfiConverterRustBuffer<Reaction> {
     override fun read(buf: ByteBuffer): Reaction {
         return Reaction(
             FfiConverterString.read(buf),
-            FfiConverterULong.read(buf),
             FfiConverterSequenceTypeReactionSenderData.read(buf),
         )
     }
 
     override fun allocationSize(value: Reaction) = (
             FfiConverterString.allocationSize(value.`key`) +
-            FfiConverterULong.allocationSize(value.`count`) +
             FfiConverterSequenceTypeReactionSenderData.allocationSize(value.`senders`)
     )
 
     override fun write(value: Reaction, buf: ByteBuffer) {
             FfiConverterString.write(value.`key`, buf)
-            FfiConverterULong.write(value.`count`, buf)
             FfiConverterSequenceTypeReactionSenderData.write(value.`senders`, buf)
     }
 }
@@ -22919,7 +23039,11 @@ data class RoomInfo (
      * Events causing mentions/highlights for the user, according to their
      * notification settings.
      */
-    var `numUnreadMentions`: kotlin.ULong
+    var `numUnreadMentions`: kotlin.ULong, 
+    /**
+     * The currently pinned event ids
+     */
+    var `pinnedEventIds`: List<kotlin.String>
 ) {
     
     companion object
@@ -22956,6 +23080,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
+            FfiConverterSequenceString.read(buf),
         )
     }
 
@@ -22987,7 +23112,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.allocationSize(value.`isMarkedUnread`) +
             FfiConverterULong.allocationSize(value.`numUnreadMessages`) +
             FfiConverterULong.allocationSize(value.`numUnreadNotifications`) +
-            FfiConverterULong.allocationSize(value.`numUnreadMentions`)
+            FfiConverterULong.allocationSize(value.`numUnreadMentions`) +
+            FfiConverterSequenceString.allocationSize(value.`pinnedEventIds`)
     )
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
@@ -23019,6 +23145,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`numUnreadMessages`, buf)
             FfiConverterULong.write(value.`numUnreadNotifications`, buf)
             FfiConverterULong.write(value.`numUnreadMentions`, buf)
+            FfiConverterSequenceString.write(value.`pinnedEventIds`, buf)
     }
 }
 
