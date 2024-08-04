@@ -106,7 +106,7 @@ jobs:
         run: cargo install cargo-ndk
 
       - name: Configure gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Run build script
         env:
