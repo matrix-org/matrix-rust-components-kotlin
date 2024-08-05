@@ -48,12 +48,6 @@ jobs:
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
 
-      - name: Install android ndk
-        uses: nttld/setup-ndk@v1
-        id: install-ndk
-        with:
-          ndk-version: r25c
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
