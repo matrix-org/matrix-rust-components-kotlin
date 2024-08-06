@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.matrix_sdk_ui
+package uniffi.matrix_sdk_common
 
 // Common helper code.
 //
@@ -55,7 +55,7 @@ open class RustBuffer : Structure() {
     companion object {
         internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
             // Note: need to convert the size to a `Long` value to make this work with JVM.
-            UniffiLib.INSTANCE.ffi_matrix_sdk_ui_rustbuffer_alloc(size.toLong(), status)
+            UniffiLib.INSTANCE.ffi_matrix_sdk_common_rustbuffer_alloc(size.toLong(), status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -71,7 +71,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.ffi_matrix_sdk_ui_rustbuffer_free(buf, status)
+            UniffiLib.INSTANCE.ffi_matrix_sdk_common_rustbuffer_free(buf, status)
         }
     }
 
@@ -696,7 +696,7 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
-            loadIndirect<UniffiLib>(componentName = "matrix_sdk_ui")
+            loadIndirect<UniffiLib>(componentName = "matrix_sdk_common")
             .also { lib: UniffiLib ->
                 uniffiCheckContractApiVersion(lib)
                 uniffiCheckApiChecksums(lib)
@@ -705,119 +705,119 @@ internal interface UniffiLib : Library {
         
     }
 
-    fun ffi_matrix_sdk_ui_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_ui_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_ui_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_ui_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_ui_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u8(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_u8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u8(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_u8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun ffi_matrix_sdk_ui_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i8(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_i8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i8(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_i8(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun ffi_matrix_sdk_ui_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u16(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_u16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u16(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_u16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    fun ffi_matrix_sdk_ui_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i16(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_i16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i16(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_i16(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    fun ffi_matrix_sdk_ui_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u32(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_u32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u32(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_u32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    fun ffi_matrix_sdk_ui_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i32(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_i32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i32(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_i32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    fun ffi_matrix_sdk_ui_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_u64(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_u64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_u64(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_u64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun ffi_matrix_sdk_ui_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_i64(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_i64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_i64(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_i64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun ffi_matrix_sdk_ui_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_f32(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_f32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_f32(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_f32(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Float
-    fun ffi_matrix_sdk_ui_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_f64(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_f64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_f64(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_f64(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
-    fun ffi_matrix_sdk_ui_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_pointer(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_pointer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_pointer(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_pointer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun ffi_matrix_sdk_ui_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_rust_buffer(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_rust_buffer(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_ui_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    fun ffi_matrix_sdk_common_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_cancel_void(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_cancel_void(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_free_void(`handle`: Long,
+    fun ffi_matrix_sdk_common_rust_future_free_void(`handle`: Long,
     ): Unit
-    fun ffi_matrix_sdk_ui_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_matrix_sdk_common_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun ffi_matrix_sdk_ui_uniffi_contract_version(
+    fun ffi_matrix_sdk_common_uniffi_contract_version(
     ): Int
     
 }
@@ -826,7 +826,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
     // Get the bindings contract version from our ComponentInterface
     val bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_matrix_sdk_ui_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_matrix_sdk_common_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
@@ -873,26 +873,6 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
-
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1UL
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
 
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
@@ -951,151 +931,45 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 /**
- * Where this event came.
+ * A machine-readable representation of the authenticity for a `ShieldState`.
  */
 
-enum class EventItemOrigin {
+enum class ShieldStateCode {
     
     /**
-     * The event was created locally.
+     * Not enough information available to check the authenticity.
      */
-    LOCAL,
+    AUTHENTICITY_NOT_GUARANTEED,
     /**
-     * The event came from a sync response.
+     * The sending device isn't yet known by the Client.
      */
-    SYNC,
+    UNKNOWN_DEVICE,
     /**
-     * The event came from pagination.
+     * The sending device hasn't been verified by the sender.
      */
-    PAGINATION;
+    UNSIGNED_DEVICE,
+    /**
+     * The sender hasn't been verified by the Client's user.
+     */
+    UNVERIFIED_IDENTITY,
+    /**
+     * An unencrypted event in an encrypted room.
+     */
+    SENT_IN_CLEAR;
     companion object
 }
 
 
-public object FfiConverterTypeEventItemOrigin: FfiConverterRustBuffer<EventItemOrigin> {
+public object FfiConverterTypeShieldStateCode: FfiConverterRustBuffer<ShieldStateCode> {
     override fun read(buf: ByteBuffer) = try {
-        EventItemOrigin.values()[buf.getInt() - 1]
+        ShieldStateCode.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: EventItemOrigin) = 4UL
+    override fun allocationSize(value: ShieldStateCode) = 4UL
 
-    override fun write(value: EventItemOrigin, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-/**
- * Status for the back-pagination on a live timeline.
- */
-sealed class LiveBackPaginationStatus {
-    
-    /**
-     * No back-pagination is happening right now.
-     */
-    data class Idle(
-        /**
-         * Have we hit the start of the timeline, i.e. back-paginating wouldn't
-         * have any effect?
-         */
-        val `hitStartOfTimeline`: kotlin.Boolean) : LiveBackPaginationStatus() {
-        companion object
-    }
-    
-    /**
-     * Back-pagination is already running in the background.
-     */
-    object Paginating : LiveBackPaginationStatus()
-    
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeLiveBackPaginationStatus : FfiConverterRustBuffer<LiveBackPaginationStatus>{
-    override fun read(buf: ByteBuffer): LiveBackPaginationStatus {
-        return when(buf.getInt()) {
-            1 -> LiveBackPaginationStatus.Idle(
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> LiveBackPaginationStatus.Paginating
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: LiveBackPaginationStatus) = when(value) {
-        is LiveBackPaginationStatus.Idle -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`hitStartOfTimeline`)
-            )
-        }
-        is LiveBackPaginationStatus.Paginating -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: LiveBackPaginationStatus, buf: ByteBuffer) {
-        when(value) {
-            is LiveBackPaginationStatus.Idle -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`hitStartOfTimeline`, buf)
-                Unit
-            }
-            is LiveBackPaginationStatus.Paginating -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-/**
- * The type of change between the previous and current pinned events.
- */
-
-enum class RoomPinnedEventsChange {
-    
-    /**
-     * Only new event ids were added.
-     */
-    ADDED,
-    /**
-     * Only event ids were removed.
-     */
-    REMOVED,
-    /**
-     * Some change other than only adding or only removing ids happened.
-     */
-    CHANGED;
-    companion object
-}
-
-
-public object FfiConverterTypeRoomPinnedEventsChange: FfiConverterRustBuffer<RoomPinnedEventsChange> {
-    override fun read(buf: ByteBuffer) = try {
-        RoomPinnedEventsChange.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: RoomPinnedEventsChange) = 4UL
-
-    override fun write(value: RoomPinnedEventsChange, buf: ByteBuffer) {
+    override fun write(value: ShieldStateCode, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

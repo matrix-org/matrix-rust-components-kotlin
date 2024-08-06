@@ -48,19 +48,25 @@ import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.OidcAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPowerLevelChanges
+import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
+import uniffi.matrix_sdk_common.ShieldStateCode
 import uniffi.matrix_sdk_crypto.FfiConverterTypeUtdCause
 import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeLiveBackPaginationStatus
+import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.LiveBackPaginationStatus
+import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferOidcAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
+import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLiveBackPaginationStatus
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -27898,8 +27904,10 @@ sealed class OtherState {
         companion object
     }
     
-    object RoomPinnedEvents : OtherState()
-    
+    data class RoomPinnedEvents(
+        val `change`: RoomPinnedEventsChange) : OtherState() {
+        companion object
+    }
     
     data class RoomPowerLevels(
         val `users`: Map<kotlin.String, kotlin.Long>, 
@@ -27958,7 +27966,9 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             12 -> OtherState.RoomName(
                 FfiConverterOptionalString.read(buf),
                 )
-            13 -> OtherState.RoomPinnedEvents
+            13 -> OtherState.RoomPinnedEvents(
+                FfiConverterTypeRoomPinnedEventsChange.read(buf),
+                )
             14 -> OtherState.RoomPowerLevels(
                 FfiConverterMapStringLong.read(buf),
                 FfiConverterOptionalMapStringLong.read(buf),
@@ -28059,6 +28069,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterTypeRoomPinnedEventsChange.allocationSize(value.`change`)
             )
         }
         is OtherState.RoomPowerLevels -> {
@@ -28170,6 +28181,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             }
             is OtherState.RoomPinnedEvents -> {
                 buf.putInt(13)
+                FfiConverterTypeRoomPinnedEventsChange.write(value.`change`, buf)
                 Unit
             }
             is OtherState.RoomPowerLevels -> {
@@ -30455,6 +30467,7 @@ sealed class ShieldState {
      * presented.
      */
     data class Red(
+        val `code`: ShieldStateCode, 
         val `message`: kotlin.String) : ShieldState() {
         companion object
     }
@@ -30464,6 +30477,7 @@ sealed class ShieldState {
      * presented.
      */
     data class Grey(
+        val `code`: ShieldStateCode, 
         val `message`: kotlin.String) : ShieldState() {
         companion object
     }
@@ -30483,9 +30497,11 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
     override fun read(buf: ByteBuffer): ShieldState {
         return when(buf.getInt()) {
             1 -> ShieldState.Red(
+                FfiConverterTypeShieldStateCode.read(buf),
                 FfiConverterString.read(buf),
                 )
             2 -> ShieldState.Grey(
+                FfiConverterTypeShieldStateCode.read(buf),
                 FfiConverterString.read(buf),
                 )
             3 -> ShieldState.None
@@ -30498,6 +30514,7 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterTypeShieldStateCode.allocationSize(value.`code`)
                 + FfiConverterString.allocationSize(value.`message`)
             )
         }
@@ -30505,6 +30522,7 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterTypeShieldStateCode.allocationSize(value.`code`)
                 + FfiConverterString.allocationSize(value.`message`)
             )
         }
@@ -30520,11 +30538,13 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
         when(value) {
             is ShieldState.Red -> {
                 buf.putInt(1)
+                FfiConverterTypeShieldStateCode.write(value.`code`, buf)
                 FfiConverterString.write(value.`message`, buf)
                 Unit
             }
             is ShieldState.Grey -> {
                 buf.putInt(2)
+                FfiConverterTypeShieldStateCode.write(value.`code`, buf)
                 FfiConverterString.write(value.`message`, buf)
                 Unit
             }
@@ -35522,6 +35542,14 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
         }
     }
 }
+
+
+
+
+
+
+
+
 
 
 
