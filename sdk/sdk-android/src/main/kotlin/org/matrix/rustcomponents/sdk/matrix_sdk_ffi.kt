@@ -2109,6 +2109,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2314,6 +2316,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_passphrase(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Pointer,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_requires_sliding_sync(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3383,6 +3387,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_requires_sliding_sync(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
@@ -4283,6 +4289,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy() != 5659.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config() != 58783.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_requires_sliding_sync() != 18165.toShort()) {
@@ -7363,6 +7372,11 @@ public interface ClientBuilderInterface {
     
     fun `proxy`(`url`: kotlin.String): ClientBuilder
     
+    /**
+     * Add a default request config to this client.
+     */
+    fun `requestConfig`(`config`: RequestConfig): ClientBuilder
+    
     fun `requiresSlidingSync`(): ClientBuilder
     
     fun `serverName`(`serverName`: kotlin.String): ClientBuilder
@@ -7675,6 +7689,21 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(
         it, FfiConverterString.lower(`url`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Add a default request config to this client.
+     */override fun `requestConfig`(`config`: RequestConfig): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(
+        it, FfiConverterTypeRequestConfig.lower(`config`),_status)
 }
     }
     )
@@ -23267,6 +23296,58 @@ public object FfiConverterTypeReceipt: FfiConverterRustBuffer<Receipt> {
 
     override fun write(value: Receipt, buf: ByteBuffer) {
             FfiConverterOptionalULong.write(value.`timestamp`, buf)
+    }
+}
+
+
+
+/**
+ * The config to use for HTTP requests by default in this client.
+ */
+data class RequestConfig (
+    /**
+     * Max number of retries.
+     */
+    var `retryLimit`: kotlin.ULong?, 
+    /**
+     * Timeout for a request in milliseconds.
+     */
+    var `timeout`: kotlin.ULong?, 
+    /**
+     * Max number of concurrent requests. No value means no limits.
+     */
+    var `maxConcurrentRequests`: kotlin.ULong?, 
+    /**
+     * Base delay between retries.
+     */
+    var `retryTimeout`: kotlin.ULong?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRequestConfig: FfiConverterRustBuffer<RequestConfig> {
+    override fun read(buf: ByteBuffer): RequestConfig {
+        return RequestConfig(
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RequestConfig) = (
+            FfiConverterOptionalULong.allocationSize(value.`retryLimit`) +
+            FfiConverterOptionalULong.allocationSize(value.`timeout`) +
+            FfiConverterOptionalULong.allocationSize(value.`maxConcurrentRequests`) +
+            FfiConverterOptionalULong.allocationSize(value.`retryTimeout`)
+    )
+
+    override fun write(value: RequestConfig, buf: ByteBuffer) {
+            FfiConverterOptionalULong.write(value.`retryLimit`, buf)
+            FfiConverterOptionalULong.write(value.`timeout`, buf)
+            FfiConverterOptionalULong.write(value.`maxConcurrentRequests`, buf)
+            FfiConverterOptionalULong.write(value.`retryTimeout`, buf)
     }
 }
 
