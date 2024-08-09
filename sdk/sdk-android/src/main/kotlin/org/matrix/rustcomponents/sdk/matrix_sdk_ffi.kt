@@ -2111,6 +2111,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2435,6 +2437,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_auth_type(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_cancel(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_reset(`ptr`: Pointer,`auth`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_mediafilehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2743,8 +2747,6 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_room_info(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_subscribe(`ptr`: Pointer,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2755,6 +2757,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_subscribe_to_rooms(`ptr`: Pointer,`roomIds`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Pointer,`delayBeforeShowingInMs`: Int,`delayBeforeHidingInMs`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_clone_roommembersiterator(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3489,6 +3493,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_auth_type(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_cancel(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
@@ -3751,13 +3757,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_subscribe_to_rooms(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator(
     ): Short
@@ -4444,6 +4450,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_auth_type() != 43501.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_cancel() != 57622.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset() != 11997.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4837,9 +4846,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info() != 32985.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_subscribe() != 60003.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms() != 49704.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4847,6 +4853,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state() != 64650.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_subscribe_to_rooms() != 21360.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator() != 16821.toShort()) {
@@ -9386,6 +9395,8 @@ public interface IdentityResetHandleInterface {
      */
     fun `authType`(): CrossSigningResetAuthType
     
+    suspend fun `cancel`()
+    
     /**
      * This method starts the identity reset process and
      * will go through the following steps:
@@ -9496,6 +9507,27 @@ open class IdentityResetHandle: Disposable, AutoCloseable, IdentityResetHandleIn
     )
     }
     
+
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `cancel`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_identityresethandle_cancel(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
 
     
     /**
@@ -15101,8 +15133,6 @@ public interface RoomListItemInterface {
     
     suspend fun `roomInfo`(): RoomInfo
     
-    fun `subscribe`(`settings`: RoomSubscription?)
-    
     companion object
 }
 
@@ -15384,17 +15414,6 @@ open class RoomListItem: Disposable, AutoCloseable, RoomListItemInterface {
     )
     }
 
-    override fun `subscribe`(`settings`: RoomSubscription?)
-        = 
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_subscribe(
-        it, FfiConverterOptionalTypeRoomSubscription.lower(`settings`),_status)
-}
-    }
-    
-    
-
     
 
     
@@ -15535,6 +15554,8 @@ public interface RoomListServiceInterface {
     
     fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
     
+    fun `subscribeToRooms`(`roomIds`: List<kotlin.String>, `settings`: RoomSubscription?)
+    
     fun `syncIndicator`(`delayBeforeShowingInMs`: kotlin.UInt, `delayBeforeHidingInMs`: kotlin.UInt, `listener`: RoomListServiceSyncIndicatorListener): TaskHandle
     
     companion object
@@ -15665,6 +15686,18 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface 
     }
     )
     }
+    
+
+    
+    @Throws(RoomListException::class)override fun `subscribeToRooms`(`roomIds`: List<kotlin.String>, `settings`: RoomSubscription?)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(RoomListException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_subscribe_to_rooms(
+        it, FfiConverterSequenceString.lower(`roomIds`),FfiConverterOptionalTypeRoomSubscription.lower(`settings`),_status)
+}
+    }
+    
     
 
     override fun `syncIndicator`(`delayBeforeShowingInMs`: kotlin.UInt, `delayBeforeHidingInMs`: kotlin.UInt, `listener`: RoomListServiceSyncIndicatorListener): TaskHandle {
