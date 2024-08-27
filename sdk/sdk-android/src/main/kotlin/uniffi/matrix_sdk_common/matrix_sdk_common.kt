@@ -955,7 +955,11 @@ enum class ShieldStateCode {
     /**
      * An unencrypted event in an encrypted room.
      */
-    SENT_IN_CLEAR;
+    SENT_IN_CLEAR,
+    /**
+     * The sender was previously verified but changed their identity.
+     */
+    PREVIOUSLY_VERIFIED;
     companion object
 }
 
