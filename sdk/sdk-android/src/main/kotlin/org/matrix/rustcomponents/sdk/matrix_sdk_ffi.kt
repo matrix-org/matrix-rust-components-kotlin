@@ -2120,6 +2120,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2190,6 +2194,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Pointer,`action`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_available_sliding_sync_versions(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_avatar_url(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_cached_avatar_url(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2242,6 +2248,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(`ptr`: Pointer,`email`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Pointer,`authorizationData`: Pointer,`callbackUrl`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,
@@ -2272,6 +2280,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_sliding_sync_version(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_start_sso_login(`ptr`: Pointer,`redirectUrl`: RustBuffer.ByValue,`idpId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2328,8 +2338,6 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_requires_sliding_sync(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_strategy(`ptr`: Pointer,`strategy`: RustBufferCollectStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(`ptr`: Pointer,`serverName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -2340,9 +2348,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(`ptr`: Pointer,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_simplified_sliding_sync(`ptr`: Pointer,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_proxy(`ptr`: Pointer,`slidingSyncProxy`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Pointer,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2432,7 +2438,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_proxy(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
@@ -2930,7 +2936,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Pointer,`listener`: Long,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Pointer,`uniqueId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
@@ -2953,6 +2959,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_reset(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_set(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_truncate(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_timelineevent(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3272,6 +3280,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_account_url(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url(
@@ -3324,6 +3334,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
@@ -3353,6 +3365,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login(
     ): Short
@@ -3404,8 +3418,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_requires_sliding_sync(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
@@ -3416,9 +3428,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_simplified_sliding_sync(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_proxy(
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
     ): Short
@@ -3496,7 +3506,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_proxy(
+    fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login(
     ): Short
@@ -3912,6 +3922,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_set(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_truncate(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_type(
@@ -4117,6 +4129,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_url() != 42373.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions() != 35296.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url() != 27867.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4195,6 +4210,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() != 33276.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email() != 11789.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 35005.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4238,6 +4256,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() != 41975.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version() != 4957.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login() != 34571.toShort()) {
@@ -4315,9 +4336,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config() != 58783.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_requires_sliding_sync() != 18165.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy() != 41183.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4333,10 +4351,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate() != 8576.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_simplified_sliding_sync() != 7554.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_proxy() != 15622.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder() != 39381.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent() != 13719.toShort()) {
@@ -4453,7 +4468,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id() != 40338.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_proxy() != 46815.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version() != 36573.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login() != 46090.toShort()) {
@@ -5047,7 +5062,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 46161.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 10294.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 62959.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event() != 52414.toShort()) {
@@ -5075,6 +5090,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_set() != 13334.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_truncate() != 34040.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id() != 11088.toShort()) {
@@ -5767,6 +5785,17 @@ public interface ClientInterface {
     suspend fun `accountUrl`(`action`: AccountManagementAction?): kotlin.String?
     
     /**
+     * Find all sliding sync versions that are available.
+     *
+     * Be careful: This method may hit the store and will send new requests for
+     * each call. It can be costly to call it repeatedly.
+     *
+     * If `.well-known` or `/versions` is unreachable, it will simply move
+     * potential sliding sync versions aside. No error will be reported.
+     */
+    suspend fun `availableSlidingSyncVersions`(): List<SlidingSyncVersion>
+    
+    /**
      * Sends a request to retrieve the avatar URL. Will fill the cache used by
      * [`Self::cached_avatar_url`] on success.
      */
@@ -5876,6 +5905,11 @@ public interface ClientInterface {
     suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
     
     /**
+     * Login using an email and password.
+     */
+    suspend fun `loginWithEmail`(`email`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
+    
+    /**
      * Completes the OIDC login process.
      */
     suspend fun `loginWithOidcCallback`(`authorizationData`: OidcAuthorizationData, `callbackUrl`: kotlin.String)
@@ -5934,6 +5968,11 @@ public interface ClientInterface {
      * Registers a pusher with given parameters
      */
     suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String)
+    
+    /**
+     * The sliding sync version.
+     */
+    fun `slidingSyncVersion`(): SlidingSyncVersion
     
     /**
      * Returns a handler to start the SSO login process.
@@ -6130,6 +6169,35 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { FfiConverterOptionalString.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Find all sliding sync versions that are available.
+     *
+     * Be careful: This method may hit the store and will send new requests for
+     * each call. It can be costly to call it repeatedly.
+     *
+     * If `.well-known` or `/versions` is unreachable, it will simply move
+     * potential sliding sync versions aside. No error will be reported.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `availableSlidingSyncVersions`() : List<SlidingSyncVersion> {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_available_sliding_sync_versions(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeSlidingSyncVersion.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -6689,6 +6757,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
+     * Login using an email and password.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `loginWithEmail`(`email`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(
+                thisPtr,
+                FfiConverterString.lower(`email`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Completes the OIDC login process.
      */
     @Throws(OidcException::class)
@@ -7003,6 +7096,21 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * The sliding sync version.
+     */override fun `slidingSyncVersion`(): SlidingSyncVersion {
+            return FfiConverterTypeSlidingSyncVersion.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_sliding_sync_version(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     /**
@@ -7407,8 +7515,6 @@ public interface ClientBuilderInterface {
      */
     fun `requestConfig`(`config`: RequestConfig): ClientBuilder
     
-    fun `requiresSlidingSync`(): ClientBuilder
-    
     /**
      * Set the strategy to be used for picking recipient devices when sending
      * an encrypted message.
@@ -7431,9 +7537,7 @@ public interface ClientBuilderInterface {
     
     fun `setSessionDelegate`(`sessionDelegate`: ClientSessionDelegate): ClientBuilder
     
-    fun `simplifiedSlidingSync`(`enable`: kotlin.Boolean): ClientBuilder
-    
-    fun `slidingSyncProxy`(`slidingSyncProxy`: kotlin.String?): ClientBuilder
+    fun `slidingSyncVersionBuilder`(`versionBuilder`: SlidingSyncVersionBuilder): ClientBuilder
     
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
     
@@ -7747,18 +7851,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     }
     
 
-    override fun `requiresSlidingSync`(): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_requires_sliding_sync(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
     
     /**
      * Set the strategy to be used for picking recipient devices when sending
@@ -7831,24 +7923,12 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     }
     
 
-    override fun `simplifiedSlidingSync`(`enable`: kotlin.Boolean): ClientBuilder {
+    override fun `slidingSyncVersionBuilder`(`versionBuilder`: SlidingSyncVersionBuilder): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_simplified_sliding_sync(
-        it, FfiConverterBoolean.lower(`enable`),_status)
-}
-    }
-    )
-    }
-    
-
-    override fun `slidingSyncProxy`(`slidingSyncProxy`: kotlin.String?): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_proxy(
-        it, FfiConverterOptionalString.lower(`slidingSyncProxy`),_status)
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(
+        it, FfiConverterTypeSlidingSyncVersionBuilder.lower(`versionBuilder`),_status)
 }
     }
     )
@@ -9135,10 +9215,9 @@ public object FfiConverterTypeEventTimelineItem: FfiConverter<EventTimelineItem,
 public interface HomeserverLoginDetailsInterface {
     
     /**
-     * The URL of the discovered or manually set sliding sync proxy,
-     * if any.
+     * The sliding sync version.
      */
-    fun `slidingSyncProxy`(): kotlin.String?
+    fun `slidingSyncVersion`(): SlidingSyncVersion
     
     /**
      * Whether the current homeserver supports login using OIDC.
@@ -9241,13 +9320,12 @@ open class HomeserverLoginDetails: Disposable, AutoCloseable, HomeserverLoginDet
 
     
     /**
-     * The URL of the discovered or manually set sliding sync proxy,
-     * if any.
-     */override fun `slidingSyncProxy`(): kotlin.String? {
-            return FfiConverterOptionalString.lift(
+     * The sliding sync version.
+     */override fun `slidingSyncVersion`(): SlidingSyncVersion {
+            return FfiConverterTypeSlidingSyncVersion.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_proxy(
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(
         it, _status)
 }
     }
@@ -19083,7 +19161,22 @@ public interface TimelineInterface {
     
     suspend fun `subscribeToBackPaginationStatus`(`listener`: PaginationStatusListener): TaskHandle
     
-    suspend fun `toggleReaction`(`eventId`: kotlin.String, `key`: kotlin.String)
+    /**
+     * Toggle a reaction on an event.
+     *
+     * The `unique_id` parameter is a string returned by
+     * the `TimelineItem::unique_id()` method. As such, this method works both
+     * on local echoes and remote items.
+     *
+     * Adds or redacts a reaction based on the state of the reaction at the
+     * time it is called.
+     *
+     * When redacting a previous reaction, the redaction reason is not set.
+     *
+     * Ensures that only one reaction is sent at a time to avoid race
+     * conditions and spamming the homeserver with requests.
+     */
+    suspend fun `toggleReaction`(`uniqueId`: kotlin.String, `key`: kotlin.String)
     
     /**
      * Adds a new pinned event by sending an updated `m.room.pinned_events`
@@ -19767,14 +19860,29 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     }
 
     
+    /**
+     * Toggle a reaction on an event.
+     *
+     * The `unique_id` parameter is a string returned by
+     * the `TimelineItem::unique_id()` method. As such, this method works both
+     * on local echoes and remote items.
+     *
+     * Adds or redacts a reaction based on the state of the reaction at the
+     * time it is called.
+     *
+     * When redacting a previous reaction, the redaction reason is not set.
+     *
+     * Ensures that only one reaction is sent at a time to avoid race
+     * conditions and spamming the homeserver with requests.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `toggleReaction`(`eventId`: kotlin.String, `key`: kotlin.String) {
+    override suspend fun `toggleReaction`(`uniqueId`: kotlin.String, `key`: kotlin.String) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(
                 thisPtr,
-                FfiConverterString.lower(`eventId`),FfiConverterString.lower(`key`),
+                FfiConverterString.lower(`uniqueId`),FfiConverterString.lower(`key`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -19966,6 +20074,8 @@ public interface TimelineDiffInterface {
     
     fun `set`(): SetData?
     
+    fun `truncate`(): kotlin.UInt?
+    
     companion object
 }
 
@@ -20139,6 +20249,18 @@ open class TimelineDiff: Disposable, AutoCloseable, TimelineDiffInterface {
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_set(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `truncate`(): kotlin.UInt? {
+            return FfiConverterOptionalUInt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_truncate(
         it, _status)
 }
     }
@@ -24252,9 +24374,9 @@ data class Session (
      */
     var `oidcData`: kotlin.String?, 
     /**
-     * The URL for the sliding sync proxy used for this session.
+     * The sliding sync version used for this session.
      */
-    var `slidingSyncProxy`: kotlin.String?
+    var `slidingSyncVersion`: SlidingSyncVersion
 ) {
     
     companion object
@@ -24269,7 +24391,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
+            FfiConverterTypeSlidingSyncVersion.read(buf),
         )
     }
 
@@ -24280,7 +24402,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.allocationSize(value.`deviceId`) +
             FfiConverterString.allocationSize(value.`homeserverUrl`) +
             FfiConverterOptionalString.allocationSize(value.`oidcData`) +
-            FfiConverterOptionalString.allocationSize(value.`slidingSyncProxy`)
+            FfiConverterTypeSlidingSyncVersion.allocationSize(value.`slidingSyncVersion`)
     )
 
     override fun write(value: Session, buf: ByteBuffer) {
@@ -24290,7 +24412,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.write(value.`deviceId`, buf)
             FfiConverterString.write(value.`homeserverUrl`, buf)
             FfiConverterOptionalString.write(value.`oidcData`, buf)
-            FfiConverterOptionalString.write(value.`slidingSyncProxy`, buf)
+            FfiConverterTypeSlidingSyncVersion.write(value.`slidingSyncVersion`, buf)
     }
 }
 
@@ -25462,7 +25584,9 @@ sealed class ClientBuildException(message: String): kotlin.Exception(message) {
         
         class WellKnownDeserializationException(message: String) : ClientBuildException(message)
         
-        class SlidingSyncNotAvailable(message: String) : ClientBuildException(message)
+        class SlidingSync(message: String) : ClientBuildException(message)
+        
+        class SlidingSyncVersion(message: String) : ClientBuildException(message)
         
         class Sdk(message: String) : ClientBuildException(message)
         
@@ -25482,9 +25606,10 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
             2 -> ClientBuildException.ServerUnreachable(FfiConverterString.read(buf))
             3 -> ClientBuildException.WellKnownLookupFailed(FfiConverterString.read(buf))
             4 -> ClientBuildException.WellKnownDeserializationException(FfiConverterString.read(buf))
-            5 -> ClientBuildException.SlidingSyncNotAvailable(FfiConverterString.read(buf))
-            6 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
-            7 -> ClientBuildException.Generic(FfiConverterString.read(buf))
+            5 -> ClientBuildException.SlidingSync(FfiConverterString.read(buf))
+            6 -> ClientBuildException.SlidingSyncVersion(FfiConverterString.read(buf))
+            7 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
+            8 -> ClientBuildException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -25512,16 +25637,20 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
                 buf.putInt(4)
                 Unit
             }
-            is ClientBuildException.SlidingSyncNotAvailable -> {
+            is ClientBuildException.SlidingSync -> {
                 buf.putInt(5)
                 Unit
             }
-            is ClientBuildException.Sdk -> {
+            is ClientBuildException.SlidingSyncVersion -> {
                 buf.putInt(6)
                 Unit
             }
-            is ClientBuildException.Generic -> {
+            is ClientBuildException.Sdk -> {
                 buf.putInt(7)
+                Unit
+            }
+            is ClientBuildException.Generic -> {
+                buf.putInt(8)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -30855,6 +30984,184 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
 
 
 
+sealed class SlidingSyncVersion {
+    
+    object None : SlidingSyncVersion()
+    
+    
+    data class Proxy(
+        val `url`: kotlin.String) : SlidingSyncVersion() {
+        companion object
+    }
+    
+    object Native : SlidingSyncVersion()
+    
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeSlidingSyncVersion : FfiConverterRustBuffer<SlidingSyncVersion>{
+    override fun read(buf: ByteBuffer): SlidingSyncVersion {
+        return when(buf.getInt()) {
+            1 -> SlidingSyncVersion.None
+            2 -> SlidingSyncVersion.Proxy(
+                FfiConverterString.read(buf),
+                )
+            3 -> SlidingSyncVersion.Native
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SlidingSyncVersion) = when(value) {
+        is SlidingSyncVersion.None -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SlidingSyncVersion.Proxy -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`url`)
+            )
+        }
+        is SlidingSyncVersion.Native -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: SlidingSyncVersion, buf: ByteBuffer) {
+        when(value) {
+            is SlidingSyncVersion.None -> {
+                buf.putInt(1)
+                Unit
+            }
+            is SlidingSyncVersion.Proxy -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`url`, buf)
+                Unit
+            }
+            is SlidingSyncVersion.Native -> {
+                buf.putInt(3)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class SlidingSyncVersionBuilder {
+    
+    object None : SlidingSyncVersionBuilder()
+    
+    
+    data class Proxy(
+        val `url`: kotlin.String) : SlidingSyncVersionBuilder() {
+        companion object
+    }
+    
+    object Native : SlidingSyncVersionBuilder()
+    
+    
+    object DiscoverProxy : SlidingSyncVersionBuilder()
+    
+    
+    object DiscoverNative : SlidingSyncVersionBuilder()
+    
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeSlidingSyncVersionBuilder : FfiConverterRustBuffer<SlidingSyncVersionBuilder>{
+    override fun read(buf: ByteBuffer): SlidingSyncVersionBuilder {
+        return when(buf.getInt()) {
+            1 -> SlidingSyncVersionBuilder.None
+            2 -> SlidingSyncVersionBuilder.Proxy(
+                FfiConverterString.read(buf),
+                )
+            3 -> SlidingSyncVersionBuilder.Native
+            4 -> SlidingSyncVersionBuilder.DiscoverProxy
+            5 -> SlidingSyncVersionBuilder.DiscoverNative
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SlidingSyncVersionBuilder) = when(value) {
+        is SlidingSyncVersionBuilder.None -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SlidingSyncVersionBuilder.Proxy -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`url`)
+            )
+        }
+        is SlidingSyncVersionBuilder.Native -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SlidingSyncVersionBuilder.DiscoverProxy -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SlidingSyncVersionBuilder.DiscoverNative -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: SlidingSyncVersionBuilder, buf: ByteBuffer) {
+        when(value) {
+            is SlidingSyncVersionBuilder.None -> {
+                buf.putInt(1)
+                Unit
+            }
+            is SlidingSyncVersionBuilder.Proxy -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`url`, buf)
+                Unit
+            }
+            is SlidingSyncVersionBuilder.Native -> {
+                buf.putInt(3)
+                Unit
+            }
+            is SlidingSyncVersionBuilder.DiscoverProxy -> {
+                buf.putInt(4)
+                Unit
+            }
+            is SlidingSyncVersionBuilder.DiscoverNative -> {
+                buf.putInt(5)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 
 sealed class SsoException(message: String): kotlin.Exception(message) {
@@ -35634,6 +35941,31 @@ public object FfiConverterSequenceTypeRoomListEntriesUpdate: FfiConverterRustBuf
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomListEntriesUpdate.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeSlidingSyncVersion: FfiConverterRustBuffer<List<SlidingSyncVersion>> {
+    override fun read(buf: ByteBuffer): List<SlidingSyncVersion> {
+        val len = buf.getInt()
+        return List<SlidingSyncVersion>(len) {
+            FfiConverterTypeSlidingSyncVersion.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<SlidingSyncVersion>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeSlidingSyncVersion.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<SlidingSyncVersion>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeSlidingSyncVersion.write(it, buf)
         }
     }
 }
