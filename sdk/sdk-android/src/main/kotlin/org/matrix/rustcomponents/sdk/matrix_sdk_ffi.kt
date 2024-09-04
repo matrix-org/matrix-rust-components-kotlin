@@ -23297,11 +23297,6 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
 
 data class OidcCrossSigningResetInfo (
     /**
-     * The error message we received from the homeserver after we attempted to
-     * reset the cross-signing keys.
-     */
-    var `error`: kotlin.String, 
-    /**
      * The URL where the user can approve the reset of the cross-signing keys.
      */
     var `approvalUrl`: kotlin.String
@@ -23314,17 +23309,14 @@ public object FfiConverterTypeOidcCrossSigningResetInfo: FfiConverterRustBuffer<
     override fun read(buf: ByteBuffer): OidcCrossSigningResetInfo {
         return OidcCrossSigningResetInfo(
             FfiConverterString.read(buf),
-            FfiConverterString.read(buf),
         )
     }
 
     override fun allocationSize(value: OidcCrossSigningResetInfo) = (
-            FfiConverterString.allocationSize(value.`error`) +
             FfiConverterString.allocationSize(value.`approvalUrl`)
     )
 
     override fun write(value: OidcCrossSigningResetInfo, buf: ByteBuffer) {
-            FfiConverterString.write(value.`error`, buf)
             FfiConverterString.write(value.`approvalUrl`, buf)
     }
 }
@@ -26228,7 +26220,8 @@ sealed class EventSendState {
      *
      * Happens only when the room key recipient strategy (as set by
      * [`ClientBuilder::room_key_recipient_strategy`]) has
-     * [`error_on_verified_user_problem`](CollectStrategy::DeviceBasedStrategy::error_on_verified_user_problem) set.
+     * [`error_on_verified_user_problem`](CollectStrategy::DeviceBasedStrategy::error_on_verified_user_problem)
+     * set, or when using [`CollectStrategy::IdentityBasedStrategy`].
      */
     data class VerifiedUserChangedIdentity(
         /**
@@ -26237,6 +26230,20 @@ sealed class EventSendState {
         val `users`: List<kotlin.String>) : EventSendState() {
         companion object
     }
+    
+    /**
+     * The user does not have cross-signing set up, but
+     * [`CollectStrategy::IdentityBasedStrategy`] was used.
+     */
+    object CrossSigningNotSetup : EventSendState()
+    
+    
+    /**
+     * The current device is not verified, but
+     * [`CollectStrategy::IdentityBasedStrategy`] was used.
+     */
+    object SendingFromUnverifiedDevice : EventSendState()
+    
     
     /**
      * The local event has been sent to the server, but unsuccessfully: The
@@ -26281,11 +26288,13 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
             3 -> EventSendState.VerifiedUserChangedIdentity(
                 FfiConverterSequenceString.read(buf),
                 )
-            4 -> EventSendState.SendingFailed(
+            4 -> EventSendState.CrossSigningNotSetup
+            5 -> EventSendState.SendingFromUnverifiedDevice
+            6 -> EventSendState.SendingFailed(
                 FfiConverterString.read(buf),
                 FfiConverterBoolean.read(buf),
                 )
-            5 -> EventSendState.Sent(
+            7 -> EventSendState.Sent(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -26311,6 +26320,18 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
             (
                 4UL
                 + FfiConverterSequenceString.allocationSize(value.`users`)
+            )
+        }
+        is EventSendState.CrossSigningNotSetup -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is EventSendState.SendingFromUnverifiedDevice -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
             )
         }
         is EventSendState.SendingFailed -> {
@@ -26346,14 +26367,22 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
                 FfiConverterSequenceString.write(value.`users`, buf)
                 Unit
             }
-            is EventSendState.SendingFailed -> {
+            is EventSendState.CrossSigningNotSetup -> {
                 buf.putInt(4)
+                Unit
+            }
+            is EventSendState.SendingFromUnverifiedDevice -> {
+                buf.putInt(5)
+                Unit
+            }
+            is EventSendState.SendingFailed -> {
+                buf.putInt(6)
                 FfiConverterString.write(value.`error`, buf)
                 FfiConverterBoolean.write(value.`isRecoverable`, buf)
                 Unit
             }
             is EventSendState.Sent -> {
-                buf.putInt(5)
+                buf.putInt(7)
                 FfiConverterString.write(value.`eventId`, buf)
                 Unit
             }
