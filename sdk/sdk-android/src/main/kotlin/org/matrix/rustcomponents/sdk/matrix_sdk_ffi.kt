@@ -2124,6 +2124,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2590,6 +2594,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_device_trust_and_resend(`ptr`: Pointer,`devices`: RustBuffer.ByValue,`transactionId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_invite_user_by_id(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
@@ -2640,7 +2646,7 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_pinned_events_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`maxEventsToLoad`: Short,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_pinned_events_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`maxEventsToLoad`: Short,`maxConcurrentRequests`: Short,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_raw_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -2682,6 +2688,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_topic(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_try_resend(`ptr`: Pointer,`transactionId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_typing_notice(`ptr`: Pointer,`isTyping`: Byte,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_unban_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
@@ -2689,6 +2697,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_update_power_levels_for_users(`ptr`: Pointer,`updates`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Pointer,`userIds`: RustBuffer.ByValue,`transactionId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_roomdirectorysearch(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2886,9 +2896,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_poll(`ptr`: Pointer,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Pointer,`item`: Pointer,`newContent`: Pointer,
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit_poll(`ptr`: Pointer,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,`editItem`: Pointer,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Pointer,`item`: Pointer,`newContent`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -3628,6 +3636,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_invite_user_by_id(
@@ -3720,6 +3730,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_topic(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_try_resend(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_typing_notice(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_unban_user(
@@ -3727,6 +3739,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_update_power_levels_for_users(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page(
     ): Short
@@ -3853,8 +3867,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_poll(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll(
     ): Short
@@ -4651,6 +4663,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_id() != 61990.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend() != 18289.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user() != 62239.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4726,7 +4741,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() != 39510.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_pinned_events_timeline() != 4133.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_pinned_events_timeline() != 29596.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_raw_name() != 15453.toShort()) {
@@ -4789,6 +4804,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_topic() != 59745.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_try_resend() != 40157.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_typing_notice() != 28642.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4799,6 +4817,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() != 19069.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend() != 48968.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page() != 22509.toShort()) {
@@ -4987,10 +5008,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll() != 37925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() != 9304.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_poll() != 40066.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() != 14692.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll() != 31506.toShort()) {
@@ -12082,6 +12100,20 @@ public interface RoomInterface {
     fun `id`(): kotlin.String
     
     /**
+     * Set the local trust for the given devices to `LocalTrust::Ignored`
+     * and resend messages that failed to send because said devices are
+     * unverified (in response to
+     * `SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`).
+     * # Arguments
+     *
+     * * `devices` - The map of users identifiers to device identifiers
+     * received in the error
+     * * `transaction_id` - The send queue transaction identifier of the local
+     * echo the send error applies to
+     */
+    suspend fun `ignoreDeviceTrustAndResend`(`devices`: Map<kotlin.String, List<kotlin.String>>, `transactionId`: kotlin.String)
+    
+    /**
      * Ignores a user.
      *
      * # Arguments
@@ -12165,7 +12197,7 @@ public interface RoomInterface {
     
     fun `ownUserId`(): kotlin.String
     
-    suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort): Timeline
+    suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort, `maxConcurrentRequests`: kotlin.UShort): Timeline
     
     /**
      * The raw name as present in the room state event.
@@ -12279,6 +12311,22 @@ public interface RoomInterface {
     
     fun `topic`(): kotlin.String?
     
+    /**
+     * Attempt to manually resend messages that failed to send due to issues
+     * that should now have been fixed.
+     *
+     * This is useful for example, when there's a
+     * `SessionRecipientCollectionError::VerifiedUserChangedIdentity` error;
+     * the user may have re-verified on a different device and would now
+     * like to send the failed message that's waiting on this device.
+     *
+     * # Arguments
+     *
+     * * `transaction_id` - The send queue transaction identifier of the local
+     * echo that should be unwedged.
+     */
+    suspend fun `tryResend`(`transactionId`: kotlin.String)
+    
     suspend fun `typingNotice`(`isTyping`: kotlin.Boolean)
     
     suspend fun `unbanUser`(`userId`: kotlin.String, `reason`: kotlin.String?)
@@ -12301,6 +12349,20 @@ public interface RoomInterface {
      * * `media_info` - The media info used as avatar image info.
      */
     suspend fun `uploadAvatar`(`mimeType`: kotlin.String, `data`: kotlin.ByteArray, `mediaInfo`: ImageInfo?)
+    
+    /**
+     * Remove verification requirements for the given users and
+     * resend messages that failed to send because their identities were no
+     * longer verified (in response to
+     * `SessionRecipientCollectionError::VerifiedUserChangedIdentity`)
+     *
+     * # Arguments
+     *
+     * * `user_ids` - The list of users identifiers received in the error
+     * * `transaction_id` - The send queue transaction identifier of the local
+     * echo the send error applies to
+     */
+    suspend fun `withdrawVerificationAndResend`(`userIds`: List<kotlin.String>, `transactionId`: kotlin.String)
     
     companion object
 }
@@ -12870,6 +12932,40 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
 
     
     /**
+     * Set the local trust for the given devices to `LocalTrust::Ignored`
+     * and resend messages that failed to send because said devices are
+     * unverified (in response to
+     * `SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`).
+     * # Arguments
+     *
+     * * `devices` - The map of users identifiers to device identifiers
+     * received in the error
+     * * `transaction_id` - The send queue transaction identifier of the local
+     * echo the send error applies to
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ignoreDeviceTrustAndResend`(`devices`: Map<kotlin.String, List<kotlin.String>>, `transactionId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_ignore_device_trust_and_resend(
+                thisPtr,
+                FfiConverterMapStringSequenceString.lower(`devices`),FfiConverterString.lower(`transactionId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Ignores a user.
      *
      * # Arguments
@@ -13346,12 +13442,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort) : Timeline {
+    override suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort, `maxConcurrentRequests`: kotlin.UShort) : Timeline {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_pinned_events_timeline(
                 thisPtr,
-                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterUShort.lower(`maxEventsToLoad`),
+                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterUShort.lower(`maxEventsToLoad`),FfiConverterUShort.lower(`maxConcurrentRequests`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
@@ -13832,6 +13928,42 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     
 
     
+    /**
+     * Attempt to manually resend messages that failed to send due to issues
+     * that should now have been fixed.
+     *
+     * This is useful for example, when there's a
+     * `SessionRecipientCollectionError::VerifiedUserChangedIdentity` error;
+     * the user may have re-verified on a different device and would now
+     * like to send the failed message that's waiting on this device.
+     *
+     * # Arguments
+     *
+     * * `transaction_id` - The send queue transaction identifier of the local
+     * echo that should be unwedged.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `tryResend`(`transactionId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_try_resend(
+                thisPtr,
+                FfiConverterString.lower(`transactionId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `typingNotice`(`isTyping`: kotlin.Boolean) {
@@ -13921,6 +14053,40 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(
                 thisPtr,
                 FfiConverterString.lower(`mimeType`),FfiConverterByteArray.lower(`data`),FfiConverterOptionalTypeImageInfo.lower(`mediaInfo`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Remove verification requirements for the given users and
+     * resend messages that failed to send because their identities were no
+     * longer verified (in response to
+     * `SessionRecipientCollectionError::VerifiedUserChangedIdentity`)
+     *
+     * # Arguments
+     *
+     * * `user_ids` - The list of users identifiers received in the error
+     * * `transaction_id` - The send queue transaction identifier of the local
+     * echo the send error applies to
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `withdrawVerificationAndResend`(`userIds`: List<kotlin.String>, `transactionId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(
+                thisPtr,
+                FfiConverterSequenceString.lower(`userIds`),FfiConverterString.lower(`transactionId`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -19042,9 +19208,7 @@ public interface TimelineInterface {
      * Returns whether the edit did happen. It can only return false for
      * local events that are being processed.
      */
-    suspend fun `edit`(`item`: EventTimelineItem, `newContent`: RoomMessageEventContentWithoutRelation): kotlin.Boolean
-    
-    suspend fun `editPoll`(`question`: kotlin.String, `answers`: List<kotlin.String>, `maxSelections`: kotlin.UByte, `pollKind`: PollKind, `editItem`: EventTimelineItem)
+    suspend fun `edit`(`item`: EventTimelineItem, `newContent`: EditedContent): kotlin.Boolean
     
     fun `endPoll`(`pollStartId`: kotlin.String, `text`: kotlin.String)
     
@@ -19326,12 +19490,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `edit`(`item`: EventTimelineItem, `newContent`: RoomMessageEventContentWithoutRelation) : kotlin.Boolean {
+    override suspend fun `edit`(`item`: EventTimelineItem, `newContent`: EditedContent) : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_edit(
                 thisPtr,
-                FfiConverterTypeEventTimelineItem.lower(`item`),FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newContent`),
+                FfiConverterTypeEventTimelineItem.lower(`item`),FfiConverterTypeEditedContent.lower(`newContent`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -19339,28 +19503,6 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
         // lift function
         { FfiConverterBoolean.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `editPoll`(`question`: kotlin.String, `answers`: List<kotlin.String>, `maxSelections`: kotlin.UByte, `pollKind`: PollKind, `editItem`: EventTimelineItem) {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_edit_poll(
-                thisPtr,
-                FfiConverterString.lower(`question`),FfiConverterSequenceString.lower(`answers`),FfiConverterUByte.lower(`maxSelections`),FfiConverterTypePollKind.lower(`pollKind`),FfiConverterTypeEventTimelineItem.lower(`editItem`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -23352,6 +23494,43 @@ public object FfiConverterTypePollAnswer: FfiConverterRustBuffer<PollAnswer> {
 
 
 
+data class PollData (
+    var `question`: kotlin.String, 
+    var `answers`: List<kotlin.String>, 
+    var `maxSelections`: kotlin.UByte, 
+    var `pollKind`: PollKind
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypePollData: FfiConverterRustBuffer<PollData> {
+    override fun read(buf: ByteBuffer): PollData {
+        return PollData(
+            FfiConverterString.read(buf),
+            FfiConverterSequenceString.read(buf),
+            FfiConverterUByte.read(buf),
+            FfiConverterTypePollKind.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: PollData) = (
+            FfiConverterString.allocationSize(value.`question`) +
+            FfiConverterSequenceString.allocationSize(value.`answers`) +
+            FfiConverterUByte.allocationSize(value.`maxSelections`) +
+            FfiConverterTypePollKind.allocationSize(value.`pollKind`)
+    )
+
+    override fun write(value: PollData, buf: ByteBuffer) {
+            FfiConverterString.write(value.`question`, buf)
+            FfiConverterSequenceString.write(value.`answers`, buf)
+            FfiConverterUByte.write(value.`maxSelections`, buf)
+            FfiConverterTypePollKind.write(value.`pollKind`, buf)
+    }
+}
+
+
+
 data class PowerLevels (
     var `usersDefault`: kotlin.Int?, 
     var `eventsDefault`: kotlin.Int?, 
@@ -25861,6 +26040,91 @@ public object FfiConverterTypeCrossSigningResetAuthType : FfiConverterRustBuffer
             is CrossSigningResetAuthType.Oidc -> {
                 buf.putInt(2)
                 FfiConverterTypeOidcCrossSigningResetInfo.write(value.`info`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class EditedContent: Disposable  {
+    
+    data class RoomMessage(
+        val `content`: RoomMessageEventContentWithoutRelation) : EditedContent() {
+        companion object
+    }
+    
+    data class PollStart(
+        val `pollData`: PollData) : EditedContent() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is EditedContent.RoomMessage -> {
+                
+        Disposable.destroy(this.`content`)
+    
+                
+            }
+            is EditedContent.PollStart -> {
+                
+        Disposable.destroy(this.`pollData`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeEditedContent : FfiConverterRustBuffer<EditedContent>{
+    override fun read(buf: ByteBuffer): EditedContent {
+        return when(buf.getInt()) {
+            1 -> EditedContent.RoomMessage(
+                FfiConverterTypeRoomMessageEventContentWithoutRelation.read(buf),
+                )
+            2 -> EditedContent.PollStart(
+                FfiConverterTypePollData.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: EditedContent) = when(value) {
+        is EditedContent.RoomMessage -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeRoomMessageEventContentWithoutRelation.allocationSize(value.`content`)
+            )
+        }
+        is EditedContent.PollStart -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypePollData.allocationSize(value.`pollData`)
+            )
+        }
+    }
+
+    override fun write(value: EditedContent, buf: ByteBuffer) {
+        when(value) {
+            is EditedContent.RoomMessage -> {
+                buf.putInt(1)
+                FfiConverterTypeRoomMessageEventContentWithoutRelation.write(value.`content`, buf)
+                Unit
+            }
+            is EditedContent.PollStart -> {
+                buf.putInt(2)
+                FfiConverterTypePollData.write(value.`pollData`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
