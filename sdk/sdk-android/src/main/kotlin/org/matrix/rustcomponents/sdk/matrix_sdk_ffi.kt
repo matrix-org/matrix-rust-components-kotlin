@@ -23955,6 +23955,7 @@ public object FfiConverterTypeRoomHero: FfiConverterRustBuffer<RoomHero> {
 
 data class RoomInfo (
     var `id`: kotlin.String, 
+    var `creator`: kotlin.String?, 
     /**
      * The room's name from the room state event if received from sync, or one
      * that's been computed otherwise.
@@ -24028,6 +24029,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
@@ -24057,6 +24059,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
 
     override fun allocationSize(value: RoomInfo) = (
             FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterOptionalString.allocationSize(value.`creator`) +
             FfiConverterOptionalString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`rawName`) +
             FfiConverterOptionalString.allocationSize(value.`topic`) +
@@ -24089,6 +24092,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
+            FfiConverterOptionalString.write(value.`creator`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`rawName`, buf)
             FfiConverterOptionalString.write(value.`topic`, buf)
