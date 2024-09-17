@@ -54,6 +54,12 @@ jobs:
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
 
+      - name: Install android ndk
+        uses: nttld/setup-ndk@v1
+        id: install-ndk
+        with:
+          ndk-version: r27
+
       # - name: Create symlinks for buildchain
       #   run: |
       #     export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
