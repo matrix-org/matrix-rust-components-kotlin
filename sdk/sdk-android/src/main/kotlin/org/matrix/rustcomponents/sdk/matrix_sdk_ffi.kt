@@ -2132,6 +2132,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2210,7 +2214,11 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_cached_avatar_url(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Pointer,`request`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_deactivate_account(`ptr`: Pointer,`authData`: RustBuffer.ByValue,`eraseData`: Byte,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,
     ): Long
@@ -3304,7 +3312,11 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher(
     ): Short
@@ -4165,7 +4177,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url() != 58990.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account() != 39890.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() != 52700.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account() != 20658.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher() != 45990.toShort()) {
@@ -5851,7 +5869,27 @@ public interface ClientInterface {
      */
     fun `cachedAvatarUrl`(): kotlin.String?
     
+    /**
+     * Lets the user know whether this is an `m.login.password` based
+     * auth and if the account can actually be deactivated
+     */
+    fun `canDeactivateAccount`(): kotlin.Boolean
+    
     suspend fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
+    
+    /**
+     * Deactivate this account definitively.
+     * Similarly to `encryption::reset_identity` this
+     * will only work with password-based authentication (`m.login.password`)
+     *
+     * # Arguments
+     *
+     * * `auth_data` - This request uses the [User-Interactive Authentication
+     * API][uiaa]. The first request needs to set this to `None` and will
+     * always fail and the same request needs to be made but this time with
+     * some `auth_data` provided.
+     */
+    suspend fun `deactivateAccount`(`authData`: AuthData?, `eraseData`: kotlin.Boolean)
     
     /**
      * Deletes a pusher of given pusher ids
@@ -6331,6 +6369,22 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     
 
     
+    /**
+     * Lets the user know whether this is an `m.login.password` based
+     * auth and if the account can actually be deactivated
+     */override fun `canDeactivateAccount`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `createRoom`(`request`: CreateRoomParameters) : kotlin.String {
@@ -6346,6 +6400,40 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Deactivate this account definitively.
+     * Similarly to `encryption::reset_identity` this
+     * will only work with password-based authentication (`m.login.password`)
+     *
+     * # Arguments
+     *
+     * * `auth_data` - This request uses the [User-Interactive Authentication
+     * API][uiaa]. The first request needs to set this to `None` and will
+     * always fail and the same request needs to be made but this time with
+     * some `auth_data` provided.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `deactivateAccount`(`authData`: AuthData?, `eraseData`: kotlin.Boolean) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_deactivate_account(
+                thisPtr,
+                FfiConverterOptionalTypeAuthData.lower(`authData`),FfiConverterBoolean.lower(`eraseData`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
