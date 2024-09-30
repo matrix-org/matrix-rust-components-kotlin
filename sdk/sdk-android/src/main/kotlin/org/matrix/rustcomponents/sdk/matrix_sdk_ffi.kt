@@ -2098,44 +2098,6 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2392,7 +2354,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Pointer,`waitForBackupsToUpload`: Byte,`progressListener`: Long,
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Pointer,`waitForBackupsToUpload`: Byte,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Pointer,
     ): Long
@@ -2416,43 +2378,17 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_e2ee_initialization_tasks(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_clone_eventtimelineitem(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_clone_eventshieldsprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_free_eventtimelineitem(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_free_eventshieldsprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_can_be_replied_to(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_content(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_eventshieldsprovider_get_shields(`ptr`: Pointer,`strict`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_clone_eventtimelineitemdebuginfoprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_debug_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_event_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_get_shield(`ptr`: Pointer,`strict`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_editable(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_local(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_own(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_remote(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_local_send_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_origin(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_reactions(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_read_receipts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_sender(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_sender_profile(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_timestamp(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_transaction_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_free_eventtimelineitemdebuginfoprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_eventtimelineitemdebuginfoprovider_get(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_homeserverlogindetails(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2476,6 +2412,14 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_reset(`ptr`: Pointer,`auth`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_clone_inreplytodetails(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_inreplytodetails(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_mediafilehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_mediafilehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2484,22 +2428,6 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_mediafilehandle_persist(`ptr`: Pointer,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_clone_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_free_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_message_body(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_message_content(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_message_in_reply_to(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_message_is_edited(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_message_is_threaded(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_message_msgtype(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_notificationclient(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_notificationclient(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2910,11 +2838,13 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_add_listener(`ptr`: Pointer,`listener`: Long,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(`ptr`: Pointer,`msgType`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_poll(`ptr`: Pointer,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Pointer,`item`: Pointer,`newContent`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Pointer,`eventOrTransactionId`: RustBuffer.ByValue,`newContent`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Pointer,`pollStartEventId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_details_for_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
@@ -2934,7 +2864,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(`ptr`: Pointer,`item`: Pointer,`reason`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(`ptr`: Pointer,`eventOrTransactionId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(`ptr`: Pointer,`sessionIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -2948,7 +2878,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(`ptr`: Pointer,`pollStartId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(`ptr`: Pointer,`pollStartEventId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_read_receipt(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
     ): Long
@@ -3017,14 +2947,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_fmt_debug(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_unique_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_clone_timelineitemcontent(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_free_timelineitemcontent(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_timelineitemcontent_as_message(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelineitemcontent_kind(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_unreadnotificationscount(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3100,6 +3022,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_widgetcapabilitiesprovider(`vtable`: UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Pointer,`props`: RustBuffer.ByValue,
@@ -3252,6 +3176,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_matrix_sdk_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url(
@@ -3504,39 +3430,9 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to(
+    fun uniffi_matrix_sdk_ffi_checksum_method_eventshieldsprovider_get_shields(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_content(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_debug_info(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_event_id(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_get_shield(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_editable(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_local(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_own(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_remote(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_local_send_state(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_origin(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_reactions(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_read_receipts(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_sender(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_sender_profile(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_timestamp(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id(
+    fun uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitemdebuginfoprovider_get(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
     ): Short
@@ -3552,21 +3448,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event_id(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_message_body(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_message_content(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_message_in_reply_to(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_message_is_edited(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_message_is_threaded(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_message_msgtype(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
     ): Short
@@ -3888,6 +3776,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit(
@@ -3975,10 +3865,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_fmt_debug(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelineitemcontent_as_message(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelineitemcontent_kind(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_has_notifications(
     ): Short
@@ -4087,6 +3973,9 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message() != 1366.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id() != 15808.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4429,7 +4318,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups() != 55446.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() != 9043.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() != 64351.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() != 27955.toShort()) {
@@ -4465,55 +4354,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks() != 41585.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_can_be_replied_to() != 42922.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventshieldsprovider_get_shields() != 28772.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_content() != 41060.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_debug_info() != 31359.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_event_id() != 8156.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_get_shield() != 42061.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_editable() != 4716.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_local() != 12539.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_own() != 50903.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_is_remote() != 5953.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_local_send_state() != 53866.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_origin() != 19585.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_reactions() != 42968.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_read_receipts() != 22462.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_sender() != 58860.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_sender_profile() != 3911.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_timestamp() != 44397.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitem_transaction_id() != 40338.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_eventtimelineitemdebuginfoprovider_get() != 57546.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version() != 36573.toShort()) {
@@ -4537,28 +4381,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset() != 11997.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event() != 51792.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event_id() != 5876.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path() != 16357.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist() != 12883.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_body() != 21198.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_content() != 57046.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_in_reply_to() != 16154.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_is_edited() != 60975.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_is_threaded() != 9404.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_message_msgtype() != 14062.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 2524.toShort()) {
@@ -4930,7 +4762,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_is_timeline_initialized() != 46855.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_latest_event() != 41471.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_latest_event() != 38259.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_membership() != 1596.toShort()) {
@@ -5041,13 +4873,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener() != 18746.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content() != 21811.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll() != 37925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() != 14692.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() != 27268.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll() != 31506.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll() != 61329.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_details_for_event() != 54068.toShort()) {
@@ -5059,13 +4894,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_focused_paginate_forwards() != 51003.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() != 28091.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() != 33999.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_transaction_id() != 64706.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_transaction_id() != 54739.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details() != 52892.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details() != 54225.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read() != 16621.toShort()) {
@@ -5077,7 +4912,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event() != 41687.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event() != 8574.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event() != 48707.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption() != 21112.toShort()) {
@@ -5098,7 +4933,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() != 47400.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_poll_response() != 59076.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_poll_response() != 7453.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_read_receipt() != 37532.toShort()) {
@@ -5161,7 +4996,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp() != 58123.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_event() != 52211.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_event() != 6106.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_virtual() != 50960.toShort()) {
@@ -5171,12 +5006,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id() != 30409.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitemcontent_as_message() != 45784.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitemcontent_kind() != 44789.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_has_notifications() != 33024.toShort()) {
@@ -8327,7 +8156,7 @@ public interface EncryptionInterface {
     
     suspend fun `enableBackups`()
     
-    suspend fun `enableRecovery`(`waitForBackupsToUpload`: kotlin.Boolean, `progressListener`: EnableRecoveryProgressListener): kotlin.String
+    suspend fun `enableRecovery`(`waitForBackupsToUpload`: kotlin.Boolean, `passphrase`: kotlin.String?, `progressListener`: EnableRecoveryProgressListener): kotlin.String
     
     suspend fun `isLastDevice`(): kotlin.Boolean
     
@@ -8594,12 +8423,12 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface {
     
     @Throws(RecoveryException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `enableRecovery`(`waitForBackupsToUpload`: kotlin.Boolean, `progressListener`: EnableRecoveryProgressListener) : kotlin.String {
+    override suspend fun `enableRecovery`(`waitForBackupsToUpload`: kotlin.Boolean, `passphrase`: kotlin.String?, `progressListener`: EnableRecoveryProgressListener) : kotlin.String {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(
                 thisPtr,
-                FfiConverterBoolean.lower(`waitForBackupsToUpload`),FfiConverterTypeEnableRecoveryProgressListener.lower(`progressListener`),
+                FfiConverterBoolean.lower(`waitForBackupsToUpload`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeEnableRecoveryProgressListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -8949,50 +8778,20 @@ public object FfiConverterTypeEncryption: FfiConverter<Encryption, Pointer> {
 //
 
 
-public interface EventTimelineItemInterface {
+/**
+ * Wrapper to retrieve the shields info lazily.
+ */
+public interface EventShieldsProviderInterface {
     
-    fun `canBeRepliedTo`(): kotlin.Boolean
-    
-    fun `content`(): TimelineItemContent
-    
-    fun `debugInfo`(): EventTimelineItemDebugInfo
-    
-    fun `eventId`(): kotlin.String?
-    
-    /**
-     * Gets the [`ShieldState`] which can be used to decorate messages in the
-     * recommended way.
-     */
-    fun `getShield`(`strict`: kotlin.Boolean): ShieldState?
-    
-    fun `isEditable`(): kotlin.Boolean
-    
-    fun `isLocal`(): kotlin.Boolean
-    
-    fun `isOwn`(): kotlin.Boolean
-    
-    fun `isRemote`(): kotlin.Boolean
-    
-    fun `localSendState`(): EventSendState?
-    
-    fun `origin`(): EventItemOrigin?
-    
-    fun `reactions`(): List<Reaction>
-    
-    fun `readReceipts`(): Map<kotlin.String, Receipt>
-    
-    fun `sender`(): kotlin.String
-    
-    fun `senderProfile`(): ProfileDetails
-    
-    fun `timestamp`(): kotlin.ULong
-    
-    fun `transactionId`(): kotlin.String?
+    fun `getShields`(`strict`: kotlin.Boolean): ShieldState?
     
     companion object
 }
 
-open class EventTimelineItem: Disposable, AutoCloseable, EventTimelineItemInterface {
+/**
+ * Wrapper to retrieve the shields info lazily.
+ */
+open class EventShieldsProvider: Disposable, AutoCloseable, EventShieldsProviderInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -9061,7 +8860,7 @@ open class EventTimelineItem: Disposable, AutoCloseable, EventTimelineItemInterf
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_eventtimelineitem(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_eventshieldsprovider(ptr, status)
                 }
             }
         }
@@ -9069,67 +8868,15 @@ open class EventTimelineItem: Disposable, AutoCloseable, EventTimelineItemInterf
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_eventtimelineitem(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_eventshieldsprovider(pointer!!, status)
         }
     }
 
-    override fun `canBeRepliedTo`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_can_be_replied_to(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `content`(): TimelineItemContent {
-            return FfiConverterTypeTimelineItemContent.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_content(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `debugInfo`(): EventTimelineItemDebugInfo {
-            return FfiConverterTypeEventTimelineItemDebugInfo.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_debug_info(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `eventId`(): kotlin.String? {
-            return FfiConverterOptionalString.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_event_id(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Gets the [`ShieldState`] which can be used to decorate messages in the
-     * recommended way.
-     */override fun `getShield`(`strict`: kotlin.Boolean): ShieldState? {
+    override fun `getShields`(`strict`: kotlin.Boolean): ShieldState? {
             return FfiConverterOptionalTypeShieldState.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_get_shield(
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventshieldsprovider_get_shields(
         it, FfiConverterBoolean.lower(`strict`),_status)
 }
     }
@@ -9137,143 +8884,239 @@ open class EventTimelineItem: Disposable, AutoCloseable, EventTimelineItemInterf
     }
     
 
-    override fun `isEditable`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_editable(
-        it, _status)
-}
-    }
-    )
-    }
     
 
-    override fun `isLocal`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_local(
-        it, _status)
-}
-    }
-    )
-    }
     
-
-    override fun `isOwn`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_own(
-        it, _status)
-}
-    }
-    )
-    }
     
-
-    override fun `isRemote`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_is_remote(
-        it, _status)
-}
-    }
-    )
-    }
+    companion object
     
-
-    override fun `localSendState`(): EventSendState? {
-            return FfiConverterOptionalTypeEventSendState.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_local_send_state(
-        it, _status)
 }
-    }
-    )
-    }
-    
 
-    override fun `origin`(): EventItemOrigin? {
-            return FfiConverterOptionalTypeEventItemOrigin.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_origin(
-        it, _status)
+public object FfiConverterTypeEventShieldsProvider: FfiConverter<EventShieldsProvider, Pointer> {
+
+    override fun lower(value: EventShieldsProvider): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): EventShieldsProvider {
+        return EventShieldsProvider(value)
+    }
+
+    override fun read(buf: ByteBuffer): EventShieldsProvider {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: EventShieldsProvider) = 8UL
+
+    override fun write(value: EventShieldsProvider, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
 }
-    }
-    )
-    }
-    
 
-    override fun `reactions`(): List<Reaction> {
-            return FfiConverterSequenceTypeReaction.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_reactions(
-        it, _status)
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * Wrapper to retrieve the debug info lazily instead of immediately
+ * transforming it for each timeline event.
+ */
+public interface EventTimelineItemDebugInfoProviderInterface {
+    
+    fun `get`(): EventTimelineItemDebugInfo
+    
+    companion object
 }
-    }
-    )
-    }
-    
 
-    override fun `readReceipts`(): Map<kotlin.String, Receipt> {
-            return FfiConverterMapStringTypeReceipt.lift(
+/**
+ * Wrapper to retrieve the debug info lazily instead of immediately
+ * transforming it for each timeline event.
+ */
+open class EventTimelineItemDebugInfoProvider: Disposable, AutoCloseable, EventTimelineItemDebugInfoProviderInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_eventtimelineitemdebuginfoprovider(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_eventtimelineitemdebuginfoprovider(pointer!!, status)
+        }
+    }
+
+    override fun `get`(): EventTimelineItemDebugInfo {
+            return FfiConverterTypeEventTimelineItemDebugInfo.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_read_receipts(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `sender`(): kotlin.String {
-            return FfiConverterString.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_sender(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `senderProfile`(): ProfileDetails {
-            return FfiConverterTypeProfileDetails.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_sender_profile(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `timestamp`(): kotlin.ULong {
-            return FfiConverterULong.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_timestamp(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `transactionId`(): kotlin.String? {
-            return FfiConverterOptionalString.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitem_transaction_id(
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_eventtimelineitemdebuginfoprovider_get(
         it, _status)
 }
     }
@@ -9289,25 +9132,25 @@ open class EventTimelineItem: Disposable, AutoCloseable, EventTimelineItemInterf
     
 }
 
-public object FfiConverterTypeEventTimelineItem: FfiConverter<EventTimelineItem, Pointer> {
+public object FfiConverterTypeEventTimelineItemDebugInfoProvider: FfiConverter<EventTimelineItemDebugInfoProvider, Pointer> {
 
-    override fun lower(value: EventTimelineItem): Pointer {
+    override fun lower(value: EventTimelineItemDebugInfoProvider): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): EventTimelineItem {
-        return EventTimelineItem(value)
+    override fun lift(value: Pointer): EventTimelineItemDebugInfoProvider {
+        return EventTimelineItemDebugInfoProvider(value)
     }
 
-    override fun read(buf: ByteBuffer): EventTimelineItem {
+    override fun read(buf: ByteBuffer): EventTimelineItemDebugInfoProvider {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: EventTimelineItem) = 8UL
+    override fun allocationSize(value: EventTimelineItemDebugInfoProvider) = 8UL
 
-    override fun write(value: EventTimelineItem, buf: ByteBuffer) {
+    override fun write(value: EventTimelineItemDebugInfoProvider, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -10016,6 +9859,252 @@ public object FfiConverterTypeIdentityResetHandle: FfiConverter<IdentityResetHan
 //
 
 
+public interface InReplyToDetailsInterface {
+    
+    fun `event`(): RepliedToEventDetails
+    
+    fun `eventId`(): kotlin.String
+    
+    companion object
+}
+
+open class InReplyToDetails: Disposable, AutoCloseable, InReplyToDetailsInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_inreplytodetails(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_inreplytodetails(pointer!!, status)
+        }
+    }
+
+    override fun `event`(): RepliedToEventDetails {
+            return FfiConverterTypeRepliedToEventDetails.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `eventId`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event_id(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeInReplyToDetails: FfiConverter<InReplyToDetails, Pointer> {
+
+    override fun lower(value: InReplyToDetails): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): InReplyToDetails {
+        return InReplyToDetails(value)
+    }
+
+    override fun read(buf: ByteBuffer): InReplyToDetails {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: InReplyToDetails) = 8UL
+
+    override fun write(value: InReplyToDetails, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 /**
  * A file handle that takes ownership of a media file on disk. When the handle
  * is dropped, the file will be removed from the disk.
@@ -10431,308 +10520,6 @@ public object FfiConverterTypeMediaSource: FfiConverter<MediaSource, Pointer> {
     override fun allocationSize(value: MediaSource) = 8UL
 
     override fun write(value: MediaSource, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
-// to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
-//
-// There's some subtlety here, because we have to be careful not to operate on a Rust
-// struct after it has been dropped, and because we must expose a public API for freeing
-// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
-//
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
-//     the Rust FFI.
-//
-//   * When an instance is no longer needed, its pointer should be passed to a
-//     special destructor function provided by the Rust FFI, which will drop the
-//     underlying Rust struct.
-//
-//   * Given an instance, calling code is expected to call the special
-//     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so risks
-//     leaking the underlying Rust struct.
-//
-//   * We can't assume that calling code will do the right thing, and must be prepared
-//     to handle Kotlin method calls executing concurrently with or even after a call to
-//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
-//
-//   * We must never allow Rust code to operate on the underlying Rust struct after
-//     the destructor has been called, and must never call the destructor more than once.
-//     Doing so may trigger memory unsafety.
-//
-//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
-//     is implemented to call the destructor when the Kotlin object becomes unreachable.
-//     This is done in a background thread. This is not a panacea, and client code should be aware that
-//      1. the thread may starve if some there are objects that have poorly performing
-//     `drop` methods or do significant work in their `drop` methods.
-//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
-//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
-//
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
-// possibility of a race between a method call and a concurrent call to `destroy`:
-//
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
-//    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
-//      a use-after-free.
-//
-// One possible solution would be to use a `ReadWriteLock`, with each method call taking
-// a read lock (and thus allowed to run concurrently) and the special `destroy` method
-// taking a write lock (and thus blocking on live method calls). However, we aim not to
-// generate methods with any hidden blocking semantics, and a `destroy` method that might
-// block if called incorrectly seems to meet that bar.
-//
-// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
-// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
-// has been called. These are updated according to the following rules:
-//
-//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
-//      The initial value for the flag is false.
-//
-//    * At the start of each method call, we atomically check the counter.
-//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
-//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
-//
-//    * At the end of each method call, we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-//    * When `destroy` is called, we atomically flip the flag from false to true.
-//      If the flag was already true we silently fail.
-//      Otherwise we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
-// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
-//
-// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
-// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
-// of the underlying Rust code.
-//
-// This makes a cleaner a better alternative to _not_ calling `destroy()` as
-// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
-// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
-// thread may be starved, and the app will leak memory.
-//
-// In this case, `destroy`ing manually may be a better solution.
-//
-// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
-// with Rust peers are reclaimed:
-//
-// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
-// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
-// 3. The memory is reclaimed when the process terminates.
-//
-// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
-//
-
-
-public interface MessageInterface {
-    
-    fun `body`(): kotlin.String
-    
-    fun `content`(): RoomMessageEventContentWithoutRelation
-    
-    fun `inReplyTo`(): InReplyToDetails?
-    
-    fun `isEdited`(): kotlin.Boolean
-    
-    fun `isThreaded`(): kotlin.Boolean
-    
-    fun `msgtype`(): MessageType
-    
-    companion object
-}
-
-open class Message: Disposable, AutoCloseable, MessageInterface {
-
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    /**
-     * This constructor can be used to instantiate a fake object. Only used for tests. Any
-     * attempt to actually use an object constructed this way will fail as there is no
-     * connected Rust object.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
-
-    private val wasDestroyed = AtomicBoolean(false)
-    private val callCounter = AtomicLong(1)
-
-    override fun destroy() {
-        // Only allow a single call to this method.
-        // TODO: maybe we should log a warning if called more than once?
-        if (this.wasDestroyed.compareAndSet(false, true)) {
-            // This decrement always matches the initial count of 1 given at creation time.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    @Synchronized
-    override fun close() {
-        this.destroy()
-    }
-
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
-        // Check and increment the call counter, to keep the object alive.
-        // This needs a compare-and-set retry loop in case of concurrent updates.
-        do {
-            val c = this.callCounter.get()
-            if (c == 0L) {
-                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
-            }
-            if (c == Long.MAX_VALUE) {
-                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
-            }
-        } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
-        try {
-            return block(this.uniffiClonePointer())
-        } finally {
-            // This decrement always matches the increment we performed above.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    // Use a static inner class instead of a closure so as not to accidentally
-    // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
-        override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_message(ptr, status)
-                }
-            }
-        }
-    }
-
-    fun uniffiClonePointer(): Pointer {
-        return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_message(pointer!!, status)
-        }
-    }
-
-    override fun `body`(): kotlin.String {
-            return FfiConverterString.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_body(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `content`(): RoomMessageEventContentWithoutRelation {
-            return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_content(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `inReplyTo`(): InReplyToDetails? {
-            return FfiConverterOptionalTypeInReplyToDetails.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_in_reply_to(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `isEdited`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_is_edited(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `isThreaded`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_is_threaded(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `msgtype`(): MessageType {
-            return FfiConverterTypeMessageType.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_message_msgtype(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-
-    
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeMessage: FfiConverter<Message, Pointer> {
-
-    override fun lower(value: Message): Pointer {
-        return value.uniffiClonePointer()
-    }
-
-    override fun lift(value: Pointer): Message {
-        return Message(value)
-    }
-
-    override fun read(buf: ByteBuffer): Message {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: Message) = 8UL
-
-    override fun write(value: Message, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -19379,6 +19166,8 @@ public interface TimelineInterface {
     
     suspend fun `addListener`(`listener`: TimelineListener): TaskHandle
     
+    fun `createMessageContent`(`msgType`: MessageType): RoomMessageEventContentWithoutRelation?
+    
     suspend fun `createPoll`(`question`: kotlin.String, `answers`: List<kotlin.String>, `maxSelections`: kotlin.UByte, `pollKind`: PollKind)
     
     /**
@@ -19391,9 +19180,9 @@ public interface TimelineInterface {
      * Returns whether the edit did happen. It can only return false for
      * local events that are being processed.
      */
-    suspend fun `edit`(`item`: EventTimelineItem, `newContent`: EditedContent): kotlin.Boolean
+    suspend fun `edit`(`eventOrTransactionId`: EventOrTransactionId, `newContent`: EditedContent): kotlin.Boolean
     
-    fun `endPoll`(`pollStartId`: kotlin.String, `text`: kotlin.String)
+    fun `endPoll`(`pollStartEventId`: kotlin.String, `text`: kotlin.String)
     
     suspend fun `fetchDetailsForEvent`(`eventId`: kotlin.String)
     
@@ -19472,10 +19261,9 @@ public interface TimelineInterface {
      * being sent already. If the event was a remote event, then it will be
      * redacted by sending a redaction request to the server.
      *
-     * Returns whether the redaction did happen. It can only return false for
-     * local events that are being processed.
+     * Will return an error if the event couldn't be redacted.
      */
-    suspend fun `redactEvent`(`item`: EventTimelineItem, `reason`: kotlin.String?): kotlin.Boolean
+    suspend fun `redactEvent`(`eventOrTransactionId`: EventOrTransactionId, `reason`: kotlin.String?)
     
     fun `retryDecryption`(`sessionIds`: List<kotlin.String>)
     
@@ -19496,7 +19284,7 @@ public interface TimelineInterface {
     
     suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?)
     
-    suspend fun `sendPollResponse`(`pollStartId`: kotlin.String, `answers`: List<kotlin.String>)
+    suspend fun `sendPollResponse`(`pollStartEventId`: kotlin.String, `answers`: List<kotlin.String>)
     
     suspend fun `sendReadReceipt`(`receiptType`: ReceiptType, `eventId`: kotlin.String)
     
@@ -19638,6 +19426,18 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     )
     }
 
+    override fun `createMessageContent`(`msgType`: MessageType): RoomMessageEventContentWithoutRelation? {
+            return FfiConverterOptionalTypeRoomMessageEventContentWithoutRelation.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(
+        it, FfiConverterTypeMessageType.lower(`msgType`),_status)
+}
+    }
+    )
+    }
+    
+
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -19673,12 +19473,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `edit`(`item`: EventTimelineItem, `newContent`: EditedContent) : kotlin.Boolean {
+    override suspend fun `edit`(`eventOrTransactionId`: EventOrTransactionId, `newContent`: EditedContent) : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_edit(
                 thisPtr,
-                FfiConverterTypeEventTimelineItem.lower(`item`),FfiConverterTypeEditedContent.lower(`newContent`),
+                FfiConverterTypeEventOrTransactionId.lower(`eventOrTransactionId`),FfiConverterTypeEditedContent.lower(`newContent`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -19692,12 +19492,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     }
 
     
-    @Throws(ClientException::class)override fun `endPoll`(`pollStartId`: kotlin.String, `text`: kotlin.String)
+    @Throws(ClientException::class)override fun `endPoll`(`pollStartEventId`: kotlin.String, `text`: kotlin.String)
         = 
     callWithPointer {
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(
-        it, FfiConverterString.lower(`pollStartId`),FfiConverterString.lower(`text`),_status)
+        it, FfiConverterString.lower(`pollStartEventId`),FfiConverterString.lower(`text`),_status)
 }
     }
     
@@ -19793,9 +19593,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
                 FfiConverterString.lower(`eventId`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterTypeEventTimelineItem.lift(it) },
         // Error FFI converter
@@ -19823,9 +19623,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
                 FfiConverterString.lower(`transactionId`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterTypeEventTimelineItem.lift(it) },
         // Error FFI converter
@@ -19850,9 +19650,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
                 FfiConverterString.lower(`eventIdStr`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
         { FfiConverterTypeInReplyToDetails.lift(it) },
         // Error FFI converter
@@ -19954,24 +19754,24 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
      * being sent already. If the event was a remote event, then it will be
      * redacted by sending a redaction request to the server.
      *
-     * Returns whether the redaction did happen. It can only return false for
-     * local events that are being processed.
+     * Will return an error if the event couldn't be redacted.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `redactEvent`(`item`: EventTimelineItem, `reason`: kotlin.String?) : kotlin.Boolean {
+    override suspend fun `redactEvent`(`eventOrTransactionId`: EventOrTransactionId, `reason`: kotlin.String?) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(
                 thisPtr,
-                FfiConverterTypeEventTimelineItem.lower(`item`),FfiConverterOptionalString.lower(`reason`),
+                FfiConverterTypeEventOrTransactionId.lower(`eventOrTransactionId`),FfiConverterOptionalString.lower(`reason`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
         // lift function
-        { FfiConverterBoolean.lift(it) },
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -20076,12 +19876,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendPollResponse`(`pollStartId`: kotlin.String, `answers`: List<kotlin.String>) {
+    override suspend fun `sendPollResponse`(`pollStartEventId`: kotlin.String, `answers`: List<kotlin.String>) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(
                 thisPtr,
-                FfiConverterString.lower(`pollStartId`),FfiConverterSequenceString.lower(`answers`),
+                FfiConverterString.lower(`pollStartEventId`),FfiConverterSequenceString.lower(`answers`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21513,252 +21313,6 @@ public object FfiConverterTypeTimelineItem: FfiConverter<TimelineItem, Pointer> 
 //
 
 
-public interface TimelineItemContentInterface {
-    
-    fun `asMessage`(): Message?
-    
-    fun `kind`(): TimelineItemContentKind
-    
-    companion object
-}
-
-open class TimelineItemContent: Disposable, AutoCloseable, TimelineItemContentInterface {
-
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    /**
-     * This constructor can be used to instantiate a fake object. Only used for tests. Any
-     * attempt to actually use an object constructed this way will fail as there is no
-     * connected Rust object.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
-
-    private val wasDestroyed = AtomicBoolean(false)
-    private val callCounter = AtomicLong(1)
-
-    override fun destroy() {
-        // Only allow a single call to this method.
-        // TODO: maybe we should log a warning if called more than once?
-        if (this.wasDestroyed.compareAndSet(false, true)) {
-            // This decrement always matches the initial count of 1 given at creation time.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    @Synchronized
-    override fun close() {
-        this.destroy()
-    }
-
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
-        // Check and increment the call counter, to keep the object alive.
-        // This needs a compare-and-set retry loop in case of concurrent updates.
-        do {
-            val c = this.callCounter.get()
-            if (c == 0L) {
-                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
-            }
-            if (c == Long.MAX_VALUE) {
-                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
-            }
-        } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
-        try {
-            return block(this.uniffiClonePointer())
-        } finally {
-            // This decrement always matches the increment we performed above.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    // Use a static inner class instead of a closure so as not to accidentally
-    // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
-        override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_timelineitemcontent(ptr, status)
-                }
-            }
-        }
-    }
-
-    fun uniffiClonePointer(): Pointer {
-        return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_timelineitemcontent(pointer!!, status)
-        }
-    }
-
-    override fun `asMessage`(): Message? {
-            return FfiConverterOptionalTypeMessage.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelineitemcontent_as_message(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `kind`(): TimelineItemContentKind {
-            return FfiConverterTypeTimelineItemContentKind.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelineitemcontent_kind(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-
-    
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeTimelineItemContent: FfiConverter<TimelineItemContent, Pointer> {
-
-    override fun lower(value: TimelineItemContent): Pointer {
-        return value.uniffiClonePointer()
-    }
-
-    override fun lift(value: Pointer): TimelineItemContent {
-        return TimelineItemContent(value)
-    }
-
-    override fun read(buf: ByteBuffer): TimelineItemContent {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: TimelineItemContent) = 8UL
-
-    override fun write(value: TimelineItemContent, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
-// to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
-//
-// There's some subtlety here, because we have to be careful not to operate on a Rust
-// struct after it has been dropped, and because we must expose a public API for freeing
-// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
-//
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
-//     the Rust FFI.
-//
-//   * When an instance is no longer needed, its pointer should be passed to a
-//     special destructor function provided by the Rust FFI, which will drop the
-//     underlying Rust struct.
-//
-//   * Given an instance, calling code is expected to call the special
-//     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so risks
-//     leaking the underlying Rust struct.
-//
-//   * We can't assume that calling code will do the right thing, and must be prepared
-//     to handle Kotlin method calls executing concurrently with or even after a call to
-//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
-//
-//   * We must never allow Rust code to operate on the underlying Rust struct after
-//     the destructor has been called, and must never call the destructor more than once.
-//     Doing so may trigger memory unsafety.
-//
-//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
-//     is implemented to call the destructor when the Kotlin object becomes unreachable.
-//     This is done in a background thread. This is not a panacea, and client code should be aware that
-//      1. the thread may starve if some there are objects that have poorly performing
-//     `drop` methods or do significant work in their `drop` methods.
-//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
-//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
-//
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
-// possibility of a race between a method call and a concurrent call to `destroy`:
-//
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
-//    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
-//      a use-after-free.
-//
-// One possible solution would be to use a `ReadWriteLock`, with each method call taking
-// a read lock (and thus allowed to run concurrently) and the special `destroy` method
-// taking a write lock (and thus blocking on live method calls). However, we aim not to
-// generate methods with any hidden blocking semantics, and a `destroy` method that might
-// block if called incorrectly seems to meet that bar.
-//
-// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
-// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
-// has been called. These are updated according to the following rules:
-//
-//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
-//      The initial value for the flag is false.
-//
-//    * At the start of each method call, we atomically check the counter.
-//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
-//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
-//
-//    * At the end of each method call, we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-//    * When `destroy` is called, we atomically flip the flag from false to true.
-//      If the flag was already true we silently fail.
-//      Otherwise we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
-// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
-//
-// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
-// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
-// of the underlying Rust code.
-//
-// This makes a cleaner a better alternative to _not_ calling `destroy()` as
-// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
-// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
-// thread may be starved, and the app will leak memory.
-//
-// In this case, `destroy`ing manually may be a better solution.
-//
-// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
-// with Rust peers are reclaimed:
-//
-// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
-// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
-// 3. The memory is reclaimed when the process terminates.
-//
-// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
-//
-
-
 public interface UnreadNotificationsCountInterface {
     
     fun `hasNotifications`(): kotlin.Boolean
@@ -22836,6 +22390,128 @@ public object FfiConverterTypeEmoteMessageContent: FfiConverterRustBuffer<EmoteM
 
 
 
+data class EventTimelineItem (
+    var `isLocal`: kotlin.Boolean, 
+    var `isRemote`: kotlin.Boolean, 
+    var `eventOrTransactionId`: EventOrTransactionId, 
+    var `sender`: kotlin.String, 
+    var `senderProfile`: ProfileDetails, 
+    var `isOwn`: kotlin.Boolean, 
+    var `isEditable`: kotlin.Boolean, 
+    var `content`: TimelineItemContent, 
+    var `timestamp`: kotlin.ULong, 
+    var `reactions`: List<Reaction>, 
+    var `debugInfoProvider`: EventTimelineItemDebugInfoProvider, 
+    var `localSendState`: EventSendState?, 
+    var `readReceipts`: Map<kotlin.String, Receipt>, 
+    var `origin`: EventItemOrigin?, 
+    var `canBeRepliedTo`: kotlin.Boolean, 
+    var `shieldsProvider`: EventShieldsProvider
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+        Disposable.destroy(this.`isLocal`)
+    
+        Disposable.destroy(this.`isRemote`)
+    
+        Disposable.destroy(this.`eventOrTransactionId`)
+    
+        Disposable.destroy(this.`sender`)
+    
+        Disposable.destroy(this.`senderProfile`)
+    
+        Disposable.destroy(this.`isOwn`)
+    
+        Disposable.destroy(this.`isEditable`)
+    
+        Disposable.destroy(this.`content`)
+    
+        Disposable.destroy(this.`timestamp`)
+    
+        Disposable.destroy(this.`reactions`)
+    
+        Disposable.destroy(this.`debugInfoProvider`)
+    
+        Disposable.destroy(this.`localSendState`)
+    
+        Disposable.destroy(this.`readReceipts`)
+    
+        Disposable.destroy(this.`origin`)
+    
+        Disposable.destroy(this.`canBeRepliedTo`)
+    
+        Disposable.destroy(this.`shieldsProvider`)
+    
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTimelineItem> {
+    override fun read(buf: ByteBuffer): EventTimelineItem {
+        return EventTimelineItem(
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeEventOrTransactionId.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeProfileDetails.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeTimelineItemContent.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterSequenceTypeReaction.read(buf),
+            FfiConverterTypeEventTimelineItemDebugInfoProvider.read(buf),
+            FfiConverterOptionalTypeEventSendState.read(buf),
+            FfiConverterMapStringTypeReceipt.read(buf),
+            FfiConverterOptionalTypeEventItemOrigin.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterTypeEventShieldsProvider.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: EventTimelineItem) = (
+            FfiConverterBoolean.allocationSize(value.`isLocal`) +
+            FfiConverterBoolean.allocationSize(value.`isRemote`) +
+            FfiConverterTypeEventOrTransactionId.allocationSize(value.`eventOrTransactionId`) +
+            FfiConverterString.allocationSize(value.`sender`) +
+            FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`) +
+            FfiConverterBoolean.allocationSize(value.`isOwn`) +
+            FfiConverterBoolean.allocationSize(value.`isEditable`) +
+            FfiConverterTypeTimelineItemContent.allocationSize(value.`content`) +
+            FfiConverterULong.allocationSize(value.`timestamp`) +
+            FfiConverterSequenceTypeReaction.allocationSize(value.`reactions`) +
+            FfiConverterTypeEventTimelineItemDebugInfoProvider.allocationSize(value.`debugInfoProvider`) +
+            FfiConverterOptionalTypeEventSendState.allocationSize(value.`localSendState`) +
+            FfiConverterMapStringTypeReceipt.allocationSize(value.`readReceipts`) +
+            FfiConverterOptionalTypeEventItemOrigin.allocationSize(value.`origin`) +
+            FfiConverterBoolean.allocationSize(value.`canBeRepliedTo`) +
+            FfiConverterTypeEventShieldsProvider.allocationSize(value.`shieldsProvider`)
+    )
+
+    override fun write(value: EventTimelineItem, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`isLocal`, buf)
+            FfiConverterBoolean.write(value.`isRemote`, buf)
+            FfiConverterTypeEventOrTransactionId.write(value.`eventOrTransactionId`, buf)
+            FfiConverterString.write(value.`sender`, buf)
+            FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
+            FfiConverterBoolean.write(value.`isOwn`, buf)
+            FfiConverterBoolean.write(value.`isEditable`, buf)
+            FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+            FfiConverterULong.write(value.`timestamp`, buf)
+            FfiConverterSequenceTypeReaction.write(value.`reactions`, buf)
+            FfiConverterTypeEventTimelineItemDebugInfoProvider.write(value.`debugInfoProvider`, buf)
+            FfiConverterOptionalTypeEventSendState.write(value.`localSendState`, buf)
+            FfiConverterMapStringTypeReceipt.write(value.`readReceipts`, buf)
+            FfiConverterOptionalTypeEventItemOrigin.write(value.`origin`, buf)
+            FfiConverterBoolean.write(value.`canBeRepliedTo`, buf)
+            FfiConverterTypeEventShieldsProvider.write(value.`shieldsProvider`, buf)
+    }
+}
+
+
+
 data class EventTimelineItemDebugInfo (
     var `model`: kotlin.String, 
     var `originalJson`: kotlin.String?, 
@@ -23161,44 +22837,6 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
 
 
 
-data class InReplyToDetails (
-    var `eventId`: kotlin.String, 
-    var `event`: RepliedToEventDetails
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-        Disposable.destroy(this.`eventId`)
-    
-        Disposable.destroy(this.`event`)
-    
-    }
-    
-    companion object
-}
-
-public object FfiConverterTypeInReplyToDetails: FfiConverterRustBuffer<InReplyToDetails> {
-    override fun read(buf: ByteBuffer): InReplyToDetails {
-        return InReplyToDetails(
-            FfiConverterString.read(buf),
-            FfiConverterTypeRepliedToEventDetails.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: InReplyToDetails) = (
-            FfiConverterString.allocationSize(value.`eventId`) +
-            FfiConverterTypeRepliedToEventDetails.allocationSize(value.`event`)
-    )
-
-    override fun write(value: InReplyToDetails, buf: ByteBuffer) {
-            FfiConverterString.write(value.`eventId`, buf)
-            FfiConverterTypeRepliedToEventDetails.write(value.`event`, buf)
-    }
-}
-
-
-
 data class InsertData (
     var `index`: kotlin.UInt, 
     var `item`: TimelineItem
@@ -23335,6 +22973,68 @@ public object FfiConverterTypeMentions: FfiConverterRustBuffer<Mentions> {
     override fun write(value: Mentions, buf: ByteBuffer) {
             FfiConverterSequenceString.write(value.`userIds`, buf)
             FfiConverterBoolean.write(value.`room`, buf)
+    }
+}
+
+
+
+data class MessageContent (
+    var `msgType`: MessageType, 
+    var `body`: kotlin.String, 
+    var `inReplyTo`: InReplyToDetails?, 
+    var `threadRoot`: kotlin.String?, 
+    var `isEdited`: kotlin.Boolean, 
+    var `mentions`: Mentions?
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+        Disposable.destroy(this.`msgType`)
+    
+        Disposable.destroy(this.`body`)
+    
+        Disposable.destroy(this.`inReplyTo`)
+    
+        Disposable.destroy(this.`threadRoot`)
+    
+        Disposable.destroy(this.`isEdited`)
+    
+        Disposable.destroy(this.`mentions`)
+    
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeMessageContent: FfiConverterRustBuffer<MessageContent> {
+    override fun read(buf: ByteBuffer): MessageContent {
+        return MessageContent(
+            FfiConverterTypeMessageType.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeInReplyToDetails.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeMentions.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MessageContent) = (
+            FfiConverterTypeMessageType.allocationSize(value.`msgType`) +
+            FfiConverterString.allocationSize(value.`body`) +
+            FfiConverterOptionalTypeInReplyToDetails.allocationSize(value.`inReplyTo`) +
+            FfiConverterOptionalString.allocationSize(value.`threadRoot`) +
+            FfiConverterBoolean.allocationSize(value.`isEdited`) +
+            FfiConverterOptionalTypeMentions.allocationSize(value.`mentions`)
+    )
+
+    override fun write(value: MessageContent, buf: ByteBuffer) {
+            FfiConverterTypeMessageType.write(value.`msgType`, buf)
+            FfiConverterString.write(value.`body`, buf)
+            FfiConverterOptionalTypeInReplyToDetails.write(value.`inReplyTo`, buf)
+            FfiConverterOptionalString.write(value.`threadRoot`, buf)
+            FfiConverterBoolean.write(value.`isEdited`, buf)
+            FfiConverterOptionalTypeMentions.write(value.`mentions`, buf)
     }
 }
 
@@ -26632,6 +26332,77 @@ public object FfiConverterTypeEncryptionSystem : FfiConverterRustBuffer<Encrypti
             is EncryptionSystem.SharedSecret -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`secret`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * Contains the 2 possible identifiers of an event, either it has a remote
+ * event id or a local transaction id, never both or none.
+ */
+sealed class EventOrTransactionId {
+    
+    data class EventId(
+        val `eventId`: kotlin.String) : EventOrTransactionId() {
+        companion object
+    }
+    
+    data class TransactionId(
+        val `transactionId`: kotlin.String) : EventOrTransactionId() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeEventOrTransactionId : FfiConverterRustBuffer<EventOrTransactionId>{
+    override fun read(buf: ByteBuffer): EventOrTransactionId {
+        return when(buf.getInt()) {
+            1 -> EventOrTransactionId.EventId(
+                FfiConverterString.read(buf),
+                )
+            2 -> EventOrTransactionId.TransactionId(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: EventOrTransactionId) = when(value) {
+        is EventOrTransactionId.EventId -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`eventId`)
+            )
+        }
+        is EventOrTransactionId.TransactionId -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+            )
+        }
+    }
+
+    override fun write(value: EventOrTransactionId, buf: ByteBuffer) {
+        when(value) {
+            is EventOrTransactionId.EventId -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`eventId`, buf)
+                Unit
+            }
+            is EventOrTransactionId.TransactionId -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`transactionId`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -32280,18 +32051,20 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
 
 
 
-sealed class TimelineItemContentKind: Disposable  {
+sealed class TimelineItemContent: Disposable  {
     
-    object Message : TimelineItemContentKind()
+    data class Message(
+        val `content`: MessageContent) : TimelineItemContent() {
+        companion object
+    }
     
-    
-    object RedactedMessage : TimelineItemContentKind()
+    object RedactedMessage : TimelineItemContent()
     
     
     data class Sticker(
         val `body`: kotlin.String, 
         val `info`: ImageInfo, 
-        val `source`: MediaSource) : TimelineItemContentKind() {
+        val `source`: MediaSource) : TimelineItemContent() {
         companion object
     }
     
@@ -32302,25 +32075,25 @@ sealed class TimelineItemContentKind: Disposable  {
         val `answers`: List<PollAnswer>, 
         val `votes`: Map<kotlin.String, List<kotlin.String>>, 
         val `endTime`: kotlin.ULong?, 
-        val `hasBeenEdited`: kotlin.Boolean) : TimelineItemContentKind() {
+        val `hasBeenEdited`: kotlin.Boolean) : TimelineItemContent() {
         companion object
     }
     
-    object CallInvite : TimelineItemContentKind()
+    object CallInvite : TimelineItemContent()
     
     
-    object CallNotify : TimelineItemContentKind()
+    object CallNotify : TimelineItemContent()
     
     
     data class UnableToDecrypt(
-        val `msg`: EncryptedMessage) : TimelineItemContentKind() {
+        val `msg`: EncryptedMessage) : TimelineItemContent() {
         companion object
     }
     
     data class RoomMembership(
         val `userId`: kotlin.String, 
         val `userDisplayName`: kotlin.String?, 
-        val `change`: MembershipChange?) : TimelineItemContentKind() {
+        val `change`: MembershipChange?) : TimelineItemContent() {
         companion object
     }
     
@@ -32328,26 +32101,26 @@ sealed class TimelineItemContentKind: Disposable  {
         val `displayName`: kotlin.String?, 
         val `prevDisplayName`: kotlin.String?, 
         val `avatarUrl`: kotlin.String?, 
-        val `prevAvatarUrl`: kotlin.String?) : TimelineItemContentKind() {
+        val `prevAvatarUrl`: kotlin.String?) : TimelineItemContent() {
         companion object
     }
     
     data class State(
         val `stateKey`: kotlin.String, 
-        val `content`: OtherState) : TimelineItemContentKind() {
+        val `content`: OtherState) : TimelineItemContent() {
         companion object
     }
     
     data class FailedToParseMessageLike(
         val `eventType`: kotlin.String, 
-        val `error`: kotlin.String) : TimelineItemContentKind() {
+        val `error`: kotlin.String) : TimelineItemContent() {
         companion object
     }
     
     data class FailedToParseState(
         val `eventType`: kotlin.String, 
         val `stateKey`: kotlin.String, 
-        val `error`: kotlin.String) : TimelineItemContentKind() {
+        val `error`: kotlin.String) : TimelineItemContent() {
         companion object
     }
     
@@ -32356,11 +32129,15 @@ sealed class TimelineItemContentKind: Disposable  {
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
     override fun destroy() {
         when(this) {
-            is TimelineItemContentKind.Message -> {// Nothing to destroy
+            is TimelineItemContent.Message -> {
+                
+        Disposable.destroy(this.`content`)
+    
+                
             }
-            is TimelineItemContentKind.RedactedMessage -> {// Nothing to destroy
+            is TimelineItemContent.RedactedMessage -> {// Nothing to destroy
             }
-            is TimelineItemContentKind.Sticker -> {
+            is TimelineItemContent.Sticker -> {
                 
         Disposable.destroy(this.`body`)
     
@@ -32370,7 +32147,7 @@ sealed class TimelineItemContentKind: Disposable  {
     
                 
             }
-            is TimelineItemContentKind.Poll -> {
+            is TimelineItemContent.Poll -> {
                 
         Disposable.destroy(this.`question`)
     
@@ -32388,17 +32165,17 @@ sealed class TimelineItemContentKind: Disposable  {
     
                 
             }
-            is TimelineItemContentKind.CallInvite -> {// Nothing to destroy
+            is TimelineItemContent.CallInvite -> {// Nothing to destroy
             }
-            is TimelineItemContentKind.CallNotify -> {// Nothing to destroy
+            is TimelineItemContent.CallNotify -> {// Nothing to destroy
             }
-            is TimelineItemContentKind.UnableToDecrypt -> {
+            is TimelineItemContent.UnableToDecrypt -> {
                 
         Disposable.destroy(this.`msg`)
     
                 
             }
-            is TimelineItemContentKind.RoomMembership -> {
+            is TimelineItemContent.RoomMembership -> {
                 
         Disposable.destroy(this.`userId`)
     
@@ -32408,7 +32185,7 @@ sealed class TimelineItemContentKind: Disposable  {
     
                 
             }
-            is TimelineItemContentKind.ProfileChange -> {
+            is TimelineItemContent.ProfileChange -> {
                 
         Disposable.destroy(this.`displayName`)
     
@@ -32420,7 +32197,7 @@ sealed class TimelineItemContentKind: Disposable  {
     
                 
             }
-            is TimelineItemContentKind.State -> {
+            is TimelineItemContent.State -> {
                 
         Disposable.destroy(this.`stateKey`)
     
@@ -32428,7 +32205,7 @@ sealed class TimelineItemContentKind: Disposable  {
     
                 
             }
-            is TimelineItemContentKind.FailedToParseMessageLike -> {
+            is TimelineItemContent.FailedToParseMessageLike -> {
                 
         Disposable.destroy(this.`eventType`)
     
@@ -32436,7 +32213,7 @@ sealed class TimelineItemContentKind: Disposable  {
     
                 
             }
-            is TimelineItemContentKind.FailedToParseState -> {
+            is TimelineItemContent.FailedToParseState -> {
                 
         Disposable.destroy(this.`eventType`)
     
@@ -32452,17 +32229,19 @@ sealed class TimelineItemContentKind: Disposable  {
     companion object
 }
 
-public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<TimelineItemContentKind>{
-    override fun read(buf: ByteBuffer): TimelineItemContentKind {
+public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<TimelineItemContent>{
+    override fun read(buf: ByteBuffer): TimelineItemContent {
         return when(buf.getInt()) {
-            1 -> TimelineItemContentKind.Message
-            2 -> TimelineItemContentKind.RedactedMessage
-            3 -> TimelineItemContentKind.Sticker(
+            1 -> TimelineItemContent.Message(
+                FfiConverterTypeMessageContent.read(buf),
+                )
+            2 -> TimelineItemContent.RedactedMessage
+            3 -> TimelineItemContent.Sticker(
                 FfiConverterString.read(buf),
                 FfiConverterTypeImageInfo.read(buf),
                 FfiConverterTypeMediaSource.read(buf),
                 )
-            4 -> TimelineItemContentKind.Poll(
+            4 -> TimelineItemContent.Poll(
                 FfiConverterString.read(buf),
                 FfiConverterTypePollKind.read(buf),
                 FfiConverterULong.read(buf),
@@ -32471,31 +32250,31 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterOptionalULong.read(buf),
                 FfiConverterBoolean.read(buf),
                 )
-            5 -> TimelineItemContentKind.CallInvite
-            6 -> TimelineItemContentKind.CallNotify
-            7 -> TimelineItemContentKind.UnableToDecrypt(
+            5 -> TimelineItemContent.CallInvite
+            6 -> TimelineItemContent.CallNotify
+            7 -> TimelineItemContent.UnableToDecrypt(
                 FfiConverterTypeEncryptedMessage.read(buf),
                 )
-            8 -> TimelineItemContentKind.RoomMembership(
+            8 -> TimelineItemContent.RoomMembership(
                 FfiConverterString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeMembershipChange.read(buf),
                 )
-            9 -> TimelineItemContentKind.ProfileChange(
+            9 -> TimelineItemContent.ProfileChange(
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalString.read(buf),
                 )
-            10 -> TimelineItemContentKind.State(
+            10 -> TimelineItemContent.State(
                 FfiConverterString.read(buf),
                 FfiConverterTypeOtherState.read(buf),
                 )
-            11 -> TimelineItemContentKind.FailedToParseMessageLike(
+            11 -> TimelineItemContent.FailedToParseMessageLike(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 )
-            12 -> TimelineItemContentKind.FailedToParseState(
+            12 -> TimelineItemContent.FailedToParseState(
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
@@ -32504,20 +32283,21 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
         }
     }
 
-    override fun allocationSize(value: TimelineItemContentKind) = when(value) {
-        is TimelineItemContentKind.Message -> {
+    override fun allocationSize(value: TimelineItemContent) = when(value) {
+        is TimelineItemContent.Message -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeMessageContent.allocationSize(value.`content`)
+            )
+        }
+        is TimelineItemContent.RedactedMessage -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is TimelineItemContentKind.RedactedMessage -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is TimelineItemContentKind.Sticker -> {
+        is TimelineItemContent.Sticker -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32526,7 +32306,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterTypeMediaSource.allocationSize(value.`source`)
             )
         }
-        is TimelineItemContentKind.Poll -> {
+        is TimelineItemContent.Poll -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32539,26 +32319,26 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterBoolean.allocationSize(value.`hasBeenEdited`)
             )
         }
-        is TimelineItemContentKind.CallInvite -> {
+        is TimelineItemContent.CallInvite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is TimelineItemContentKind.CallNotify -> {
+        is TimelineItemContent.CallNotify -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is TimelineItemContentKind.UnableToDecrypt -> {
+        is TimelineItemContent.UnableToDecrypt -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
                 + FfiConverterTypeEncryptedMessage.allocationSize(value.`msg`)
             )
         }
-        is TimelineItemContentKind.RoomMembership -> {
+        is TimelineItemContent.RoomMembership -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32567,7 +32347,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterOptionalTypeMembershipChange.allocationSize(value.`change`)
             )
         }
-        is TimelineItemContentKind.ProfileChange -> {
+        is TimelineItemContent.ProfileChange -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32577,7 +32357,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterOptionalString.allocationSize(value.`prevAvatarUrl`)
             )
         }
-        is TimelineItemContentKind.State -> {
+        is TimelineItemContent.State -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32585,7 +32365,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterTypeOtherState.allocationSize(value.`content`)
             )
         }
-        is TimelineItemContentKind.FailedToParseMessageLike -> {
+        is TimelineItemContent.FailedToParseMessageLike -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32593,7 +32373,7 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 + FfiConverterString.allocationSize(value.`error`)
             )
         }
-        is TimelineItemContentKind.FailedToParseState -> {
+        is TimelineItemContent.FailedToParseState -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -32604,24 +32384,25 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
         }
     }
 
-    override fun write(value: TimelineItemContentKind, buf: ByteBuffer) {
+    override fun write(value: TimelineItemContent, buf: ByteBuffer) {
         when(value) {
-            is TimelineItemContentKind.Message -> {
+            is TimelineItemContent.Message -> {
                 buf.putInt(1)
+                FfiConverterTypeMessageContent.write(value.`content`, buf)
                 Unit
             }
-            is TimelineItemContentKind.RedactedMessage -> {
+            is TimelineItemContent.RedactedMessage -> {
                 buf.putInt(2)
                 Unit
             }
-            is TimelineItemContentKind.Sticker -> {
+            is TimelineItemContent.Sticker -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`body`, buf)
                 FfiConverterTypeImageInfo.write(value.`info`, buf)
                 FfiConverterTypeMediaSource.write(value.`source`, buf)
                 Unit
             }
-            is TimelineItemContentKind.Poll -> {
+            is TimelineItemContent.Poll -> {
                 buf.putInt(4)
                 FfiConverterString.write(value.`question`, buf)
                 FfiConverterTypePollKind.write(value.`kind`, buf)
@@ -32632,27 +32413,27 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterBoolean.write(value.`hasBeenEdited`, buf)
                 Unit
             }
-            is TimelineItemContentKind.CallInvite -> {
+            is TimelineItemContent.CallInvite -> {
                 buf.putInt(5)
                 Unit
             }
-            is TimelineItemContentKind.CallNotify -> {
+            is TimelineItemContent.CallNotify -> {
                 buf.putInt(6)
                 Unit
             }
-            is TimelineItemContentKind.UnableToDecrypt -> {
+            is TimelineItemContent.UnableToDecrypt -> {
                 buf.putInt(7)
                 FfiConverterTypeEncryptedMessage.write(value.`msg`, buf)
                 Unit
             }
-            is TimelineItemContentKind.RoomMembership -> {
+            is TimelineItemContent.RoomMembership -> {
                 buf.putInt(8)
                 FfiConverterString.write(value.`userId`, buf)
                 FfiConverterOptionalString.write(value.`userDisplayName`, buf)
                 FfiConverterOptionalTypeMembershipChange.write(value.`change`, buf)
                 Unit
             }
-            is TimelineItemContentKind.ProfileChange -> {
+            is TimelineItemContent.ProfileChange -> {
                 buf.putInt(9)
                 FfiConverterOptionalString.write(value.`displayName`, buf)
                 FfiConverterOptionalString.write(value.`prevDisplayName`, buf)
@@ -32660,19 +32441,19 @@ public object FfiConverterTypeTimelineItemContentKind : FfiConverterRustBuffer<T
                 FfiConverterOptionalString.write(value.`prevAvatarUrl`, buf)
                 Unit
             }
-            is TimelineItemContentKind.State -> {
+            is TimelineItemContent.State -> {
                 buf.putInt(10)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterTypeOtherState.write(value.`content`, buf)
                 Unit
             }
-            is TimelineItemContentKind.FailedToParseMessageLike -> {
+            is TimelineItemContent.FailedToParseMessageLike -> {
                 buf.putInt(11)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`error`, buf)
                 Unit
             }
-            is TimelineItemContentKind.FailedToParseState -> {
+            is TimelineItemContent.FailedToParseState -> {
                 buf.putInt(12)
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
@@ -34515,35 +34296,6 @@ public object FfiConverterOptionalDuration: FfiConverterRustBuffer<java.time.Dur
 
 
 
-public object FfiConverterOptionalTypeEventTimelineItem: FfiConverterRustBuffer<EventTimelineItem?> {
-    override fun read(buf: ByteBuffer): EventTimelineItem? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeEventTimelineItem.read(buf)
-    }
-
-    override fun allocationSize(value: EventTimelineItem?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeEventTimelineItem.allocationSize(value)
-        }
-    }
-
-    override fun write(value: EventTimelineItem?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeEventTimelineItem.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeIdentityResetHandle: FfiConverterRustBuffer<IdentityResetHandle?> {
     override fun read(buf: ByteBuffer): IdentityResetHandle? {
         if (buf.get().toInt() == 0) {
@@ -34566,6 +34318,35 @@ public object FfiConverterOptionalTypeIdentityResetHandle: FfiConverterRustBuffe
         } else {
             buf.put(1)
             FfiConverterTypeIdentityResetHandle.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeInReplyToDetails: FfiConverterRustBuffer<InReplyToDetails?> {
+    override fun read(buf: ByteBuffer): InReplyToDetails? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeInReplyToDetails.read(buf)
+    }
+
+    override fun allocationSize(value: InReplyToDetails?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeInReplyToDetails.allocationSize(value)
+        }
+    }
+
+    override fun write(value: InReplyToDetails?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeInReplyToDetails.write(value, buf)
         }
     }
 }
@@ -34602,35 +34383,6 @@ public object FfiConverterOptionalTypeMediaSource: FfiConverterRustBuffer<MediaS
 
 
 
-public object FfiConverterOptionalTypeMessage: FfiConverterRustBuffer<Message?> {
-    override fun read(buf: ByteBuffer): Message? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeMessage.read(buf)
-    }
-
-    override fun allocationSize(value: Message?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeMessage.allocationSize(value)
-        }
-    }
-
-    override fun write(value: Message?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeMessage.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeRoom: FfiConverterRustBuffer<Room?> {
     override fun read(buf: ByteBuffer): Room? {
         if (buf.get().toInt() == 0) {
@@ -34653,6 +34405,35 @@ public object FfiConverterOptionalTypeRoom: FfiConverterRustBuffer<Room?> {
         } else {
             buf.put(1)
             FfiConverterTypeRoom.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeRoomMessageEventContentWithoutRelation: FfiConverterRustBuffer<RoomMessageEventContentWithoutRelation?> {
+    override fun read(buf: ByteBuffer): RoomMessageEventContentWithoutRelation? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRoomMessageEventContentWithoutRelation.read(buf)
+    }
+
+    override fun allocationSize(value: RoomMessageEventContentWithoutRelation?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRoomMessageEventContentWithoutRelation.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RoomMessageEventContentWithoutRelation?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRoomMessageEventContentWithoutRelation.write(value, buf)
         }
     }
 }
@@ -34834,6 +34615,35 @@ public object FfiConverterOptionalTypeElementCallWellKnown: FfiConverterRustBuff
 
 
 
+public object FfiConverterOptionalTypeEventTimelineItem: FfiConverterRustBuffer<EventTimelineItem?> {
+    override fun read(buf: ByteBuffer): EventTimelineItem? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeEventTimelineItem.read(buf)
+    }
+
+    override fun allocationSize(value: EventTimelineItem?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeEventTimelineItem.allocationSize(value)
+        }
+    }
+
+    override fun write(value: EventTimelineItem?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeEventTimelineItem.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeFileInfo: FfiConverterRustBuffer<FileInfo?> {
     override fun read(buf: ByteBuffer): FileInfo? {
         if (buf.get().toInt() == 0) {
@@ -34921,35 +34731,6 @@ public object FfiConverterOptionalTypeImageInfo: FfiConverterRustBuffer<ImageInf
 
 
 
-public object FfiConverterOptionalTypeInReplyToDetails: FfiConverterRustBuffer<InReplyToDetails?> {
-    override fun read(buf: ByteBuffer): InReplyToDetails? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeInReplyToDetails.read(buf)
-    }
-
-    override fun allocationSize(value: InReplyToDetails?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeInReplyToDetails.allocationSize(value)
-        }
-    }
-
-    override fun write(value: InReplyToDetails?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeInReplyToDetails.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeInsertData: FfiConverterRustBuffer<InsertData?> {
     override fun read(buf: ByteBuffer): InsertData? {
         if (buf.get().toInt() == 0) {
@@ -35001,6 +34782,35 @@ public object FfiConverterOptionalTypeMatrixEntity: FfiConverterRustBuffer<Matri
         } else {
             buf.put(1)
             FfiConverterTypeMatrixEntity.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeMentions: FfiConverterRustBuffer<Mentions?> {
+    override fun read(buf: ByteBuffer): Mentions? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeMentions.read(buf)
+    }
+
+    override fun allocationSize(value: Mentions?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeMentions.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Mentions?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeMentions.write(value, buf)
         }
     }
 }
@@ -36729,6 +36539,20 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
 
 
 
+
+        /**
+         * Creates a [`RoomMessageEventContentWithoutRelation`] given a
+         * [`MessageContent`] value.
+         */
+    @Throws(ClientException::class) fun `contentWithoutRelationFromMessage`(`message`: MessageContent): RoomMessageEventContentWithoutRelation {
+            return FfiConverterTypeRoomMessageEventContentWithoutRelation.lift(
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(
+        FfiConverterTypeMessageContent.lower(`message`),_status)
+}
+    )
+    }
+    
  fun `genTransactionId`(): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
