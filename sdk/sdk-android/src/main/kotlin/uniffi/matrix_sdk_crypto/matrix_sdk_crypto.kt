@@ -951,6 +951,39 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 /**
+ * Settings for decrypting messages
+ */
+data class DecryptionSettings (
+    /**
+     * The trust level in the sender's device that is required to decrypt the
+     * event. If the sender's device is not sufficiently trusted,
+     * [`MegolmError::SenderIdentityNotTrusted`] will be returned.
+     */
+    var `senderDeviceTrustRequirement`: TrustRequirement
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeDecryptionSettings: FfiConverterRustBuffer<DecryptionSettings> {
+    override fun read(buf: ByteBuffer): DecryptionSettings {
+        return DecryptionSettings(
+            FfiConverterTypeTrustRequirement.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: DecryptionSettings) = (
+            FfiConverterTypeTrustRequirement.allocationSize(value.`senderDeviceTrustRequirement`)
+    )
+
+    override fun write(value: DecryptionSettings, buf: ByteBuffer) {
+            FfiConverterTypeTrustRequirement.write(value.`senderDeviceTrustRequirement`, buf)
+    }
+}
+
+
+
+/**
  * Strategy to collect the devices that should receive room keys for the
  * current discussion.
  */
@@ -1043,6 +1076,59 @@ public object FfiConverterTypeCollectStrategy : FfiConverterRustBuffer<CollectSt
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * The state of an identity - verified, pinned etc.
+ */
+
+enum class IdentityState {
+    
+    /**
+     * The user is verified with us
+     */
+    VERIFIED,
+    /**
+     * Either this is the first identity we have seen for this user, or the
+     * user has acknowledged a change of identity explicitly e.g. by
+     * clicking OK on a notification.
+     */
+    PINNED,
+    /**
+     * The user's identity has changed since it was pinned. The user should be
+     * notified about this and given the opportunity to acknowledge the
+     * change, which will make the new identity pinned.
+     * When the user acknowledges the change, the app should call
+     * [`crate::OtherUserIdentity::pin_current_master_key`].
+     */
+    PIN_VIOLATION,
+    /**
+     * The user's identity has changed, and before that it was verified. This
+     * is a serious problem. The user can either verify again to make this
+     * identity verified, or withdraw verification
+     * [`UserIdentity::withdraw_verification`] to make it pinned.
+     */
+    VERIFICATION_VIOLATION;
+    companion object
+}
+
+
+public object FfiConverterTypeIdentityState: FfiConverterRustBuffer<IdentityState> {
+    override fun read(buf: ByteBuffer) = try {
+        IdentityState.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: IdentityState) = 4UL
+
+    override fun write(value: IdentityState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -1239,6 +1325,48 @@ public object FfiConverterTypeSignatureState: FfiConverterRustBuffer<SignatureSt
     override fun allocationSize(value: SignatureState) = 4UL
 
     override fun write(value: SignatureState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * The trust level in the sender's device that is required to decrypt an
+ * event.
+ */
+
+enum class TrustRequirement {
+    
+    /**
+     * Decrypt events from everyone regardless of trust.
+     */
+    UNTRUSTED,
+    /**
+     * Only decrypt events from cross-signed devices or legacy sessions (Megolm
+     * sessions created before we started collecting trust information).
+     */
+    CROSS_SIGNED_OR_LEGACY,
+    /**
+     * Only decrypt events from cross-signed devices.
+     */
+    CROSS_SIGNED;
+    companion object
+}
+
+
+public object FfiConverterTypeTrustRequirement: FfiConverterRustBuffer<TrustRequirement> {
+    override fun read(buf: ByteBuffer) = try {
+        TrustRequirement.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: TrustRequirement) = 4UL
+
+    override fun write(value: TrustRequirement, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

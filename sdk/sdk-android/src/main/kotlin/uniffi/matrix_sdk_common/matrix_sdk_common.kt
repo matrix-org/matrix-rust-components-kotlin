@@ -959,7 +959,7 @@ enum class ShieldStateCode {
     /**
      * The sender was previously verified but changed their identity.
      */
-    PREVIOUSLY_VERIFIED;
+    VERIFICATION_VIOLATION;
     companion object
 }
 

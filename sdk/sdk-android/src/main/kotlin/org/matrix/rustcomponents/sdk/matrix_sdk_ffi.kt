@@ -52,7 +52,11 @@ import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
 import uniffi.matrix_sdk_common.ShieldStateCode
 import uniffi.matrix_sdk_crypto.CollectStrategy
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
+import uniffi.matrix_sdk_crypto.FfiConverterTypeIdentityState
+import uniffi.matrix_sdk_crypto.FfiConverterTypeTrustRequirement
 import uniffi.matrix_sdk_crypto.FfiConverterTypeUtdCause
+import uniffi.matrix_sdk_crypto.IdentityState
+import uniffi.matrix_sdk_crypto.TrustRequirement
 import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
@@ -66,6 +70,8 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferTrustRequirement
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLiveBackPaginationStatus
@@ -693,6 +699,9 @@ internal interface UniffiCallbackInterfaceClientSessionDelegateMethod1 : com.sun
 internal interface UniffiCallbackInterfaceEnableRecoveryProgressListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`identityStatusChange`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceIgnoredUsersListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`ignoredUserIds`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -850,6 +859,22 @@ internal open class UniffiVTableCallbackInterfaceEnableRecoveryProgressListener(
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener) {
         `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("call", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceIdentityStatusChangeListener(
+    @JvmField internal var `call`: UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `call`: UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceIdentityStatusChangeListener(`call`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceIdentityStatusChangeListener) {
+        `call` = other.`call`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -2098,6 +2123,14 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2113,6 +2146,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceClientDelegate.register(lib)
                 uniffiCallbackInterfaceClientSessionDelegate.register(lib)
                 uniffiCallbackInterfaceEnableRecoveryProgressListener.register(lib)
+                uniffiCallbackInterfaceIdentityStatusChangeListener.register(lib)
                 uniffiCallbackInterfaceIgnoredUsersListener.register(lib)
                 uniffiCallbackInterfaceNotificationSettingsDelegate.register(lib)
                 uniffiCallbackInterfacePaginationStatusListener.register(lib)
@@ -2179,6 +2213,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Pointer,`request`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(`ptr`: Pointer,`jwt`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_deactivate_account(`ptr`: Pointer,`authData`: RustBuffer.ByValue,`eraseData`: Byte,
     ): Long
@@ -2319,6 +2355,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Pointer,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_decryption_trust_requirement(`ptr`: Pointer,`trustRequirement`: RustBufferTrustRequirement.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_strategy(`ptr`: Pointer,`strategy`: RustBufferCollectStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2620,6 +2658,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(`ptr`: Pointer,`newValue`: Byte,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2982,6 +3022,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_enablerecoveryprogresslistener(`vtable`: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(`vtable`: UniffiVTableCallbackInterfaceIdentityStatusChangeListener,
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_ignoreduserslistener(`vtable`: UniffiVTableCallbackInterfaceIgnoredUsersListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
@@ -3242,6 +3284,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher(
@@ -3375,6 +3419,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_decryption_trust_requirement(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy(
     ): Short
@@ -3629,6 +3675,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
     ): Short
@@ -3906,6 +3954,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
@@ -4070,6 +4120,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() != 52700.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt() != 19710.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account() != 20658.toShort()) {
@@ -4271,6 +4324,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config() != 58783.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_decryption_trust_requirement() != 2776.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy() != 41183.toShort()) {
@@ -4652,6 +4708,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag() != 2381.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes() != 14290.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 48209.toShort()) {
@@ -5066,6 +5125,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update() != 13538.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call() != 57311.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call() != 47519.toShort()) {
@@ -5707,6 +5769,13 @@ public interface ClientInterface {
     suspend fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
     
     /**
+     * Login using JWT
+     * This is an implementation of the custom_login https://docs.rs/matrix-sdk/latest/matrix_sdk/matrix_auth/struct.MatrixAuth.html#method.login_custom
+     * For more information on logging in with JWT: https://element-hq.github.io/synapse/latest/jwt.html
+     */
+    suspend fun `customLoginWithJwt`(`jwt`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
+    
+    /**
      * Deactivate this account definitively.
      * Similarly to `encryption::reset_identity` this
      * will only work with password-based authentication (`m.login.password`)
@@ -6229,6 +6298,33 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Login using JWT
+     * This is an implementation of the custom_login https://docs.rs/matrix-sdk/latest/matrix_sdk/matrix_auth/struct.MatrixAuth.html#method.login_custom
+     * For more information on logging in with JWT: https://element-hq.github.io/synapse/latest/jwt.html
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `customLoginWithJwt`(`jwt`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(
+                thisPtr,
+                FfiConverterString.lower(`jwt`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -7546,6 +7642,11 @@ public interface ClientBuilderInterface {
     fun `requestConfig`(`config`: RequestConfig): ClientBuilder
     
     /**
+     * Set the trust requirement to be used when decrypting events.
+     */
+    fun `roomDecryptionTrustRequirement`(`trustRequirement`: TrustRequirement): ClientBuilder
+    
+    /**
      * Set the strategy to be used for picking recipient devices when sending
      * an encrypted message.
      */
@@ -7875,6 +7976,21 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(
         it, FfiConverterTypeRequestConfig.lower(`config`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set the trust requirement to be used when decrypting events.
+     */override fun `roomDecryptionTrustRequirement`(`trustRequirement`: TrustRequirement): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_decryption_trust_requirement(
+        it, FfiConverterTypeTrustRequirement.lower(`trustRequirement`),_status)
 }
     }
     )
@@ -12263,6 +12379,8 @@ public interface RoomInterface {
      */
     suspend fun `setUnreadFlag`(`newValue`: kotlin.Boolean)
     
+    fun `subscribeToIdentityStatusChanges`(`listener`: IdentityStatusChangeListener): TaskHandle
+    
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
     fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle
@@ -13791,6 +13909,18 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         ClientException.ErrorHandler,
     )
     }
+
+    override fun `subscribeToIdentityStatusChanges`(`listener`: IdentityStatusChangeListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(
+        it, FfiConverterTypeIdentityStatusChangeListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
 
     override fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -22708,6 +22838,41 @@ public object FfiConverterTypeHttpPusherData: FfiConverterRustBuffer<HttpPusherD
             FfiConverterString.write(value.`url`, buf)
             FfiConverterOptionalTypePushFormat.write(value.`format`, buf)
             FfiConverterOptionalString.write(value.`defaultPayload`, buf)
+    }
+}
+
+
+
+data class IdentityStatusChange (
+    /**
+     * The user ID of the user whose identity status changed
+     */
+    var `userId`: kotlin.String, 
+    /**
+     * The new state of the identity of the user.
+     */
+    var `changedTo`: IdentityState
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeIdentityStatusChange: FfiConverterRustBuffer<IdentityStatusChange> {
+    override fun read(buf: ByteBuffer): IdentityStatusChange {
+        return IdentityStatusChange(
+            FfiConverterString.read(buf),
+            FfiConverterTypeIdentityState.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: IdentityStatusChange) = (
+            FfiConverterString.allocationSize(value.`userId`) +
+            FfiConverterTypeIdentityState.allocationSize(value.`changedTo`)
+    )
+
+    override fun write(value: IdentityStatusChange, buf: ByteBuffer) {
+            FfiConverterString.write(value.`userId`, buf)
+            FfiConverterTypeIdentityState.write(value.`changedTo`, buf)
     }
 }
 
@@ -33005,6 +33170,55 @@ public object FfiConverterTypeEnableRecoveryProgressListener: FfiConverterCallba
 
 
 
+public interface IdentityStatusChangeListener {
+    
+    fun `call`(`identityStatusChange`: List<IdentityStatusChange>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceIdentityStatusChangeListener {
+    internal object `call`: UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`identityStatusChange`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeIdentityStatusChangeListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`call`(
+                    FfiConverterSequenceTypeIdentityStatusChange.lift(`identityStatusChange`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeIdentityStatusChangeListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceIdentityStatusChangeListener.UniffiByValue(
+        `call`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeIdentityStatusChangeListener: FfiConverterCallbackInterface<IdentityStatusChangeListener>()
+
+
+
+
+
 public interface IgnoredUsersListener {
     
     fun `call`(`ignoredUserIds`: List<kotlin.String>)
@@ -35946,6 +36160,31 @@ public object FfiConverterSequenceTypeTimelineItem: FfiConverterRustBuffer<List<
 
 
 
+public object FfiConverterSequenceTypeIdentityStatusChange: FfiConverterRustBuffer<List<IdentityStatusChange>> {
+    override fun read(buf: ByteBuffer): List<IdentityStatusChange> {
+        val len = buf.getInt()
+        return List<IdentityStatusChange>(len) {
+            FfiConverterTypeIdentityStatusChange.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<IdentityStatusChange>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIdentityStatusChange.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<IdentityStatusChange>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIdentityStatusChange.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypePollAnswer: FfiConverterRustBuffer<List<PollAnswer>> {
     override fun read(buf: ByteBuffer): List<PollAnswer> {
         val len = buf.getInt()
@@ -36492,6 +36731,14 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
         }
     }
 }
+
+
+
+
+
+
+
+
 
 
 
