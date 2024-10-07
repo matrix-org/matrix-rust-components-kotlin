@@ -2131,6 +2131,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2393,6 +2399,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Pointer,`waitForBackupsToUpload`: Byte,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_get_user_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Pointer,
     ): Long
@@ -2702,8 +2710,6 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(`ptr`: Pointer,`pageSize`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2998,6 +3004,14 @@ internal interface UniffiLib : Library {
     ): Int
     fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_notification_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
+    fun uniffi_matrix_sdk_ffi_fn_clone_useridentity(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_useridentity(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_useridentity_master_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_useridentity_pin(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriver(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_widgetdriver(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3454,6 +3468,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_get_user_identity(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover(
@@ -3712,8 +3728,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state(
@@ -3919,6 +3933,10 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_highlight_count(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run(
     ): Short
@@ -4377,6 +4395,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() != 64351.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_get_user_identity() != 40601.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() != 27955.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4764,9 +4785,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() != 26558.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries() != 25290.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() != 36097.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5074,6 +5092,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count() != 35655.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key() != 4041.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin() != 62925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run() != 7519.toShort()) {
@@ -8274,6 +8298,16 @@ public interface EncryptionInterface {
     
     suspend fun `enableRecovery`(`waitForBackupsToUpload`: kotlin.Boolean, `passphrase`: kotlin.String?, `progressListener`: EnableRecoveryProgressListener): kotlin.String
     
+    /**
+     * Get the E2EE identity of a user.
+     *
+     * Returns Ok(None) if this user does not exist.
+     *
+     * Returns an error if there was a problem contacting the crypto store, or
+     * if our client is not logged in.
+     */
+    suspend fun `getUserIdentity`(`userId`: kotlin.String): UserIdentity?
+    
     suspend fun `isLastDevice`(): kotlin.Boolean
     
     suspend fun `recover`(`recoveryKey`: kotlin.String)
@@ -8554,6 +8588,35 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface {
         { FfiConverterString.lift(it) },
         // Error FFI converter
         RecoveryException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Get the E2EE identity of a user.
+     *
+     * Returns Ok(None) if this user does not exist.
+     *
+     * Returns an error if there was a problem contacting the crypto store, or
+     * if our client is not logged in.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getUserIdentity`(`userId`: kotlin.String) : UserIdentity? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_get_user_identity(
+                thisPtr,
+                FfiConverterString.lower(`userId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeUserIdentity.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
     )
     }
 
@@ -14668,8 +14731,6 @@ public object FfiConverterTypeRoomDirectorySearch: FfiConverter<RoomDirectorySea
 
 public interface RoomListInterface {
     
-    fun `entries`(`listener`: RoomListEntriesListener): TaskHandle
-    
     fun `entriesWithDynamicAdapters`(`pageSize`: kotlin.UInt, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult
     
     fun `loadingState`(`listener`: RoomListLoadingStateListener): RoomListLoadingStateResult
@@ -14759,18 +14820,6 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_roomlist(pointer!!, status)
         }
     }
-
-    override fun `entries`(`listener`: RoomListEntriesListener): TaskHandle {
-            return FfiConverterTypeTaskHandle.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries(
-        it, FfiConverterTypeRoomListEntriesListener.lower(`listener`),_status)
-}
-    }
-    )
-    }
-    
 
     override fun `entriesWithDynamicAdapters`(`pageSize`: kotlin.UInt, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult {
             return FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult.lift(
@@ -21704,6 +21753,316 @@ public object FfiConverterTypeUnreadNotificationsCount: FfiConverter<UnreadNotif
 
 
 /**
+ * The E2EE identity of a user.
+ */
+public interface UserIdentityInterface {
+    
+    /**
+     * Get the public part of the Master key of this user identity.
+     *
+     * The public part of the Master key is usually used to uniquely identify
+     * the identity.
+     *
+     * Returns None if the master key does not actually contain any keys.
+     */
+    fun `masterKey`(): kotlin.String?
+    
+    /**
+     * Remember this identity, ensuring it does not result in a pin violation.
+     *
+     * When we first see a user, we assume their cryptographic identity has not
+     * been tampered with by the homeserver or another entity with
+     * man-in-the-middle capabilities. We remember this identity and call this
+     * action "pinning".
+     *
+     * If the identity presented for the user changes later on, the newly
+     * presented identity is considered to be in "pin violation". This
+     * method explicitly accepts the new identity, allowing it to replace
+     * the previously pinned one and bringing it out of pin violation.
+     *
+     * UIs should display a warning to the user when encountering an identity
+     * which is not verified and is in pin violation.
+     */
+    suspend fun `pin`()
+    
+    companion object
+}
+
+/**
+ * The E2EE identity of a user.
+ */
+open class UserIdentity: Disposable, AutoCloseable, UserIdentityInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_useridentity(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_useridentity(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * Get the public part of the Master key of this user identity.
+     *
+     * The public part of the Master key is usually used to uniquely identify
+     * the identity.
+     *
+     * Returns None if the master key does not actually contain any keys.
+     */override fun `masterKey`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_useridentity_master_key(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Remember this identity, ensuring it does not result in a pin violation.
+     *
+     * When we first see a user, we assume their cryptographic identity has not
+     * been tampered with by the homeserver or another entity with
+     * man-in-the-middle capabilities. We remember this identity and call this
+     * action "pinning".
+     *
+     * If the identity presented for the user changes later on, the newly
+     * presented identity is considered to be in "pin violation". This
+     * method explicitly accepts the new identity, allowing it to replace
+     * the previously pinned one and bringing it out of pin violation.
+     *
+     * UIs should display a warning to the user when encountering an identity
+     * which is not verified and is in pin violation.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `pin`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_useridentity_pin(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeUserIdentity: FfiConverter<UserIdentity, Pointer> {
+
+    override fun lower(value: UserIdentity): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): UserIdentity {
+        return UserIdentity(value)
+    }
+
+    override fun read(buf: ByteBuffer): UserIdentity {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: UserIdentity) = 8UL
+
+    override fun write(value: UserIdentity, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
  * An object that handles all interactions of a widget living inside a webview
  * or IFrame with the Matrix world.
  */
@@ -22181,9 +22540,27 @@ public object FfiConverterTypeAudioInfo: FfiConverterRustBuffer<AudioInfo> {
 
 
 data class AudioMessageContent (
+    /**
+     * The original body field, deserialized from the event. Prefer the use of
+     * `filename` and `caption` over this.
+     */
     var `body`: kotlin.String, 
+    /**
+     * The original formatted body field, deserialized from the event. Prefer
+     * the use of `filename` and `formatted_caption` over this.
+     */
     var `formatted`: FormattedBody?, 
-    var `filename`: kotlin.String?, 
+    /**
+     * The original filename field, deserialized from the event. Prefer the use
+     * of `filename` over this.
+     */
+    var `rawFilename`: kotlin.String?, 
+    /**
+     * The computed filename, for use in a client.
+     */
+    var `filename`: kotlin.String, 
+    var `caption`: kotlin.String?, 
+    var `formattedCaption`: FormattedBody?, 
     var `source`: MediaSource, 
     var `info`: AudioInfo?, 
     var `audio`: UnstableAudioDetailsContent?, 
@@ -22197,7 +22574,13 @@ data class AudioMessageContent (
     
         Disposable.destroy(this.`formatted`)
     
+        Disposable.destroy(this.`rawFilename`)
+    
         Disposable.destroy(this.`filename`)
+    
+        Disposable.destroy(this.`caption`)
+    
+        Disposable.destroy(this.`formattedCaption`)
     
         Disposable.destroy(this.`source`)
     
@@ -22218,6 +22601,9 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
             FfiConverterString.read(buf),
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeAudioInfo.read(buf),
             FfiConverterOptionalTypeUnstableAudioDetailsContent.read(buf),
@@ -22228,7 +22614,10 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
     override fun allocationSize(value: AudioMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
-            FfiConverterOptionalString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`rawFilename`) +
+            FfiConverterString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`caption`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeAudioInfo.allocationSize(value.`info`) +
             FfiConverterOptionalTypeUnstableAudioDetailsContent.allocationSize(value.`audio`) +
@@ -22238,7 +22627,10 @@ public object FfiConverterTypeAudioMessageContent: FfiConverterRustBuffer<AudioM
     override fun write(value: AudioMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
-            FfiConverterOptionalString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`rawFilename`, buf)
+            FfiConverterString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`caption`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeAudioInfo.write(value.`info`, buf)
             FfiConverterOptionalTypeUnstableAudioDetailsContent.write(value.`audio`, buf)
@@ -22726,9 +23118,27 @@ public object FfiConverterTypeFileInfo: FfiConverterRustBuffer<FileInfo> {
 
 
 data class FileMessageContent (
+    /**
+     * The original body field, deserialized from the event. Prefer the use of
+     * `filename` and `caption` over this.
+     */
     var `body`: kotlin.String, 
+    /**
+     * The original formatted body field, deserialized from the event. Prefer
+     * the use of `filename` and `formatted_caption` over this.
+     */
     var `formatted`: FormattedBody?, 
-    var `filename`: kotlin.String?, 
+    /**
+     * The original filename field, deserialized from the event. Prefer the use
+     * of `filename` over this.
+     */
+    var `rawFilename`: kotlin.String?, 
+    /**
+     * The computed filename, for use in a client.
+     */
+    var `filename`: kotlin.String, 
+    var `caption`: kotlin.String?, 
+    var `formattedCaption`: FormattedBody?, 
     var `source`: MediaSource, 
     var `info`: FileInfo?
 ) : Disposable {
@@ -22740,7 +23150,13 @@ data class FileMessageContent (
     
         Disposable.destroy(this.`formatted`)
     
+        Disposable.destroy(this.`rawFilename`)
+    
         Disposable.destroy(this.`filename`)
+    
+        Disposable.destroy(this.`caption`)
+    
+        Disposable.destroy(this.`formattedCaption`)
     
         Disposable.destroy(this.`source`)
     
@@ -22757,6 +23173,9 @@ public object FfiConverterTypeFileMessageContent: FfiConverterRustBuffer<FileMes
             FfiConverterString.read(buf),
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeFileInfo.read(buf),
         )
@@ -22765,7 +23184,10 @@ public object FfiConverterTypeFileMessageContent: FfiConverterRustBuffer<FileMes
     override fun allocationSize(value: FileMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
-            FfiConverterOptionalString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`rawFilename`) +
+            FfiConverterString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`caption`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeFileInfo.allocationSize(value.`info`)
     )
@@ -22773,7 +23195,10 @@ public object FfiConverterTypeFileMessageContent: FfiConverterRustBuffer<FileMes
     override fun write(value: FileMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
-            FfiConverterOptionalString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`rawFilename`, buf)
+            FfiConverterString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`caption`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeFileInfo.write(value.`info`, buf)
     }
@@ -22947,9 +23372,27 @@ public object FfiConverterTypeImageInfo: FfiConverterRustBuffer<ImageInfo> {
 
 
 data class ImageMessageContent (
+    /**
+     * The original body field, deserialized from the event. Prefer the use of
+     * `filename` and `caption` over this.
+     */
     var `body`: kotlin.String, 
+    /**
+     * The original formatted body field, deserialized from the event. Prefer
+     * the use of `filename` and `formatted_caption` over this.
+     */
     var `formatted`: FormattedBody?, 
-    var `filename`: kotlin.String?, 
+    /**
+     * The original filename field, deserialized from the event. Prefer the use
+     * of `filename` over this.
+     */
+    var `rawFilename`: kotlin.String?, 
+    /**
+     * The computed filename, for use in a client.
+     */
+    var `filename`: kotlin.String, 
+    var `caption`: kotlin.String?, 
+    var `formattedCaption`: FormattedBody?, 
     var `source`: MediaSource, 
     var `info`: ImageInfo?
 ) : Disposable {
@@ -22961,7 +23404,13 @@ data class ImageMessageContent (
     
         Disposable.destroy(this.`formatted`)
     
+        Disposable.destroy(this.`rawFilename`)
+    
         Disposable.destroy(this.`filename`)
+    
+        Disposable.destroy(this.`caption`)
+    
+        Disposable.destroy(this.`formattedCaption`)
     
         Disposable.destroy(this.`source`)
     
@@ -22978,6 +23427,9 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
             FfiConverterString.read(buf),
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeImageInfo.read(buf),
         )
@@ -22986,7 +23438,10 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
     override fun allocationSize(value: ImageMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
-            FfiConverterOptionalString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`rawFilename`) +
+            FfiConverterString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`caption`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeImageInfo.allocationSize(value.`info`)
     )
@@ -22994,7 +23449,10 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
     override fun write(value: ImageMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
-            FfiConverterOptionalString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`rawFilename`, buf)
+            FfiConverterString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`caption`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeImageInfo.write(value.`info`, buf)
     }
@@ -24512,7 +24970,7 @@ public object FfiConverterTypeRoomPreview: FfiConverterRustBuffer<RoomPreview> {
 
 data class RoomSubscription (
     var `requiredState`: List<RequiredState>?, 
-    var `timelineLimit`: kotlin.UInt?, 
+    var `timelineLimit`: kotlin.UInt, 
     var `includeHeroes`: kotlin.Boolean?
 ) {
     
@@ -24523,20 +24981,20 @@ public object FfiConverterTypeRoomSubscription: FfiConverterRustBuffer<RoomSubsc
     override fun read(buf: ByteBuffer): RoomSubscription {
         return RoomSubscription(
             FfiConverterOptionalSequenceTypeRequiredState.read(buf),
-            FfiConverterOptionalUInt.read(buf),
+            FfiConverterUInt.read(buf),
             FfiConverterOptionalBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: RoomSubscription) = (
             FfiConverterOptionalSequenceTypeRequiredState.allocationSize(value.`requiredState`) +
-            FfiConverterOptionalUInt.allocationSize(value.`timelineLimit`) +
+            FfiConverterUInt.allocationSize(value.`timelineLimit`) +
             FfiConverterOptionalBoolean.allocationSize(value.`includeHeroes`)
     )
 
     override fun write(value: RoomSubscription, buf: ByteBuffer) {
             FfiConverterOptionalSequenceTypeRequiredState.write(value.`requiredState`, buf)
-            FfiConverterOptionalUInt.write(value.`timelineLimit`, buf)
+            FfiConverterUInt.write(value.`timelineLimit`, buf)
             FfiConverterOptionalBoolean.write(value.`includeHeroes`, buf)
     }
 }
@@ -25125,9 +25583,27 @@ public object FfiConverterTypeVideoInfo: FfiConverterRustBuffer<VideoInfo> {
 
 
 data class VideoMessageContent (
+    /**
+     * The original body field, deserialized from the event. Prefer the use of
+     * `filename` and `caption` over this.
+     */
     var `body`: kotlin.String, 
+    /**
+     * The original formatted body field, deserialized from the event. Prefer
+     * the use of `filename` and `formatted_caption` over this.
+     */
     var `formatted`: FormattedBody?, 
-    var `filename`: kotlin.String?, 
+    /**
+     * The original filename field, deserialized from the event. Prefer the use
+     * of `filename` over this.
+     */
+    var `rawFilename`: kotlin.String?, 
+    /**
+     * The computed filename, for use in a client.
+     */
+    var `filename`: kotlin.String, 
+    var `caption`: kotlin.String?, 
+    var `formattedCaption`: FormattedBody?, 
     var `source`: MediaSource, 
     var `info`: VideoInfo?
 ) : Disposable {
@@ -25139,7 +25615,13 @@ data class VideoMessageContent (
     
         Disposable.destroy(this.`formatted`)
     
+        Disposable.destroy(this.`rawFilename`)
+    
         Disposable.destroy(this.`filename`)
+    
+        Disposable.destroy(this.`caption`)
+    
+        Disposable.destroy(this.`formattedCaption`)
     
         Disposable.destroy(this.`source`)
     
@@ -25156,6 +25638,9 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
             FfiConverterString.read(buf),
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterTypeMediaSource.read(buf),
             FfiConverterOptionalTypeVideoInfo.read(buf),
         )
@@ -25164,7 +25649,10 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
     override fun allocationSize(value: VideoMessageContent) = (
             FfiConverterString.allocationSize(value.`body`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formatted`) +
-            FfiConverterOptionalString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`rawFilename`) +
+            FfiConverterString.allocationSize(value.`filename`) +
+            FfiConverterOptionalString.allocationSize(value.`caption`) +
+            FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterTypeMediaSource.allocationSize(value.`source`) +
             FfiConverterOptionalTypeVideoInfo.allocationSize(value.`info`)
     )
@@ -25172,7 +25660,10 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
     override fun write(value: VideoMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
-            FfiConverterOptionalString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`rawFilename`, buf)
+            FfiConverterString.write(value.`filename`, buf)
+            FfiConverterOptionalString.write(value.`caption`, buf)
+            FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeVideoInfo.write(value.`info`, buf)
     }
@@ -34735,6 +35226,35 @@ public object FfiConverterOptionalTypeTimelineItem: FfiConverterRustBuffer<Timel
         } else {
             buf.put(1)
             FfiConverterTypeTimelineItem.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserIdentity?> {
+    override fun read(buf: ByteBuffer): UserIdentity? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeUserIdentity.read(buf)
+    }
+
+    override fun allocationSize(value: UserIdentity?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeUserIdentity.allocationSize(value)
+        }
+    }
+
+    override fun write(value: UserIdentity?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeUserIdentity.write(value, buf)
         }
     }
 }
