@@ -2934,7 +2934,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Pointer,`listener`: Long,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Pointer,`uniqueId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Pointer,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
@@ -4872,10 +4872,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk() != 23186.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 19759.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 62384.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 49985.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() != 1903.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort() != 11570.toShort()) {
@@ -5031,7 +5031,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 46161.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 62959.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 29303.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event() != 52414.toShort()) {
@@ -5085,7 +5085,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_fmt_debug() != 38094.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id() != 30409.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id() != 39945.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_has_notifications() != 33024.toShort()) {
@@ -16612,8 +16612,18 @@ public object FfiConverterTypeRoomMessageEventContentWithoutRelation: FfiConvert
 
 public interface SendAttachmentJoinHandleInterface {
     
+    /**
+     * Cancel the current sending task.
+     *
+     * A subsequent call to [`Self::join`] will return immediately.
+     */
     fun `cancel`()
     
+    /**
+     * Wait until the attachment has been sent.
+     *
+     * If the sending had been cancelled, will return immediately.
+     */
     suspend fun `join`()
     
     companion object
@@ -16700,7 +16710,12 @@ open class SendAttachmentJoinHandle: Disposable, AutoCloseable, SendAttachmentJo
         }
     }
 
-    override fun `cancel`()
+    
+    /**
+     * Cancel the current sending task.
+     *
+     * A subsequent call to [`Self::join`] will return immediately.
+     */override fun `cancel`()
         = 
     callWithPointer {
     uniffiRustCall() { _status ->
@@ -16712,6 +16727,11 @@ open class SendAttachmentJoinHandle: Disposable, AutoCloseable, SendAttachmentJo
     
 
     
+    /**
+     * Wait until the attachment has been sent.
+     *
+     * If the sending had been cancelled, will return immediately.
+     */
     @Throws(RoomException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `join`() {
@@ -19296,19 +19316,17 @@ public interface TimelineInterface {
     /**
      * Toggle a reaction on an event.
      *
-     * The `unique_id` parameter is a string returned by
-     * the `TimelineItem::unique_id()` method. As such, this method works both
-     * on local echoes and remote items.
-     *
      * Adds or redacts a reaction based on the state of the reaction at the
      * time it is called.
+     *
+     * This method works both on local echoes and remote items.
      *
      * When redacting a previous reaction, the redaction reason is not set.
      *
      * Ensures that only one reaction is sent at a time to avoid race
      * conditions and spamming the homeserver with requests.
      */
-    suspend fun `toggleReaction`(`uniqueId`: kotlin.String, `key`: kotlin.String)
+    suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String)
     
     /**
      * Adds a new pinned event by sending an updated `m.room.pinned_events`
@@ -19985,12 +20003,10 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     /**
      * Toggle a reaction on an event.
      *
-     * The `unique_id` parameter is a string returned by
-     * the `TimelineItem::unique_id()` method. As such, this method works both
-     * on local echoes and remote items.
-     *
      * Adds or redacts a reaction based on the state of the reaction at the
      * time it is called.
+     *
+     * This method works both on local echoes and remote items.
      *
      * When redacting a previous reaction, the redaction reason is not set.
      *
@@ -19999,12 +20015,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `toggleReaction`(`uniqueId`: kotlin.String, `key`: kotlin.String) {
+    override suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(
                 thisPtr,
-                FfiConverterString.lower(`uniqueId`),FfiConverterString.lower(`key`),
+                FfiConverterTypeEventOrTransactionId.lower(`itemId`),FfiConverterString.lower(`key`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21044,7 +21060,10 @@ public interface TimelineItemInterface {
     
     fun `fmtDebug`(): kotlin.String
     
-    fun `uniqueId`(): kotlin.String
+    /**
+     * An opaque unique identifier for this timeline item.
+     */
+    fun `uniqueId`(): TimelineUniqueId
     
     companion object
 }
@@ -21166,8 +21185,11 @@ open class TimelineItem: Disposable, AutoCloseable, TimelineItemInterface {
     }
     
 
-    override fun `uniqueId`(): kotlin.String {
-            return FfiConverterString.lift(
+    
+    /**
+     * An opaque unique identifier for this timeline item.
+     */override fun `uniqueId`(): TimelineUniqueId {
+            return FfiConverterTypeTimelineUniqueId.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelineitem_unique_id(
@@ -25011,6 +25033,31 @@ public object FfiConverterTypeThumbnailInfo: FfiConverterRustBuffer<ThumbnailInf
             FfiConverterOptionalULong.write(value.`width`, buf)
             FfiConverterOptionalString.write(value.`mimetype`, buf)
             FfiConverterOptionalULong.write(value.`size`, buf)
+    }
+}
+
+
+
+data class TimelineUniqueId (
+    var `id`: kotlin.String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeTimelineUniqueId: FfiConverterRustBuffer<TimelineUniqueId> {
+    override fun read(buf: ByteBuffer): TimelineUniqueId {
+        return TimelineUniqueId(
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TimelineUniqueId) = (
+            FfiConverterString.allocationSize(value.`id`)
+    )
+
+    override fun write(value: TimelineUniqueId, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
     }
 }
 
