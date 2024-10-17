@@ -15,7 +15,7 @@ on:
 jobs:
   build_native:
     name: Build and generate crypto native libs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
