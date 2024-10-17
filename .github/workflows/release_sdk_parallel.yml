@@ -17,7 +17,7 @@ jobs:
       matrix:
         target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
     name: "Build Rust target: ${{ matrix.target }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
@@ -114,7 +114,7 @@ jobs:
   release_library:
     name: "Release SDK Library"
     needs: build_targets
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     concurrency:
       group: ${{ github.ref }}-${{ github.job }}
