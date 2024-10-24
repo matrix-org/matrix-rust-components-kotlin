@@ -1387,10 +1387,30 @@ enum class UtdCause {
      */
     UNKNOWN,
     /**
-     * This event was sent when we were not a member of the room (or invited),
-     * so it is impossible to decrypt (without MSC3061).
+     * We are missing the keys for this event, and the event was sent when we
+     * were not a member of the room (or invited).
      */
-    MEMBERSHIP;
+    SENT_BEFORE_WE_JOINED,
+    /**
+     * The message was sent by a user identity we have not verified, but the
+     * user was previously verified.
+     */
+    VERIFICATION_VIOLATION,
+    /**
+     * The [`crate::TrustRequirement`] requires that the sending device be
+     * signed by its owner, and it was not.
+     */
+    UNSIGNED_DEVICE,
+    /**
+     * The [`crate::TrustRequirement`] requires that the sending device be
+     * signed by its owner, and we were unable to securely find the device.
+     *
+     * This could be because the device has since been deleted, because we
+     * haven't yet downloaded it from the server, or because the session
+     * data was obtained from an insecure source (imported from a file,
+     * obtained from a legacy (asymmetric) backup, unsafe key forward, etc.)
+     */
+    UNKNOWN_DEVICE;
     companion object
 }
 
