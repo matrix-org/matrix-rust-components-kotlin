@@ -742,21 +742,24 @@ internal interface UniffiCallbackInterfaceSendQueueRoomErrorListenerMethod0 : co
     fun callback(`uniffiHandle`: Long,`roomId`: RustBuffer.ByValue,`error`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`details`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`data`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`data`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod6 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSyncServiceStateObserverMethod0 : com.sun.jna.Callback {
@@ -1087,27 +1090,30 @@ internal open class UniffiVTableCallbackInterfaceSendQueueRoomErrorListener(
     }
 
 }
-@Structure.FieldOrder("didAcceptVerificationRequest", "didStartSasVerification", "didReceiveVerificationData", "didFail", "didCancel", "didFinish", "uniffiFree")
+@Structure.FieldOrder("didReceiveVerificationRequest", "didAcceptVerificationRequest", "didStartSasVerification", "didReceiveVerificationData", "didFail", "didCancel", "didFinish", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate(
-    @JvmField internal var `didAcceptVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0? = null,
-    @JvmField internal var `didStartSasVerification`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1? = null,
-    @JvmField internal var `didReceiveVerificationData`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2? = null,
-    @JvmField internal var `didFail`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3? = null,
-    @JvmField internal var `didCancel`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4? = null,
-    @JvmField internal var `didFinish`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5? = null,
+    @JvmField internal var `didReceiveVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0? = null,
+    @JvmField internal var `didAcceptVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1? = null,
+    @JvmField internal var `didStartSasVerification`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2? = null,
+    @JvmField internal var `didReceiveVerificationData`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3? = null,
+    @JvmField internal var `didFail`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4? = null,
+    @JvmField internal var `didCancel`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5? = null,
+    @JvmField internal var `didFinish`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod6? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
-        `didAcceptVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0? = null,
-        `didStartSasVerification`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1? = null,
-        `didReceiveVerificationData`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2? = null,
-        `didFail`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3? = null,
-        `didCancel`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4? = null,
-        `didFinish`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5? = null,
+        `didReceiveVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0? = null,
+        `didAcceptVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1? = null,
+        `didStartSasVerification`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2? = null,
+        `didReceiveVerificationData`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3? = null,
+        `didFail`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4? = null,
+        `didCancel`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5? = null,
+        `didFinish`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod6? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate(`didAcceptVerificationRequest`,`didStartSasVerification`,`didReceiveVerificationData`,`didFail`,`didCancel`,`didFinish`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate(`didReceiveVerificationRequest`,`didAcceptVerificationRequest`,`didStartSasVerification`,`didReceiveVerificationData`,`didFail`,`didCancel`,`didFinish`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate) {
+        `didReceiveVerificationRequest` = other.`didReceiveVerificationRequest`
         `didAcceptVerificationRequest` = other.`didAcceptVerificationRequest`
         `didStartSasVerification` = other.`didStartSasVerification`
         `didReceiveVerificationData` = other.`didReceiveVerificationData`
@@ -1214,6 +1220,19 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2432,6 +2451,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oidc_prompts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_password_login(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2760,6 +2781,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_membership(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_preview_room(`ptr`: Pointer,`via`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_room_info(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlistservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2784,6 +2807,14 @@ internal interface UniffiLib : Library {
     ): Int
     fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_next_chunk(`ptr`: Pointer,`chunkSize`: Int,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_clone_roompreview(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_roompreview(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roompreview_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_roompreview_leave(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_sendattachmentjoinhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_sendattachmentjoinhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2802,13 +2833,15 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_accept_verification_request(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_acknowledge_verification_request(`ptr`: Pointer,`senderId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Pointer,
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(`ptr`: Pointer,
     ): Long
@@ -3494,6 +3527,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oidc_prompts(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login(
@@ -3768,6 +3803,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_membership(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_preview_room(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
@@ -3784,19 +3821,25 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_info(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_is_verified(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification(
     ): Short
@@ -4000,6 +4043,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification(
@@ -4182,10 +4227,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias() != 10849.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias() != 7674.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id() != 6925.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id() != 36348.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller() != 55934.toShort()) {
@@ -4435,6 +4480,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version() != 36573.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oidc_prompts() != 63396.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login() != 46090.toShort()) {
@@ -4830,7 +4878,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_init_timeline() != 61817.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_invited_room() != 34665.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_invited_room() != 44344.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_is_direct() != 46873.toShort()) {
@@ -4846,6 +4894,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_membership() != 1596.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_preview_room() != 32277.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info() != 32985.toShort()) {
@@ -4872,6 +4923,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk() != 23186.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_info() != 9145.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave() != 5096.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 62384.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4881,25 +4938,28 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort() != 11570.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() != 12154.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request() != 53466.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification() != 42503.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request() != 37982.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() != 51976.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() != 27140.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_is_verified() != 60081.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification() != 32994.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification() != 22948.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() != 64345.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification() != 17229.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate() != 42324.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification() != 17409.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification() != 16328.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_description() != 21346.toShort()) {
@@ -5196,22 +5256,25 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error() != 38224.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() != 22759.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request() != 3417.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification() != 54982.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() != 3733.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_data() != 19380.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification() != 56833.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_fail() != 56823.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_data() != 30840.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_cancel() != 29888.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_fail() != 32164.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish() != 54532.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_cancel() != 3367.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish() != 37905.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update() != 62231.toShort()) {
@@ -6641,9 +6704,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
                 FfiConverterString.lower(`roomAlias`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
         { FfiConverterTypeRoomPreview.lift(it) },
         // Error FFI converter
@@ -6669,9 +6732,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
                 FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`viaServers`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
         { FfiConverterTypeRoomPreview.lift(it) },
         // Error FFI converter
@@ -9017,6 +9080,12 @@ public interface HomeserverLoginDetailsInterface {
     fun `slidingSyncVersion`(): SlidingSyncVersion
     
     /**
+     * The prompts advertised by the authentication issuer for use in the login
+     * URL.
+     */
+    fun `supportedOidcPrompts`(): List<OidcPrompt>
+    
+    /**
      * Whether the current homeserver supports login using OIDC.
      */
     fun `supportsOidcLogin`(): kotlin.Boolean
@@ -9123,6 +9192,22 @@ open class HomeserverLoginDetails: Disposable, AutoCloseable, HomeserverLoginDet
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * The prompts advertised by the authentication issuer for use in the login
+     * URL.
+     */override fun `supportedOidcPrompts`(): List<OidcPrompt> {
+            return FfiConverterSequenceTypeOidcPrompt.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oidc_prompts(
         it, _status)
 }
     }
@@ -15370,12 +15455,12 @@ public interface RoomListItemInterface {
     
     /**
      * Builds a `Room` FFI from an invited room without initializing its
-     * internal timeline
+     * internal timeline.
      *
-     * An error will be returned if the room is a state different than invited
+     * An error will be returned if the room is a state different than invited.
      *
      * ⚠️ Holding on to this room instance after it has been joined is not
-     * safe. Use `full_room` instead
+     * safe. Use `full_room` instead.
      */
     fun `invitedRoom`(): Room
     
@@ -15400,6 +15485,15 @@ public interface RoomListItemInterface {
      * The room's current membership state.
      */
     fun `membership`(): Membership
+    
+    /**
+     * Builds a `RoomPreview` from a room list item. This is intended for
+     * invited or knocked rooms.
+     *
+     * An error will be returned if the room is in a state other than invited
+     * or knocked.
+     */
+    suspend fun `previewRoom`(`via`: List<kotlin.String>): RoomPreview
     
     suspend fun `roomInfo`(): RoomInfo
     
@@ -15594,12 +15688,12 @@ open class RoomListItem: Disposable, AutoCloseable, RoomListItemInterface {
     
     /**
      * Builds a `Room` FFI from an invited room without initializing its
-     * internal timeline
+     * internal timeline.
      *
-     * An error will be returned if the room is a state different than invited
+     * An error will be returned if the room is a state different than invited.
      *
      * ⚠️ Holding on to this room instance after it has been joined is not
-     * safe. Use `full_room` instead
+     * safe. Use `full_room` instead.
      */
     @Throws(RoomListException::class)override fun `invitedRoom`(): Room {
             return FfiConverterTypeRoom.lift(
@@ -15700,6 +15794,34 @@ open class RoomListItem: Disposable, AutoCloseable, RoomListItemInterface {
     )
     }
     
+
+    
+    /**
+     * Builds a `RoomPreview` from a room list item. This is intended for
+     * invited or knocked rooms.
+     *
+     * An error will be returned if the room is in a state other than invited
+     * or knocked.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `previewRoom`(`via`: List<kotlin.String>) : RoomPreview {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_preview_room(
+                thisPtr,
+                FfiConverterSequenceString.lower(`via`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeRoomPreview.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -16630,6 +16752,289 @@ public object FfiConverterTypeRoomMessageEventContentWithoutRelation: FfiConvert
 //
 
 
+/**
+ * A room preview for a room. It's intended to be used to represent rooms that
+ * aren't joined yet.
+ */
+public interface RoomPreviewInterface {
+    
+    /**
+     * Returns the room info the preview contains.
+     */
+    fun `info`(): RoomPreviewInfo
+    
+    /**
+     * Leave the room if the room preview state is either joined, invited or
+     * knocked.
+     *
+     * Will return an error otherwise.
+     */
+    suspend fun `leave`()
+    
+    companion object
+}
+
+/**
+ * A room preview for a room. It's intended to be used to represent rooms that
+ * aren't joined yet.
+ */
+open class RoomPreview: Disposable, AutoCloseable, RoomPreviewInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_roompreview(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_roompreview(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * Returns the room info the preview contains.
+     */
+    @Throws(ClientException::class)override fun `info`(): RoomPreviewInfo {
+            return FfiConverterTypeRoomPreviewInfo.lift(
+    callWithPointer {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompreview_info(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Leave the room if the room preview state is either joined, invited or
+     * knocked.
+     *
+     * Will return an error otherwise.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `leave`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompreview_leave(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeRoomPreview: FfiConverter<RoomPreview, Pointer> {
+
+    override fun lower(value: RoomPreview): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): RoomPreview {
+        return RoomPreview(value)
+    }
+
+    override fun read(buf: ByteBuffer): RoomPreview {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: RoomPreview) = 8UL
+
+    override fun write(value: RoomPreview, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface SendAttachmentJoinHandleInterface {
     
     /**
@@ -17168,18 +17573,45 @@ public object FfiConverterTypeSendHandle: FfiConverter<SendHandle, Pointer> {
 
 public interface SessionVerificationControllerInterface {
     
+    /**
+     * Accept the previously acknowledged verification request
+     */
+    suspend fun `acceptVerificationRequest`()
+    
+    /**
+     * Set this particular request as the currently active one and register for
+     * events pertaining it.
+     * * `sender_id` - The user requesting verification.
+     * * `flow_id` - - The ID that uniquely identifies the verification flow.
+     */
+    suspend fun `acknowledgeVerificationRequest`(`senderId`: kotlin.String, `flowId`: kotlin.String)
+    
+    /**
+     * Confirm that the short auth strings match on both sides.
+     */
     suspend fun `approveVerification`()
     
+    /**
+     * Cancel the current verification request
+     */
     suspend fun `cancelVerification`()
     
+    /**
+     * Reject the short auth string
+     */
     suspend fun `declineVerification`()
     
-    suspend fun `isVerified`(): kotlin.Boolean
-    
+    /**
+     * Request verification for the current device
+     */
     suspend fun `requestVerification`()
     
     fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)
     
+    /**
+     * Transition the current verification request into a SAS verification
+     * flow.
+     */
     suspend fun `startSasVerification`()
     
     companion object
@@ -17267,6 +17699,62 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     }
 
     
+    /**
+     * Accept the previously acknowledged verification request
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `acceptVerificationRequest`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_accept_verification_request(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Set this particular request as the currently active one and register for
+     * events pertaining it.
+     * * `sender_id` - The user requesting verification.
+     * * `flow_id` - - The ID that uniquely identifies the verification flow.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `acknowledgeVerificationRequest`(`senderId`: kotlin.String, `flowId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_acknowledge_verification_request(
+                thisPtr,
+                FfiConverterString.lower(`senderId`),FfiConverterString.lower(`flowId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Confirm that the short auth strings match on both sides.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `approveVerification`() {
@@ -17289,6 +17777,9 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     }
 
     
+    /**
+     * Cancel the current verification request
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `cancelVerification`() {
@@ -17311,6 +17802,9 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     }
 
     
+    /**
+     * Reject the short auth string
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `declineVerification`() {
@@ -17333,27 +17827,9 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     }
 
     
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `isVerified`() : kotlin.Boolean {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_is_verified(
-                thisPtr,
-                
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
-        // lift function
-        { FfiConverterBoolean.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
+    /**
+     * Request verification for the current device
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `requestVerification`() {
@@ -17387,6 +17863,10 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     
 
     
+    /**
+     * Transition the current verification request into a SAS verification
+     * flow.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `startSasVerification`() {
@@ -24679,7 +25159,7 @@ public object FfiConverterTypeRoomPowerLevels: FfiConverterRustBuffer<RoomPowerL
 /**
  * The preview of a room, be it invited/joined/left, or not.
  */
-data class RoomPreview (
+data class RoomPreviewInfo (
     /**
      * The room id for this room.
      */
@@ -24713,29 +25193,21 @@ data class RoomPreview (
      */
     var `isHistoryWorldReadable`: kotlin.Boolean, 
     /**
-     * Is the room joined by the current user?
+     * The membership state for the current user, if known.
      */
-    var `isJoined`: kotlin.Boolean, 
+    var `membership`: Membership?, 
     /**
-     * Is the current user invited to this room?
+     * The join rule for this room (private, public, knock, etc.).
      */
-    var `isInvited`: kotlin.Boolean, 
-    /**
-     * is the join rule public for this room?
-     */
-    var `isPublic`: kotlin.Boolean, 
-    /**
-     * Can we knock (or restricted-knock) to this room?
-     */
-    var `canKnock`: kotlin.Boolean
+    var `joinRule`: JoinRule
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeRoomPreview: FfiConverterRustBuffer<RoomPreview> {
-    override fun read(buf: ByteBuffer): RoomPreview {
-        return RoomPreview(
+public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPreviewInfo> {
+    override fun read(buf: ByteBuffer): RoomPreviewInfo {
+        return RoomPreviewInfo(
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
@@ -24744,14 +25216,12 @@ public object FfiConverterTypeRoomPreview: FfiConverterRustBuffer<RoomPreview> {
             FfiConverterULong.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeMembership.read(buf),
+            FfiConverterTypeJoinRule.read(buf),
         )
     }
 
-    override fun allocationSize(value: RoomPreview) = (
+    override fun allocationSize(value: RoomPreviewInfo) = (
             FfiConverterString.allocationSize(value.`roomId`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
             FfiConverterOptionalString.allocationSize(value.`name`) +
@@ -24760,13 +25230,11 @@ public object FfiConverterTypeRoomPreview: FfiConverterRustBuffer<RoomPreview> {
             FfiConverterULong.allocationSize(value.`numJoinedMembers`) +
             FfiConverterOptionalString.allocationSize(value.`roomType`) +
             FfiConverterBoolean.allocationSize(value.`isHistoryWorldReadable`) +
-            FfiConverterBoolean.allocationSize(value.`isJoined`) +
-            FfiConverterBoolean.allocationSize(value.`isInvited`) +
-            FfiConverterBoolean.allocationSize(value.`isPublic`) +
-            FfiConverterBoolean.allocationSize(value.`canKnock`)
+            FfiConverterOptionalTypeMembership.allocationSize(value.`membership`) +
+            FfiConverterTypeJoinRule.allocationSize(value.`joinRule`)
     )
 
-    override fun write(value: RoomPreview, buf: ByteBuffer) {
+    override fun write(value: RoomPreviewInfo, buf: ByteBuffer) {
             FfiConverterString.write(value.`roomId`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
             FfiConverterOptionalString.write(value.`name`, buf)
@@ -24775,10 +25243,8 @@ public object FfiConverterTypeRoomPreview: FfiConverterRustBuffer<RoomPreview> {
             FfiConverterULong.write(value.`numJoinedMembers`, buf)
             FfiConverterOptionalString.write(value.`roomType`, buf)
             FfiConverterBoolean.write(value.`isHistoryWorldReadable`, buf)
-            FfiConverterBoolean.write(value.`isJoined`, buf)
-            FfiConverterBoolean.write(value.`isInvited`, buf)
-            FfiConverterBoolean.write(value.`isPublic`, buf)
-            FfiConverterBoolean.write(value.`canKnock`, buf)
+            FfiConverterOptionalTypeMembership.write(value.`membership`, buf)
+            FfiConverterTypeJoinRule.write(value.`joinRule`, buf)
     }
 }
 
@@ -24881,6 +25347,53 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.write(value.`homeserverUrl`, buf)
             FfiConverterOptionalString.write(value.`oidcData`, buf)
             FfiConverterTypeSlidingSyncVersion.write(value.`slidingSyncVersion`, buf)
+    }
+}
+
+
+
+/**
+ * Details about the incoming verification request
+ */
+data class SessionVerificationRequestDetails (
+    var `senderId`: kotlin.String, 
+    var `flowId`: kotlin.String, 
+    var `deviceId`: kotlin.String, 
+    var `displayName`: kotlin.String?, 
+    /**
+     * First time this device was seen in milliseconds since epoch.
+     */
+    var `firstSeenTimestamp`: kotlin.ULong
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeSessionVerificationRequestDetails: FfiConverterRustBuffer<SessionVerificationRequestDetails> {
+    override fun read(buf: ByteBuffer): SessionVerificationRequestDetails {
+        return SessionVerificationRequestDetails(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SessionVerificationRequestDetails) = (
+            FfiConverterString.allocationSize(value.`senderId`) +
+            FfiConverterString.allocationSize(value.`flowId`) +
+            FfiConverterString.allocationSize(value.`deviceId`) +
+            FfiConverterOptionalString.allocationSize(value.`displayName`) +
+            FfiConverterULong.allocationSize(value.`firstSeenTimestamp`)
+    )
+
+    override fun write(value: SessionVerificationRequestDetails, buf: ByteBuffer) {
+            FfiConverterString.write(value.`senderId`, buf)
+            FfiConverterString.write(value.`flowId`, buf)
+            FfiConverterString.write(value.`deviceId`, buf)
+            FfiConverterOptionalString.write(value.`displayName`, buf)
+            FfiConverterULong.write(value.`firstSeenTimestamp`, buf)
     }
 }
 
@@ -27431,6 +27944,17 @@ sealed class JoinRule {
         companion object
     }
     
+    /**
+     * A custom join rule, up for interpretation by the consumer.
+     */
+    data class Custom(
+        /**
+         * The string representation for this custom rule.
+         */
+        val `repr`: kotlin.String) : JoinRule() {
+        companion object
+    }
+    
 
     
     companion object
@@ -27448,6 +27972,9 @@ public object FfiConverterTypeJoinRule : FfiConverterRustBuffer<JoinRule>{
                 )
             6 -> JoinRule.KnockRestricted(
                 FfiConverterSequenceTypeAllowRule.read(buf),
+                )
+            7 -> JoinRule.Custom(
+                FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -27492,6 +28019,13 @@ public object FfiConverterTypeJoinRule : FfiConverterRustBuffer<JoinRule>{
                 + FfiConverterSequenceTypeAllowRule.allocationSize(value.`rules`)
             )
         }
+        is JoinRule.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`repr`)
+            )
+        }
     }
 
     override fun write(value: JoinRule, buf: ByteBuffer) {
@@ -27520,6 +28054,11 @@ public object FfiConverterTypeJoinRule : FfiConverterRustBuffer<JoinRule>{
             is JoinRule.KnockRestricted -> {
                 buf.putInt(6)
                 FfiConverterSequenceTypeAllowRule.write(value.`rules`, buf)
+                Unit
+            }
+            is JoinRule.Custom -> {
+                buf.putInt(7)
+                FfiConverterString.write(value.`repr`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -31530,7 +32069,7 @@ sealed class RoomListException: kotlin.Exception() {
     
     class IncorrectRoomMembership(
         
-        val `expected`: Membership, 
+        val `expected`: List<Membership>, 
         
         val `actual`: Membership
         ) : RoomListException() {
@@ -31577,7 +32116,7 @@ public object FfiConverterTypeRoomListError : FfiConverterRustBuffer<RoomListExc
                 FfiConverterString.read(buf),
                 )
             10 -> RoomListException.IncorrectRoomMembership(
-                FfiConverterTypeMembership.read(buf),
+                FfiConverterSequenceTypeMembership.read(buf),
                 FfiConverterTypeMembership.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
@@ -31633,7 +32172,7 @@ public object FfiConverterTypeRoomListError : FfiConverterRustBuffer<RoomListExc
             is RoomListException.IncorrectRoomMembership -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
-                + FfiConverterTypeMembership.allocationSize(value.`expected`)
+                + FfiConverterSequenceTypeMembership.allocationSize(value.`expected`)
                 + FfiConverterTypeMembership.allocationSize(value.`actual`)
             )
         }
@@ -31687,7 +32226,7 @@ public object FfiConverterTypeRoomListError : FfiConverterRustBuffer<RoomListExc
             }
             is RoomListException.IncorrectRoomMembership -> {
                 buf.putInt(10)
-                FfiConverterTypeMembership.write(value.`expected`, buf)
+                FfiConverterSequenceTypeMembership.write(value.`expected`, buf)
                 FfiConverterTypeMembership.write(value.`actual`, buf)
                 Unit
             }
@@ -34642,6 +35181,8 @@ public object FfiConverterTypeSendQueueRoomErrorListener: FfiConverterCallbackIn
 
 public interface SessionVerificationControllerDelegate {
     
+    fun `didReceiveVerificationRequest`(`details`: SessionVerificationRequestDetails)
+    
     fun `didAcceptVerificationRequest`()
     
     fun `didStartSasVerification`()
@@ -34661,7 +35202,19 @@ public interface SessionVerificationControllerDelegate {
 
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
-    internal object `didAcceptVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0 {
+    internal object `didReceiveVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0 {
+        override fun callback(`uniffiHandle`: Long,`details`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`didReceiveVerificationRequest`(
+                    FfiConverterTypeSessionVerificationRequestDetails.lift(`details`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+    internal object `didAcceptVerificationRequest`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1 {
         override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
             val makeCall = { ->
@@ -34672,7 +35225,7 @@ internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
             uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
-    internal object `didStartSasVerification`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod1 {
+    internal object `didStartSasVerification`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2 {
         override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
             val makeCall = { ->
@@ -34683,7 +35236,7 @@ internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
             uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
-    internal object `didReceiveVerificationData`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod2 {
+    internal object `didReceiveVerificationData`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3 {
         override fun callback(`uniffiHandle`: Long,`data`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
             val makeCall = { ->
@@ -34695,7 +35248,7 @@ internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
             uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
-    internal object `didFail`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod3 {
+    internal object `didFail`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4 {
         override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
             val makeCall = { ->
@@ -34706,7 +35259,7 @@ internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
             uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
-    internal object `didCancel`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod4 {
+    internal object `didCancel`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5 {
         override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
             val makeCall = { ->
@@ -34717,7 +35270,7 @@ internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
             uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
-    internal object `didFinish`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod5 {
+    internal object `didFinish`: UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod6 {
         override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeSessionVerificationControllerDelegate.handleMap.get(uniffiHandle)
             val makeCall = { ->
@@ -34736,6 +35289,7 @@ internal object uniffiCallbackInterfaceSessionVerificationControllerDelegate {
     }
 
     internal var vtable = UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate.UniffiByValue(
+        `didReceiveVerificationRequest`,
         `didAcceptVerificationRequest`,
         `didStartSasVerification`,
         `didReceiveVerificationData`,
@@ -36270,6 +36824,35 @@ public object FfiConverterOptionalTypeJoinRule: FfiConverterRustBuffer<JoinRule?
 
 
 
+public object FfiConverterOptionalTypeMembership: FfiConverterRustBuffer<Membership?> {
+    override fun read(buf: ByteBuffer): Membership? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeMembership.read(buf)
+    }
+
+    override fun allocationSize(value: Membership?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeMembership.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Membership?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeMembership.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeMembershipChange: FfiConverterRustBuffer<MembershipChange?> {
     override fun read(buf: ByteBuffer): MembershipChange? {
         if (buf.get().toInt() == 0) {
@@ -37202,6 +37785,56 @@ public object FfiConverterSequenceTypeFilterTimelineEventType: FfiConverterRustB
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeFilterTimelineEventType.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeMembership: FfiConverterRustBuffer<List<Membership>> {
+    override fun read(buf: ByteBuffer): List<Membership> {
+        val len = buf.getInt()
+        return List<Membership>(len) {
+            FfiConverterTypeMembership.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Membership>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeMembership.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Membership>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeMembership.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeOidcPrompt: FfiConverterRustBuffer<List<OidcPrompt>> {
+    override fun read(buf: ByteBuffer): List<OidcPrompt> {
+        val len = buf.getInt()
+        return List<OidcPrompt>(len) {
+            FfiConverterTypeOidcPrompt.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<OidcPrompt>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeOidcPrompt.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<OidcPrompt>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeOidcPrompt.write(it, buf)
         }
     }
 }
