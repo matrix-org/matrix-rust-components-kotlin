@@ -2156,6 +2156,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2283,6 +2287,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(`ptr`: Pointer,`alias`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id_or_alias(`ptr`: Pointer,`roomIdOrAlias`: RustBuffer.ByValue,`serverNames`: RustBuffer.ByValue,
@@ -2306,6 +2312,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(`ptr`: Pointer,`roomAlias`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Pointer,`session`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_room_alias_exists(`ptr`: Pointer,`roomAlias`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_room_directory_search(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2723,7 +2731,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_results(`ptr`: Pointer,`listener`: Long,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(`ptr`: Pointer,`filter`: RustBuffer.ByValue,`batchSize`: Int,
+    fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(`ptr`: Pointer,`filter`: RustBuffer.ByValue,`batchSize`: Int,`viaServerName`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_roomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3373,6 +3381,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias(
@@ -3396,6 +3406,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_room_alias_exists(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search(
     ): Short
@@ -4251,6 +4263,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() != 49620.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() != 25471.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() != 64032.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4281,10 +4296,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_server_capabilities() != 39651.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() != 14306.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() != 3551.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() != 40455.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_room_alias_exists() != 20359.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search() != 39855.toShort()) {
@@ -4821,19 +4839,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend() != 48968.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page() != 22509.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page() != 34221.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages() != 7109.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages() != 2923.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page() != 14603.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page() != 29305.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results() != 40665.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results() != 30207.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() != 26558.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() != 24438.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() != 36097.toShort()) {
@@ -5952,6 +5970,11 @@ public interface ClientInterface {
     suspend fun `ignoredUsers`(): List<kotlin.String>
     
     /**
+     * Checks if a room alias is available in the current homeserver.
+     */
+    suspend fun `isRoomAliasAvailable`(`alias`: kotlin.String): kotlin.Boolean
+    
+    /**
      * Join a room by its ID.
      *
      * Use this method when the homeserver already knows of the given room ID.
@@ -6014,12 +6037,17 @@ public interface ClientInterface {
      * Resolves the given room alias to a room ID (and a list of servers), if
      * possible.
      */
-    suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String): ResolvedRoomAlias
+    suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String): ResolvedRoomAlias?
     
     /**
      * Restores the client from a `Session`.
      */
     suspend fun `restoreSession`(`session`: Session)
+    
+    /**
+     * Checks if a room alias exists in the current homeserver.
+     */
+    suspend fun `roomAliasExists`(`roomAlias`: kotlin.String): kotlin.Boolean
     
     fun `roomDirectorySearch`(): RoomDirectorySearch
     
@@ -6871,6 +6899,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
+     * Checks if a room alias is available in the current homeserver.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isRoomAliasAvailable`(`alias`: kotlin.String) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(
+                thisPtr,
+                FfiConverterString.lower(`alias`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Join a room by its ID.
      *
      * Use this method when the homeserver already knows of the given room ID.
@@ -7130,7 +7182,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String) : ResolvedRoomAlias {
+    override suspend fun `resolveRoomAlias`(`roomAlias`: kotlin.String) : ResolvedRoomAlias? {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(
@@ -7142,7 +7194,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterTypeResolvedRoomAlias.lift(it) },
+        { FfiConverterOptionalTypeResolvedRoomAlias.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -7168,6 +7220,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         // lift function
         { Unit },
         
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Checks if a room alias exists in the current homeserver.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `roomAliasExists`(`roomAlias`: kotlin.String) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_room_alias_exists(
+                thisPtr,
+                FfiConverterString.lower(`roomAlias`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -14318,21 +14394,62 @@ public object FfiConverterTypeRoom: FfiConverter<Room, Pointer> {
 //
 
 
+/**
+ * A helper for performing room searches in the room directory.
+ * The way this is intended to be used is:
+ *
+ * 1. Register a callback using [`RoomDirectorySearch::results`].
+ * 2. Start the room search with [`RoomDirectorySearch::search`].
+ * 3. To get more results, use [`RoomDirectorySearch::next_page`].
+ */
 public interface RoomDirectorySearchInterface {
     
+    /**
+     * Get whether the search is at the last page.
+     */
     suspend fun `isAtLastPage`(): kotlin.Boolean
     
+    /**
+     * Get the number of pages that have been loaded so far.
+     */
     suspend fun `loadedPages`(): kotlin.UInt
     
+    /**
+     * Asks the server for the next page of the current search.
+     */
     suspend fun `nextPage`()
     
+    /**
+     * Registers a callback to receive new search results when starting a
+     * search or getting new paginated results.
+     */
     suspend fun `results`(`listener`: RoomDirectorySearchEntriesListener): TaskHandle
     
-    suspend fun `search`(`filter`: kotlin.String?, `batchSize`: kotlin.UInt)
+    /**
+     * Starts a filtered search for the server.
+     *
+     * If the `filter` is not provided it will search for all the rooms.
+     * You can specify a `batch_size` to control the number of rooms to fetch
+     * per request.
+     *
+     * If the `via_server` is not provided it will search in the current
+     * homeserver by default.
+     *
+     * This method will clear the current search results and start a new one.
+     */
+    suspend fun `search`(`filter`: kotlin.String?, `batchSize`: kotlin.UInt, `viaServerName`: kotlin.String?)
     
     companion object
 }
 
+/**
+ * A helper for performing room searches in the room directory.
+ * The way this is intended to be used is:
+ *
+ * 1. Register a callback using [`RoomDirectorySearch::results`].
+ * 2. Start the room search with [`RoomDirectorySearch::search`].
+ * 3. To get more results, use [`RoomDirectorySearch::next_page`].
+ */
 open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchInterface {
 
     constructor(pointer: Pointer) {
@@ -14415,6 +14532,9 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     }
 
     
+    /**
+     * Get whether the search is at the last page.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isAtLastPage`() : kotlin.Boolean {
@@ -14436,6 +14556,9 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     }
 
     
+    /**
+     * Get the number of pages that have been loaded so far.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `loadedPages`() : kotlin.UInt {
@@ -14457,6 +14580,9 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     }
 
     
+    /**
+     * Asks the server for the next page of the current search.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `nextPage`() {
@@ -14479,6 +14605,10 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     }
 
     
+    /**
+     * Registers a callback to receive new search results when starting a
+     * search or getting new paginated results.
+     */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `results`(`listener`: RoomDirectorySearchEntriesListener) : TaskHandle {
         return uniffiRustCallAsync(
@@ -14499,14 +14629,26 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     }
 
     
+    /**
+     * Starts a filtered search for the server.
+     *
+     * If the `filter` is not provided it will search for all the rooms.
+     * You can specify a `batch_size` to control the number of rooms to fetch
+     * per request.
+     *
+     * If the `via_server` is not provided it will search in the current
+     * homeserver by default.
+     *
+     * This method will clear the current search results and start a new one.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `search`(`filter`: kotlin.String?, `batchSize`: kotlin.UInt) {
+    override suspend fun `search`(`filter`: kotlin.String?, `batchSize`: kotlin.UInt, `viaServerName`: kotlin.String?) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(
                 thisPtr,
-                FfiConverterOptionalString.lower(`filter`),FfiConverterUInt.lower(`batchSize`),
+                FfiConverterOptionalString.lower(`filter`),FfiConverterUInt.lower(`batchSize`),FfiConverterOptionalString.lower(`viaServerName`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -36469,6 +36611,35 @@ public object FfiConverterOptionalTypePowerLevels: FfiConverterRustBuffer<PowerL
         } else {
             buf.put(1)
             FfiConverterTypePowerLevels.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeResolvedRoomAlias: FfiConverterRustBuffer<ResolvedRoomAlias?> {
+    override fun read(buf: ByteBuffer): ResolvedRoomAlias? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeResolvedRoomAlias.read(buf)
+    }
+
+    override fun allocationSize(value: ResolvedRoomAlias?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeResolvedRoomAlias.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ResolvedRoomAlias?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeResolvedRoomAlias.write(value, buf)
         }
     }
 }
