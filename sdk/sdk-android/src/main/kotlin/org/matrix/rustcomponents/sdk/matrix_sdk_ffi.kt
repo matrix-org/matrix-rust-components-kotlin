@@ -2160,6 +2160,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2953,11 +2957,11 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send(`ptr`: Pointer,`msg`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`storeInCache`: Byte,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`url`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,`storeInCache`: Byte,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`url`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`storeInCache`: Byte,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,
     ): Long
@@ -2967,9 +2971,9 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(`ptr`: Pointer,`msg`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`storeInCache`: Byte,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`storeInCache`: Byte,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Pointer,`listener`: Long,
     ): Long
@@ -3125,6 +3129,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(`ownUserId`: RustBuffer.ByValue,`ownDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_func_is_room_alias_format_valid(`alias`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_make_element_well_known(`string`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3150,6 +3156,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_func_room_alias_name_from_room_display_name(`roomName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -3279,6 +3287,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_make_element_well_known(
@@ -3304,6 +3314,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha(
     ): Short
@@ -4110,6 +4122,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() != 30181.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid() != 23063.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 62286.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4147,6 +4162,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() != 49710.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name() != 65010.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha() != 4038.toShort()) {
@@ -5076,13 +5094,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send() != 9553.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 57949.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 43163.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 37971.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 35408.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 27985.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 45681.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() != 47400.toShort()) {
@@ -5097,10 +5115,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply() != 64747.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 59961.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 22670.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 1195.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 58509.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 46161.toShort()) {
@@ -19924,11 +19942,11 @@ public interface TimelineInterface {
      */
     suspend fun `send`(`msg`: RoomMessageEventContentWithoutRelation): SendHandle
     
-    fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
-    fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
-    fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
     suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?)
     
@@ -19938,9 +19956,9 @@ public interface TimelineInterface {
     
     suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String)
     
-    fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
-    fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
     suspend fun `subscribeToBackPaginationStatus`(`listener`: PaginationStatusListener): TaskHandle
     
@@ -20433,36 +20451,36 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     )
     }
 
-    override fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    override fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(
-        it, FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterBoolean.lower(`storeInCache`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
 }
     }
     )
     }
     
 
-    override fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    override fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(
-        it, FfiConverterString.lower(`url`),FfiConverterTypeFileInfo.lower(`fileInfo`),FfiConverterBoolean.lower(`storeInCache`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterString.lower(`url`),FfiConverterTypeFileInfo.lower(`fileInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
 }
     }
     )
     }
     
 
-    override fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    override fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(
-        it, FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeImageInfo.lower(`imageInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterBoolean.lower(`storeInCache`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeImageInfo.lower(`imageInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
 }
     }
     )
@@ -20556,24 +20574,24 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     )
     }
 
-    override fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    override fun `sendVideo`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `videoInfo`: VideoInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(
-        it, FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeVideoInfo.lower(`videoInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterBoolean.lower(`storeInCache`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterString.lower(`url`),FfiConverterOptionalString.lower(`thumbnailUrl`),FfiConverterTypeVideoInfo.lower(`videoInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
 }
     }
     )
     }
     
 
-    override fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `storeInCache`: kotlin.Boolean, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    override fun `sendVoiceMessage`(`url`: kotlin.String, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(
-        it, FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterBoolean.lower(`storeInCache`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterString.lower(`url`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
 }
     }
     )
@@ -30933,6 +30951,20 @@ sealed class QueueWedgeError {
     
     
     /**
+     * Some media content to be sent has disappeared from the cache.
+     */
+    object MissingMediaContent : QueueWedgeError()
+    
+    
+    /**
+     * Some mime type couldn't be parsed.
+     */
+    data class InvalidMimeType(
+        val `mimeType`: kotlin.String) : QueueWedgeError() {
+        companion object
+    }
+    
+    /**
      * Other errors.
      */
     data class GenericApiError(
@@ -30955,7 +30987,11 @@ public object FfiConverterTypeQueueWedgeError : FfiConverterRustBuffer<QueueWedg
                 FfiConverterSequenceString.read(buf),
                 )
             3 -> QueueWedgeError.CrossVerificationRequired
-            4 -> QueueWedgeError.GenericApiError(
+            4 -> QueueWedgeError.MissingMediaContent
+            5 -> QueueWedgeError.InvalidMimeType(
+                FfiConverterString.read(buf),
+                )
+            6 -> QueueWedgeError.GenericApiError(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -30983,6 +31019,19 @@ public object FfiConverterTypeQueueWedgeError : FfiConverterRustBuffer<QueueWedg
                 4UL
             )
         }
+        is QueueWedgeError.MissingMediaContent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is QueueWedgeError.InvalidMimeType -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`mimeType`)
+            )
+        }
         is QueueWedgeError.GenericApiError -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -31008,8 +31057,17 @@ public object FfiConverterTypeQueueWedgeError : FfiConverterRustBuffer<QueueWedg
                 buf.putInt(3)
                 Unit
             }
-            is QueueWedgeError.GenericApiError -> {
+            is QueueWedgeError.MissingMediaContent -> {
                 buf.putInt(4)
+                Unit
+            }
+            is QueueWedgeError.InvalidMimeType -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`mimeType`, buf)
+                Unit
+            }
+            is QueueWedgeError.GenericApiError -> {
+                buf.putInt(6)
                 FfiConverterString.write(value.`msg`, buf)
                 Unit
             }
@@ -38437,6 +38495,18 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     
 
         /**
+         * Verifies the passed `String` matches the expected room alias format.
+         */ fun `isRoomAliasFormatValid`(`alias`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_is_room_alias_format_valid(
+        FfiConverterString.lower(`alias`),_status)
+}
+    )
+    }
+    
+
+        /**
          * Log an event.
          *
          * The target should be something like a module path, and can be referenced in
@@ -38595,6 +38665,18 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(
         FfiConverterString.lower(`uri`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Transforms a Room's display name into a valid room alias name.
+         */ fun `roomAliasNameFromRoomDisplayName`(`roomName`: kotlin.String): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_room_alias_name_from_room_display_name(
+        FfiConverterString.lower(`roomName`),_status)
 }
     )
     }
