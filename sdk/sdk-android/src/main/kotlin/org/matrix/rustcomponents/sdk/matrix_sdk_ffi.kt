@@ -4122,7 +4122,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() != 30181.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid() != 23063.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid() != 54845.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 62286.toShort()) {
@@ -4281,7 +4281,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() != 49620.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() != 25471.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() != 23322.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() != 64032.toShort()) {
@@ -5988,7 +5988,13 @@ public interface ClientInterface {
     suspend fun `ignoredUsers`(): List<kotlin.String>
     
     /**
-     * Checks if a room alias is available in the current homeserver.
+     * Checks if a room alias is not in use yet.
+     *
+     * Returns:
+     * - `Ok(true)` if the room alias is available.
+     * - `Ok(false)` if it's not (the resolve alias request returned a `404`
+     * status code).
+     * - An `Err` otherwise.
      */
     suspend fun `isRoomAliasAvailable`(`alias`: kotlin.String): kotlin.Boolean
     
@@ -6917,7 +6923,13 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
-     * Checks if a room alias is available in the current homeserver.
+     * Checks if a room alias is not in use yet.
+     *
+     * Returns:
+     * - `Ok(true)` if the room alias is available.
+     * - `Ok(false)` if it's not (the resolve alias request returned a `404`
+     * status code).
+     * - An `Err` otherwise.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -38495,7 +38507,11 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     
 
         /**
-         * Verifies the passed `String` matches the expected room alias format.
+         * Verifies the passed `String` matches the expected room alias format:
+         *
+         * This means it's lowercase, with no whitespace chars, has a single leading
+         * `#` char and a single `:` separator between the local and domain parts, and
+         * the local part only contains characters that can't be percent encoded.
          */ fun `isRoomAliasFormatValid`(`alias`: kotlin.String): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
