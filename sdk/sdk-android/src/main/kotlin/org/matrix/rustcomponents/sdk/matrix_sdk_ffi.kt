@@ -2975,7 +2975,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`url`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`url`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`url`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`url`: RustBuffer.ByValue,`thumbnailUrl`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,`useSendQueue`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -5133,7 +5133,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 43163.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 35408.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 37925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 45681.toShort()) {
@@ -20092,7 +20092,7 @@ public interface TimelineInterface {
     
     fun `sendAudio`(`url`: kotlin.String, `audioInfo`: AudioInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
-    fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
+    fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
     fun `sendImage`(`url`: kotlin.String, `thumbnailUrl`: kotlin.String?, `imageInfo`: ImageInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle
     
@@ -20611,12 +20611,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     }
     
 
-    override fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
+    override fun `sendFile`(`url`: kotlin.String, `fileInfo`: FileInfo, `caption`: kotlin.String?, `formattedCaption`: FormattedBody?, `progressWatcher`: ProgressWatcher?, `useSendQueue`: kotlin.Boolean): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(
-        it, FfiConverterString.lower(`url`),FfiConverterTypeFileInfo.lower(`fileInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
+        it, FfiConverterString.lower(`url`),FfiConverterTypeFileInfo.lower(`fileInfo`),FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),FfiConverterBoolean.lower(`useSendQueue`),_status)
 }
     }
     )
