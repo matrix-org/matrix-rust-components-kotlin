@@ -25425,7 +25425,11 @@ data class RoomPreviewInfo (
     /**
      * Whether the room is direct or not, if known.
      */
-    var `isDirect`: kotlin.Boolean?
+    var `isDirect`: kotlin.Boolean?, 
+    /**
+     * Room heroes.
+     */
+    var `heroes`: List<RoomHero>?
 ) {
     
     companion object
@@ -25446,6 +25450,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterOptionalTypeMembership.read(buf),
             FfiConverterTypeJoinRule.read(buf),
             FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalSequenceTypeRoomHero.read(buf),
         )
     }
 
@@ -25461,7 +25466,8 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterBoolean.allocationSize(value.`isHistoryWorldReadable`) +
             FfiConverterOptionalTypeMembership.allocationSize(value.`membership`) +
             FfiConverterTypeJoinRule.allocationSize(value.`joinRule`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`isDirect`)
+            FfiConverterOptionalBoolean.allocationSize(value.`isDirect`) +
+            FfiConverterOptionalSequenceTypeRoomHero.allocationSize(value.`heroes`)
     )
 
     override fun write(value: RoomPreviewInfo, buf: ByteBuffer) {
@@ -25477,6 +25483,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterOptionalTypeMembership.write(value.`membership`, buf)
             FfiConverterTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterOptionalBoolean.write(value.`isDirect`, buf)
+            FfiConverterOptionalSequenceTypeRoomHero.write(value.`heroes`, buf)
     }
 }
 
@@ -27181,6 +27188,12 @@ sealed class EditedContent: Disposable  {
         companion object
     }
     
+    data class MediaCaption(
+        val `caption`: kotlin.String?, 
+        val `formattedCaption`: FormattedBody?) : EditedContent() {
+        companion object
+    }
+    
     data class PollStart(
         val `pollData`: PollData) : EditedContent() {
         companion object
@@ -27194,6 +27207,14 @@ sealed class EditedContent: Disposable  {
             is EditedContent.RoomMessage -> {
                 
         Disposable.destroy(this.`content`)
+    
+                
+            }
+            is EditedContent.MediaCaption -> {
+                
+        Disposable.destroy(this.`caption`)
+    
+        Disposable.destroy(this.`formattedCaption`)
     
                 
             }
@@ -27215,7 +27236,11 @@ public object FfiConverterTypeEditedContent : FfiConverterRustBuffer<EditedConte
             1 -> EditedContent.RoomMessage(
                 FfiConverterTypeRoomMessageEventContentWithoutRelation.read(buf),
                 )
-            2 -> EditedContent.PollStart(
+            2 -> EditedContent.MediaCaption(
+                FfiConverterOptionalString.read(buf),
+                FfiConverterOptionalTypeFormattedBody.read(buf),
+                )
+            3 -> EditedContent.PollStart(
                 FfiConverterTypePollData.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -27228,6 +27253,14 @@ public object FfiConverterTypeEditedContent : FfiConverterRustBuffer<EditedConte
             (
                 4UL
                 + FfiConverterTypeRoomMessageEventContentWithoutRelation.allocationSize(value.`content`)
+            )
+        }
+        is EditedContent.MediaCaption -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterOptionalString.allocationSize(value.`caption`)
+                + FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`)
             )
         }
         is EditedContent.PollStart -> {
@@ -27246,8 +27279,14 @@ public object FfiConverterTypeEditedContent : FfiConverterRustBuffer<EditedConte
                 FfiConverterTypeRoomMessageEventContentWithoutRelation.write(value.`content`, buf)
                 Unit
             }
-            is EditedContent.PollStart -> {
+            is EditedContent.MediaCaption -> {
                 buf.putInt(2)
+                FfiConverterOptionalString.write(value.`caption`, buf)
+                FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
+                Unit
+            }
+            is EditedContent.PollStart -> {
+                buf.putInt(3)
                 FfiConverterTypePollData.write(value.`pollData`, buf)
                 Unit
             }
@@ -37616,6 +37655,35 @@ public object FfiConverterOptionalSequenceTypeTimelineItem: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterSequenceTypeTimelineItem.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalSequenceTypeRoomHero: FfiConverterRustBuffer<List<RoomHero>?> {
+    override fun read(buf: ByteBuffer): List<RoomHero>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeRoomHero.read(buf)
+    }
+
+    override fun allocationSize(value: List<RoomHero>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeRoomHero.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<RoomHero>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeRoomHero.write(value, buf)
         }
     }
 }
