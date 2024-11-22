@@ -2172,6 +2172,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -3139,6 +3141,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Pointer,`props`: RustBuffer.ByValue,
@@ -3296,6 +3300,8 @@ internal interface UniffiLib : Library {
     fun ffi_matrix_sdk_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id(
     ): Short
@@ -4135,6 +4141,9 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message() != 1366.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit() != 49747.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id() != 15808.toShort()) {
@@ -25037,9 +25046,13 @@ data class RoomInfo (
      */
     var `numUnreadMentions`: kotlin.ULong, 
     /**
-     * The currently pinned event ids
+     * The currently pinned event ids.
      */
-    var `pinnedEventIds`: List<kotlin.String>
+    var `pinnedEventIds`: List<kotlin.String>, 
+    /**
+     * The join rule for this room, if known.
+     */
+    var `joinRule`: JoinRule?
 ) {
     
     companion object
@@ -25078,6 +25091,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterSequenceString.read(buf),
+            FfiConverterOptionalTypeJoinRule.read(buf),
         )
     }
 
@@ -25111,7 +25125,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.allocationSize(value.`numUnreadMessages`) +
             FfiConverterULong.allocationSize(value.`numUnreadNotifications`) +
             FfiConverterULong.allocationSize(value.`numUnreadMentions`) +
-            FfiConverterSequenceString.allocationSize(value.`pinnedEventIds`)
+            FfiConverterSequenceString.allocationSize(value.`pinnedEventIds`) +
+            FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`)
     )
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
@@ -25145,6 +25160,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`numUnreadNotifications`, buf)
             FfiConverterULong.write(value.`numUnreadMentions`, buf)
             FfiConverterSequenceString.write(value.`pinnedEventIds`, buf)
+            FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
     }
 }
 
@@ -26632,6 +26648,15 @@ sealed class AllowRule {
         companion object
     }
     
+    /**
+     * A custom allow rule implementation, containing its JSON representation
+     * as a `String`.
+     */
+    data class Custom(
+        val `json`: kotlin.String) : AllowRule() {
+        companion object
+    }
+    
 
     
     companion object
@@ -26641,6 +26666,9 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
     override fun read(buf: ByteBuffer): AllowRule {
         return when(buf.getInt()) {
             1 -> AllowRule.RoomMembership(
+                FfiConverterString.read(buf),
+                )
+            2 -> AllowRule.Custom(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -26655,6 +26683,13 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
                 + FfiConverterString.allocationSize(value.`roomId`)
             )
         }
+        is AllowRule.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`json`)
+            )
+        }
     }
 
     override fun write(value: AllowRule, buf: ByteBuffer) {
@@ -26662,6 +26697,11 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
             is AllowRule.RoomMembership -> {
                 buf.putInt(1)
                 FfiConverterString.write(value.`roomId`, buf)
+                Unit
+            }
+            is AllowRule.Custom -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`json`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -38664,6 +38704,21 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(
         FfiConverterTypeMessageContent.lower(`message`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Create a caption edit.
+         *
+         * If no `formatted_caption` is provided, then it's assumed the `caption`
+         * represents valid Markdown that can be used as the formatted caption.
+         */ fun `createCaptionEdit`(`caption`: kotlin.String?, `formattedCaption`: FormattedBody?): EditedContent {
+            return FfiConverterTypeEditedContent.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(
+        FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),_status)
 }
     )
     }
