@@ -2170,6 +2170,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2511,6 +2515,12 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_mediasource(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_json(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_url(`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_mediasource_to_json(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_mediasource_url(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_notificationclient(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3153,8 +3163,6 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_func_media_source_from_url(`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html_as_emote(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3312,8 +3320,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_room_alias_permalink(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html(
     ): Short
@@ -3592,6 +3598,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_url(
     ): Short
@@ -4033,6 +4041,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_url(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_constructor_span_current(
@@ -4159,9 +4171,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink() != 46473.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_media_source_from_url() != 12165.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html() != 37203.toShort()) {
@@ -4579,6 +4588,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist() != 12883.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json() != 23306.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_url() != 62692.toShort()) {
@@ -5239,6 +5251,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new() != 27991.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json() != 10564.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_url() != 11983.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes() != 32675.toShort()) {
@@ -10670,6 +10688,8 @@ public object FfiConverterTypeMediaFileHandle: FfiConverter<MediaFileHandle, Poi
 
 public interface MediaSourceInterface {
     
+    fun `toJson`(): kotlin.String
+    
     fun `url`(): kotlin.String
     
     companion object
@@ -10756,6 +10776,18 @@ open class MediaSource: Disposable, AutoCloseable, MediaSourceInterface {
         }
     }
 
+    override fun `toJson`(): kotlin.String {
+            return FfiConverterString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_mediasource_to_json(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
     override fun `url`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
@@ -10771,8 +10803,31 @@ open class MediaSource: Disposable, AutoCloseable, MediaSourceInterface {
     
 
     
+    companion object {
+        
+    @Throws(ClientException::class) fun `fromJson`(`json`: kotlin.String): MediaSource {
+            return FfiConverterTypeMediaSource.lift(
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_json(
+        FfiConverterString.lower(`json`),_status)
+}
+    )
+    }
     
-    companion object
+
+        
+    @Throws(ClientException::class) fun `fromUrl`(`url`: kotlin.String): MediaSource {
+            return FfiConverterTypeMediaSource.lift(
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_url(
+        FfiConverterString.lower(`url`),_status)
+}
+    )
+    }
+    
+
+        
+    }
     
 }
 
@@ -25385,7 +25440,7 @@ data class RoomPreviewInfo (
     /**
      * Is the history world-readable for this room?
      */
-    var `isHistoryWorldReadable`: kotlin.Boolean, 
+    var `isHistoryWorldReadable`: kotlin.Boolean?, 
     /**
      * The membership state for the current user, if known.
      */
@@ -25418,7 +25473,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterULong.read(buf),
             FfiConverterOptionalULong.read(buf),
             FfiConverterTypeRoomType.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalTypeMembership.read(buf),
             FfiConverterTypeJoinRule.read(buf),
             FfiConverterOptionalBoolean.read(buf),
@@ -25435,7 +25490,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterULong.allocationSize(value.`numJoinedMembers`) +
             FfiConverterOptionalULong.allocationSize(value.`numActiveMembers`) +
             FfiConverterTypeRoomType.allocationSize(value.`roomType`) +
-            FfiConverterBoolean.allocationSize(value.`isHistoryWorldReadable`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`isHistoryWorldReadable`) +
             FfiConverterOptionalTypeMembership.allocationSize(value.`membership`) +
             FfiConverterTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isDirect`) +
@@ -25451,7 +25506,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterULong.write(value.`numJoinedMembers`, buf)
             FfiConverterOptionalULong.write(value.`numActiveMembers`, buf)
             FfiConverterTypeRoomType.write(value.`roomType`, buf)
-            FfiConverterBoolean.write(value.`isHistoryWorldReadable`, buf)
+            FfiConverterOptionalBoolean.write(value.`isHistoryWorldReadable`, buf)
             FfiConverterOptionalTypeMembership.write(value.`membership`, buf)
             FfiConverterTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterOptionalBoolean.write(value.`isDirect`, buf)
@@ -38819,15 +38874,6 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(
         FfiConverterString.lower(`userId`),_status)
-}
-    )
-    }
-    
- fun `mediaSourceFromUrl`(`url`: kotlin.String): MediaSource {
-            return FfiConverterTypeMediaSource.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_media_source_from_url(
-        FfiConverterString.lower(`url`),_status)
 }
     )
     }
