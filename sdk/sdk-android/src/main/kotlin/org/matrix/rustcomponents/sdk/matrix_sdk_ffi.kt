@@ -2174,6 +2174,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2683,6 +2685,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`allowedMessageTypes`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_pinned_events_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`maxEventsToLoad`: Short,`maxConcurrentRequests`: Short,
@@ -3744,6 +3748,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_members_no_sync(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_message_filtered_timeline(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id(
     ): Short
@@ -4807,6 +4813,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 26065.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_message_filtered_timeline() != 47862.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() != 39510.toShort()) {
@@ -12495,6 +12504,24 @@ public interface RoomInterface {
     
     fun `membership`(): Membership
     
+    /**
+     * A timeline instance that can be configured to only include RoomMessage
+     * type events and filter those further based on their message type.
+     *
+     * Virtual timeline items will still be provided and the
+     * `default_event_filter` will be applied before everything else.
+     *
+     * # Arguments
+     *
+     * * `internal_id_prefix` - An optional String that will be prepended to
+     * all the timeline item's internal IDs, making it possible to
+     * distinguish different timeline instances from each other.
+     *
+     * * `allowed_message_types` - A list of `RoomMessageEventMessageType` that
+     * will be allowed to appear in the timeline
+     */
+    suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>): Timeline
+    
     fun `ownUserId`(): kotlin.String
     
     suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort, `maxConcurrentRequests`: kotlin.UShort): Timeline
@@ -13712,6 +13739,43 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     )
     }
     
+
+    
+    /**
+     * A timeline instance that can be configured to only include RoomMessage
+     * type events and filter those further based on their message type.
+     *
+     * Virtual timeline items will still be provided and the
+     * `default_event_filter` will be applied before everything else.
+     *
+     * # Arguments
+     *
+     * * `internal_id_prefix` - An optional String that will be prepended to
+     * all the timeline item's internal IDs, making it possible to
+     * distinguish different timeline instances from each other.
+     *
+     * * `allowed_message_types` - A list of `RoomMessageEventMessageType` that
+     * will be allowed to appear in the timeline
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>) : Timeline {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(
+                thisPtr,
+                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterSequenceTypeRoomMessageEventMessageType.lower(`allowedMessageTypes`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeTimeline.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     override fun `ownUserId`(): kotlin.String {
             return FfiConverterString.lift(
@@ -32715,6 +32779,42 @@ public object FfiConverterTypeRoomListServiceSyncIndicator: FfiConverterRustBuff
 
 
 
+
+enum class RoomMessageEventMessageType {
+    
+    AUDIO,
+    EMOTE,
+    FILE,
+    IMAGE,
+    LOCATION,
+    NOTICE,
+    SERVER_NOTICE,
+    TEXT,
+    VIDEO,
+    VERIFICATION_REQUEST,
+    OTHER;
+    companion object
+}
+
+
+public object FfiConverterTypeRoomMessageEventMessageType: FfiConverterRustBuffer<RoomMessageEventMessageType> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomMessageEventMessageType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomMessageEventMessageType) = 4UL
+
+    override fun write(value: RoomMessageEventMessageType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
 /**
  * Enum representing the push notification modes for a room.
  */
@@ -38422,6 +38522,31 @@ public object FfiConverterSequenceTypeRoomListEntriesUpdate: FfiConverterRustBuf
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomListEntriesUpdate.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeRoomMessageEventMessageType: FfiConverterRustBuffer<List<RoomMessageEventMessageType>> {
+    override fun read(buf: ByteBuffer): List<RoomMessageEventMessageType> {
+        val len = buf.getInt()
+        return List<RoomMessageEventMessageType>(len) {
+            FfiConverterTypeRoomMessageEventMessageType.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomMessageEventMessageType>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomMessageEventMessageType.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomMessageEventMessageType>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomMessageEventMessageType.write(it, buf)
         }
     }
 }
