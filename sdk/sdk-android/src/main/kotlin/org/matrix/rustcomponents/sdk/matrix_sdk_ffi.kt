@@ -2176,6 +2176,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2415,6 +2421,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Pointer,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_use_event_cache_persistent_storage(`ptr`: Pointer,`value`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(`ptr`: Pointer,`username`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -2619,6 +2627,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_discard_room_key(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2685,7 +2695,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`allowedMessageTypes`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`allowedMessageTypes`: RustBuffer.ByValue,`dateDividerMode`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -2708,6 +2718,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification(`ptr`: Pointer,`callId`: RustBuffer.ByValue,`application`: RustBuffer.ByValue,`notifyType`: RustBuffer.ByValue,`mentions`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification_if_needed(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Pointer,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
     ): Long
@@ -3529,6 +3541,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_use_event_cache_persistent_storage(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
@@ -3683,6 +3697,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_event_cache_storage(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_display_name(
@@ -3772,6 +3788,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_send_raw(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite(
     ): Short
@@ -4485,6 +4503,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder() != 39381.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_use_event_cache_persistent_storage() != 58836.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent() != 13719.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4716,6 +4737,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft() != 39667.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_event_cache_storage() != 13838.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key() != 18081.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4815,7 +4839,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 26065.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_message_filtered_timeline() != 47862.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_message_filtered_timeline() != 32258.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() != 39510.toShort()) {
@@ -4849,6 +4873,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed() != 53551.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() != 20486.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite() != 64403.toShort()) {
@@ -7981,6 +8008,21 @@ public interface ClientBuilderInterface {
     
     fun `slidingSyncVersionBuilder`(`versionBuilder`: SlidingSyncVersionBuilder): ClientBuilder
     
+    /**
+     * Whether to use the event cache persistent storage or not.
+     *
+     * This is a temporary feature flag, for testing the event cache's
+     * persistent storage. Follow new developments in https://github.com/matrix-org/matrix-rust-sdk/issues/3280.
+     *
+     * This is disabled by default. When disabled, a one-time cleanup is
+     * performed when creating the client, and it will clear all the events
+     * previously stored in the event cache.
+     *
+     * When enabled, it will attempt to store events in the event cache as
+     * they're received, and reuse them when reconstructing timelines.
+     */
+    fun `useEventCachePersistentStorage`(`value`: kotlin.Boolean): ClientBuilder
+    
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
     
     fun `username`(`username`: kotlin.String): ClientBuilder
@@ -8398,6 +8440,31 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(
         it, FfiConverterTypeSlidingSyncVersionBuilder.lower(`versionBuilder`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Whether to use the event cache persistent storage or not.
+     *
+     * This is a temporary feature flag, for testing the event cache's
+     * persistent storage. Follow new developments in https://github.com/matrix-org/matrix-rust-sdk/issues/3280.
+     *
+     * This is disabled by default. When disabled, a one-time cleanup is
+     * performed when creating the client, and it will clear all the events
+     * previously stored in the event cache.
+     *
+     * When enabled, it will attempt to store events in the event cache as
+     * they're received, and reuse them when reconstructing timelines.
+     */override fun `useEventCachePersistentStorage`(`value`: kotlin.Boolean): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_use_event_cache_persistent_storage(
+        it, FfiConverterBoolean.lower(`value`),_status)
 }
     }
     )
@@ -12363,6 +12430,14 @@ public interface RoomInterface {
     suspend fun `clearComposerDraft`()
     
     /**
+     * Clear the event cache storage for the current room.
+     *
+     * This will remove all the information related to the event cache, in
+     * memory and in the persisted storage, if enabled.
+     */
+    suspend fun `clearEventCacheStorage`()
+    
+    /**
      * Forces the currently active room key, which is used to encrypt messages,
      * to be rotated.
      *
@@ -12520,7 +12595,7 @@ public interface RoomInterface {
      * * `allowed_message_types` - A list of `RoomMessageEventMessageType` that
      * will be allowed to appear in the timeline
      */
-    suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>): Timeline
+    suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>, `dateDividerMode`: DateDividerMode): Timeline
     
     fun `ownUserId`(): kotlin.String
     
@@ -12599,6 +12674,17 @@ public interface RoomInterface {
      * - is this a group with more than one other member -> notify
      */
     suspend fun `sendCallNotificationIfNeeded`()
+    
+    /**
+     * Send a raw event to the room.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the event to send.
+     *
+     * * `content` - The content of the event to send encoded as JSON string.
+     */
+    suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String)
     
     suspend fun `setIsFavourite`(`isFavourite`: kotlin.Boolean, `tagOrder`: kotlin.Double?)
     
@@ -13074,6 +13160,34 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Clear the event cache storage for the current room.
+     *
+     * This will remove all the information related to the event cache, in
+     * memory and in the persisted storage, if enabled.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `clearEventCacheStorage`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(
                 thisPtr,
                 
             )
@@ -13759,12 +13873,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>) : Timeline {
+    override suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>, `dateDividerMode`: DateDividerMode) : Timeline {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(
                 thisPtr,
-                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterSequenceTypeRoomMessageEventMessageType.lower(`allowedMessageTypes`),
+                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterSequenceTypeRoomMessageEventMessageType.lower(`allowedMessageTypes`),FfiConverterTypeDateDividerMode.lower(`dateDividerMode`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
@@ -14039,6 +14153,37 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification_if_needed(
                 thisPtr,
                 
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Send a raw event to the room.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the event to send.
+     *
+     * * `content` - The content of the event to send encoded as JSON string.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_raw(
+                thisPtr,
+                FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -27007,6 +27152,8 @@ sealed class ClientBuildException(message: String): kotlin.Exception(message) {
         
         class Sdk(message: String) : ClientBuildException(message)
         
+        class EventCache(message: String) : ClientBuildException(message)
+        
         class Generic(message: String) : ClientBuildException(message)
         
 
@@ -27026,7 +27173,8 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
             5 -> ClientBuildException.SlidingSync(FfiConverterString.read(buf))
             6 -> ClientBuildException.SlidingSyncVersion(FfiConverterString.read(buf))
             7 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
-            8 -> ClientBuildException.Generic(FfiConverterString.read(buf))
+            8 -> ClientBuildException.EventCache(FfiConverterString.read(buf))
+            9 -> ClientBuildException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -27066,8 +27214,12 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
                 buf.putInt(7)
                 Unit
             }
-            is ClientBuildException.Generic -> {
+            is ClientBuildException.EventCache -> {
                 buf.putInt(8)
+                Unit
+            }
+            is ClientBuildException.Generic -> {
+                buf.putInt(9)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -27289,6 +27441,37 @@ public object FfiConverterTypeCrossSigningResetAuthType : FfiConverterRustBuffer
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * Changes how date dividers get inserted, either in between each day or in
+ * between each month
+ */
+
+enum class DateDividerMode {
+    
+    DAILY,
+    MONTHLY;
+    companion object
+}
+
+
+public object FfiConverterTypeDateDividerMode: FfiConverterRustBuffer<DateDividerMode> {
+    override fun read(buf: ByteBuffer) = try {
+        DateDividerMode.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: DateDividerMode) = 4UL
+
+    override fun write(value: DateDividerMode, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -34505,9 +34688,10 @@ public object FfiConverterTypeVerificationState: FfiConverterRustBuffer<Verifica
 sealed class VirtualTimelineItem {
     
     /**
-     * A divider between messages of two days.
+     * A divider between messages of different day or month depending on
+     * timeline settings.
      */
-    data class DayDivider(
+    data class DateDivider(
         /**
          * A timestamp in milliseconds since Unix Epoch on that day in local
          * time.
@@ -34530,7 +34714,7 @@ sealed class VirtualTimelineItem {
 public object FfiConverterTypeVirtualTimelineItem : FfiConverterRustBuffer<VirtualTimelineItem>{
     override fun read(buf: ByteBuffer): VirtualTimelineItem {
         return when(buf.getInt()) {
-            1 -> VirtualTimelineItem.DayDivider(
+            1 -> VirtualTimelineItem.DateDivider(
                 FfiConverterULong.read(buf),
                 )
             2 -> VirtualTimelineItem.ReadMarker
@@ -34539,7 +34723,7 @@ public object FfiConverterTypeVirtualTimelineItem : FfiConverterRustBuffer<Virtu
     }
 
     override fun allocationSize(value: VirtualTimelineItem) = when(value) {
-        is VirtualTimelineItem.DayDivider -> {
+        is VirtualTimelineItem.DateDivider -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -34556,7 +34740,7 @@ public object FfiConverterTypeVirtualTimelineItem : FfiConverterRustBuffer<Virtu
 
     override fun write(value: VirtualTimelineItem, buf: ByteBuffer) {
         when(value) {
-            is VirtualTimelineItem.DayDivider -> {
+            is VirtualTimelineItem.DateDivider -> {
                 buf.putInt(1)
                 FfiConverterULong.write(value.`ts`, buf)
                 Unit
