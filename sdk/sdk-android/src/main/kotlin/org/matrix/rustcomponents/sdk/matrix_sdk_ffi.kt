@@ -26149,7 +26149,27 @@ data class UnableToDecryptInfo (
      * What we know about what caused this UTD. E.g. was this event sent when
      * we were not a member of this room?
      */
-    var `cause`: UtdCause
+    var `cause`: UtdCause, 
+    /**
+     * The difference between the event creation time (`origin_server_ts`) and
+     * the time our device was created. If negative, this event was sent
+     * *before* our device was created.
+     */
+    var `eventLocalAgeMillis`: kotlin.Long, 
+    /**
+     * Whether the user had verified their own identity at the point they
+     * received the UTD event.
+     */
+    var `userTrustsOwnIdentity`: kotlin.Boolean, 
+    /**
+     * The homeserver of the user that sent the undecryptable event.
+     */
+    var `senderHomeserver`: kotlin.String, 
+    /**
+     * Our local user's own homeserver, or `None` if the client is not logged
+     * in.
+     */
+    var `ownHomeserver`: kotlin.String?
 ) {
     
     companion object
@@ -26161,19 +26181,31 @@ public object FfiConverterTypeUnableToDecryptInfo: FfiConverterRustBuffer<Unable
             FfiConverterString.read(buf),
             FfiConverterOptionalULong.read(buf),
             FfiConverterTypeUtdCause.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
     override fun allocationSize(value: UnableToDecryptInfo) = (
             FfiConverterString.allocationSize(value.`eventId`) +
             FfiConverterOptionalULong.allocationSize(value.`timeToDecryptMs`) +
-            FfiConverterTypeUtdCause.allocationSize(value.`cause`)
+            FfiConverterTypeUtdCause.allocationSize(value.`cause`) +
+            FfiConverterLong.allocationSize(value.`eventLocalAgeMillis`) +
+            FfiConverterBoolean.allocationSize(value.`userTrustsOwnIdentity`) +
+            FfiConverterString.allocationSize(value.`senderHomeserver`) +
+            FfiConverterOptionalString.allocationSize(value.`ownHomeserver`)
     )
 
     override fun write(value: UnableToDecryptInfo, buf: ByteBuffer) {
             FfiConverterString.write(value.`eventId`, buf)
             FfiConverterOptionalULong.write(value.`timeToDecryptMs`, buf)
             FfiConverterTypeUtdCause.write(value.`cause`, buf)
+            FfiConverterLong.write(value.`eventLocalAgeMillis`, buf)
+            FfiConverterBoolean.write(value.`userTrustsOwnIdentity`, buf)
+            FfiConverterString.write(value.`senderHomeserver`, buf)
+            FfiConverterOptionalString.write(value.`ownHomeserver`, buf)
     }
 }
 
