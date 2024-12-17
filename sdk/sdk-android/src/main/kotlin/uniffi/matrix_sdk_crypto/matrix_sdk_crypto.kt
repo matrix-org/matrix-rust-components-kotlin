@@ -1384,6 +1384,15 @@ enum class UtdCause {
     /**
      * We don't have an explanation for why this UTD happened - it is probably
      * a bug, or a network split between the two homeservers.
+     *
+     * For example:
+     *
+     * - the keys for this event are missing, but a key storage backup exists
+     * and is working, so we should be able to find the keys in the backup.
+     *
+     * - the keys for this event are missing, and a key storage backup exists
+     * on the server, but that backup is not working on this client even
+     * though this device is verified.
      */
     UNKNOWN,
     /**
@@ -1413,15 +1422,18 @@ enum class UtdCause {
     UNKNOWN_DEVICE,
     /**
      * We are missing the keys for this event, but it is a "device-historical"
-     * message and no backup is accessible or usable.
+     * message and there is no key storage backup on the server, presumably
+     * because the user has turned it off.
      *
      * Device-historical means that the message was sent before the current
      * device existed (but the current user was probably a member of the room
      * at the time the message was sent). Not to
      * be confused with pre-join or pre-invite messages (see
      * [`UtdCause::SentBeforeWeJoined`] for that).
+     *
+     * Expected message to user: "History is not available on this device".
      */
-    HISTORICAL_MESSAGE,
+    HISTORICAL_MESSAGE_AND_BACKUP_IS_DISABLED,
     /**
      * The keys for this event are intentionally withheld.
      *
@@ -1436,7 +1448,21 @@ enum class UtdCause {
      * this device by cherry-picking and blocking it, in which case, no action
      * can be taken on our side.
      */
-    WITHHELD_BY_SENDER;
+    WITHHELD_BY_SENDER,
+    /**
+     * We are missing the keys for this event, but it is a "device-historical"
+     * message, and even though a key storage backup does exist, we can't use
+     * it because our device is unverified.
+     *
+     * Device-historical means that the message was sent before the current
+     * device existed (but the current user was probably a member of the room
+     * at the time the message was sent). Not to
+     * be confused with pre-join or pre-invite messages (see
+     * [`UtdCause::SentBeforeWeJoined`] for that).
+     *
+     * Expected message to user: "You need to verify this device".
+     */
+    HISTORICAL_MESSAGE_AND_DEVICE_IS_UNVERIFIED;
     companion object
 }
 
