@@ -1090,6 +1090,12 @@ internal open class UniffiVTableCallbackInterfaceVerificationRequestListener(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -1156,8 +1162,14 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_delete_dehydrated_device_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_get_dehydrated_device_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(`ptr`: Pointer,`pickleKey`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`deviceData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_save_dehydrated_device_key(`ptr`: Pointer,`pickleKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1570,7 +1582,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create(
     ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_delete_dehydrated_device_key(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_get_dehydrated_device_key(
+    ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate(
+    ): Short
+    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_save_dehydrated_device_key(
     ): Short
     fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled(
     ): Short
@@ -1866,13 +1884,22 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64() != 3854.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload() != 49513.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload() != 27279.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create() != 20431.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate() != 16901.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_delete_dehydrated_device_key() != 20976.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_get_dehydrated_device_key() != 52976.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate() != 62661.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_save_dehydrated_device_key() != 54923.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled() != 55573.toShort()) {
@@ -3238,7 +3265,7 @@ public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey,
 
 public interface DehydratedDeviceInterface {
     
-    fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: kotlin.ByteArray): UploadDehydratedDeviceRequest
+    fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: DehydratedDeviceKey): UploadDehydratedDeviceRequest
     
     companion object
 }
@@ -3325,12 +3352,12 @@ open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterfac
     }
 
     
-    @Throws(DehydrationException::class)override fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: kotlin.ByteArray): UploadDehydratedDeviceRequest {
+    @Throws(DehydrationException::class)override fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: DehydratedDeviceKey): UploadDehydratedDeviceRequest {
             return FfiConverterTypeUploadDehydratedDeviceRequest.lift(
     callWithPointer {
     uniffiRustCallWithError(DehydrationException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(
-        it, FfiConverterString.lower(`deviceDisplayName`),FfiConverterByteArray.lower(`pickleKey`),_status)
+        it, FfiConverterString.lower(`deviceDisplayName`),FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),_status)
 }
     }
     )
@@ -3473,7 +3500,31 @@ public interface DehydratedDevicesInterface {
     
     fun `create`(): DehydratedDevice
     
-    fun `rehydrate`(`pickleKey`: kotlin.ByteArray, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice
+    /**
+     * Deletes the previously stored dehydrated device pickle key.
+     */
+    fun `deleteDehydratedDeviceKey`()
+    
+    /**
+     * Get the cached dehydrated device pickle key if any.
+     *
+     * None if the key was not previously cached (via
+     * [`Self::save_dehydrated_device_pickle_key`]).
+     *
+     * Should be used to periodically rotate the dehydrated device to avoid
+     * OTK exhaustion and accumulation of to_device messages.
+     */
+    fun `getDehydratedDeviceKey`(): DehydratedDeviceKey?
+    
+    fun `rehydrate`(`pickleKey`: DehydratedDeviceKey, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice
+    
+    /**
+     * Store the dehydrated device pickle key in the crypto store.
+     *
+     * This is useful if the client wants to periodically rotate dehydrated
+     * devices to avoid OTK exhaustion and accumulated to_device problems.
+     */
+    fun `saveDehydratedDeviceKey`(`pickleKey`: DehydratedDeviceKey)
     
     companion object
 }
@@ -3573,16 +3624,71 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
     
 
     
-    @Throws(DehydrationException::class)override fun `rehydrate`(`pickleKey`: kotlin.ByteArray, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice {
-            return FfiConverterTypeRehydratedDevice.lift(
+    /**
+     * Deletes the previously stored dehydrated device pickle key.
+     */
+    @Throws(CryptoStoreException::class)override fun `deleteDehydratedDeviceKey`()
+        = 
     callWithPointer {
-    uniffiRustCallWithError(DehydrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(
-        it, FfiConverterByteArray.lower(`pickleKey`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`deviceData`),_status)
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_delete_dehydrated_device_key(
+        it, _status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Get the cached dehydrated device pickle key if any.
+     *
+     * None if the key was not previously cached (via
+     * [`Self::save_dehydrated_device_pickle_key`]).
+     *
+     * Should be used to periodically rotate the dehydrated device to avoid
+     * OTK exhaustion and accumulation of to_device messages.
+     */
+    @Throws(CryptoStoreException::class)override fun `getDehydratedDeviceKey`(): DehydratedDeviceKey? {
+            return FfiConverterOptionalTypeDehydratedDeviceKey.lift(
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_get_dehydrated_device_key(
+        it, _status)
 }
     }
     )
     }
+    
+
+    
+    @Throws(DehydrationException::class)override fun `rehydrate`(`pickleKey`: DehydratedDeviceKey, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice {
+            return FfiConverterTypeRehydratedDevice.lift(
+    callWithPointer {
+    uniffiRustCallWithError(DehydrationException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(
+        it, FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`deviceData`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Store the dehydrated device pickle key in the crypto store.
+     *
+     * This is useful if the client wants to periodically rotate dehydrated
+     * devices to avoid OTK exhaustion and accumulated to_device problems.
+     */
+    @Throws(CryptoStoreException::class)override fun `saveDehydratedDeviceKey`(`pickleKey`: DehydratedDeviceKey)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(CryptoStoreException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_save_dehydrated_device_key(
+        it, FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),_status)
+}
+    }
+    
     
 
     
@@ -8803,6 +8909,34 @@ public object FfiConverterTypeDecryptedEvent: FfiConverterRustBuffer<DecryptedEv
 
 
 /**
+ * Dehydrated device key
+ */
+data class DehydratedDeviceKey (
+    var `inner`: kotlin.ByteArray
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeDehydratedDeviceKey: FfiConverterRustBuffer<DehydratedDeviceKey> {
+    override fun read(buf: ByteBuffer): DehydratedDeviceKey {
+        return DehydratedDeviceKey(
+            FfiConverterByteArray.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: DehydratedDeviceKey) = (
+            FfiConverterByteArray.allocationSize(value.`inner`)
+    )
+
+    override fun write(value: DehydratedDeviceKey, buf: ByteBuffer) {
+            FfiConverterByteArray.write(value.`inner`, buf)
+    }
+}
+
+
+
+/**
  * An E2EE capable Matrix device.
  */
 data class Device (
@@ -10161,6 +10295,8 @@ sealed class CryptoStoreException(message: String): kotlin.Exception(message) {
         
         class Identifier(message: String) : CryptoStoreException(message)
         
+        class DehydrationException(message: String) : CryptoStoreException(message)
+        
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<CryptoStoreException> {
         override fun lift(error_buf: RustBuffer.ByValue): CryptoStoreException = FfiConverterTypeCryptoStoreError.lift(error_buf)
@@ -10177,6 +10313,7 @@ public object FfiConverterTypeCryptoStoreError : FfiConverterRustBuffer<CryptoSt
             4 -> CryptoStoreException.Serialization(FfiConverterString.read(buf))
             5 -> CryptoStoreException.InvalidUserId(FfiConverterString.read(buf))
             6 -> CryptoStoreException.Identifier(FfiConverterString.read(buf))
+            7 -> CryptoStoreException.DehydrationException(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -10210,6 +10347,10 @@ public object FfiConverterTypeCryptoStoreError : FfiConverterRustBuffer<CryptoSt
             }
             is CryptoStoreException.Identifier -> {
                 buf.putInt(6)
+                Unit
+            }
+            is CryptoStoreException.DehydrationException -> {
+                buf.putInt(7)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -10434,6 +10575,8 @@ sealed class DehydrationException(message: String): kotlin.Exception(message) {
         
         class PickleKeyLength(message: String) : DehydrationException(message)
         
+        class Rand(message: String) : DehydrationException(message)
+        
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<DehydrationException> {
         override fun lift(error_buf: RustBuffer.ByValue): DehydrationException = FfiConverterTypeDehydrationError.lift(error_buf)
@@ -10449,6 +10592,7 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
             3 -> DehydrationException.Json(FfiConverterString.read(buf))
             4 -> DehydrationException.Store(FfiConverterString.read(buf))
             5 -> DehydrationException.PickleKeyLength(FfiConverterString.read(buf))
+            6 -> DehydrationException.Rand(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -10478,6 +10622,10 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
             }
             is DehydrationException.PickleKeyLength -> {
                 buf.putInt(5)
+                Unit
+            }
+            is DehydrationException.Rand -> {
+                buf.putInt(6)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -12411,6 +12559,35 @@ public object FfiConverterOptionalTypeCrossSigningKeyExport: FfiConverterRustBuf
         } else {
             buf.put(1)
             FfiConverterTypeCrossSigningKeyExport.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeDehydratedDeviceKey: FfiConverterRustBuffer<DehydratedDeviceKey?> {
+    override fun read(buf: ByteBuffer): DehydratedDeviceKey? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDehydratedDeviceKey.read(buf)
+    }
+
+    override fun allocationSize(value: DehydratedDeviceKey?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDehydratedDeviceKey.allocationSize(value)
+        }
+    }
+
+    override fun write(value: DehydratedDeviceKey?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDehydratedDeviceKey.write(value, buf)
         }
     }
 }
