@@ -2233,6 +2233,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2942,6 +2944,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_roompreview_inviter(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roompreview_leave(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_roompreview_own_membership_details(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_sendattachmentjoinhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -4010,6 +4014,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_inviter(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_details(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel(
     ): Short
@@ -5193,6 +5199,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave() != 5096.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_details() != 1443.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 62384.toShort()) {
@@ -18049,6 +18058,11 @@ public interface RoomPreviewInterface {
      */
     suspend fun `leave`()
     
+    /**
+     * Get the membership details for the current user.
+     */
+    suspend fun `ownMembershipDetails`(): RoomMembershipDetails?
+    
     companion object
 }
 
@@ -18201,6 +18215,29 @@ open class RoomPreview: Disposable, AutoCloseable, RoomPreviewInterface {
         
         // Error FFI converter
         ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Get the membership details for the current user.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `ownMembershipDetails`() : RoomMembershipDetails? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompreview_own_membership_details(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeRoomMembershipDetails.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -26428,7 +26465,8 @@ data class RoomMember (
     var `powerLevel`: kotlin.Long, 
     var `normalizedPowerLevel`: kotlin.Long, 
     var `isIgnored`: kotlin.Boolean, 
-    var `suggestedRoleForPowerLevel`: RoomMemberRole
+    var `suggestedRoleForPowerLevel`: RoomMemberRole, 
+    var `membershipChangeReason`: kotlin.String?
 ) {
     
     companion object
@@ -26446,6 +26484,7 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterLong.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterTypeRoomMemberRole.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -26458,7 +26497,8 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterLong.allocationSize(value.`powerLevel`) +
             FfiConverterLong.allocationSize(value.`normalizedPowerLevel`) +
             FfiConverterBoolean.allocationSize(value.`isIgnored`) +
-            FfiConverterTypeRoomMemberRole.allocationSize(value.`suggestedRoleForPowerLevel`)
+            FfiConverterTypeRoomMemberRole.allocationSize(value.`suggestedRoleForPowerLevel`) +
+            FfiConverterOptionalString.allocationSize(value.`membershipChangeReason`)
     )
 
     override fun write(value: RoomMember, buf: ByteBuffer) {
@@ -26471,6 +26511,40 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterLong.write(value.`normalizedPowerLevel`, buf)
             FfiConverterBoolean.write(value.`isIgnored`, buf)
             FfiConverterTypeRoomMemberRole.write(value.`suggestedRoleForPowerLevel`, buf)
+            FfiConverterOptionalString.write(value.`membershipChangeReason`, buf)
+    }
+}
+
+
+
+/**
+ * Contains the current user's room member info and the optional room member
+ * info of the sender of the `m.room.member` event that this info represents.
+ */
+data class RoomMembershipDetails (
+    var `ownRoomMember`: RoomMember, 
+    var `senderRoomMember`: RoomMember?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomMembershipDetails: FfiConverterRustBuffer<RoomMembershipDetails> {
+    override fun read(buf: ByteBuffer): RoomMembershipDetails {
+        return RoomMembershipDetails(
+            FfiConverterTypeRoomMember.read(buf),
+            FfiConverterOptionalTypeRoomMember.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomMembershipDetails) = (
+            FfiConverterTypeRoomMember.allocationSize(value.`ownRoomMember`) +
+            FfiConverterOptionalTypeRoomMember.allocationSize(value.`senderRoomMember`)
+    )
+
+    override fun write(value: RoomMembershipDetails, buf: ByteBuffer) {
+            FfiConverterTypeRoomMember.write(value.`ownRoomMember`, buf)
+            FfiConverterOptionalTypeRoomMember.write(value.`senderRoomMember`, buf)
     }
 }
 
@@ -38593,6 +38667,35 @@ public object FfiConverterOptionalTypeRoomMember: FfiConverterRustBuffer<RoomMem
         } else {
             buf.put(1)
             FfiConverterTypeRoomMember.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeRoomMembershipDetails: FfiConverterRustBuffer<RoomMembershipDetails?> {
+    override fun read(buf: ByteBuffer): RoomMembershipDetails? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRoomMembershipDetails.read(buf)
+    }
+
+    override fun allocationSize(value: RoomMembershipDetails?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRoomMembershipDetails.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RoomMembershipDetails?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRoomMembershipDetails.write(value, buf)
         }
     }
 }
