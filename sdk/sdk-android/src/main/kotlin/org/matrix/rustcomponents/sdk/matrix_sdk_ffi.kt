@@ -2231,10 +2231,6 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
-
-
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2763,12 +2759,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`allowedMessageTypes`: RustBuffer.ByValue,`dateDividerMode`: RustBuffer.ByValue,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_pinned_events_timeline(`ptr`: Pointer,`internalIdPrefix`: RustBuffer.ByValue,`maxEventsToLoad`: Short,`maxConcurrentRequests`: Short,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_publish_room_alias_in_room_directory(`ptr`: Pointer,`alias`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_raw_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2817,7 +2809,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_timeline(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_timeline_focused_on_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`numContextEvents`: Short,`internalIdPrefix`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_timeline_with_configuration(`ptr`: Pointer,`configuration`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_topic(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -3865,11 +3857,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_message_filtered_timeline(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_pinned_events_timeline(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory(
     ): Short
@@ -3919,7 +3907,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline_focused_on_event(
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline_with_configuration(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_topic(
     ): Short
@@ -4976,13 +4964,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 26065.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_message_filtered_timeline() != 32258.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() != 39510.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_pinned_events_timeline() != 29596.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory() != 13924.toShort()) {
@@ -5057,7 +5039,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline() != 701.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline_focused_on_event() != 27319.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline_with_configuration() != 35159.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_topic() != 59745.toShort()) {
@@ -13086,27 +13068,7 @@ public interface RoomInterface {
     
     fun `membership`(): Membership
     
-    /**
-     * A timeline instance that can be configured to only include RoomMessage
-     * type events and filter those further based on their message type.
-     *
-     * Virtual timeline items will still be provided and the
-     * `default_event_filter` will be applied before everything else.
-     *
-     * # Arguments
-     *
-     * * `internal_id_prefix` - An optional String that will be prepended to
-     * all the timeline item's internal IDs, making it possible to
-     * distinguish different timeline instances from each other.
-     *
-     * * `allowed_message_types` - A list of `RoomMessageEventMessageType` that
-     * will be allowed to appear in the timeline
-     */
-    suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>, `dateDividerMode`: DateDividerMode): Timeline
-    
     fun `ownUserId`(): kotlin.String
-    
-    suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort, `maxConcurrentRequests`: kotlin.UShort): Timeline
     
     /**
      * Publish a new room alias for this room in the room directory.
@@ -13260,12 +13222,9 @@ public interface RoomInterface {
     suspend fun `timeline`(): Timeline
     
     /**
-     * Returns a timeline focused on the given event.
-     *
-     * Note: this timeline is independent from that returned with
-     * [`Self::timeline`], and as such it is not cached.
+     * Build a new timeline instance with the given configuration.
      */
-    suspend fun `timelineFocusedOnEvent`(`eventId`: kotlin.String, `numContextEvents`: kotlin.UShort, `internalIdPrefix`: kotlin.String?): Timeline
+    suspend fun `timelineWithConfiguration`(`configuration`: TimelineConfiguration): Timeline
     
     fun `topic`(): kotlin.String?
     
@@ -14471,43 +14430,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     }
     
 
-    
-    /**
-     * A timeline instance that can be configured to only include RoomMessage
-     * type events and filter those further based on their message type.
-     *
-     * Virtual timeline items will still be provided and the
-     * `default_event_filter` will be applied before everything else.
-     *
-     * # Arguments
-     *
-     * * `internal_id_prefix` - An optional String that will be prepended to
-     * all the timeline item's internal IDs, making it possible to
-     * distinguish different timeline instances from each other.
-     *
-     * * `allowed_message_types` - A list of `RoomMessageEventMessageType` that
-     * will be allowed to appear in the timeline
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `messageFilteredTimeline`(`internalIdPrefix`: kotlin.String?, `allowedMessageTypes`: List<RoomMessageEventMessageType>, `dateDividerMode`: DateDividerMode) : Timeline {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_message_filtered_timeline(
-                thisPtr,
-                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterSequenceTypeRoomMessageEventMessageType.lower(`allowedMessageTypes`),FfiConverterTypeDateDividerMode.lower(`dateDividerMode`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeTimeline.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
     override fun `ownUserId`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
@@ -14519,27 +14441,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     )
     }
     
-
-    
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `pinnedEventsTimeline`(`internalIdPrefix`: kotlin.String?, `maxEventsToLoad`: kotlin.UShort, `maxConcurrentRequests`: kotlin.UShort) : Timeline {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_pinned_events_timeline(
-                thisPtr,
-                FfiConverterOptionalString.lower(`internalIdPrefix`),FfiConverterUShort.lower(`maxEventsToLoad`),FfiConverterUShort.lower(`maxConcurrentRequests`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeTimeline.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
 
     
     /**
@@ -15126,19 +15027,16 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
 
     
     /**
-     * Returns a timeline focused on the given event.
-     *
-     * Note: this timeline is independent from that returned with
-     * [`Self::timeline`], and as such it is not cached.
+     * Build a new timeline instance with the given configuration.
      */
-    @Throws(FocusEventException::class)
+    @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `timelineFocusedOnEvent`(`eventId`: kotlin.String, `numContextEvents`: kotlin.UShort, `internalIdPrefix`: kotlin.String?) : Timeline {
+    override suspend fun `timelineWithConfiguration`(`configuration`: TimelineConfiguration) : Timeline {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_timeline_focused_on_event(
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_timeline_with_configuration(
                 thisPtr,
-                FfiConverterString.lower(`eventId`),FfiConverterUShort.lower(`numContextEvents`),FfiConverterOptionalString.lower(`internalIdPrefix`),
+                FfiConverterTypeTimelineConfiguration.lower(`configuration`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
@@ -15147,7 +15045,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         // lift function
         { FfiConverterTypeTimeline.lift(it) },
         // Error FFI converter
-        FocusEventException.ErrorHandler,
+        ClientException.ErrorHandler,
     )
     }
 
@@ -27047,6 +26945,69 @@ public object FfiConverterTypeThumbnailInfo: FfiConverterRustBuffer<ThumbnailInf
 
 
 
+/**
+ * Various options used to configure the timeline's behavior.
+ *
+ * # Arguments
+ *
+ * * `internal_id_prefix` -
+ *
+ * * `allowed_message_types` -
+ *
+ * * `date_divider_mode` -
+ */
+data class TimelineConfiguration (
+    /**
+     * What should the timeline focus on?
+     */
+    var `focus`: TimelineFocus, 
+    /**
+     * A list of [`RoomMessageEventMessageType`] that will be allowed to appear
+     * in the timeline
+     */
+    var `allowedMessageTypes`: AllowedMessageTypes, 
+    /**
+     * An optional String that will be prepended to
+     * all the timeline item's internal IDs, making it possible to
+     * distinguish different timeline instances from each other.
+     */
+    var `internalIdPrefix`: kotlin.String?, 
+    /**
+     * How often to insert date dividers
+     */
+    var `dateDividerMode`: DateDividerMode
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeTimelineConfiguration: FfiConverterRustBuffer<TimelineConfiguration> {
+    override fun read(buf: ByteBuffer): TimelineConfiguration {
+        return TimelineConfiguration(
+            FfiConverterTypeTimelineFocus.read(buf),
+            FfiConverterTypeAllowedMessageTypes.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterTypeDateDividerMode.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: TimelineConfiguration) = (
+            FfiConverterTypeTimelineFocus.allocationSize(value.`focus`) +
+            FfiConverterTypeAllowedMessageTypes.allocationSize(value.`allowedMessageTypes`) +
+            FfiConverterOptionalString.allocationSize(value.`internalIdPrefix`) +
+            FfiConverterTypeDateDividerMode.allocationSize(value.`dateDividerMode`)
+    )
+
+    override fun write(value: TimelineConfiguration, buf: ByteBuffer) {
+            FfiConverterTypeTimelineFocus.write(value.`focus`, buf)
+            FfiConverterTypeAllowedMessageTypes.write(value.`allowedMessageTypes`, buf)
+            FfiConverterOptionalString.write(value.`internalIdPrefix`, buf)
+            FfiConverterTypeDateDividerMode.write(value.`dateDividerMode`, buf)
+    }
+}
+
+
+
 data class TimelineUniqueId (
     var `id`: kotlin.String
 ) {
@@ -28084,6 +28045,67 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
             is AllowRule.Custom -> {
                 buf.putInt(2)
                 FfiConverterString.write(value.`json`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class AllowedMessageTypes {
+    
+    object All : AllowedMessageTypes()
+    
+    
+    data class Only(
+        val `types`: List<RoomMessageEventMessageType>) : AllowedMessageTypes() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeAllowedMessageTypes : FfiConverterRustBuffer<AllowedMessageTypes>{
+    override fun read(buf: ByteBuffer): AllowedMessageTypes {
+        return when(buf.getInt()) {
+            1 -> AllowedMessageTypes.All
+            2 -> AllowedMessageTypes.Only(
+                FfiConverterSequenceTypeRoomMessageEventMessageType.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: AllowedMessageTypes) = when(value) {
+        is AllowedMessageTypes.All -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is AllowedMessageTypes.Only -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeRoomMessageEventMessageType.allocationSize(value.`types`)
+            )
+        }
+    }
+
+    override fun write(value: AllowedMessageTypes, buf: ByteBuffer) {
+        when(value) {
+            is AllowedMessageTypes.All -> {
+                buf.putInt(1)
+                Unit
+            }
+            is AllowedMessageTypes.Only -> {
+                buf.putInt(2)
+                FfiConverterSequenceTypeRoomMessageEventMessageType.write(value.`types`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -35571,6 +35593,95 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
             is TimelineEventType.State -> {
                 buf.putInt(2)
                 FfiConverterTypeStateEventContent.write(value.`content`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class TimelineFocus {
+    
+    object Live : TimelineFocus()
+    
+    
+    data class Event(
+        val `eventId`: kotlin.String, 
+        val `numContextEvents`: kotlin.UShort) : TimelineFocus() {
+        companion object
+    }
+    
+    data class PinnedEvents(
+        val `maxEventsToLoad`: kotlin.UShort, 
+        val `maxConcurrentRequests`: kotlin.UShort) : TimelineFocus() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFocus>{
+    override fun read(buf: ByteBuffer): TimelineFocus {
+        return when(buf.getInt()) {
+            1 -> TimelineFocus.Live
+            2 -> TimelineFocus.Event(
+                FfiConverterString.read(buf),
+                FfiConverterUShort.read(buf),
+                )
+            3 -> TimelineFocus.PinnedEvents(
+                FfiConverterUShort.read(buf),
+                FfiConverterUShort.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: TimelineFocus) = when(value) {
+        is TimelineFocus.Live -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineFocus.Event -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`eventId`)
+                + FfiConverterUShort.allocationSize(value.`numContextEvents`)
+            )
+        }
+        is TimelineFocus.PinnedEvents -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUShort.allocationSize(value.`maxEventsToLoad`)
+                + FfiConverterUShort.allocationSize(value.`maxConcurrentRequests`)
+            )
+        }
+    }
+
+    override fun write(value: TimelineFocus, buf: ByteBuffer) {
+        when(value) {
+            is TimelineFocus.Live -> {
+                buf.putInt(1)
+                Unit
+            }
+            is TimelineFocus.Event -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`eventId`, buf)
+                FfiConverterUShort.write(value.`numContextEvents`, buf)
+                Unit
+            }
+            is TimelineFocus.PinnedEvents -> {
+                buf.putInt(3)
+                FfiConverterUShort.write(value.`maxEventsToLoad`, buf)
+                FfiConverterUShort.write(value.`maxConcurrentRequests`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
