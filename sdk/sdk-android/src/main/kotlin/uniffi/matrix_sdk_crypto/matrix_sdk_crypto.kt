@@ -874,26 +874,6 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
 
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1UL
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
-
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -987,95 +967,61 @@ public object FfiConverterTypeDecryptionSettings: FfiConverterRustBuffer<Decrypt
  * Strategy to collect the devices that should receive room keys for the
  * current discussion.
  */
-sealed class CollectStrategy {
+
+enum class CollectStrategy {
     
     /**
-     * Device based sharing strategy.
+     * Share with all (unblacklisted) devices.
      */
-    data class DeviceBasedStrategy(
-        /**
-         * If `true`, devices that are not trusted will be excluded from the
-         * conversation. A device is trusted if any of the following is true:
-         * - It was manually marked as trusted.
-         * - It was marked as verified via interactive verification.
-         * - It is signed by its owner identity, and this identity has been
-         * trusted via interactive verification.
-         * - It is the current own device of the user.
-         */
-        val `onlyAllowTrustedDevices`: kotlin.Boolean, 
-        /**
-         * If `true`, and a verified user has an unsigned device, key sharing
-         * will fail with a
-         * [`SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`].
-         *
-         * If `true`, and a verified user has replaced their identity, key
-         * sharing will fail with a
-         * [`SessionRecipientCollectionError::VerifiedUserChangedIdentity`].
-         *
-         * Otherwise, keys are shared with unsigned devices as normal.
-         *
-         * Once the problematic devices are blacklisted or whitelisted the
-         * caller can retry to share a second time.
-         */
-        val `errorOnVerifiedUserProblem`: kotlin.Boolean) : CollectStrategy() {
-        companion object
-    }
-    
+    ALL_DEVICES,
+    /**
+     * Share with all devices, except errors for *verified* users cause sharing
+     * to fail with an error.
+     *
+     * In this strategy, if a verified user has an unsigned device,
+     * key sharing will fail with a
+     * [`SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`].
+     * If a verified user has replaced their identity, key
+     * sharing will fail with a
+     * [`SessionRecipientCollectionError::VerifiedUserChangedIdentity`].
+     *
+     * Otherwise, keys are shared with unsigned devices as normal.
+     *
+     * Once the problematic devices are blacklisted or whitelisted the
+     * caller can retry to share a second time.
+     */
+    ERROR_ON_VERIFIED_USER_PROBLEM,
     /**
      * Share based on identity. Only distribute to devices signed by their
      * owner. If a user has no published identity he will not receive
      * any room keys.
      */
-    object IdentityBasedStrategy : CollectStrategy()
-    
-    
-
-    
+    IDENTITY_BASED_STRATEGY,
+    /**
+     * Only share keys with devices that we "trust". A device is trusted if any
+     * of the following is true:
+     * - It was manually marked as trusted.
+     * - It was marked as verified via interactive verification.
+     * - It is signed by its owner identity, and this identity has been
+     * trusted via interactive verification.
+     * - It is the current own device of the user.
+     */
+    ONLY_TRUSTED_DEVICES;
     companion object
 }
 
-public object FfiConverterTypeCollectStrategy : FfiConverterRustBuffer<CollectStrategy>{
-    override fun read(buf: ByteBuffer): CollectStrategy {
-        return when(buf.getInt()) {
-            1 -> CollectStrategy.DeviceBasedStrategy(
-                FfiConverterBoolean.read(buf),
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> CollectStrategy.IdentityBasedStrategy
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
+
+public object FfiConverterTypeCollectStrategy: FfiConverterRustBuffer<CollectStrategy> {
+    override fun read(buf: ByteBuffer) = try {
+        CollectStrategy.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: CollectStrategy) = when(value) {
-        is CollectStrategy.DeviceBasedStrategy -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`onlyAllowTrustedDevices`)
-                + FfiConverterBoolean.allocationSize(value.`errorOnVerifiedUserProblem`)
-            )
-        }
-        is CollectStrategy.IdentityBasedStrategy -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
+    override fun allocationSize(value: CollectStrategy) = 4UL
 
     override fun write(value: CollectStrategy, buf: ByteBuffer) {
-        when(value) {
-            is CollectStrategy.DeviceBasedStrategy -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`onlyAllowTrustedDevices`, buf)
-                FfiConverterBoolean.write(value.`errorOnVerifiedUserProblem`, buf)
-                Unit
-            }
-            is CollectStrategy.IdentityBasedStrategy -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+        buf.putInt(value.ordinal + 1)
     }
 }
 

@@ -708,6 +708,9 @@ internal interface UniffiCallbackInterfaceIgnoredUsersListenerMethod0 : com.sun.
 internal interface UniffiCallbackInterfaceKnockRequestsListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`joinRequests`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceLiveLocationShareListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`liveLocationShares`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceNotificationSettingsDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -912,6 +915,22 @@ internal open class UniffiVTableCallbackInterfaceKnockRequestsListener(
     ): UniffiVTableCallbackInterfaceKnockRequestsListener(`call`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceKnockRequestsListener) {
+        `call` = other.`call`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("call", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceLiveLocationShareListener(
+    @JvmField internal var `call`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `call`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceLiveLocationShareListener(`call`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLiveLocationShareListener) {
         `call` = other.`call`
         `uniffiFree` = other.`uniffiFree`
     }
@@ -2231,6 +2250,20 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2249,6 +2282,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceIdentityStatusChangeListener.register(lib)
                 uniffiCallbackInterfaceIgnoredUsersListener.register(lib)
                 uniffiCallbackInterfaceKnockRequestsListener.register(lib)
+                uniffiCallbackInterfaceLiveLocationShareListener.register(lib)
                 uniffiCallbackInterfaceNotificationSettingsDelegate.register(lib)
                 uniffiCallbackInterfacePaginationStatusListener.register(lib)
                 uniffiCallbackInterfaceProgressWatcher.register(lib)
@@ -2567,6 +2601,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_lazytimelineitemprovider(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_contains_only_emojis(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_debug_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_send_handle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2785,6 +2821,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification_if_needed(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(`ptr`: Pointer,`geoUri`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Pointer,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
@@ -2797,10 +2835,16 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(`ptr`: Pointer,`newValue`: Byte,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_start_live_location_share(`ptr`: Pointer,`durationMillis`: Long,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_stop_live_location_share(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_knock_requests(`ptr`: Pointer,`listener`: Long,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_live_location_shares(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3025,6 +3069,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_utd_hook(`ptr`: Pointer,`delegate`: Long,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_taskhandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3053,8 +3099,6 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_members(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_focused_paginate_forwards(`ptr`: Pointer,`numEvents`: Short,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_event_timeline_item_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_load_reply_details(`ptr`: Pointer,`eventIdStr`: RustBuffer.ByValue,
@@ -3062,6 +3106,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(`ptr`: Pointer,`numEvents`: Short,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_forwards(`ptr`: Pointer,`numEvents`: Short,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
@@ -3200,6 +3246,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_ignoreduserslistener(`vtable`: UniffiVTableCallbackInterfaceIgnoredUsersListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_knockrequestslistener(`vtable`: UniffiVTableCallbackInterfaceKnockRequestsListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationShareListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
     ): Unit
@@ -3695,6 +3743,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_mark_as_seen(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_contains_only_emojis(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_debug_info(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_send_handle(
@@ -3883,6 +3933,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_raw(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite(
@@ -3895,9 +3947,15 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_live_location_shares(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
     ): Short
@@ -4055,6 +4113,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_utd_hook(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
@@ -4075,8 +4135,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_members(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_focused_paginate_forwards(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details(
@@ -4084,6 +4142,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_forwards(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event(
     ): Short
@@ -4206,6 +4266,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestslistener_call(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
     ): Short
@@ -4721,6 +4783,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_mark_as_seen() != 36036.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_contains_only_emojis() != 5211.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_debug_info() != 55450.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5003,6 +5068,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed() != 53551.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location() != 34248.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() != 20486.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5021,10 +5089,19 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag() != 2381.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share() != 11488.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share() != 19983.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes() != 14290.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests() != 30649.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_live_location_shares() != 57037.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 48209.toShort()) {
@@ -5252,13 +5329,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_state() != 61806.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop() != 23138.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop() != 42435.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish() != 22814.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock() != 56326.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode() != 16958.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_utd_hook() != 9029.toShort()) {
@@ -5291,9 +5371,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_members() != 37994.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_focused_paginate_forwards() != 51003.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() != 33999.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5303,7 +5380,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read() != 16621.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() != 65175.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() != 36829.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_forwards() != 30268.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event() != 41687.toShort()) {
@@ -5487,6 +5567,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestslistener_call() != 10077.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_call() != 34519.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 51708.toShort()) {
@@ -10695,6 +10778,8 @@ public object FfiConverterTypeKnockRequestActions: FfiConverter<KnockRequestActi
  */
 public interface LazyTimelineItemProviderInterface {
     
+    fun `containsOnlyEmojis`(): kotlin.Boolean
+    
     /**
      * Returns some debug information for this event timeline item.
      */
@@ -10797,6 +10882,18 @@ open class LazyTimelineItemProvider: Disposable, AutoCloseable, LazyTimelineItem
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_lazytimelineitemprovider(pointer!!, status)
         }
     }
+
+    override fun `containsOnlyEmojis`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_contains_only_emojis(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     /**
@@ -13171,6 +13268,11 @@ public interface RoomInterface {
     suspend fun `sendCallNotificationIfNeeded`()
     
     /**
+     * Send the current users live location beacon in the room.
+     */
+    suspend fun `sendLiveLocation`(`geoUri`: kotlin.String)
+    
+    /**
      * Send a raw event to the room.
      *
      * # Arguments
@@ -13201,6 +13303,16 @@ public interface RoomInterface {
      */
     suspend fun `setUnreadFlag`(`newValue`: kotlin.Boolean)
     
+    /**
+     * Start the current users live location share in the room.
+     */
+    suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong)
+    
+    /**
+     * Stop the current users live location share in the room.
+     */
+    suspend fun `stopLiveLocationShare`()
+    
     fun `subscribeToIdentityStatusChanges`(`listener`: IdentityStatusChangeListener): TaskHandle
     
     /**
@@ -13212,6 +13324,15 @@ public interface RoomInterface {
      * subscription.
      */
     suspend fun `subscribeToKnockRequests`(`listener`: KnockRequestsListener): TaskHandle
+    
+    /**
+     * Subscribes to live location shares in this room, using a `listener` to
+     * be notified of the changes.
+     *
+     * The current live location shares will be emitted immediately when
+     * subscribing, along with a [`TaskHandle`] to cancel the subscription.
+     */
+    fun `subscribeToLiveLocationShares`(`listener`: LiveLocationShareListener): TaskHandle
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
@@ -14769,6 +14890,31 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
 
     
     /**
+     * Send the current users live location beacon in the room.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendLiveLocation`(`geoUri`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(
+                thisPtr,
+                FfiConverterString.lower(`geoUri`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Send a raw event to the room.
      *
      * # Arguments
@@ -14918,6 +15064,56 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     )
     }
 
+    
+    /**
+     * Start the current users live location share in the room.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_start_live_location_share(
+                thisPtr,
+                FfiConverterULong.lower(`durationMillis`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Stop the current users live location share in the room.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `stopLiveLocationShare`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_stop_live_location_share(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
     override fun `subscribeToIdentityStatusChanges`(`listener`: IdentityStatusChangeListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
     callWithPointer {
@@ -14958,6 +15154,25 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Subscribes to live location shares in this room, using a `listener` to
+     * be notified of the changes.
+     *
+     * The current live location shares will be emitted immediately when
+     * subscribing, along with a [`TaskHandle`] to cancel the subscription.
+     */override fun `subscribeToLiveLocationShares`(`listener`: LiveLocationShareListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_live_location_shares(
+        it, FfiConverterTypeLiveLocationShareListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
 
     override fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -20280,7 +20495,6 @@ open class SyncService: Disposable, AutoCloseable, SyncServiceInterface {
     
 
     
-    @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `stop`() {
         return uniffiRustCallAsync(
@@ -20297,7 +20511,7 @@ open class SyncService: Disposable, AutoCloseable, SyncServiceInterface {
         { Unit },
         
         // Error FFI converter
-        ClientException.ErrorHandler,
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -20439,6 +20653,11 @@ public interface SyncServiceBuilderInterface {
     
     fun `withCrossProcessLock`(): SyncServiceBuilder
     
+    /**
+     * Enable the "offline" mode for the [`SyncService`].
+     */
+    fun `withOfflineMode`(): SyncServiceBuilder
+    
     suspend fun `withUtdHook`(`delegate`: UnableToDecryptDelegate): SyncServiceBuilder
     
     companion object
@@ -20551,6 +20770,21 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Enable the "offline" mode for the [`SyncService`].
+     */override fun `withOfflineMode`(): SyncServiceBuilder {
+            return FfiConverterTypeSyncServiceBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(
         it, _status)
 }
     }
@@ -21000,13 +21234,6 @@ public interface TimelineInterface {
     suspend fun `fetchMembers`()
     
     /**
-     * Paginate forwards, when in focused mode.
-     *
-     * Returns whether we hit the end of the timeline or not.
-     */
-    suspend fun `focusedPaginateForwards`(`numEvents`: kotlin.UShort): kotlin.Boolean
-    
-    /**
      * Get the current timeline item for the given event ID, if any.
      *
      * Will return a remote event, *or* a local echo that has been sent but not
@@ -21039,9 +21266,16 @@ public interface TimelineInterface {
     /**
      * Paginate backwards, whether we are in focused mode or in live mode.
      *
-     * Returns whether we hit the end of the timeline or not.
+     * Returns whether we hit the start of the timeline or not.
      */
     suspend fun `paginateBackwards`(`numEvents`: kotlin.UShort): kotlin.Boolean
+    
+    /**
+     * Paginate forwards, whether we are in focused mode or in live mode.
+     *
+     * Returns whether we hit the end of the timeline or not.
+     */
+    suspend fun `paginateForwards`(`numEvents`: kotlin.UShort): kotlin.Boolean
     
     /**
      * Adds a new pinned event by sending an updated `m.room.pinned_events`
@@ -21347,32 +21581,6 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
 
     
     /**
-     * Paginate forwards, when in focused mode.
-     *
-     * Returns whether we hit the end of the timeline or not.
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `focusedPaginateForwards`(`numEvents`: kotlin.UShort) : kotlin.Boolean {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_focused_paginate_forwards(
-                thisPtr,
-                FfiConverterUShort.lower(`numEvents`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
-        // lift function
-        { FfiConverterBoolean.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
      * Get the current timeline item for the given event ID, if any.
      *
      * Will return a remote event, *or* a local echo that has been sent but not
@@ -21463,7 +21671,7 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     /**
      * Paginate backwards, whether we are in focused mode or in live mode.
      *
-     * Returns whether we hit the end of the timeline or not.
+     * Returns whether we hit the start of the timeline or not.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -21471,6 +21679,32 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(
+                thisPtr,
+                FfiConverterUShort.lower(`numEvents`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Paginate forwards, whether we are in focused mode or in live mode.
+     *
+     * Returns whether we hit the end of the timeline or not.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `paginateForwards`(`numEvents`: kotlin.UShort) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_forwards(
                 thisPtr,
                 FfiConverterUShort.lower(`numEvents`),
             )
@@ -25188,6 +25422,87 @@ public object FfiConverterTypeKnockRequest: FfiConverterRustBuffer<KnockRequest>
             FfiConverterOptionalULong.write(value.`timestamp`, buf)
             FfiConverterBoolean.write(value.`isSeen`, buf)
             FfiConverterTypeKnockRequestActions.write(value.`actions`, buf)
+    }
+}
+
+
+
+data class LastLocation (
+    /**
+     * The most recent location content of the user.
+     */
+    var `location`: LocationContent, 
+    /**
+     * A timestamp in milliseconds since Unix Epoch on that day in local
+     * time.
+     */
+    var `ts`: kotlin.ULong
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeLastLocation: FfiConverterRustBuffer<LastLocation> {
+    override fun read(buf: ByteBuffer): LastLocation {
+        return LastLocation(
+            FfiConverterTypeLocationContent.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: LastLocation) = (
+            FfiConverterTypeLocationContent.allocationSize(value.`location`) +
+            FfiConverterULong.allocationSize(value.`ts`)
+    )
+
+    override fun write(value: LastLocation, buf: ByteBuffer) {
+            FfiConverterTypeLocationContent.write(value.`location`, buf)
+            FfiConverterULong.write(value.`ts`, buf)
+    }
+}
+
+
+
+/**
+ * Details of a users live location share.
+ */
+data class LiveLocationShare (
+    /**
+     * The user's last known location.
+     */
+    var `lastLocation`: LastLocation, 
+    /**
+     * The live status of the live location share.
+     */
+    var `isLive`: kotlin.Boolean, 
+    /**
+     * The user ID of the person sharing their live location.
+     */
+    var `userId`: kotlin.String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeLiveLocationShare: FfiConverterRustBuffer<LiveLocationShare> {
+    override fun read(buf: ByteBuffer): LiveLocationShare {
+        return LiveLocationShare(
+            FfiConverterTypeLastLocation.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: LiveLocationShare) = (
+            FfiConverterTypeLastLocation.allocationSize(value.`lastLocation`) +
+            FfiConverterBoolean.allocationSize(value.`isLive`) +
+            FfiConverterString.allocationSize(value.`userId`)
+    )
+
+    override fun write(value: LiveLocationShare, buf: ByteBuffer) {
+            FfiConverterTypeLastLocation.write(value.`lastLocation`, buf)
+            FfiConverterBoolean.write(value.`isLive`, buf)
+            FfiConverterString.write(value.`userId`, buf)
     }
 }
 
@@ -35459,7 +35774,8 @@ enum class SyncServiceState {
     IDLE,
     RUNNING,
     TERMINATED,
-    ERROR;
+    ERROR,
+    OFFLINE;
     companion object
 }
 
@@ -36798,6 +37114,58 @@ internal object uniffiCallbackInterfaceKnockRequestsListener {
 
 // The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
 public object FfiConverterTypeKnockRequestsListener: FfiConverterCallbackInterface<KnockRequestsListener>()
+
+
+
+
+
+/**
+ * A listener for receiving new live location shares in a room.
+ */
+public interface LiveLocationShareListener {
+    
+    fun `call`(`liveLocationShares`: List<LiveLocationShare>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceLiveLocationShareListener {
+    internal object `call`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`liveLocationShares`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeLiveLocationShareListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`call`(
+                    FfiConverterSequenceTypeLiveLocationShare.lift(`liveLocationShares`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeLiveLocationShareListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceLiveLocationShareListener.UniffiByValue(
+        `call`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeLiveLocationShareListener: FfiConverterCallbackInterface<LiveLocationShareListener>()
 
 
 
@@ -39927,6 +40295,31 @@ public object FfiConverterSequenceTypeKnockRequest: FfiConverterRustBuffer<List<
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeKnockRequest.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeLiveLocationShare: FfiConverterRustBuffer<List<LiveLocationShare>> {
+    override fun read(buf: ByteBuffer): List<LiveLocationShare> {
+        val len = buf.getInt()
+        return List<LiveLocationShare>(len) {
+            FfiConverterTypeLiveLocationShare.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<LiveLocationShare>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeLiveLocationShare.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<LiveLocationShare>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeLiveLocationShare.write(it, buf)
         }
     }
 }
