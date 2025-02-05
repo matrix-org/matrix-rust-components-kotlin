@@ -2264,6 +2264,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2735,6 +2739,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_enable_send_queue(`ptr`: Pointer,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_forget(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_room_visibility(`ptr`: Pointer,
@@ -2975,6 +2981,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roompreview(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roompreview_forget(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_roompreview_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roompreview_inviter(`ptr`: Pointer,
@@ -3847,6 +3855,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_forget(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_room_visibility(
@@ -4054,6 +4064,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_forget(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_info(
     ): Short
@@ -4939,6 +4951,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue() != 23914.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_forget() != 37840.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels() != 54094.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5224,7 +5239,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_membership() != 1596.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_preview_room() != 32277.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_preview_room() != 62868.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_room_info() != 32985.toShort()) {
@@ -5249,6 +5264,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk() != 23186.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_forget() != 18179.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_info() != 9145.toShort()) {
@@ -13046,6 +13064,15 @@ public interface RoomInterface {
      */
     fun `enableSendQueue`(`enable`: kotlin.Boolean)
     
+    /**
+     * Forget this room.
+     *
+     * This communicates to the homeserver that it should forget the room.
+     *
+     * Only left or banned-from rooms can be forgotten.
+     */
+    suspend fun `forget`()
+    
     suspend fun `getPowerLevels`(): RoomPowerLevels
     
     /**
@@ -13962,6 +13989,35 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     }
     
     
+
+    
+    /**
+     * Forget this room.
+     *
+     * This communicates to the homeserver that it should forget the room.
+     *
+     * Only left or banned-from rooms can be forgotten.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `forget`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_forget(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -16883,10 +16939,7 @@ public interface RoomListItemInterface {
     
     /**
      * Builds a `RoomPreview` from a room list item. This is intended for
-     * invited or knocked rooms.
-     *
-     * An error will be returned if the room is in a state other than invited
-     * or knocked.
+     * invited, knocked or banned rooms.
      */
     suspend fun `previewRoom`(`via`: List<kotlin.String>): RoomPreview
     
@@ -17193,10 +17246,7 @@ open class RoomListItem: Disposable, AutoCloseable, RoomListItemInterface {
     
     /**
      * Builds a `RoomPreview` from a room list item. This is intended for
-     * invited or knocked rooms.
-     *
-     * An error will be returned if the room is in a state other than invited
-     * or knocked.
+     * invited, knocked or banned rooms.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -18154,6 +18204,11 @@ public object FfiConverterTypeRoomMessageEventContentWithoutRelation: FfiConvert
 public interface RoomPreviewInterface {
     
     /**
+     * Forget the room if we had access to it, and it was left or banned.
+     */
+    suspend fun `forget`()
+    
+    /**
      * Returns the room info the preview contains.
      */
     fun `info`(): RoomPreviewInfo
@@ -18262,6 +18317,31 @@ open class RoomPreview: Disposable, AutoCloseable, RoomPreviewInterface {
         return uniffiRustCall() { status ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_roompreview(pointer!!, status)
         }
+    }
+
+    
+    /**
+     * Forget the room if we had access to it, and it was left or banned.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `forget`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompreview_forget(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
     }
 
     
@@ -28740,6 +28820,18 @@ sealed class ClientException: kotlin.Exception() {
             get() = "msg=${ `msg` }"
     }
     
+    class MatrixApi(
+        
+        val `kind`: ErrorKind, 
+        
+        val `code`: kotlin.String, 
+        
+        val `msg`: kotlin.String
+        ) : ClientException() {
+        override val message
+            get() = "kind=${ `kind` }, code=${ `code` }, msg=${ `msg` }"
+    }
+    
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<ClientException> {
         override fun lift(error_buf: RustBuffer.ByValue): ClientException = FfiConverterTypeClientError.lift(error_buf)
@@ -28756,6 +28848,11 @@ public object FfiConverterTypeClientError : FfiConverterRustBuffer<ClientExcepti
             1 -> ClientException.Generic(
                 FfiConverterString.read(buf),
                 )
+            2 -> ClientException.MatrixApi(
+                FfiConverterTypeErrorKind.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -28767,6 +28864,13 @@ public object FfiConverterTypeClientError : FfiConverterRustBuffer<ClientExcepti
                 4UL
                 + FfiConverterString.allocationSize(value.`msg`)
             )
+            is ClientException.MatrixApi -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterTypeErrorKind.allocationSize(value.`kind`)
+                + FfiConverterString.allocationSize(value.`code`)
+                + FfiConverterString.allocationSize(value.`msg`)
+            )
         }
     }
 
@@ -28774,6 +28878,13 @@ public object FfiConverterTypeClientError : FfiConverterRustBuffer<ClientExcepti
         when(value) {
             is ClientException.Generic -> {
                 buf.putInt(1)
+                FfiConverterString.write(value.`msg`, buf)
+                Unit
+            }
+            is ClientException.MatrixApi -> {
+                buf.putInt(2)
+                FfiConverterTypeErrorKind.write(value.`kind`, buf)
+                FfiConverterString.write(value.`code`, buf)
                 FfiConverterString.write(value.`msg`, buf)
                 Unit
             }
@@ -29407,6 +29518,1096 @@ public object FfiConverterTypeEncryptionSystem : FfiConverterRustBuffer<Encrypti
             is EncryptionSystem.SharedSecret -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`secret`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class ErrorKind {
+    
+    /**
+     * `M_BAD_ALIAS`
+     *
+     * One or more [room aliases] within the `m.room.canonical_alias` event do
+     * not point to the room ID for which the state event is to be sent to.
+     *
+     * [room aliases]: https://spec.matrix.org/latest/client-server-api/#room-aliases
+     */
+    object BadAlias : ErrorKind()
+    
+    
+    /**
+     * `M_BAD_JSON`
+     *
+     * The request contained valid JSON, but it was malformed in some way, e.g.
+     * missing required keys, invalid values for keys.
+     */
+    object BadJson : ErrorKind()
+    
+    
+    /**
+     * `M_BAD_STATE`
+     *
+     * The state change requested cannot be performed, such as attempting to
+     * unban a user who is not banned.
+     */
+    object BadState : ErrorKind()
+    
+    
+    /**
+     * `M_BAD_STATUS`
+     *
+     * The application service returned a bad status.
+     */
+    data class BadStatus(
+        /**
+         * The HTTP status code of the response.
+         */
+        val `status`: kotlin.UShort?, 
+        /**
+         * The body of the response.
+         */
+        val `body`: kotlin.String?) : ErrorKind() {
+        companion object
+    }
+    
+    /**
+     * `M_CANNOT_LEAVE_SERVER_NOTICE_ROOM`
+     *
+     * The user is unable to reject an invite to join the [server notices]
+     * room.
+     *
+     * [server notices]: https://spec.matrix.org/latest/client-server-api/#server-notices
+     */
+    object CannotLeaveServerNoticeRoom : ErrorKind()
+    
+    
+    /**
+     * `M_CANNOT_OVERWRITE_MEDIA`
+     *
+     * The [`create_content_async`] endpoint was called with a media ID that
+     * already has content.
+     *
+     * [`create_content_async`]: crate::media::create_content_async
+     */
+    object CannotOverwriteMedia : ErrorKind()
+    
+    
+    /**
+     * `M_CAPTCHA_INVALID`
+     *
+     * The Captcha provided did not match what was expected.
+     */
+    object CaptchaInvalid : ErrorKind()
+    
+    
+    /**
+     * `M_CAPTCHA_NEEDED`
+     *
+     * A Captcha is required to complete the request.
+     */
+    object CaptchaNeeded : ErrorKind()
+    
+    
+    /**
+     * `M_CONNECTION_FAILED`
+     *
+     * The connection to the application service failed.
+     */
+    object ConnectionFailed : ErrorKind()
+    
+    
+    /**
+     * `M_CONNECTION_TIMEOUT`
+     *
+     * The connection to the application service timed out.
+     */
+    object ConnectionTimeout : ErrorKind()
+    
+    
+    /**
+     * `M_DUPLICATE_ANNOTATION`
+     *
+     * The request is an attempt to send a [duplicate annotation].
+     *
+     * [duplicate annotation]: https://spec.matrix.org/latest/client-server-api/#avoiding-duplicate-annotations
+     */
+    object DuplicateAnnotation : ErrorKind()
+    
+    
+    /**
+     * `M_EXCLUSIVE`
+     *
+     * The resource being requested is reserved by an application service, or
+     * the application service making the request has not created the
+     * resource.
+     */
+    object Exclusive : ErrorKind()
+    
+    
+    /**
+     * `M_FORBIDDEN`
+     *
+     * Forbidden access, e.g. joining a room without permission, failed login.
+     */
+    object Forbidden : ErrorKind()
+    
+    
+    /**
+     * `M_GUEST_ACCESS_FORBIDDEN`
+     *
+     * The room or resource does not permit [guests] to access it.
+     *
+     * [guests]: https://spec.matrix.org/latest/client-server-api/#guest-access
+     */
+    object GuestAccessForbidden : ErrorKind()
+    
+    
+    /**
+     * `M_INCOMPATIBLE_ROOM_VERSION`
+     *
+     * The client attempted to join a room that has a version the server does
+     * not support.
+     */
+    data class IncompatibleRoomVersion(
+        /**
+         * The room's version.
+         */
+        val `roomVersion`: kotlin.String) : ErrorKind() {
+        companion object
+    }
+    
+    /**
+     * `M_INVALID_PARAM`
+     *
+     * A parameter that was specified has the wrong value. For example, the
+     * server expected an integer and instead received a string.
+     */
+    object InvalidParam : ErrorKind()
+    
+    
+    /**
+     * `M_INVALID_ROOM_STATE`
+     *
+     * The initial state implied by the parameters to the [`create_room`]
+     * request is invalid, e.g. the user's `power_level` is set below that
+     * necessary to set the room name.
+     *
+     * [`create_room`]: crate::room::create_room
+     */
+    object InvalidRoomState : ErrorKind()
+    
+    
+    /**
+     * `M_INVALID_USERNAME`
+     *
+     * The desired user name is not valid.
+     */
+    object InvalidUsername : ErrorKind()
+    
+    
+    /**
+     * `M_LIMIT_EXCEEDED`
+     *
+     * The request has been refused due to [rate limiting]: too many requests
+     * have been sent in a short period of time.
+     *
+     * [rate limiting]: https://spec.matrix.org/latest/client-server-api/#rate-limiting
+     */
+    data class LimitExceeded(
+        /**
+         * How long a client should wait before they can try again.
+         */
+        val `retryAfterMs`: kotlin.ULong?) : ErrorKind() {
+        companion object
+    }
+    
+    /**
+     * `M_MISSING_PARAM`
+     *
+     * A required parameter was missing from the request.
+     */
+    object MissingParam : ErrorKind()
+    
+    
+    /**
+     * `M_MISSING_TOKEN`
+     *
+     * No [access token] was specified for the request, but one is required.
+     *
+     * [access token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
+     */
+    object MissingToken : ErrorKind()
+    
+    
+    /**
+     * `M_NOT_FOUND`
+     *
+     * No resource was found for this request.
+     */
+    object NotFound : ErrorKind()
+    
+    
+    /**
+     * `M_NOT_JSON`
+     *
+     * The request did not contain valid JSON.
+     */
+    object NotJson : ErrorKind()
+    
+    
+    /**
+     * `M_NOT_YET_UPLOADED`
+     *
+     * An `mxc:` URI generated with the [`create_mxc_uri`] endpoint was used
+     * and the content is not yet available.
+     *
+     * [`create_mxc_uri`]: crate::media::create_mxc_uri
+     */
+    object NotYetUploaded : ErrorKind()
+    
+    
+    /**
+     * `M_RESOURCE_LIMIT_EXCEEDED`
+     *
+     * The request cannot be completed because the homeserver has reached a
+     * resource limit imposed on it. For example, a homeserver held in a
+     * shared hosting environment may reach a resource limit if it starts
+     * using too much memory or disk space.
+     */
+    data class ResourceLimitExceeded(
+        /**
+         * A URI giving a contact method for the server administrator.
+         */
+        val `adminContact`: kotlin.String) : ErrorKind() {
+        companion object
+    }
+    
+    /**
+     * `M_ROOM_IN_USE`
+     *
+     * The [room alias] specified in the [`create_room`] request is already
+     * taken.
+     *
+     * [`create_room`]: crate::room::create_room
+     * [room alias]: https://spec.matrix.org/latest/client-server-api/#room-aliases
+     */
+    object RoomInUse : ErrorKind()
+    
+    
+    /**
+     * `M_SERVER_NOT_TRUSTED`
+     *
+     * The client's request used a third-party server, e.g. identity server,
+     * that this server does not trust.
+     */
+    object ServerNotTrusted : ErrorKind()
+    
+    
+    /**
+     * `M_THREEPID_AUTH_FAILED`
+     *
+     * Authentication could not be performed on the [third-party identifier].
+     *
+     * [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+     */
+    object ThreepidAuthFailed : ErrorKind()
+    
+    
+    /**
+     * `M_THREEPID_DENIED`
+     *
+     * The server does not permit this [third-party identifier]. This may
+     * happen if the server only permits, for example, email addresses from
+     * a particular domain.
+     *
+     * [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+     */
+    object ThreepidDenied : ErrorKind()
+    
+    
+    /**
+     * `M_THREEPID_IN_USE`
+     *
+     * The [third-party identifier] is already in use by another user.
+     *
+     * [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+     */
+    object ThreepidInUse : ErrorKind()
+    
+    
+    /**
+     * `M_THREEPID_MEDIUM_NOT_SUPPORTED`
+     *
+     * The homeserver does not support adding a [third-party identifier] of the
+     * given medium.
+     *
+     * [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+     */
+    object ThreepidMediumNotSupported : ErrorKind()
+    
+    
+    /**
+     * `M_THREEPID_NOT_FOUND`
+     *
+     * No account matching the given [third-party identifier] could be found.
+     *
+     * [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
+     */
+    object ThreepidNotFound : ErrorKind()
+    
+    
+    /**
+     * `M_TOO_LARGE`
+     *
+     * The request or entity was too large.
+     */
+    object TooLarge : ErrorKind()
+    
+    
+    /**
+     * `M_UNABLE_TO_AUTHORISE_JOIN`
+     *
+     * The room is [restricted] and none of the conditions can be validated by
+     * the homeserver. This can happen if the homeserver does not know
+     * about any of the rooms listed as conditions, for example.
+     *
+     * [restricted]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
+     */
+    object UnableToAuthorizeJoin : ErrorKind()
+    
+    
+    /**
+     * `M_UNABLE_TO_GRANT_JOIN`
+     *
+     * A different server should be attempted for the join. This is typically
+     * because the resident server can see that the joining user satisfies
+     * one or more conditions, such as in the case of [restricted rooms],
+     * but the resident server would be unable to meet the authorization
+     * rules.
+     *
+     * [restricted rooms]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
+     */
+    object UnableToGrantJoin : ErrorKind()
+    
+    
+    /**
+     * `M_UNAUTHORIZED`
+     *
+     * The request was not correctly authorized. Usually due to login failures.
+     */
+    object Unauthorized : ErrorKind()
+    
+    
+    /**
+     * `M_UNKNOWN`
+     *
+     * An unknown error has occurred.
+     */
+    object Unknown : ErrorKind()
+    
+    
+    /**
+     * `M_UNKNOWN_TOKEN`
+     *
+     * The [access or refresh token] specified was not recognized.
+     *
+     * [access or refresh token]: https://spec.matrix.org/latest/client-server-api/#client-authentication
+     */
+    data class UnknownToken(
+        /**
+         * If this is `true`, the client is in a "[soft logout]" state, i.e.
+         * the server requires re-authentication but the session is not
+         * invalidated. The client can acquire a new access token by
+         * specifying the device ID it is already using to the login API.
+         *
+         * [soft logout]: https://spec.matrix.org/latest/client-server-api/#soft-logout
+         */
+        val `softLogout`: kotlin.Boolean) : ErrorKind() {
+        companion object
+    }
+    
+    /**
+     * `M_UNRECOGNIZED`
+     *
+     * The server did not understand the request.
+     *
+     * This is expected to be returned with a 404 HTTP status code if the
+     * endpoint is not implemented or a 405 HTTP status code if the
+     * endpoint is implemented, but the incorrect HTTP method is used.
+     */
+    object Unrecognized : ErrorKind()
+    
+    
+    /**
+     * `M_UNSUPPORTED_ROOM_VERSION`
+     *
+     * The request to [`create_room`] used a room version that the server does
+     * not support.
+     *
+     * [`create_room`]: crate::room::create_room
+     */
+    object UnsupportedRoomVersion : ErrorKind()
+    
+    
+    /**
+     * `M_URL_NOT_SET`
+     *
+     * The application service doesn't have a URL configured.
+     */
+    object UrlNotSet : ErrorKind()
+    
+    
+    /**
+     * `M_USER_DEACTIVATED`
+     *
+     * The user ID associated with the request has been deactivated.
+     */
+    object UserDeactivated : ErrorKind()
+    
+    
+    /**
+     * `M_USER_IN_USE`
+     *
+     * The desired user ID is already taken.
+     */
+    object UserInUse : ErrorKind()
+    
+    
+    /**
+     * `M_USER_LOCKED`
+     *
+     * The account has been [locked] and cannot be used at this time.
+     *
+     * [locked]: https://spec.matrix.org/latest/client-server-api/#account-locking
+     */
+    object UserLocked : ErrorKind()
+    
+    
+    /**
+     * `M_USER_SUSPENDED`
+     *
+     * The account has been [suspended] and can only be used for limited
+     * actions at this time.
+     *
+     * [suspended]: https://spec.matrix.org/latest/client-server-api/#account-suspension
+     */
+    object UserSuspended : ErrorKind()
+    
+    
+    /**
+     * `M_WEAK_PASSWORD`
+     *
+     * The password was [rejected] by the server for being too weak.
+     *
+     * [rejected]: https://spec.matrix.org/latest/client-server-api/#notes-on-password-management
+     */
+    object WeakPassword : ErrorKind()
+    
+    
+    /**
+     * `M_WRONG_ROOM_KEYS_VERSION`
+     *
+     * The version of the [room keys backup] provided in the request does not
+     * match the current backup version.
+     *
+     * [room keys backup]: https://spec.matrix.org/latest/client-server-api/#server-side-key-backups
+     */
+    data class WrongRoomKeysVersion(
+        /**
+         * The currently active backup version.
+         */
+        val `currentVersion`: kotlin.String?) : ErrorKind() {
+        companion object
+    }
+    
+    /**
+     * A custom API error.
+     */
+    data class Custom(
+        val `errcode`: kotlin.String) : ErrorKind() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeErrorKind : FfiConverterRustBuffer<ErrorKind>{
+    override fun read(buf: ByteBuffer): ErrorKind {
+        return when(buf.getInt()) {
+            1 -> ErrorKind.BadAlias
+            2 -> ErrorKind.BadJson
+            3 -> ErrorKind.BadState
+            4 -> ErrorKind.BadStatus(
+                FfiConverterOptionalUShort.read(buf),
+                FfiConverterOptionalString.read(buf),
+                )
+            5 -> ErrorKind.CannotLeaveServerNoticeRoom
+            6 -> ErrorKind.CannotOverwriteMedia
+            7 -> ErrorKind.CaptchaInvalid
+            8 -> ErrorKind.CaptchaNeeded
+            9 -> ErrorKind.ConnectionFailed
+            10 -> ErrorKind.ConnectionTimeout
+            11 -> ErrorKind.DuplicateAnnotation
+            12 -> ErrorKind.Exclusive
+            13 -> ErrorKind.Forbidden
+            14 -> ErrorKind.GuestAccessForbidden
+            15 -> ErrorKind.IncompatibleRoomVersion(
+                FfiConverterString.read(buf),
+                )
+            16 -> ErrorKind.InvalidParam
+            17 -> ErrorKind.InvalidRoomState
+            18 -> ErrorKind.InvalidUsername
+            19 -> ErrorKind.LimitExceeded(
+                FfiConverterOptionalULong.read(buf),
+                )
+            20 -> ErrorKind.MissingParam
+            21 -> ErrorKind.MissingToken
+            22 -> ErrorKind.NotFound
+            23 -> ErrorKind.NotJson
+            24 -> ErrorKind.NotYetUploaded
+            25 -> ErrorKind.ResourceLimitExceeded(
+                FfiConverterString.read(buf),
+                )
+            26 -> ErrorKind.RoomInUse
+            27 -> ErrorKind.ServerNotTrusted
+            28 -> ErrorKind.ThreepidAuthFailed
+            29 -> ErrorKind.ThreepidDenied
+            30 -> ErrorKind.ThreepidInUse
+            31 -> ErrorKind.ThreepidMediumNotSupported
+            32 -> ErrorKind.ThreepidNotFound
+            33 -> ErrorKind.TooLarge
+            34 -> ErrorKind.UnableToAuthorizeJoin
+            35 -> ErrorKind.UnableToGrantJoin
+            36 -> ErrorKind.Unauthorized
+            37 -> ErrorKind.Unknown
+            38 -> ErrorKind.UnknownToken(
+                FfiConverterBoolean.read(buf),
+                )
+            39 -> ErrorKind.Unrecognized
+            40 -> ErrorKind.UnsupportedRoomVersion
+            41 -> ErrorKind.UrlNotSet
+            42 -> ErrorKind.UserDeactivated
+            43 -> ErrorKind.UserInUse
+            44 -> ErrorKind.UserLocked
+            45 -> ErrorKind.UserSuspended
+            46 -> ErrorKind.WeakPassword
+            47 -> ErrorKind.WrongRoomKeysVersion(
+                FfiConverterOptionalString.read(buf),
+                )
+            48 -> ErrorKind.Custom(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ErrorKind) = when(value) {
+        is ErrorKind.BadAlias -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.BadJson -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.BadState -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.BadStatus -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterOptionalUShort.allocationSize(value.`status`)
+                + FfiConverterOptionalString.allocationSize(value.`body`)
+            )
+        }
+        is ErrorKind.CannotLeaveServerNoticeRoom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.CannotOverwriteMedia -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.CaptchaInvalid -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.CaptchaNeeded -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ConnectionFailed -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ConnectionTimeout -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.DuplicateAnnotation -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.Exclusive -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.Forbidden -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.GuestAccessForbidden -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.IncompatibleRoomVersion -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`roomVersion`)
+            )
+        }
+        is ErrorKind.InvalidParam -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.InvalidRoomState -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.InvalidUsername -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.LimitExceeded -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterOptionalULong.allocationSize(value.`retryAfterMs`)
+            )
+        }
+        is ErrorKind.MissingParam -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.MissingToken -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.NotFound -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.NotJson -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.NotYetUploaded -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ResourceLimitExceeded -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`adminContact`)
+            )
+        }
+        is ErrorKind.RoomInUse -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ServerNotTrusted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ThreepidAuthFailed -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ThreepidDenied -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ThreepidInUse -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ThreepidMediumNotSupported -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.ThreepidNotFound -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.TooLarge -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UnableToAuthorizeJoin -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UnableToGrantJoin -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.Unauthorized -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.Unknown -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UnknownToken -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`softLogout`)
+            )
+        }
+        is ErrorKind.Unrecognized -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UnsupportedRoomVersion -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UrlNotSet -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UserDeactivated -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UserInUse -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UserLocked -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.UserSuspended -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.WeakPassword -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ErrorKind.WrongRoomKeysVersion -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterOptionalString.allocationSize(value.`currentVersion`)
+            )
+        }
+        is ErrorKind.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`errcode`)
+            )
+        }
+    }
+
+    override fun write(value: ErrorKind, buf: ByteBuffer) {
+        when(value) {
+            is ErrorKind.BadAlias -> {
+                buf.putInt(1)
+                Unit
+            }
+            is ErrorKind.BadJson -> {
+                buf.putInt(2)
+                Unit
+            }
+            is ErrorKind.BadState -> {
+                buf.putInt(3)
+                Unit
+            }
+            is ErrorKind.BadStatus -> {
+                buf.putInt(4)
+                FfiConverterOptionalUShort.write(value.`status`, buf)
+                FfiConverterOptionalString.write(value.`body`, buf)
+                Unit
+            }
+            is ErrorKind.CannotLeaveServerNoticeRoom -> {
+                buf.putInt(5)
+                Unit
+            }
+            is ErrorKind.CannotOverwriteMedia -> {
+                buf.putInt(6)
+                Unit
+            }
+            is ErrorKind.CaptchaInvalid -> {
+                buf.putInt(7)
+                Unit
+            }
+            is ErrorKind.CaptchaNeeded -> {
+                buf.putInt(8)
+                Unit
+            }
+            is ErrorKind.ConnectionFailed -> {
+                buf.putInt(9)
+                Unit
+            }
+            is ErrorKind.ConnectionTimeout -> {
+                buf.putInt(10)
+                Unit
+            }
+            is ErrorKind.DuplicateAnnotation -> {
+                buf.putInt(11)
+                Unit
+            }
+            is ErrorKind.Exclusive -> {
+                buf.putInt(12)
+                Unit
+            }
+            is ErrorKind.Forbidden -> {
+                buf.putInt(13)
+                Unit
+            }
+            is ErrorKind.GuestAccessForbidden -> {
+                buf.putInt(14)
+                Unit
+            }
+            is ErrorKind.IncompatibleRoomVersion -> {
+                buf.putInt(15)
+                FfiConverterString.write(value.`roomVersion`, buf)
+                Unit
+            }
+            is ErrorKind.InvalidParam -> {
+                buf.putInt(16)
+                Unit
+            }
+            is ErrorKind.InvalidRoomState -> {
+                buf.putInt(17)
+                Unit
+            }
+            is ErrorKind.InvalidUsername -> {
+                buf.putInt(18)
+                Unit
+            }
+            is ErrorKind.LimitExceeded -> {
+                buf.putInt(19)
+                FfiConverterOptionalULong.write(value.`retryAfterMs`, buf)
+                Unit
+            }
+            is ErrorKind.MissingParam -> {
+                buf.putInt(20)
+                Unit
+            }
+            is ErrorKind.MissingToken -> {
+                buf.putInt(21)
+                Unit
+            }
+            is ErrorKind.NotFound -> {
+                buf.putInt(22)
+                Unit
+            }
+            is ErrorKind.NotJson -> {
+                buf.putInt(23)
+                Unit
+            }
+            is ErrorKind.NotYetUploaded -> {
+                buf.putInt(24)
+                Unit
+            }
+            is ErrorKind.ResourceLimitExceeded -> {
+                buf.putInt(25)
+                FfiConverterString.write(value.`adminContact`, buf)
+                Unit
+            }
+            is ErrorKind.RoomInUse -> {
+                buf.putInt(26)
+                Unit
+            }
+            is ErrorKind.ServerNotTrusted -> {
+                buf.putInt(27)
+                Unit
+            }
+            is ErrorKind.ThreepidAuthFailed -> {
+                buf.putInt(28)
+                Unit
+            }
+            is ErrorKind.ThreepidDenied -> {
+                buf.putInt(29)
+                Unit
+            }
+            is ErrorKind.ThreepidInUse -> {
+                buf.putInt(30)
+                Unit
+            }
+            is ErrorKind.ThreepidMediumNotSupported -> {
+                buf.putInt(31)
+                Unit
+            }
+            is ErrorKind.ThreepidNotFound -> {
+                buf.putInt(32)
+                Unit
+            }
+            is ErrorKind.TooLarge -> {
+                buf.putInt(33)
+                Unit
+            }
+            is ErrorKind.UnableToAuthorizeJoin -> {
+                buf.putInt(34)
+                Unit
+            }
+            is ErrorKind.UnableToGrantJoin -> {
+                buf.putInt(35)
+                Unit
+            }
+            is ErrorKind.Unauthorized -> {
+                buf.putInt(36)
+                Unit
+            }
+            is ErrorKind.Unknown -> {
+                buf.putInt(37)
+                Unit
+            }
+            is ErrorKind.UnknownToken -> {
+                buf.putInt(38)
+                FfiConverterBoolean.write(value.`softLogout`, buf)
+                Unit
+            }
+            is ErrorKind.Unrecognized -> {
+                buf.putInt(39)
+                Unit
+            }
+            is ErrorKind.UnsupportedRoomVersion -> {
+                buf.putInt(40)
+                Unit
+            }
+            is ErrorKind.UrlNotSet -> {
+                buf.putInt(41)
+                Unit
+            }
+            is ErrorKind.UserDeactivated -> {
+                buf.putInt(42)
+                Unit
+            }
+            is ErrorKind.UserInUse -> {
+                buf.putInt(43)
+                Unit
+            }
+            is ErrorKind.UserLocked -> {
+                buf.putInt(44)
+                Unit
+            }
+            is ErrorKind.UserSuspended -> {
+                buf.putInt(45)
+                Unit
+            }
+            is ErrorKind.WeakPassword -> {
+                buf.putInt(46)
+                Unit
+            }
+            is ErrorKind.WrongRoomKeysVersion -> {
+                buf.putInt(47)
+                FfiConverterOptionalString.write(value.`currentVersion`, buf)
+                Unit
+            }
+            is ErrorKind.Custom -> {
+                buf.putInt(48)
+                FfiConverterString.write(value.`errcode`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -38218,6 +39419,35 @@ public object FfiConverterOptionalUByte: FfiConverterRustBuffer<kotlin.UByte?> {
         } else {
             buf.put(1)
             FfiConverterUByte.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalUShort: FfiConverterRustBuffer<kotlin.UShort?> {
+    override fun read(buf: ByteBuffer): kotlin.UShort? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterUShort.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.UShort?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterUShort.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.UShort?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterUShort.write(value, buf)
         }
     }
 }
