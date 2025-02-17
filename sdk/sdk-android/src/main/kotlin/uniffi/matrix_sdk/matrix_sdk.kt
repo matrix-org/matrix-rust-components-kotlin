@@ -1475,9 +1475,10 @@ public object FfiConverterTypePaginatorState: FfiConverterRustBuffer<PaginatorSt
 sealed class QrCodeLoginException(message: String): kotlin.Exception(message) {
         
     /**
-     * An error happened while we were communicating with the OIDC provider.
+     * An error happened while we were communicating with the OAuth 2.0
+     * authorization server.
      */
-        class Oidc(message: String) : QrCodeLoginException(message)
+        class Oauth(message: String) : QrCodeLoginException(message)
         
     /**
      * The other device has signaled to us that the login has failed.
@@ -1501,7 +1502,8 @@ sealed class QrCodeLoginException(message: String): kotlin.Exception(message) {
         
     /**
      * An error happened while we were trying to discover our user and device
-     * ID, after we have acquired an access token from the OIDC provider.
+     * ID, after we have acquired an access token from the OAuth 2.0
+     * authorization server.
      */
         class UserIdDiscovery(message: String) : QrCodeLoginException(message)
         
@@ -1532,7 +1534,7 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
     override fun read(buf: ByteBuffer): QrCodeLoginException {
         
             return when(buf.getInt()) {
-            1 -> QrCodeLoginException.Oidc(FfiConverterString.read(buf))
+            1 -> QrCodeLoginException.Oauth(FfiConverterString.read(buf))
             2 -> QrCodeLoginException.LoginFailure(FfiConverterString.read(buf))
             3 -> QrCodeLoginException.UnexpectedMessage(FfiConverterString.read(buf))
             4 -> QrCodeLoginException.SecureChannel(FfiConverterString.read(buf))
@@ -1552,7 +1554,7 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
 
     override fun write(value: QrCodeLoginException, buf: ByteBuffer) {
         when(value) {
-            is QrCodeLoginException.Oidc -> {
+            is QrCodeLoginException.Oauth -> {
                 buf.putInt(1)
                 Unit
             }

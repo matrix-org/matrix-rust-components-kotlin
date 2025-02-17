@@ -2268,6 +2268,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -3021,7 +3027,9 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(`ptr`: Pointer,
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_device_verification(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_user_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -3217,12 +3225,16 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_useridentity(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_useridentity_has_verification_violation(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_useridentity_is_verified(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_useridentity_master_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_useridentity_pin(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_useridentity_was_previously_verified(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_useridentity_withdraw_verification(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriver(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -4093,7 +4105,9 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification(
+    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate(
     ): Short
@@ -4229,11 +4243,15 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_has_verification_violation(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_is_verified(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_was_previously_verified(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_withdraw_verification(
     ): Short
@@ -4633,7 +4651,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 56018.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build_with_qr_code() != 51905.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build_with_qr_code() != 42452.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_store_locks_holder_name() != 46627.toShort()) {
@@ -5308,7 +5326,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() != 64345.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_verification() != 17229.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification() != 4777.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification() != 26149.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate() != 42324.toShort()) {
@@ -5512,6 +5533,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count() != 35655.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_has_verification_violation() != 2948.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_is_verified() != 61954.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5519,6 +5543,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin() != 62925.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_was_previously_verified() != 41686.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_withdraw_verification() != 3578.toShort()) {
@@ -8166,8 +8193,8 @@ public interface ClientBuilderInterface {
      *
      * This method will build the client and immediately attempt to log the
      * client in using the provided [`QrCodeData`] using the login
-     * mechanism described in [MSC4108]. As such this methods requires OIDC
-     * support as well as sliding sync support.
+     * mechanism described in [MSC4108]. As such this methods requires OAuth
+     * 2.0 support as well as sliding sync support.
      *
      * The usage of the progress_listener is required to transfer the
      * [`CheckCode`] to the existing client.
@@ -8426,8 +8453,8 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
      *
      * This method will build the client and immediately attempt to log the
      * client in using the provided [`QrCodeData`] using the login
-     * mechanism described in [MSC4108]. As such this methods requires OIDC
-     * support as well as sliding sync support.
+     * mechanism described in [MSC4108]. As such this methods requires OAuth
+     * 2.0 support as well as sliding sync support.
      *
      * The usage of the progress_listener is required to transfer the
      * [`CheckCode`] to the existing client.
@@ -19193,7 +19220,12 @@ public interface SessionVerificationControllerInterface {
     /**
      * Request verification for the current device
      */
-    suspend fun `requestVerification`()
+    suspend fun `requestDeviceVerification`()
+    
+    /**
+     * Request verification for the given user
+     */
+    suspend fun `requestUserVerification`(`userId`: kotlin.String)
     
     fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)
     
@@ -19421,12 +19453,37 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `requestVerification`() {
+    override suspend fun `requestDeviceVerification`() {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_verification(
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_device_verification(
                 thisPtr,
                 
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Request verification for the given user
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `requestUserVerification`(`userId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_user_verification(
+                thisPtr,
+                FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -23671,6 +23728,11 @@ public object FfiConverterTypeUnreadNotificationsCount: FfiConverter<UnreadNotif
 public interface UserIdentityInterface {
     
     /**
+     * Was this identity previously verified, and is no longer?
+     */
+    fun `hasVerificationViolation`(): kotlin.Boolean
+    
+    /**
      * Is the user identity considered to be verified.
      *
      * If the identity belongs to another user, our own user identity needs to
@@ -23705,6 +23767,14 @@ public interface UserIdentityInterface {
      * which is not verified and is in pin violation.
      */
     suspend fun `pin`()
+    
+    /**
+     * True if we verified this identity at some point in the past.
+     *
+     * To reset this latch back to `false`, one must call
+     * [`UserIdentity::withdraw_verification()`].
+     */
+    fun `wasPreviouslyVerified`(): kotlin.Boolean
     
     /**
      * Remove the requirement for this identity to be verified.
@@ -23804,6 +23874,21 @@ open class UserIdentity: Disposable, AutoCloseable, UserIdentityInterface {
 
     
     /**
+     * Was this identity previously verified, and is no longer?
+     */override fun `hasVerificationViolation`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_useridentity_has_verification_violation(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Is the user identity considered to be verified.
      *
      * If the identity belongs to another user, our own user identity needs to
@@ -23877,6 +23962,24 @@ open class UserIdentity: Disposable, AutoCloseable, UserIdentityInterface {
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * True if we verified this identity at some point in the past.
+     *
+     * To reset this latch back to `false`, one must call
+     * [`UserIdentity::withdraw_verification()`].
+     */override fun `wasPreviouslyVerified`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_useridentity_was_previously_verified(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
     /**
@@ -27193,10 +27296,10 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
  * Details about the incoming verification request
  */
 data class SessionVerificationRequestDetails (
-    var `senderId`: kotlin.String, 
+    var `senderProfile`: UserProfile, 
     var `flowId`: kotlin.String, 
     var `deviceId`: kotlin.String, 
-    var `displayName`: kotlin.String?, 
+    var `deviceDisplayName`: kotlin.String?, 
     /**
      * First time this device was seen in milliseconds since epoch.
      */
@@ -27209,7 +27312,7 @@ data class SessionVerificationRequestDetails (
 public object FfiConverterTypeSessionVerificationRequestDetails: FfiConverterRustBuffer<SessionVerificationRequestDetails> {
     override fun read(buf: ByteBuffer): SessionVerificationRequestDetails {
         return SessionVerificationRequestDetails(
-            FfiConverterString.read(buf),
+            FfiConverterTypeUserProfile.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
@@ -27218,18 +27321,18 @@ public object FfiConverterTypeSessionVerificationRequestDetails: FfiConverterRus
     }
 
     override fun allocationSize(value: SessionVerificationRequestDetails) = (
-            FfiConverterString.allocationSize(value.`senderId`) +
+            FfiConverterTypeUserProfile.allocationSize(value.`senderProfile`) +
             FfiConverterString.allocationSize(value.`flowId`) +
             FfiConverterString.allocationSize(value.`deviceId`) +
-            FfiConverterOptionalString.allocationSize(value.`displayName`) +
+            FfiConverterOptionalString.allocationSize(value.`deviceDisplayName`) +
             FfiConverterTypeTimestamp.allocationSize(value.`firstSeenTimestamp`)
     )
 
     override fun write(value: SessionVerificationRequestDetails, buf: ByteBuffer) {
-            FfiConverterString.write(value.`senderId`, buf)
+            FfiConverterTypeUserProfile.write(value.`senderProfile`, buf)
             FfiConverterString.write(value.`flowId`, buf)
             FfiConverterString.write(value.`deviceId`, buf)
-            FfiConverterOptionalString.write(value.`displayName`, buf)
+            FfiConverterOptionalString.write(value.`deviceDisplayName`, buf)
             FfiConverterTypeTimestamp.write(value.`firstSeenTimestamp`, buf)
     }
 }
@@ -33899,8 +34002,8 @@ sealed class QrLoginProgress {
     }
     
     /**
-     * We are waiting for the login and for the OIDC provider to give us an
-     * access token.
+     * We are waiting for the login and for the OAuth 2.0 authorization server
+     * to give us an access token.
      */
     data class WaitingForToken(
         val `userCode`: kotlin.String) : QrLoginProgress() {
@@ -36307,74 +36410,26 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
 
 
 
-sealed class SlidingSyncVersion {
-    
-    object None : SlidingSyncVersion()
-    
-    
-    data class Proxy(
-        val `url`: kotlin.String) : SlidingSyncVersion() {
-        companion object
-    }
-    
-    object Native : SlidingSyncVersion()
-    
-    
 
+enum class SlidingSyncVersion {
     
+    NONE,
+    NATIVE;
     companion object
 }
 
-public object FfiConverterTypeSlidingSyncVersion : FfiConverterRustBuffer<SlidingSyncVersion>{
-    override fun read(buf: ByteBuffer): SlidingSyncVersion {
-        return when(buf.getInt()) {
-            1 -> SlidingSyncVersion.None
-            2 -> SlidingSyncVersion.Proxy(
-                FfiConverterString.read(buf),
-                )
-            3 -> SlidingSyncVersion.Native
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
+
+public object FfiConverterTypeSlidingSyncVersion: FfiConverterRustBuffer<SlidingSyncVersion> {
+    override fun read(buf: ByteBuffer) = try {
+        SlidingSyncVersion.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: SlidingSyncVersion) = when(value) {
-        is SlidingSyncVersion.None -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is SlidingSyncVersion.Proxy -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterString.allocationSize(value.`url`)
-            )
-        }
-        is SlidingSyncVersion.Native -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
+    override fun allocationSize(value: SlidingSyncVersion) = 4UL
 
     override fun write(value: SlidingSyncVersion, buf: ByteBuffer) {
-        when(value) {
-            is SlidingSyncVersion.None -> {
-                buf.putInt(1)
-                Unit
-            }
-            is SlidingSyncVersion.Proxy -> {
-                buf.putInt(2)
-                FfiConverterString.write(value.`url`, buf)
-                Unit
-            }
-            is SlidingSyncVersion.Native -> {
-                buf.putInt(3)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -36382,102 +36437,27 @@ public object FfiConverterTypeSlidingSyncVersion : FfiConverterRustBuffer<Slidin
 
 
 
-sealed class SlidingSyncVersionBuilder {
-    
-    object None : SlidingSyncVersionBuilder()
-    
-    
-    data class Proxy(
-        val `url`: kotlin.String) : SlidingSyncVersionBuilder() {
-        companion object
-    }
-    
-    object Native : SlidingSyncVersionBuilder()
-    
-    
-    object DiscoverProxy : SlidingSyncVersionBuilder()
-    
-    
-    object DiscoverNative : SlidingSyncVersionBuilder()
-    
-    
 
+enum class SlidingSyncVersionBuilder {
     
+    NONE,
+    NATIVE,
+    DISCOVER_NATIVE;
     companion object
 }
 
-public object FfiConverterTypeSlidingSyncVersionBuilder : FfiConverterRustBuffer<SlidingSyncVersionBuilder>{
-    override fun read(buf: ByteBuffer): SlidingSyncVersionBuilder {
-        return when(buf.getInt()) {
-            1 -> SlidingSyncVersionBuilder.None
-            2 -> SlidingSyncVersionBuilder.Proxy(
-                FfiConverterString.read(buf),
-                )
-            3 -> SlidingSyncVersionBuilder.Native
-            4 -> SlidingSyncVersionBuilder.DiscoverProxy
-            5 -> SlidingSyncVersionBuilder.DiscoverNative
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
+
+public object FfiConverterTypeSlidingSyncVersionBuilder: FfiConverterRustBuffer<SlidingSyncVersionBuilder> {
+    override fun read(buf: ByteBuffer) = try {
+        SlidingSyncVersionBuilder.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: SlidingSyncVersionBuilder) = when(value) {
-        is SlidingSyncVersionBuilder.None -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is SlidingSyncVersionBuilder.Proxy -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterString.allocationSize(value.`url`)
-            )
-        }
-        is SlidingSyncVersionBuilder.Native -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is SlidingSyncVersionBuilder.DiscoverProxy -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is SlidingSyncVersionBuilder.DiscoverNative -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
+    override fun allocationSize(value: SlidingSyncVersionBuilder) = 4UL
 
     override fun write(value: SlidingSyncVersionBuilder, buf: ByteBuffer) {
-        when(value) {
-            is SlidingSyncVersionBuilder.None -> {
-                buf.putInt(1)
-                Unit
-            }
-            is SlidingSyncVersionBuilder.Proxy -> {
-                buf.putInt(2)
-                FfiConverterString.write(value.`url`, buf)
-                Unit
-            }
-            is SlidingSyncVersionBuilder.Native -> {
-                buf.putInt(3)
-                Unit
-            }
-            is SlidingSyncVersionBuilder.DiscoverProxy -> {
-                buf.putInt(4)
-                Unit
-            }
-            is SlidingSyncVersionBuilder.DiscoverNative -> {
-                buf.putInt(5)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+        buf.putInt(value.ordinal + 1)
     }
 }
 
