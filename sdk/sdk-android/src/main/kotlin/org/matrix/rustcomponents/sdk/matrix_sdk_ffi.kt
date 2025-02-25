@@ -4552,7 +4552,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 35005.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 7576.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 37308.toShort()) {
@@ -6399,11 +6399,9 @@ public interface ClientInterface {
     suspend fun `loginWithOidcCallback`(`authorizationData`: OidcAuthorizationData, `callbackUrl`: kotlin.String)
     
     /**
-     * Log out the current user. This method returns an optional URL that
-     * should be presented to the user to complete logout (in the case of
-     * Session having been authenticated using OIDC).
+     * Log the current user out.
      */
-    suspend fun `logout`(): kotlin.String?
+    suspend fun `logout`()
     
     suspend fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClient
     
@@ -7470,13 +7468,11 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
-     * Log out the current user. This method returns an optional URL that
-     * should be presented to the user to complete logout (in the case of
-     * Session having been authenticated using OIDC).
+     * Log the current user out.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `logout`() : kotlin.String? {
+    override suspend fun `logout`() {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_logout(
@@ -7484,11 +7480,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
                 
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
         // lift function
-        { FfiConverterOptionalString.lift(it) },
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -24827,6 +24824,7 @@ data class CreateRoomParameters (
     var `avatar`: kotlin.String? = null, 
     var `powerLevelContentOverride`: PowerLevels? = null, 
     var `joinRuleOverride`: JoinRule? = null, 
+    var `historyVisibilityOverride`: RoomHistoryVisibility? = null, 
     var `canonicalAlias`: kotlin.String? = null
 ) {
     
@@ -24846,6 +24844,7 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalTypePowerLevels.read(buf),
             FfiConverterOptionalTypeJoinRule.read(buf),
+            FfiConverterOptionalTypeRoomHistoryVisibility.read(buf),
             FfiConverterOptionalString.read(buf),
         )
     }
@@ -24861,6 +24860,7 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
             FfiConverterOptionalString.allocationSize(value.`avatar`) +
             FfiConverterOptionalTypePowerLevels.allocationSize(value.`powerLevelContentOverride`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRuleOverride`) +
+            FfiConverterOptionalTypeRoomHistoryVisibility.allocationSize(value.`historyVisibilityOverride`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`)
     )
 
@@ -24875,6 +24875,7 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
             FfiConverterOptionalString.write(value.`avatar`, buf)
             FfiConverterOptionalTypePowerLevels.write(value.`powerLevelContentOverride`, buf)
             FfiConverterOptionalTypeJoinRule.write(value.`joinRuleOverride`, buf)
+            FfiConverterOptionalTypeRoomHistoryVisibility.write(value.`historyVisibilityOverride`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
     }
 }
@@ -40820,6 +40821,35 @@ public object FfiConverterOptionalTypePushFormat: FfiConverterRustBuffer<PushFor
         } else {
             buf.put(1)
             FfiConverterTypePushFormat.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeRoomHistoryVisibility: FfiConverterRustBuffer<RoomHistoryVisibility?> {
+    override fun read(buf: ByteBuffer): RoomHistoryVisibility? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRoomHistoryVisibility.read(buf)
+    }
+
+    override fun allocationSize(value: RoomHistoryVisibility?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRoomHistoryVisibility.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RoomHistoryVisibility?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRoomHistoryVisibility.write(value, buf)
         }
     }
 }
