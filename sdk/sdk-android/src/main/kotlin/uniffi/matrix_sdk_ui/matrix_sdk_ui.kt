@@ -874,26 +874,6 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
 
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1UL
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
-
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -983,80 +963,6 @@ public object FfiConverterTypeEventItemOrigin: FfiConverterRustBuffer<EventItemO
 
     override fun write(value: EventItemOrigin, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-/**
- * Status for the back-pagination on a live timeline.
- */
-sealed class LiveBackPaginationStatus {
-    
-    /**
-     * No back-pagination is happening right now.
-     */
-    data class Idle(
-        /**
-         * Have we hit the start of the timeline, i.e. back-paginating wouldn't
-         * have any effect?
-         */
-        val `hitStartOfTimeline`: kotlin.Boolean) : LiveBackPaginationStatus() {
-        companion object
-    }
-    
-    /**
-     * Back-pagination is already running in the background.
-     */
-    object Paginating : LiveBackPaginationStatus()
-    
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeLiveBackPaginationStatus : FfiConverterRustBuffer<LiveBackPaginationStatus>{
-    override fun read(buf: ByteBuffer): LiveBackPaginationStatus {
-        return when(buf.getInt()) {
-            1 -> LiveBackPaginationStatus.Idle(
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> LiveBackPaginationStatus.Paginating
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: LiveBackPaginationStatus) = when(value) {
-        is LiveBackPaginationStatus.Idle -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`hitStartOfTimeline`)
-            )
-        }
-        is LiveBackPaginationStatus.Paginating -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: LiveBackPaginationStatus, buf: ByteBuffer) {
-        when(value) {
-            is LiveBackPaginationStatus.Idle -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`hitStartOfTimeline`, buf)
-                Unit
-            }
-            is LiveBackPaginationStatus.Paginating -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 

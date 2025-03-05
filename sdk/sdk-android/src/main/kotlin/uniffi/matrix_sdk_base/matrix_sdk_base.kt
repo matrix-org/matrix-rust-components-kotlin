@@ -874,6 +874,26 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
 
+public object FfiConverterULong: FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8UL
+
+    override fun write(value: ULong, buf: ByteBuffer) {
+        buf.putLong(value.toLong())
+    }
+}
+
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -925,6 +945,196 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+
+public object FfiConverterDuration: FfiConverterRustBuffer<java.time.Duration> {
+    override fun read(buf: ByteBuffer): java.time.Duration {
+        // Type mismatch (should be u64) but we check for overflow/underflow below
+        val seconds = buf.getLong()
+        // Type mismatch (should be u32) but we check for overflow/underflow below
+        val nanoseconds = buf.getInt().toLong()
+        if (seconds < 0) {
+            throw java.time.DateTimeException("Duration exceeds minimum or maximum value supported by uniffi")
+        }
+        if (nanoseconds < 0) {
+            throw java.time.DateTimeException("Duration nanoseconds exceed minimum or maximum supported by uniffi")
+        }
+        return java.time.Duration.ofSeconds(seconds, nanoseconds)
+    }
+
+    // 8 bytes for seconds, 4 bytes for nanoseconds
+    override fun allocationSize(value: java.time.Duration) = 12UL
+
+    override fun write(value: java.time.Duration, buf: ByteBuffer) {
+        if (value.seconds < 0) {
+            // Rust does not support negative Durations
+            throw IllegalArgumentException("Invalid duration, must be non-negative")
+        }
+
+        if (value.nano < 0) {
+            // Java docs provide guarantee that nano will always be positive, so this should be impossible
+            // See: https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html
+            throw IllegalArgumentException("Invalid duration, nano value must be non-negative")
+        }
+
+        // Type mismatch (should be u64) but since Rust doesn't support negative durations we should be OK
+        buf.putLong(value.seconds)
+        // Type mismatch (should be u32) but since values will always be between 0 and 999,999,999 it should be OK
+        buf.putInt(value.nano)
+    }
+}
+
+
+
+/**
+ * The retention policy for media content used by the [`EventCacheStore`].
+ *
+ * [`EventCacheStore`]: crate::event_cache::store::EventCacheStore
+ */
+data class MediaRetentionPolicy (
+    /**
+     * The maximum authorized size of the overall media cache, in bytes.
+     *
+     * The cache size is defined as the sum of the sizes of all the (possibly
+     * encrypted) media contents in the cache, excluding any metadata
+     * associated with them.
+     *
+     * If this is set and the cache size is bigger than this value, the oldest
+     * media contents in the cache will be removed during a cleanup until the
+     * cache size is below this threshold.
+     *
+     * Note that it is possible for the cache size to temporarily exceed this
+     * value between two cleanups.
+     *
+     * Defaults to 400 MiB.
+     */
+    var `maxCacheSize`: kotlin.ULong?, 
+    /**
+     * The maximum authorized size of a single media content, in bytes.
+     *
+     * The size of a media content is the size taken by the content in the
+     * database, after it was possibly encrypted, so it might differ from the
+     * initial size of the content.
+     *
+     * The maximum authorized size of a single media content is actually the
+     * lowest value between `max_cache_size` and `max_file_size`.
+     *
+     * If it is set, media content bigger than the maximum size will not be
+     * cached. If the maximum size changed after media content that exceeds the
+     * new value was cached, the corresponding content will be removed
+     * during a cleanup.
+     *
+     * Defaults to 20 MiB.
+     */
+    var `maxFileSize`: kotlin.ULong?, 
+    /**
+     * The duration after which unaccessed media content is considered
+     * expired.
+     *
+     * If this is set, media content whose last access is older than this
+     * duration will be removed from the media cache during a cleanup.
+     *
+     * Defaults to 60 days.
+     */
+    var `lastAccessExpiry`: java.time.Duration?, 
+    /**
+     * The duration between two automatic media cache cleanups.
+     *
+     * If this is set, a cleanup will be triggered after the given duration
+     * is elapsed, at the next call to the media cache API. If this is set to
+     * zero, each call to the media cache API will trigger a cleanup. If this
+     * is `None`, cleanups will only occur if they are triggered manually.
+     *
+     * Defaults to running cleanups daily.
+     */
+    var `cleanupFrequency`: java.time.Duration?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMediaRetentionPolicy: FfiConverterRustBuffer<MediaRetentionPolicy> {
+    override fun read(buf: ByteBuffer): MediaRetentionPolicy {
+        return MediaRetentionPolicy(
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalDuration.read(buf),
+            FfiConverterOptionalDuration.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MediaRetentionPolicy) = (
+            FfiConverterOptionalULong.allocationSize(value.`maxCacheSize`) +
+            FfiConverterOptionalULong.allocationSize(value.`maxFileSize`) +
+            FfiConverterOptionalDuration.allocationSize(value.`lastAccessExpiry`) +
+            FfiConverterOptionalDuration.allocationSize(value.`cleanupFrequency`)
+    )
+
+    override fun write(value: MediaRetentionPolicy, buf: ByteBuffer) {
+            FfiConverterOptionalULong.write(value.`maxCacheSize`, buf)
+            FfiConverterOptionalULong.write(value.`maxFileSize`, buf)
+            FfiConverterOptionalDuration.write(value.`lastAccessExpiry`, buf)
+            FfiConverterOptionalDuration.write(value.`cleanupFrequency`, buf)
+    }
+}
+
+
+
+
+public object FfiConverterOptionalULong: FfiConverterRustBuffer<kotlin.ULong?> {
+    override fun read(buf: ByteBuffer): kotlin.ULong? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterULong.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.ULong?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterULong.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.ULong?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterULong.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalDuration: FfiConverterRustBuffer<java.time.Duration?> {
+    override fun read(buf: ByteBuffer): java.time.Duration? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterDuration.read(buf)
+    }
+
+    override fun allocationSize(value: java.time.Duration?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterDuration.allocationSize(value)
+        }
+    }
+
+    override fun write(value: java.time.Duration?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterDuration.write(value, buf)
+        }
     }
 }
 

@@ -44,10 +44,14 @@ import uniffi.matrix_sdk.BackupDownloadStrategy
 import uniffi.matrix_sdk.FfiConverterTypeBackupDownloadStrategy
 import uniffi.matrix_sdk.FfiConverterTypeOidcAuthorizationData
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
+import uniffi.matrix_sdk.FfiConverterTypeRoomPaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.OidcAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
+import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
+import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
+import uniffi.matrix_sdk_base.MediaRetentionPolicy
 import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
 import uniffi.matrix_sdk_common.ShieldStateCode
 import uniffi.matrix_sdk_crypto.CollectStrategy
@@ -60,21 +64,20 @@ import uniffi.matrix_sdk_crypto.TrustRequirement
 import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
-import uniffi.matrix_sdk_ui.FfiConverterTypeLiveBackPaginationStatus
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
-import uniffi.matrix_sdk_ui.LiveBackPaginationStatus
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferOidcAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
+import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
+import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferTrustRequirement
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
-import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLiveBackPaginationStatus
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
@@ -715,7 +718,7 @@ internal interface UniffiCallbackInterfaceNotificationSettingsDelegateMethod0 : 
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfacePaginationStatusListenerMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`status`: RustBufferLiveBackPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`status`: RustBufferRoomPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceProgressWatcherMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`progress`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -2274,6 +2277,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2347,6 +2356,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Pointer,`request`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(`ptr`: Pointer,`jwt`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
@@ -2436,6 +2447,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_delegate(`ptr`: Pointer,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(`ptr`: Pointer,`policy`: RustBufferMediaRetentionPolicy.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,
     ): Long
@@ -2820,6 +2833,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_remove_room_alias_from_room_directory(`ptr`: Pointer,`alias`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_report_content(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,`score`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_report_room(`ptr`: Pointer,`reason`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_reset_power_levels(`ptr`: Pointer,
     ): Long
@@ -3529,6 +3544,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt(
@@ -3618,6 +3635,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_delegate(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher(
     ): Short
@@ -3942,6 +3961,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_room_alias_from_room_directory(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_report_content(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_report_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels(
     ): Short
@@ -4462,6 +4483,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account() != 39890.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches() != 47085.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() != 52700.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4595,6 +4619,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name() != 15292.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy() != 2414.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() != 41975.toShort()) {
@@ -5081,6 +5108,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_content() != 16529.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_room() != 8059.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels() != 63622.toShort()) {
@@ -5620,7 +5650,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 51708.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update() != 29884.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update() != 65318.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress() != 41133.toShort()) {
@@ -6253,6 +6283,16 @@ public interface ClientInterface {
      */
     fun `canDeactivateAccount`(): kotlin.Boolean
     
+    /**
+     * Clear all the non-critical caches for this Client instance.
+     *
+     * - This will empty all the room's persisted event caches, so all rooms
+     * will start as if they were empty.
+     * - This will empty the media cache according to the current media
+     * retention policy.
+     */
+    suspend fun `clearCaches`()
+    
     suspend fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
     
     /**
@@ -6465,6 +6505,11 @@ public interface ClientInterface {
     fun `setDelegate`(`delegate`: ClientDelegate?): TaskHandle?
     
     suspend fun `setDisplayName`(`name`: kotlin.String)
+    
+    /**
+     * Set the media retention policy.
+     */
+    suspend fun `setMediaRetentionPolicy`(`policy`: MediaRetentionPolicy)
     
     /**
      * Registers a pusher with given parameters
@@ -6787,6 +6832,36 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     )
     }
     
+
+    
+    /**
+     * Clear all the non-critical caches for this Client instance.
+     *
+     * - This will empty all the room's persisted event caches, so all rooms
+     * will start as if they were empty.
+     * - This will empty the media cache according to the current media
+     * retention policy.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `clearCaches`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -7768,6 +7843,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(
                 thisPtr,
                 FfiConverterString.lower(`name`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Set the media retention policy.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setMediaRetentionPolicy`(`policy`: MediaRetentionPolicy) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(
+                thisPtr,
+                FfiConverterTypeMediaRetentionPolicy.lower(`policy`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -13274,6 +13374,20 @@ public interface RoomInterface {
      */
     suspend fun `reportContent`(`eventId`: kotlin.String, `score`: kotlin.Int?, `reason`: kotlin.String?)
     
+    /**
+     * Reports a room as inappropriate to the server.
+     * The caller is not required to be joined to the room to report it.
+     *
+     * # Arguments
+     *
+     * * `reason` - The reason the room is being reported.
+     *
+     * # Errors
+     *
+     * Returns an error if the room is not found or on rate limit
+     */
+    suspend fun `reportRoom`(`reason`: kotlin.String?)
+    
     suspend fun `resetPowerLevels`(): RoomPowerLevels
     
     /**
@@ -14794,6 +14908,40 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_report_content(
                 thisPtr,
                 FfiConverterString.lower(`eventId`),FfiConverterOptionalInt.lower(`score`),FfiConverterOptionalString.lower(`reason`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Reports a room as inappropriate to the server.
+     * The caller is not required to be joined to the room to report it.
+     *
+     * # Arguments
+     *
+     * * `reason` - The reason the room is being reported.
+     *
+     * # Errors
+     *
+     * Returns an error if the room is not found or on rate limit
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `reportRoom`(`reason`: kotlin.String?) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_report_room(
+                thisPtr,
+                FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -27446,14 +27594,6 @@ public object FfiConverterTypeThumbnailInfo: FfiConverterRustBuffer<ThumbnailInf
 
 /**
  * Various options used to configure the timeline's behavior.
- *
- * # Arguments
- *
- * * `internal_id_prefix` -
- *
- * * `allowed_message_types` -
- *
- * * `date_divider_mode` -
  */
 data class TimelineConfiguration (
     /**
@@ -27461,10 +27601,9 @@ data class TimelineConfiguration (
      */
     var `focus`: TimelineFocus, 
     /**
-     * A list of [`RoomMessageEventMessageType`] that will be allowed to appear
-     * in the timeline
+     * How should we filter out events from the timeline?
      */
-    var `allowedMessageTypes`: AllowedMessageTypes, 
+    var `filter`: TimelineFilter, 
     /**
      * An optional String that will be prepended to
      * all the timeline item's internal IDs, making it possible to
@@ -27474,8 +27613,31 @@ data class TimelineConfiguration (
     /**
      * How often to insert date dividers
      */
-    var `dateDividerMode`: DateDividerMode
-) {
+    var `dateDividerMode`: DateDividerMode, 
+    /**
+     * Should the read receipts and read markers be tracked for the timeline
+     * items in this instance?
+     *
+     * As this has a non negligible performance impact, make sure to enable it
+     * only when you need it.
+     */
+    var `trackReadReceipts`: kotlin.Boolean
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+        Disposable.destroy(this.`focus`)
+    
+        Disposable.destroy(this.`filter`)
+    
+        Disposable.destroy(this.`internalIdPrefix`)
+    
+        Disposable.destroy(this.`dateDividerMode`)
+    
+        Disposable.destroy(this.`trackReadReceipts`)
+    
+    }
     
     companion object
 }
@@ -27484,24 +27646,27 @@ public object FfiConverterTypeTimelineConfiguration: FfiConverterRustBuffer<Time
     override fun read(buf: ByteBuffer): TimelineConfiguration {
         return TimelineConfiguration(
             FfiConverterTypeTimelineFocus.read(buf),
-            FfiConverterTypeAllowedMessageTypes.read(buf),
+            FfiConverterTypeTimelineFilter.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeDateDividerMode.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
     override fun allocationSize(value: TimelineConfiguration) = (
             FfiConverterTypeTimelineFocus.allocationSize(value.`focus`) +
-            FfiConverterTypeAllowedMessageTypes.allocationSize(value.`allowedMessageTypes`) +
+            FfiConverterTypeTimelineFilter.allocationSize(value.`filter`) +
             FfiConverterOptionalString.allocationSize(value.`internalIdPrefix`) +
-            FfiConverterTypeDateDividerMode.allocationSize(value.`dateDividerMode`)
+            FfiConverterTypeDateDividerMode.allocationSize(value.`dateDividerMode`) +
+            FfiConverterBoolean.allocationSize(value.`trackReadReceipts`)
     )
 
     override fun write(value: TimelineConfiguration, buf: ByteBuffer) {
             FfiConverterTypeTimelineFocus.write(value.`focus`, buf)
-            FfiConverterTypeAllowedMessageTypes.write(value.`allowedMessageTypes`, buf)
+            FfiConverterTypeTimelineFilter.write(value.`filter`, buf)
             FfiConverterOptionalString.write(value.`internalIdPrefix`, buf)
             FfiConverterTypeDateDividerMode.write(value.`dateDividerMode`, buf)
+            FfiConverterBoolean.write(value.`trackReadReceipts`, buf)
     }
 }
 
@@ -28544,67 +28709,6 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
             is AllowRule.Custom -> {
                 buf.putInt(2)
                 FfiConverterString.write(value.`json`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-sealed class AllowedMessageTypes {
-    
-    object All : AllowedMessageTypes()
-    
-    
-    data class Only(
-        val `types`: List<RoomMessageEventMessageType>) : AllowedMessageTypes() {
-        companion object
-    }
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeAllowedMessageTypes : FfiConverterRustBuffer<AllowedMessageTypes>{
-    override fun read(buf: ByteBuffer): AllowedMessageTypes {
-        return when(buf.getInt()) {
-            1 -> AllowedMessageTypes.All
-            2 -> AllowedMessageTypes.Only(
-                FfiConverterSequenceTypeRoomMessageEventMessageType.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: AllowedMessageTypes) = when(value) {
-        is AllowedMessageTypes.All -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is AllowedMessageTypes.Only -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterSequenceTypeRoomMessageEventMessageType.allocationSize(value.`types`)
-            )
-        }
-    }
-
-    override fun write(value: AllowedMessageTypes, buf: ByteBuffer) {
-        when(value) {
-            is AllowedMessageTypes.All -> {
-                buf.putInt(1)
-                Unit
-            }
-            is AllowedMessageTypes.Only -> {
-                buf.putInt(2)
-                FfiConverterSequenceTypeRoomMessageEventMessageType.write(value.`types`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -37101,6 +37205,120 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
 
 
 
+sealed class TimelineFilter: Disposable  {
+    
+    /**
+     * Show all the events in the timeline, independent of their type.
+     */
+    object All : TimelineFilter()
+    
+    
+    /**
+     * Show only `m.room.messages` of the given room message types.
+     */
+    data class OnlyMessage(
+        /**
+         * A list of [`RoomMessageEventMessageType`] that will be allowed to
+         * appear in the timeline.
+         */
+        val `types`: List<RoomMessageEventMessageType>) : TimelineFilter() {
+        companion object
+    }
+    
+    /**
+     * Show only events which match this filter.
+     */
+    data class EventTypeFilter(
+        val `filter`: TimelineEventTypeFilter) : TimelineFilter() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is TimelineFilter.All -> {// Nothing to destroy
+            }
+            is TimelineFilter.OnlyMessage -> {
+                
+        Disposable.destroy(this.`types`)
+    
+                
+            }
+            is TimelineFilter.EventTypeFilter -> {
+                
+        Disposable.destroy(this.`filter`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeTimelineFilter : FfiConverterRustBuffer<TimelineFilter>{
+    override fun read(buf: ByteBuffer): TimelineFilter {
+        return when(buf.getInt()) {
+            1 -> TimelineFilter.All
+            2 -> TimelineFilter.OnlyMessage(
+                FfiConverterSequenceTypeRoomMessageEventMessageType.read(buf),
+                )
+            3 -> TimelineFilter.EventTypeFilter(
+                FfiConverterTypeTimelineEventTypeFilter.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: TimelineFilter) = when(value) {
+        is TimelineFilter.All -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineFilter.OnlyMessage -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeRoomMessageEventMessageType.allocationSize(value.`types`)
+            )
+        }
+        is TimelineFilter.EventTypeFilter -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimelineEventTypeFilter.allocationSize(value.`filter`)
+            )
+        }
+    }
+
+    override fun write(value: TimelineFilter, buf: ByteBuffer) {
+        when(value) {
+            is TimelineFilter.All -> {
+                buf.putInt(1)
+                Unit
+            }
+            is TimelineFilter.OnlyMessage -> {
+                buf.putInt(2)
+                FfiConverterSequenceTypeRoomMessageEventMessageType.write(value.`types`, buf)
+                Unit
+            }
+            is TimelineFilter.EventTypeFilter -> {
+                buf.putInt(3)
+                FfiConverterTypeTimelineEventTypeFilter.write(value.`filter`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class TimelineFocus {
     
     object Live : TimelineFocus()
@@ -38406,7 +38624,7 @@ public object FfiConverterTypeNotificationSettingsDelegate: FfiConverterCallback
 
 public interface PaginationStatusListener {
     
-    fun `onUpdate`(`status`: LiveBackPaginationStatus)
+    fun `onUpdate`(`status`: RoomPaginationStatus)
     
     companion object
 }
@@ -38416,11 +38634,11 @@ public interface PaginationStatusListener {
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfacePaginationStatusListener {
     internal object `onUpdate`: UniffiCallbackInterfacePaginationStatusListenerMethod0 {
-        override fun callback(`uniffiHandle`: Long,`status`: RustBufferLiveBackPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBufferRoomPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypePaginationStatusListener.handleMap.get(uniffiHandle)
             val makeCall = { ->
                 uniffiObj.`onUpdate`(
-                    FfiConverterTypeLiveBackPaginationStatus.lift(`status`),
+                    FfiConverterTypeRoomPaginationStatus.lift(`status`),
                 )
             }
             val writeReturn = { _: Unit -> Unit }
@@ -42188,6 +42406,10 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
         }
     }
 }
+
+
+
+
 
 
 
