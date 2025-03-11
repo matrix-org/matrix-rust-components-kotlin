@@ -1082,6 +1082,47 @@ public object FfiConverterTypeMediaRetentionPolicy: FfiConverterRustBuffer<Media
 
 
 
+/**
+ * Represents the state of a room encryption.
+ */
+
+enum class EncryptionState {
+    
+    /**
+     * The room is encrypted.
+     */
+    ENCRYPTED,
+    /**
+     * The room is not encrypted.
+     */
+    NOT_ENCRYPTED,
+    /**
+     * The state of the room encryption is unknown, probably because the
+     * `/sync` did not provide all data needed to decide.
+     */
+    UNKNOWN;
+    companion object
+}
+
+
+public object FfiConverterTypeEncryptionState: FfiConverterRustBuffer<EncryptionState> {
+    override fun read(buf: ByteBuffer) = try {
+        EncryptionState.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: EncryptionState) = 4UL
+
+    override fun write(value: EncryptionState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
 
 public object FfiConverterOptionalULong: FfiConverterRustBuffer<kotlin.ULong?> {
     override fun read(buf: ByteBuffer): kotlin.ULong? {

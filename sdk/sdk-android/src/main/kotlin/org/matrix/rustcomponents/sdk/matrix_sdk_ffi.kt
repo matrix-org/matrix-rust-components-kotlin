@@ -50,6 +50,8 @@ import uniffi.matrix_sdk.OidcAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
+import uniffi.matrix_sdk_base.EncryptionState
+import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
 import uniffi.matrix_sdk_base.MediaRetentionPolicy
 import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
@@ -71,6 +73,7 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferOidcAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
+import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
@@ -2388,6 +2391,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_get_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_alias(`ptr`: Pointer,`roomAlias`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_id(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`viaServers`: RustBuffer.ByValue,
@@ -2758,6 +2763,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_enable_send_queue(`ptr`: Pointer,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_room_encryption_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferEncryptionState.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_forget(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(`ptr`: Pointer,
@@ -2778,11 +2785,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_invited_members_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_inviter(`ptr`: Pointer,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_direct(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_room_is_encrypted(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_public(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
@@ -2797,6 +2800,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_joined_members_count(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_kick_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_latest_encryption_state(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,
     ): Long
@@ -2960,8 +2965,6 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_init_timeline(`ptr`: Pointer,`eventTypeFilter`: RustBuffer.ByValue,`internalIdPrefix`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_invited_room(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_is_direct(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_roomlistitem_is_encrypted(`ptr`: Pointer,
@@ -3576,6 +3579,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id(
@@ -3886,6 +3891,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_forget(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels(
@@ -3906,11 +3913,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_invited_members_count(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_inviter(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_is_direct(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_is_encrypted(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_is_public(
     ): Short
@@ -3925,6 +3928,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_kick_user(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_encryption_state(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
     ): Short
@@ -4067,8 +4072,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_init_timeline(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_invited_room(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_is_direct(
     ): Short
@@ -4531,6 +4534,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room() != 30376.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias() != 7674.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4654,7 +4660,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_media() != 51195.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc() != 30079.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc() != 22103.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id() != 40531.toShort()) {
@@ -4996,6 +5002,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue() != 23914.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state() != 9101.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_forget() != 37840.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5026,13 +5035,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_invited_members_count() != 1023.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_inviter() != 49874.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_direct() != 16947.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_encrypted() != 55158.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_public() != 7336.toShort()) {
@@ -5054,6 +5057,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_kick_user() != 28600.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_latest_encryption_state() != 16843.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 63688.toShort()) {
@@ -5269,9 +5275,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_init_timeline() != 61817.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_invited_room() != 44344.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistitem_is_direct() != 46873.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5323,7 +5326,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_inviter() != 1297.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave() != 5096.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave() != 21886.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_details() != 1443.toShort()) {
@@ -6353,6 +6356,21 @@ public interface ClientInterface {
     suspend fun `getRecentlyVisitedRooms`(): List<kotlin.String>
     
     /**
+     * Get a room by its ID.
+     *
+     * # Arguments
+     *
+     * * `room_id` - The ID of the room to get.
+     *
+     * # Returns
+     *
+     * A `Result` containing an optional room, or a `ClientError`.
+     * This method will not initialize the room's timeline or populate it with
+     * events.
+     */
+    fun `getRoom`(`roomId`: kotlin.String): Room?
+    
+    /**
      * Given a room alias, get the preview of a room, to interact with it.
      */
     suspend fun `getRoomPreviewFromRoomAlias`(`roomAlias`: kotlin.String): RoomPreview
@@ -6552,8 +6570,18 @@ public interface ClientInterface {
      * view has succeeded, call `login_with_oidc_callback` with the callback it
      * returns. If a failure occurs and a callback isn't available, make sure
      * to call `abort_oidc_auth` to inform the client of this.
+     *
+     * # Arguments
+     *
+     * * `oidc_configuration` - The configuration used to load the credentials
+     * of the client if it is already registered with the authorization
+     * server, or register the client and store its credentials if it isn't.
+     *
+     * * `prompt` - The desired user experience in the web UI. No value means
+     * that the user wishes to login into an existing account, and a value of
+     * `Create` means that the user wishes to register a new account.
      */
-    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt): OidcAuthorizationData
+    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?): OidcAuthorizationData
     
     fun `userId`(): kotlin.String
     
@@ -7175,6 +7203,32 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Get a room by its ID.
+     *
+     * # Arguments
+     *
+     * * `room_id` - The ID of the room to get.
+     *
+     * # Returns
+     *
+     * A `Result` containing an optional room, or a `ClientError`.
+     * This method will not initialize the room's timeline or populate it with
+     * events.
+     */
+    @Throws(ClientException::class)override fun `getRoom`(`roomId`: kotlin.String): Room? {
+            return FfiConverterOptionalTypeRoom.lift(
+    callWithPointer {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_room(
+        it, FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    )
+    }
+    
 
     
     /**
@@ -8081,15 +8135,25 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      * view has succeeded, call `login_with_oidc_callback` with the callback it
      * returns. If a failure occurs and a callback isn't available, make sure
      * to call `abort_oidc_auth` to inform the client of this.
+     *
+     * # Arguments
+     *
+     * * `oidc_configuration` - The configuration used to load the credentials
+     * of the client if it is already registered with the authorization
+     * server, or register the client and store its credentials if it isn't.
+     *
+     * * `prompt` - The desired user experience in the web UI. No value means
+     * that the user wishes to login into an existing account, and a value of
+     * `Create` means that the user wishes to register a new account.
      */
     @Throws(OidcException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt) : OidcAuthorizationData {
+    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?) : OidcAuthorizationData {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(
                 thisPtr,
-                FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterTypeOidcPrompt.lower(`prompt`),
+                FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalTypeOidcPrompt.lower(`prompt`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
@@ -13188,6 +13252,8 @@ public interface RoomInterface {
      */
     fun `enableSendQueue`(`enable`: kotlin.Boolean)
     
+    fun `encryptionState`(): EncryptionState
+    
     /**
      * Forget this room.
      *
@@ -13247,15 +13313,7 @@ public interface RoomInterface {
     
     fun `invitedMembersCount`(): kotlin.ULong
     
-    /**
-     * For rooms one is invited to, retrieves the room member information for
-     * the user who invited the logged-in user to a room.
-     */
-    suspend fun `inviter`(): RoomMember?
-    
     fun `isDirect`(): kotlin.Boolean
-    
-    fun `isEncrypted`(): kotlin.Boolean
     
     fun `isPublic`(): kotlin.Boolean
     
@@ -13279,6 +13337,8 @@ public interface RoomInterface {
     fun `joinedMembersCount`(): kotlin.ULong
     
     suspend fun `kickUser`(`userId`: kotlin.String, `reason`: kotlin.String?)
+    
+    suspend fun `latestEncryptionState`(): EncryptionState
     
     /**
      * Leave this room.
@@ -14128,6 +14188,18 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     
     
 
+    override fun `encryptionState`(): EncryptionState {
+            return FfiConverterTypeEncryptionState.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_encryption_state(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
     
     /**
      * Forget this room.
@@ -14345,48 +14417,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     }
     
 
-    
-    /**
-     * For rooms one is invited to, retrieves the room member information for
-     * the user who invited the logged-in user to a room.
-     */
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `inviter`() : RoomMember? {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_inviter(
-                thisPtr,
-                
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
-        // lift function
-        { FfiConverterOptionalTypeRoomMember.lift(it) },
-        // Error FFI converter
-        UniffiNullRustCallStatusErrorHandler,
-    )
-    }
-
     override fun `isDirect`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_is_direct(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-    @Throws(ClientException::class)override fun `isEncrypted`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
-    callWithPointer {
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_is_encrypted(
         it, _status)
 }
     }
@@ -14502,6 +14537,27 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         // lift function
         { Unit },
         
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `latestEncryptionState`() : EncryptionState {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_latest_encryption_state(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation).let { RustBufferEncryptionState.create(it.capacity.toULong(), it.len.toULong(), it.data) } },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeEncryptionState.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -17076,17 +17132,6 @@ public interface RoomListItemInterface {
      */
     suspend fun `initTimeline`(`eventTypeFilter`: TimelineEventTypeFilter?, `internalIdPrefix`: kotlin.String?)
     
-    /**
-     * Builds a `Room` FFI from an invited room without initializing its
-     * internal timeline.
-     *
-     * An error will be returned if the room is a state different than invited.
-     *
-     * ⚠️ Holding on to this room instance after it has been joined is not
-     * safe. Use `full_room` instead.
-     */
-    fun `invitedRoom`(): Room
-    
     fun `isDirect`(): kotlin.Boolean
     
     /**
@@ -17304,28 +17349,6 @@ open class RoomListItem: Disposable, AutoCloseable, RoomListItemInterface {
         RoomListException.ErrorHandler,
     )
     }
-
-    
-    /**
-     * Builds a `Room` FFI from an invited room without initializing its
-     * internal timeline.
-     *
-     * An error will be returned if the room is a state different than invited.
-     *
-     * ⚠️ Holding on to this room instance after it has been joined is not
-     * safe. Use `full_room` instead.
-     */
-    @Throws(RoomListException::class)override fun `invitedRoom`(): Room {
-            return FfiConverterTypeRoom.lift(
-    callWithPointer {
-    uniffiRustCallWithError(RoomListException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlistitem_invited_room(
-        it, _status)
-}
-    }
-    )
-    }
-    
 
     override fun `isDirect`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
@@ -18394,6 +18417,9 @@ public interface RoomPreviewInterface {
      * Leave the room if the room preview state is either joined, invited or
      * knocked.
      *
+     * If rejecting an invite then also forget it as an extra layer of
+     * protection against spam attacks.
+     *
      * Will return an error otherwise.
      */
     suspend fun `leave`()
@@ -18559,6 +18585,9 @@ open class RoomPreview: Disposable, AutoCloseable, RoomPreviewInterface {
     /**
      * Leave the room if the room preview state is either joined, invited or
      * knocked.
+     *
+     * If rejecting an invite then also forget it as an extra layer of
+     * protection against spam attacks.
      *
      * Will return an error otherwise.
      */
@@ -26778,6 +26807,7 @@ public object FfiConverterTypeRoomHero: FfiConverterRustBuffer<RoomHero> {
 
 data class RoomInfo (
     var `id`: kotlin.String, 
+    var `encryptionState`: EncryptionState, 
     var `creator`: kotlin.String?, 
     /**
      * The room's name from the room state event if received from sync, or one
@@ -26856,6 +26886,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
     override fun read(buf: ByteBuffer): RoomInfo {
         return RoomInfo(
             FfiConverterString.read(buf),
+            FfiConverterTypeEncryptionState.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
@@ -26892,6 +26923,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
 
     override fun allocationSize(value: RoomInfo) = (
             FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterTypeEncryptionState.allocationSize(value.`encryptionState`) +
             FfiConverterOptionalString.allocationSize(value.`creator`) +
             FfiConverterOptionalString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`rawName`) +
@@ -26927,6 +26959,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
             FfiConverterString.write(value.`id`, buf)
+            FfiConverterTypeEncryptionState.write(value.`encryptionState`, buf)
             FfiConverterOptionalString.write(value.`creator`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`rawName`, buf)
@@ -33172,38 +33205,6 @@ public object FfiConverterTypeOidcError : FfiConverterRustBuffer<OidcException> 
 sealed class OidcPrompt {
     
     /**
-     * The Authorization Server must not display any authentication or consent
-     * user interface pages.
-     */
-    object None : OidcPrompt()
-    
-    
-    /**
-     * The Authorization Server should prompt the End-User for
-     * reauthentication.
-     */
-    object Login : OidcPrompt()
-    
-    
-    /**
-     * The Authorization Server should prompt the End-User for consent before
-     * returning information to the Client.
-     */
-    object Consent : OidcPrompt()
-    
-    
-    /**
-     * The Authorization Server should prompt the End-User to select a user
-     * account.
-     *
-     * This enables an End-User who has multiple accounts at the Authorization
-     * Server to select amongst the multiple accounts that they might have
-     * current sessions for.
-     */
-    object SelectAccount : OidcPrompt()
-    
-    
-    /**
      * The Authorization Server should prompt the End-User to create a user
      * account.
      *
@@ -33228,12 +33229,8 @@ sealed class OidcPrompt {
 public object FfiConverterTypeOidcPrompt : FfiConverterRustBuffer<OidcPrompt>{
     override fun read(buf: ByteBuffer): OidcPrompt {
         return when(buf.getInt()) {
-            1 -> OidcPrompt.None
-            2 -> OidcPrompt.Login
-            3 -> OidcPrompt.Consent
-            4 -> OidcPrompt.SelectAccount
-            5 -> OidcPrompt.Create
-            6 -> OidcPrompt.Unknown(
+            1 -> OidcPrompt.Create
+            2 -> OidcPrompt.Unknown(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -33241,30 +33238,6 @@ public object FfiConverterTypeOidcPrompt : FfiConverterRustBuffer<OidcPrompt>{
     }
 
     override fun allocationSize(value: OidcPrompt) = when(value) {
-        is OidcPrompt.None -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is OidcPrompt.Login -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is OidcPrompt.Consent -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is OidcPrompt.SelectAccount -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
         is OidcPrompt.Create -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -33282,28 +33255,12 @@ public object FfiConverterTypeOidcPrompt : FfiConverterRustBuffer<OidcPrompt>{
 
     override fun write(value: OidcPrompt, buf: ByteBuffer) {
         when(value) {
-            is OidcPrompt.None -> {
+            is OidcPrompt.Create -> {
                 buf.putInt(1)
                 Unit
             }
-            is OidcPrompt.Login -> {
-                buf.putInt(2)
-                Unit
-            }
-            is OidcPrompt.Consent -> {
-                buf.putInt(3)
-                Unit
-            }
-            is OidcPrompt.SelectAccount -> {
-                buf.putInt(4)
-                Unit
-            }
-            is OidcPrompt.Create -> {
-                buf.putInt(5)
-                Unit
-            }
             is OidcPrompt.Unknown -> {
-                buf.putInt(6)
+                buf.putInt(2)
                 FfiConverterString.write(value.`value`, buf)
                 Unit
             }
@@ -40988,6 +40945,35 @@ public object FfiConverterOptionalTypeMembershipChange: FfiConverterRustBuffer<M
 
 
 
+public object FfiConverterOptionalTypeOidcPrompt: FfiConverterRustBuffer<OidcPrompt?> {
+    override fun read(buf: ByteBuffer): OidcPrompt? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeOidcPrompt.read(buf)
+    }
+
+    override fun allocationSize(value: OidcPrompt?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeOidcPrompt.allocationSize(value)
+        }
+    }
+
+    override fun write(value: OidcPrompt?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeOidcPrompt.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypePublicRoomJoinRule: FfiConverterRustBuffer<PublicRoomJoinRule?> {
     override fun read(buf: ByteBuffer): PublicRoomJoinRule? {
         if (buf.get().toInt() == 0) {
@@ -42406,6 +42392,10 @@ public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<ko
         }
     }
 }
+
+
+
+
 
 
 
