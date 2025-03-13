@@ -947,7 +947,11 @@ enum class EventItemOrigin {
     /**
      * The event came from pagination.
      */
-    PAGINATION;
+    PAGINATION,
+    /**
+     * The event came from a cache.
+     */
+    CACHE;
     companion object
 }
 
