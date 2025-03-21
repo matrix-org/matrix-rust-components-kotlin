@@ -714,11 +714,11 @@ internal interface UniffiLib : Library {
         }
     }
 
-    fun uniffi_matrix_sdk_fn_clone_oidcauthorizationdata(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_fn_clone_oauthauthorizationdata(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_fn_free_oidcauthorizationdata(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_fn_free_oauthauthorizationdata(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_fn_method_oidcauthorizationdata_login_url(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_fn_method_oauthauthorizationdata_login_url(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_matrix_sdk_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -832,7 +832,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_matrix_sdk_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_checksum_method_oidcauthorizationdata_login_url(
+    fun uniffi_matrix_sdk_checksum_method_oauthauthorizationdata_login_url(
     ): Short
     fun ffi_matrix_sdk_uniffi_contract_version(
     ): Int
@@ -851,7 +851,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_matrix_sdk_checksum_method_oidcauthorizationdata_login_url() != 59213.toShort()) {
+    if (lib.uniffi_matrix_sdk_checksum_method_oauthauthorizationdata_login_url() != 25566.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1147,9 +1147,9 @@ private class JavaLangRefCleanable(
     override fun clean() = cleanable.clean()
 }
 /**
- * The data needed to perform authorization using OpenID Connect.
+ * The data needed to perform authorization using OAuth 2.0.
  */
-public interface OidcAuthorizationDataInterface {
+public interface OAuthAuthorizationDataInterface {
     
     /**
      * The login URL to use for authorization.
@@ -1160,9 +1160,9 @@ public interface OidcAuthorizationDataInterface {
 }
 
 /**
- * The data needed to perform authorization using OpenID Connect.
+ * The data needed to perform authorization using OAuth 2.0.
  */
-open class OidcAuthorizationData: Disposable, AutoCloseable, OidcAuthorizationDataInterface {
+open class OAuthAuthorizationData: Disposable, AutoCloseable, OAuthAuthorizationDataInterface {
 
     constructor(pointer: Pointer) {
         this.pointer = pointer
@@ -1231,7 +1231,7 @@ open class OidcAuthorizationData: Disposable, AutoCloseable, OidcAuthorizationDa
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_fn_free_oidcauthorizationdata(ptr, status)
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_fn_free_oauthauthorizationdata(ptr, status)
                 }
             }
         }
@@ -1239,7 +1239,7 @@ open class OidcAuthorizationData: Disposable, AutoCloseable, OidcAuthorizationDa
 
     fun uniffiClonePointer(): Pointer {
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_fn_clone_oidcauthorizationdata(pointer!!, status)
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_fn_clone_oauthauthorizationdata(pointer!!, status)
         }
     }
 
@@ -1250,7 +1250,7 @@ open class OidcAuthorizationData: Disposable, AutoCloseable, OidcAuthorizationDa
             return FfiConverterString.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_fn_method_oidcauthorizationdata_login_url(
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_fn_method_oauthauthorizationdata_login_url(
         it, _status)
 }
     }
@@ -1266,25 +1266,25 @@ open class OidcAuthorizationData: Disposable, AutoCloseable, OidcAuthorizationDa
     
 }
 
-public object FfiConverterTypeOidcAuthorizationData: FfiConverter<OidcAuthorizationData, Pointer> {
+public object FfiConverterTypeOAuthAuthorizationData: FfiConverter<OAuthAuthorizationData, Pointer> {
 
-    override fun lower(value: OidcAuthorizationData): Pointer {
+    override fun lower(value: OAuthAuthorizationData): Pointer {
         return value.uniffiClonePointer()
     }
 
-    override fun lift(value: Pointer): OidcAuthorizationData {
-        return OidcAuthorizationData(value)
+    override fun lift(value: Pointer): OAuthAuthorizationData {
+        return OAuthAuthorizationData(value)
     }
 
-    override fun read(buf: ByteBuffer): OidcAuthorizationData {
+    override fun read(buf: ByteBuffer): OAuthAuthorizationData {
         // The Rust code always writes pointers as 8 bytes, and will
         // fail to compile if they don't fit.
         return lift(Pointer(buf.getLong()))
     }
 
-    override fun allocationSize(value: OidcAuthorizationData) = 8UL
+    override fun allocationSize(value: OAuthAuthorizationData) = 8UL
 
-    override fun write(value: OidcAuthorizationData, buf: ByteBuffer) {
+    override fun write(value: OAuthAuthorizationData, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -1498,7 +1498,7 @@ sealed class QrCodeLoginException(message: String): kotlin.Exception(message) {
      * An error happened while we were communicating with the OAuth 2.0
      * authorization server.
      */
-        class Oauth(message: String) : QrCodeLoginException(message)
+        class OAuth(message: String) : QrCodeLoginException(message)
         
     /**
      * The other device has signaled to us that the login has failed.
@@ -1554,7 +1554,7 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
     override fun read(buf: ByteBuffer): QrCodeLoginException {
         
             return when(buf.getInt()) {
-            1 -> QrCodeLoginException.Oauth(FfiConverterString.read(buf))
+            1 -> QrCodeLoginException.OAuth(FfiConverterString.read(buf))
             2 -> QrCodeLoginException.LoginFailure(FfiConverterString.read(buf))
             3 -> QrCodeLoginException.UnexpectedMessage(FfiConverterString.read(buf))
             4 -> QrCodeLoginException.SecureChannel(FfiConverterString.read(buf))
@@ -1574,7 +1574,7 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
 
     override fun write(value: QrCodeLoginException, buf: ByteBuffer) {
         when(value) {
-            is QrCodeLoginException.Oauth -> {
+            is QrCodeLoginException.OAuth -> {
                 buf.putInt(1)
                 Unit
             }

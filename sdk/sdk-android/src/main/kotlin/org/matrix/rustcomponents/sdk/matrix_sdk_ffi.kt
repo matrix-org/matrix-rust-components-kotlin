@@ -42,11 +42,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import uniffi.matrix_sdk.BackupDownloadStrategy
 import uniffi.matrix_sdk.FfiConverterTypeBackupDownloadStrategy
-import uniffi.matrix_sdk.FfiConverterTypeOidcAuthorizationData
+import uniffi.matrix_sdk.FfiConverterTypeOAuthAuthorizationData
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
-import uniffi.matrix_sdk.OidcAuthorizationData
+import uniffi.matrix_sdk.OAuthAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
@@ -69,7 +69,7 @@ import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
-import uniffi.matrix_sdk.RustBuffer as RustBufferOidcAuthorizationData
+import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
@@ -2286,6 +2286,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2692,6 +2694,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(`ptr`: Pointer,`enabled`: Byte,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_custom_push_rule(`ptr`: Pointer,`ruleId`: RustBuffer.ByValue,`ruleKind`: RustBuffer.ByValue,`actions`: RustBuffer.ByValue,`conditions`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,`mode`: RustBuffer.ByValue,
     ): Long
@@ -3831,6 +3835,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_custom_push_rule(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate(
@@ -4462,7 +4468,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions() != 8867.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_abort_oidc_auth() != 6754.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_abort_oidc_auth() != 53440.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_data() != 50433.toShort()) {
@@ -4579,7 +4585,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email() != 11789.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 35005.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 37848.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
@@ -4660,7 +4666,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_media() != 51195.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc() != 22103.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc() != 35004.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id() != 40531.toShort()) {
@@ -4910,6 +4916,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled() != 16823.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_custom_push_rule() != 465.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode() != 9426.toShort()) {
@@ -6237,7 +6246,7 @@ public interface ClientInterface {
      * Aborts an existing OIDC login operation that might have been cancelled,
      * failed etc.
      */
-    suspend fun `abortOidcAuth`(`authorizationData`: OidcAuthorizationData)
+    suspend fun `abortOidcAuth`(`authorizationData`: OAuthAuthorizationData)
     
     /**
      * Get the content of the event of the given type out of the account data
@@ -6454,7 +6463,7 @@ public interface ClientInterface {
     /**
      * Completes the OIDC login process.
      */
-    suspend fun `loginWithOidcCallback`(`authorizationData`: OidcAuthorizationData, `callbackUrl`: kotlin.String)
+    suspend fun `loginWithOidcCallback`(`authorizationData`: OAuthAuthorizationData, `callbackUrl`: kotlin.String)
     
     /**
      * Log the current user out.
@@ -6581,7 +6590,7 @@ public interface ClientInterface {
      * that the user wishes to login into an existing account, and a value of
      * `Create` means that the user wishes to register a new account.
      */
-    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?): OidcAuthorizationData
+    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?): OAuthAuthorizationData
     
     fun `userId`(): kotlin.String
     
@@ -6680,12 +6689,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      * failed etc.
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `abortOidcAuth`(`authorizationData`: OidcAuthorizationData) {
+    override suspend fun `abortOidcAuth`(`authorizationData`: OAuthAuthorizationData) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_abort_oidc_auth(
                 thisPtr,
-                FfiConverterTypeOidcAuthorizationData.lower(`authorizationData`),
+                FfiConverterTypeOAuthAuthorizationData.lower(`authorizationData`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7592,12 +7601,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      */
     @Throws(OidcException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `loginWithOidcCallback`(`authorizationData`: OidcAuthorizationData, `callbackUrl`: kotlin.String) {
+    override suspend fun `loginWithOidcCallback`(`authorizationData`: OAuthAuthorizationData, `callbackUrl`: kotlin.String) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(
                 thisPtr,
-                FfiConverterTypeOidcAuthorizationData.lower(`authorizationData`),FfiConverterString.lower(`callbackUrl`),
+                FfiConverterTypeOAuthAuthorizationData.lower(`authorizationData`),FfiConverterString.lower(`callbackUrl`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8164,7 +8173,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      */
     @Throws(OidcException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?) : OidcAuthorizationData {
+    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?) : OAuthAuthorizationData {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(
@@ -8176,7 +8185,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
-        { FfiConverterTypeOidcAuthorizationData.lift(it) },
+        { FfiConverterTypeOAuthAuthorizationData.lift(it) },
         // Error FFI converter
         OidcException.ErrorHandler,
     )
@@ -12163,6 +12172,11 @@ public interface NotificationSettingsInterface {
     suspend fun `setCallEnabled`(`enabled`: kotlin.Boolean)
     
     /**
+     * Sets a custom push rule with the given actions and conditions.
+     */
+    suspend fun `setCustomPushRule`(`ruleId`: kotlin.String, `ruleKind`: RuleKind, `actions`: List<Action>, `conditions`: List<PushCondition>)
+    
+    /**
      * Set the default room notification mode
      *
      * # Arguments
@@ -12608,6 +12622,31 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(
                 thisPtr,
                 FfiConverterBoolean.lower(`enabled`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        NotificationSettingsException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Sets a custom push rule with the given actions and conditions.
+     */
+    @Throws(NotificationSettingsException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setCustomPushRule`(`ruleId`: kotlin.String, `ruleKind`: RuleKind, `actions`: List<Action>, `conditions`: List<PushCondition>) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_custom_push_rule(
+                thisPtr,
+                FfiConverterString.lower(`ruleId`),FfiConverterTypeRuleKind.lower(`ruleKind`),FfiConverterSequenceTypeAction.lower(`actions`),FfiConverterSequenceTypePushCondition.lower(`conditions`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -26275,7 +26314,7 @@ data class OidcConfiguration (
     /**
      * A URI that contains information about the client.
      */
-    var `clientUri`: kotlin.String?, 
+    var `clientUri`: kotlin.String, 
     /**
      * A URI that contains the client's logo.
      */
@@ -26313,7 +26352,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
         return OidcConfiguration(
             FfiConverterOptionalString.read(buf),
             FfiConverterString.read(buf),
-            FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
@@ -26326,7 +26365,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
     override fun allocationSize(value: OidcConfiguration) = (
             FfiConverterOptionalString.allocationSize(value.`clientName`) +
             FfiConverterString.allocationSize(value.`redirectUri`) +
-            FfiConverterOptionalString.allocationSize(value.`clientUri`) +
+            FfiConverterString.allocationSize(value.`clientUri`) +
             FfiConverterOptionalString.allocationSize(value.`logoUri`) +
             FfiConverterOptionalString.allocationSize(value.`tosUri`) +
             FfiConverterOptionalString.allocationSize(value.`policyUri`) +
@@ -26338,7 +26377,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
     override fun write(value: OidcConfiguration, buf: ByteBuffer) {
             FfiConverterOptionalString.write(value.`clientName`, buf)
             FfiConverterString.write(value.`redirectUri`, buf)
-            FfiConverterOptionalString.write(value.`clientUri`, buf)
+            FfiConverterString.write(value.`clientUri`, buf)
             FfiConverterOptionalString.write(value.`logoUri`, buf)
             FfiConverterOptionalString.write(value.`tosUri`, buf)
             FfiConverterOptionalString.write(value.`policyUri`, buf)
@@ -28707,6 +28746,76 @@ public object FfiConverterTypeAccountManagementAction : FfiConverterRustBuffer<A
 
 
 /**
+ * Enum representing the push notification actions for a rule.
+ */
+sealed class Action {
+    
+    /**
+     * Causes matching events to generate a notification.
+     */
+    object Notify : Action()
+    
+    
+    /**
+     * Sets an entry in the 'tweaks' dictionary sent to the push gateway.
+     */
+    data class SetTweak(
+        val `value`: Tweak) : Action() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeAction : FfiConverterRustBuffer<Action>{
+    override fun read(buf: ByteBuffer): Action {
+        return when(buf.getInt()) {
+            1 -> Action.Notify
+            2 -> Action.SetTweak(
+                FfiConverterTypeTweak.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Action) = when(value) {
+        is Action.Notify -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is Action.SetTweak -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTweak.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: Action, buf: ByteBuffer) {
+        when(value) {
+            is Action.Notify -> {
+                buf.putInt(1)
+                Unit
+            }
+            is Action.SetTweak -> {
+                buf.putInt(2)
+                FfiConverterTypeTweak.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
  * An allow rule which defines a condition that allows joining a room.
  */
 sealed class AllowRule {
@@ -29165,6 +29274,51 @@ public object FfiConverterTypeClientError : FfiConverterRustBuffer<ClientExcepti
     }
 
 }
+
+
+
+
+enum class ComparisonOperator {
+    
+    /**
+     * Equals
+     */
+    EQ,
+    /**
+     * Less than
+     */
+    LT,
+    /**
+     * Greater than
+     */
+    GT,
+    /**
+     * Greater or equal
+     */
+    GE,
+    /**
+     * Less or equal
+     */
+    LE;
+    companion object
+}
+
+
+public object FfiConverterTypeComparisonOperator: FfiConverterRustBuffer<ComparisonOperator> {
+    override fun read(buf: ByteBuffer) = try {
+        ComparisonOperator.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ComparisonOperator) = 4UL
+
+    override fun write(value: ComparisonOperator, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
 
 
 
@@ -31587,6 +31741,119 @@ public object FfiConverterTypeJoinRule : FfiConverterRustBuffer<JoinRule>{
 
 
 
+sealed class JsonValue {
+    
+    /**
+     * Represents a `null` value.
+     */
+    object Null : JsonValue()
+    
+    
+    /**
+     * Represents a boolean.
+     */
+    data class Bool(
+        val `value`: kotlin.Boolean) : JsonValue() {
+        companion object
+    }
+    
+    /**
+     * Represents an integer.
+     */
+    data class Integer(
+        val `value`: kotlin.Long) : JsonValue() {
+        companion object
+    }
+    
+    /**
+     * Represents a string.
+     */
+    data class String(
+        val `value`: kotlin.String) : JsonValue() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeJsonValue : FfiConverterRustBuffer<JsonValue>{
+    override fun read(buf: ByteBuffer): JsonValue {
+        return when(buf.getInt()) {
+            1 -> JsonValue.Null
+            2 -> JsonValue.Bool(
+                FfiConverterBoolean.read(buf),
+                )
+            3 -> JsonValue.Integer(
+                FfiConverterLong.read(buf),
+                )
+            4 -> JsonValue.String(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: JsonValue) = when(value) {
+        is JsonValue.Null -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is JsonValue.Bool -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`value`)
+            )
+        }
+        is JsonValue.Integer -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterLong.allocationSize(value.`value`)
+            )
+        }
+        is JsonValue.String -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: JsonValue, buf: ByteBuffer) {
+        when(value) {
+            is JsonValue.Null -> {
+                buf.putInt(1)
+                Unit
+            }
+            is JsonValue.Bool -> {
+                buf.putInt(2)
+                FfiConverterBoolean.write(value.`value`, buf)
+                Unit
+            }
+            is JsonValue.Integer -> {
+                buf.putInt(3)
+                FfiConverterLong.write(value.`value`, buf)
+                Unit
+            }
+            is JsonValue.String -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 enum class LogLevel {
     
@@ -33973,6 +34240,218 @@ public object FfiConverterTypePublicRoomJoinRule: FfiConverterRustBuffer<PublicR
 
 
 
+sealed class PushCondition {
+    
+    /**
+     * A glob pattern match on a field of the event.
+     */
+    data class EventMatch(
+        /**
+         * The [dot-separated path] of the property of the event to match.
+         *
+         * [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
+         */
+        val `key`: kotlin.String, 
+        /**
+         * The glob-style pattern to match against.
+         *
+         * Patterns with no special glob characters should be treated as having
+         * asterisks prepended and appended when testing the condition.
+         */
+        val `pattern`: kotlin.String) : PushCondition() {
+        companion object
+    }
+    
+    /**
+     * Matches unencrypted messages where `content.body` contains the owner's
+     * display name in that room.
+     */
+    object ContainsDisplayName : PushCondition()
+    
+    
+    /**
+     * Matches the current number of members in the room.
+     */
+    data class RoomMemberCount(
+        val `prefix`: ComparisonOperator, 
+        val `count`: kotlin.ULong) : PushCondition() {
+        companion object
+    }
+    
+    /**
+     * Takes into account the current power levels in the room, ensuring the
+     * sender of the event has high enough power to trigger the
+     * notification.
+     */
+    data class SenderNotificationPermission(
+        /**
+         * The field in the power level event the user needs a minimum power
+         * level for.
+         *
+         * Fields must be specified under the `notifications` property in the
+         * power level event's `content`.
+         */
+        val `key`: kotlin.String) : PushCondition() {
+        companion object
+    }
+    
+    /**
+     * Exact value match on a property of the event.
+     */
+    data class EventPropertyIs(
+        /**
+         * The [dot-separated path] of the property of the event to match.
+         *
+         * [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
+         */
+        val `key`: kotlin.String, 
+        /**
+         * The value to match against.
+         */
+        val `value`: JsonValue) : PushCondition() {
+        companion object
+    }
+    
+    /**
+     * Exact value match on a value in an array property of the event.
+     */
+    data class EventPropertyContains(
+        /**
+         * The [dot-separated path] of the property of the event to match.
+         *
+         * [dot-separated path]: https://spec.matrix.org/latest/appendices/#dot-separated-property-paths
+         */
+        val `key`: kotlin.String, 
+        /**
+         * The value to match against.
+         */
+        val `value`: JsonValue) : PushCondition() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypePushCondition : FfiConverterRustBuffer<PushCondition>{
+    override fun read(buf: ByteBuffer): PushCondition {
+        return when(buf.getInt()) {
+            1 -> PushCondition.EventMatch(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            2 -> PushCondition.ContainsDisplayName
+            3 -> PushCondition.RoomMemberCount(
+                FfiConverterTypeComparisonOperator.read(buf),
+                FfiConverterULong.read(buf),
+                )
+            4 -> PushCondition.SenderNotificationPermission(
+                FfiConverterString.read(buf),
+                )
+            5 -> PushCondition.EventPropertyIs(
+                FfiConverterString.read(buf),
+                FfiConverterTypeJsonValue.read(buf),
+                )
+            6 -> PushCondition.EventPropertyContains(
+                FfiConverterString.read(buf),
+                FfiConverterTypeJsonValue.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: PushCondition) = when(value) {
+        is PushCondition.EventMatch -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`key`)
+                + FfiConverterString.allocationSize(value.`pattern`)
+            )
+        }
+        is PushCondition.ContainsDisplayName -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is PushCondition.RoomMemberCount -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeComparisonOperator.allocationSize(value.`prefix`)
+                + FfiConverterULong.allocationSize(value.`count`)
+            )
+        }
+        is PushCondition.SenderNotificationPermission -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`key`)
+            )
+        }
+        is PushCondition.EventPropertyIs -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`key`)
+                + FfiConverterTypeJsonValue.allocationSize(value.`value`)
+            )
+        }
+        is PushCondition.EventPropertyContains -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`key`)
+                + FfiConverterTypeJsonValue.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: PushCondition, buf: ByteBuffer) {
+        when(value) {
+            is PushCondition.EventMatch -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`key`, buf)
+                FfiConverterString.write(value.`pattern`, buf)
+                Unit
+            }
+            is PushCondition.ContainsDisplayName -> {
+                buf.putInt(2)
+                Unit
+            }
+            is PushCondition.RoomMemberCount -> {
+                buf.putInt(3)
+                FfiConverterTypeComparisonOperator.write(value.`prefix`, buf)
+                FfiConverterULong.write(value.`count`, buf)
+                Unit
+            }
+            is PushCondition.SenderNotificationPermission -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`key`, buf)
+                Unit
+            }
+            is PushCondition.EventPropertyIs -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`key`, buf)
+                FfiConverterTypeJsonValue.write(value.`value`, buf)
+                Unit
+            }
+            is PushCondition.EventPropertyContains -> {
+                buf.putInt(6)
+                FfiConverterString.write(value.`key`, buf)
+                FfiConverterTypeJsonValue.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 enum class PushFormat {
     
@@ -36345,6 +36824,138 @@ public object FfiConverterTypeRtcApplicationType: FfiConverterRustBuffer<RtcAppl
 
 
 
+sealed class RuleKind {
+    
+    /**
+     * User-configured rules that override all other kinds.
+     */
+    object Override : RuleKind()
+    
+    
+    /**
+     * Lowest priority user-defined rules.
+     */
+    object Underride : RuleKind()
+    
+    
+    /**
+     * Sender-specific rules.
+     */
+    object Sender : RuleKind()
+    
+    
+    /**
+     * Room-specific rules.
+     */
+    object Room : RuleKind()
+    
+    
+    /**
+     * Content-specific rules.
+     */
+    object Content : RuleKind()
+    
+    
+    data class Custom(
+        val `value`: kotlin.String) : RuleKind() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeRuleKind : FfiConverterRustBuffer<RuleKind>{
+    override fun read(buf: ByteBuffer): RuleKind {
+        return when(buf.getInt()) {
+            1 -> RuleKind.Override
+            2 -> RuleKind.Underride
+            3 -> RuleKind.Sender
+            4 -> RuleKind.Room
+            5 -> RuleKind.Content
+            6 -> RuleKind.Custom(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: RuleKind) = when(value) {
+        is RuleKind.Override -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RuleKind.Underride -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RuleKind.Sender -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RuleKind.Room -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RuleKind.Content -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RuleKind.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: RuleKind, buf: ByteBuffer) {
+        when(value) {
+            is RuleKind.Override -> {
+                buf.putInt(1)
+                Unit
+            }
+            is RuleKind.Underride -> {
+                buf.putInt(2)
+                Unit
+            }
+            is RuleKind.Sender -> {
+                buf.putInt(3)
+                Unit
+            }
+            is RuleKind.Room -> {
+                buf.putInt(4)
+                Unit
+            }
+            is RuleKind.Content -> {
+                buf.putInt(5)
+                Unit
+            }
+            is RuleKind.Custom -> {
+                buf.putInt(6)
+                FfiConverterString.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class SessionVerificationData: Disposable  {
     
     data class Emojis(
@@ -37846,6 +38457,120 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterString.write(value.`error`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * Enum representing the push notification tweaks for a rule.
+ */
+sealed class Tweak {
+    
+    /**
+     * A string representing the sound to be played when this notification
+     * arrives.
+     *
+     * A value of "default" means to play a default sound. A device may choose
+     * to alert the user by some other means if appropriate, eg. vibration.
+     */
+    data class Sound(
+        val `value`: kotlin.String) : Tweak() {
+        companion object
+    }
+    
+    /**
+     * A boolean representing whether or not this message should be highlighted
+     * in the UI.
+     */
+    data class Highlight(
+        val `value`: kotlin.Boolean) : Tweak() {
+        companion object
+    }
+    
+    /**
+     * A custom tweak
+     */
+    data class Custom(
+        /**
+         * The name of the custom tweak (`set_tweak` field)
+         */
+        val `name`: kotlin.String, 
+        /**
+         * The value of the custom tweak as an encoded JSON string
+         */
+        val `value`: kotlin.String) : Tweak() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeTweak : FfiConverterRustBuffer<Tweak>{
+    override fun read(buf: ByteBuffer): Tweak {
+        return when(buf.getInt()) {
+            1 -> Tweak.Sound(
+                FfiConverterString.read(buf),
+                )
+            2 -> Tweak.Highlight(
+                FfiConverterBoolean.read(buf),
+                )
+            3 -> Tweak.Custom(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Tweak) = when(value) {
+        is Tweak.Sound -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`value`)
+            )
+        }
+        is Tweak.Highlight -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`value`)
+            )
+        }
+        is Tweak.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`name`)
+                + FfiConverterString.allocationSize(value.`value`)
+            )
+        }
+    }
+
+    override fun write(value: Tweak, buf: ByteBuffer) {
+        when(value) {
+            is Tweak.Sound -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`value`, buf)
+                Unit
+            }
+            is Tweak.Highlight -> {
+                buf.putInt(2)
+                FfiConverterBoolean.write(value.`value`, buf)
+                Unit
+            }
+            is Tweak.Custom -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`name`, buf)
+                FfiConverterString.write(value.`value`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -42039,6 +42764,31 @@ public object FfiConverterSequenceTypeUserProfile: FfiConverterRustBuffer<List<U
 
 
 
+public object FfiConverterSequenceTypeAction: FfiConverterRustBuffer<List<Action>> {
+    override fun read(buf: ByteBuffer): List<Action> {
+        val len = buf.getInt()
+        return List<Action>(len) {
+            FfiConverterTypeAction.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Action>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeAction.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Action>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeAction.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeAllowRule: FfiConverterRustBuffer<List<AllowRule>> {
     override fun read(buf: ByteBuffer): List<AllowRule> {
         val len = buf.getInt()
@@ -42132,6 +42882,31 @@ public object FfiConverterSequenceTypeOidcPrompt: FfiConverterRustBuffer<List<Oi
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeOidcPrompt.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypePushCondition: FfiConverterRustBuffer<List<PushCondition>> {
+    override fun read(buf: ByteBuffer): List<PushCondition> {
+        val len = buf.getInt()
+        return List<PushCondition>(len) {
+            FfiConverterTypePushCondition.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<PushCondition>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypePushCondition.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<PushCondition>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypePushCondition.write(it, buf)
         }
     }
 }
