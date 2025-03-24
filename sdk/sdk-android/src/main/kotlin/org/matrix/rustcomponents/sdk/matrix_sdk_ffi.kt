@@ -2423,7 +2423,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(`ptr`: Pointer,`email`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Pointer,`authorizationData`: Pointer,`callbackUrl`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Pointer,`callbackUrl`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,
     ): Long
@@ -4585,7 +4585,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email() != 11789.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 37848.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 32591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
@@ -6463,7 +6463,7 @@ public interface ClientInterface {
     /**
      * Completes the OIDC login process.
      */
-    suspend fun `loginWithOidcCallback`(`authorizationData`: OAuthAuthorizationData, `callbackUrl`: kotlin.String)
+    suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String)
     
     /**
      * Log the current user out.
@@ -7601,12 +7601,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      */
     @Throws(OidcException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `loginWithOidcCallback`(`authorizationData`: OAuthAuthorizationData, `callbackUrl`: kotlin.String) {
+    override suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(
                 thisPtr,
-                FfiConverterTypeOAuthAuthorizationData.lower(`authorizationData`),FfiConverterString.lower(`callbackUrl`),
+                FfiConverterString.lower(`callbackUrl`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -27803,14 +27803,21 @@ public object FfiConverterTypeTimelineUniqueId: FfiConverterRustBuffer<TimelineU
 
 data class TracingConfiguration (
     /**
-     * The desired log level
+     * The desired log level.
      */
     var `logLevel`: LogLevel, 
     /**
-     * Additional targets that the FFI client would like to use e.g.
-     * the target names for created [`crate::tracing::Span`]
+     * All the log packs, that will be set to `TRACE` when they're enabled.
      */
-    var `extraTargets`: List<kotlin.String>?, 
+    var `traceLogPacks`: List<TraceLogPacks>, 
+    /**
+     * Additional targets that the FFI client would like to use.
+     *
+     * This can include, for instance, the target names for created
+     * [`crate::tracing::Span`]. These targets will use the global log level by
+     * default.
+     */
+    var `extraTargets`: List<kotlin.String>, 
     /**
      * Whether to log to stdout, or in the logcat on Android.
      */
@@ -27828,7 +27835,8 @@ public object FfiConverterTypeTracingConfiguration: FfiConverterRustBuffer<Traci
     override fun read(buf: ByteBuffer): TracingConfiguration {
         return TracingConfiguration(
             FfiConverterTypeLogLevel.read(buf),
-            FfiConverterOptionalSequenceString.read(buf),
+            FfiConverterSequenceTypeTraceLogPacks.read(buf),
+            FfiConverterSequenceString.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterOptionalTypeTracingFileConfiguration.read(buf),
         )
@@ -27836,14 +27844,16 @@ public object FfiConverterTypeTracingConfiguration: FfiConverterRustBuffer<Traci
 
     override fun allocationSize(value: TracingConfiguration) = (
             FfiConverterTypeLogLevel.allocationSize(value.`logLevel`) +
-            FfiConverterOptionalSequenceString.allocationSize(value.`extraTargets`) +
+            FfiConverterSequenceTypeTraceLogPacks.allocationSize(value.`traceLogPacks`) +
+            FfiConverterSequenceString.allocationSize(value.`extraTargets`) +
             FfiConverterBoolean.allocationSize(value.`writeToStdoutOrSystem`) +
             FfiConverterOptionalTypeTracingFileConfiguration.allocationSize(value.`writeToFiles`)
     )
 
     override fun write(value: TracingConfiguration, buf: ByteBuffer) {
             FfiConverterTypeLogLevel.write(value.`logLevel`, buf)
-            FfiConverterOptionalSequenceString.write(value.`extraTargets`, buf)
+            FfiConverterSequenceTypeTraceLogPacks.write(value.`traceLogPacks`, buf)
+            FfiConverterSequenceString.write(value.`extraTargets`, buf)
             FfiConverterBoolean.write(value.`writeToStdoutOrSystem`, buf)
             FfiConverterOptionalTypeTracingFileConfiguration.write(value.`writeToFiles`, buf)
     }
@@ -28333,9 +28343,9 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
  */
 data class VirtualElementCallWidgetOptions (
     /**
-     * The url to the app.
+     * The url to the Element Call app including any `/room` path if required.
      *
-     * E.g. <https://call.element.io>, <https://call.element.dev>
+     * E.g. <https://call.element.io>, <https://call.element.dev>, <https://call.element.dev/room>
      */
     var `elementCallUrl`: kotlin.String, 
     /**
@@ -28385,12 +28395,6 @@ data class VirtualElementCallWidgetOptions (
      */
     var `appPrompt`: kotlin.Boolean?, 
     /**
-     * Don't show the lobby and join the call immediately.
-     *
-     * Default: `false`
-     */
-    var `skipLobby`: kotlin.Boolean?, 
-    /**
      * Make it not possible to get to the calls list in the webview.
      *
      * Default: `true`
@@ -28401,15 +28405,50 @@ data class VirtualElementCallWidgetOptions (
      */
     var `font`: kotlin.String?, 
     /**
-     * Can be used to pass a PostHog id to element call.
-     */
-    var `analyticsId`: kotlin.String?, 
-    /**
      * The encryption system to use.
      *
      * Use `EncryptionSystem::Unencrypted` to disable encryption.
      */
-    var `encryption`: EncryptionSystem
+    var `encryption`: EncryptionSystem, 
+    /**
+     * The intent of showing the call.
+     * If the user wants to start a call or join an existing one.
+     * Controls if the lobby is skipped or not.
+     */
+    var `intent`: Intent?, 
+    /**
+     * Do not show the screenshare button.
+     */
+    var `hideScreensharing`: kotlin.Boolean, 
+    /**
+     * Can be used to pass a PostHog id to element call.
+     */
+    var `posthogUserId`: kotlin.String?, 
+    /**
+     * The host of the posthog api.
+     * Supported since Element Call v0.9.0. Only used by the embedded package.
+     */
+    var `posthogApiHost`: kotlin.String?, 
+    /**
+     * The key for the posthog api.
+     * Supported since Element Call v0.9.0. Only used by the embedded package.
+     */
+    var `posthogApiKey`: kotlin.String?, 
+    /**
+     * The url to use for submitting rageshakes.
+     * Supported since Element Call v0.9.0. Only used by the embedded package.
+     */
+    var `rageshakeSubmitUrl`: kotlin.String?, 
+    /**
+     * Sentry [DSN](https://docs.sentry.io/concepts/key-terms/dsn-explainer/)
+     * Supported since Element Call v0.9.0. Only used by the embedded package.
+     */
+    var `sentryDsn`: kotlin.String?, 
+    /**
+     * Sentry [environment](https://docs.sentry.io/concepts/key-terms/key-terms/)
+     * Supported since Element Call v0.9.0. Only used by the embedded package.
+     */
+    var `sentryEnvironment`: kotlin.String?
 ) {
     
     companion object
@@ -28426,10 +28465,16 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalDouble.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeEncryptionSystem.read(buf),
+            FfiConverterOptionalTypeIntent.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -28441,11 +28486,17 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalBoolean.allocationSize(value.`preload`) +
             FfiConverterOptionalDouble.allocationSize(value.`fontScale`) +
             FfiConverterOptionalBoolean.allocationSize(value.`appPrompt`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`skipLobby`) +
             FfiConverterOptionalBoolean.allocationSize(value.`confineToRoom`) +
             FfiConverterOptionalString.allocationSize(value.`font`) +
-            FfiConverterOptionalString.allocationSize(value.`analyticsId`) +
-            FfiConverterTypeEncryptionSystem.allocationSize(value.`encryption`)
+            FfiConverterTypeEncryptionSystem.allocationSize(value.`encryption`) +
+            FfiConverterOptionalTypeIntent.allocationSize(value.`intent`) +
+            FfiConverterBoolean.allocationSize(value.`hideScreensharing`) +
+            FfiConverterOptionalString.allocationSize(value.`posthogUserId`) +
+            FfiConverterOptionalString.allocationSize(value.`posthogApiHost`) +
+            FfiConverterOptionalString.allocationSize(value.`posthogApiKey`) +
+            FfiConverterOptionalString.allocationSize(value.`rageshakeSubmitUrl`) +
+            FfiConverterOptionalString.allocationSize(value.`sentryDsn`) +
+            FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`)
     )
 
     override fun write(value: VirtualElementCallWidgetOptions, buf: ByteBuffer) {
@@ -28456,11 +28507,17 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalBoolean.write(value.`preload`, buf)
             FfiConverterOptionalDouble.write(value.`fontScale`, buf)
             FfiConverterOptionalBoolean.write(value.`appPrompt`, buf)
-            FfiConverterOptionalBoolean.write(value.`skipLobby`, buf)
             FfiConverterOptionalBoolean.write(value.`confineToRoom`, buf)
             FfiConverterOptionalString.write(value.`font`, buf)
-            FfiConverterOptionalString.write(value.`analyticsId`, buf)
             FfiConverterTypeEncryptionSystem.write(value.`encryption`, buf)
+            FfiConverterOptionalTypeIntent.write(value.`intent`, buf)
+            FfiConverterBoolean.write(value.`hideScreensharing`, buf)
+            FfiConverterOptionalString.write(value.`posthogUserId`, buf)
+            FfiConverterOptionalString.write(value.`posthogApiHost`, buf)
+            FfiConverterOptionalString.write(value.`posthogApiKey`, buf)
+            FfiConverterOptionalString.write(value.`rageshakeSubmitUrl`, buf)
+            FfiConverterOptionalString.write(value.`sentryDsn`, buf)
+            FfiConverterOptionalString.write(value.`sentryEnvironment`, buf)
     }
 }
 
@@ -31561,6 +31618,44 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
     }
 
 }
+
+
+
+/**
+ * Defines the intent of showing the call.
+ *
+ * This controls whether to show or skip the lobby.
+ */
+
+enum class Intent {
+    
+    /**
+     * The user wants to start a call.
+     */
+    START_CALL,
+    /**
+     * The user wants to join an existing call.
+     */
+    JOIN_EXISTING;
+    companion object
+}
+
+
+public object FfiConverterTypeIntent: FfiConverterRustBuffer<Intent> {
+    override fun read(buf: ByteBuffer) = try {
+        Intent.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: Intent) = 4UL
+
+    override fun write(value: Intent, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
 
 
 
@@ -38468,6 +38563,47 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
 
 
 /**
+ * A log pack can be used to set the trace log level for a group of multiple
+ * log targets at once, for debugging purposes.
+ */
+
+enum class TraceLogPacks {
+    
+    /**
+     * Enables all the logs relevant to the event cache.
+     */
+    EVENT_CACHE,
+    /**
+     * Enables all the logs relevant to the send queue.
+     */
+    SEND_QUEUE,
+    /**
+     * Enables all the logs relevant to the timeline.
+     */
+    TIMELINE;
+    companion object
+}
+
+
+public object FfiConverterTypeTraceLogPacks: FfiConverterRustBuffer<TraceLogPacks> {
+    override fun read(buf: ByteBuffer) = try {
+        TraceLogPacks.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: TraceLogPacks) = 4UL
+
+    override fun write(value: TraceLogPacks, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * Enum representing the push notification tweaks for a rule.
  */
 sealed class Tweak {
@@ -41651,6 +41787,35 @@ public object FfiConverterOptionalTypeEventSendState: FfiConverterRustBuffer<Eve
 
 
 
+public object FfiConverterOptionalTypeIntent: FfiConverterRustBuffer<Intent?> {
+    override fun read(buf: ByteBuffer): Intent? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeIntent.read(buf)
+    }
+
+    override fun allocationSize(value: Intent?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeIntent.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Intent?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeIntent.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeJoinRule: FfiConverterRustBuffer<JoinRule?> {
     override fun read(buf: ByteBuffer): JoinRule? {
         if (buf.get().toInt() == 0) {
@@ -43032,6 +43197,31 @@ public object FfiConverterSequenceTypeSlidingSyncVersion: FfiConverterRustBuffer
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeSlidingSyncVersion.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeTraceLogPacks: FfiConverterRustBuffer<List<TraceLogPacks>> {
+    override fun read(buf: ByteBuffer): List<TraceLogPacks> {
+        val len = buf.getInt()
+        return List<TraceLogPacks>(len) {
+            FfiConverterTypeTraceLogPacks.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<TraceLogPacks>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeTraceLogPacks.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<TraceLogPacks>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeTraceLogPacks.write(it, buf)
         }
     }
 }
