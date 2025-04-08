@@ -2296,6 +2296,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2548,6 +2550,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(`ptr`: Pointer,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Pointer,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_use_event_cache_persistent_storage(`ptr`: Pointer,`value`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3741,6 +3745,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_use_event_cache_persistent_storage(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
@@ -4775,6 +4781,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder() != 39381.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() != 6898.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_use_event_cache_persistent_storage() != 58836.toShort()) {
@@ -8569,6 +8578,17 @@ public interface ClientBuilderInterface {
     fun `slidingSyncVersionBuilder`(`versionBuilder`: SlidingSyncVersionBuilder): ClientBuilder
     
     /**
+     * Tell the client that the system is memory constrained, like in a push
+     * notification process for example.
+     *
+     * So far, at the time of writing (2025-04-07), it changes the defaults of
+     * [`SqliteStoreConfig`], so one might not need to call
+     * [`ClientBuilder::session_cache_size`] and siblings for example. Please
+     * check [`SqliteStoreConfig::with_low_memory_config`].
+     */
+    fun `systemIsMemoryConstrained`(): ClientBuilder
+    
+    /**
      * Whether to use the event cache persistent storage or not.
      *
      * This is a temporary feature flag, for testing the event cache's
@@ -9074,6 +9094,27 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(
         it, FfiConverterTypeSlidingSyncVersionBuilder.lower(`versionBuilder`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Tell the client that the system is memory constrained, like in a push
+     * notification process for example.
+     *
+     * So far, at the time of writing (2025-04-07), it changes the defaults of
+     * [`SqliteStoreConfig`], so one might not need to call
+     * [`ClientBuilder::session_cache_size`] and siblings for example. Please
+     * check [`SqliteStoreConfig::with_low_memory_config`].
+     */override fun `systemIsMemoryConstrained`(): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(
+        it, _status)
 }
     }
     )
