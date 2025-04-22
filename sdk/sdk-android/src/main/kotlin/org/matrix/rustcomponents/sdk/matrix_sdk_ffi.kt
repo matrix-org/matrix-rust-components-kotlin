@@ -2300,6 +2300,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -3143,6 +3147,12 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_taskhandle_is_finished(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_clone_threadsummary(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_threadsummary(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_latest_event(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_timeline(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_timeline(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -4212,6 +4222,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener(
     ): Short
@@ -5483,6 +5495,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished() != 29008.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event() != 52190.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener() != 18746.toShort()) {
@@ -21889,6 +21904,238 @@ public object FfiConverterTypeTaskHandle: FfiConverter<TaskHandle, Pointer> {
 //
 
 
+public interface ThreadSummaryInterface {
+    
+    fun `latestEvent`(): ThreadSummaryLatestEventDetails
+    
+    companion object
+}
+
+open class ThreadSummary: Disposable, AutoCloseable, ThreadSummaryInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_threadsummary(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_threadsummary(pointer!!, status)
+        }
+    }
+
+    override fun `latestEvent`(): ThreadSummaryLatestEventDetails {
+            return FfiConverterTypeThreadSummaryLatestEventDetails.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_threadsummary_latest_event(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeThreadSummary: FfiConverter<ThreadSummary, Pointer> {
+
+    override fun lower(value: ThreadSummary): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): ThreadSummary {
+        return ThreadSummary(value)
+    }
+
+    override fun read(buf: ByteBuffer): ThreadSummary {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: ThreadSummary) = 8UL
+
+    override fun write(value: ThreadSummary, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface TimelineInterface {
     
     suspend fun `addListener`(`listener`: TimelineListener): TaskHandle
@@ -26420,13 +26667,17 @@ data class MsgLikeContent (
     var `kind`: MsgLikeKind, 
     var `reactions`: List<Reaction>, 
     /**
-     * Event ID of the thread root, if this is a threaded message.
+     * The event this message is replying to, if any.
+     */
+    var `inReplyTo`: InReplyToDetails?, 
+    /**
+     * Event ID of the thread root, if this is a message in a thread.
      */
     var `threadRoot`: kotlin.String?, 
     /**
-     * The event this message is replying to, if any.
+     * Details about the thread this message is the root of.
      */
-    var `inReplyTo`: InReplyToDetails?
+    var `threadSummary`: ThreadSummary?
 ) : Disposable {
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -26436,9 +26687,11 @@ data class MsgLikeContent (
     
         Disposable.destroy(this.`reactions`)
     
+        Disposable.destroy(this.`inReplyTo`)
+    
         Disposable.destroy(this.`threadRoot`)
     
-        Disposable.destroy(this.`inReplyTo`)
+        Disposable.destroy(this.`threadSummary`)
     
     }
     
@@ -26450,23 +26703,26 @@ public object FfiConverterTypeMsgLikeContent: FfiConverterRustBuffer<MsgLikeCont
         return MsgLikeContent(
             FfiConverterTypeMsgLikeKind.read(buf),
             FfiConverterSequenceTypeReaction.read(buf),
-            FfiConverterOptionalString.read(buf),
             FfiConverterOptionalTypeInReplyToDetails.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeThreadSummary.read(buf),
         )
     }
 
     override fun allocationSize(value: MsgLikeContent) = (
             FfiConverterTypeMsgLikeKind.allocationSize(value.`kind`) +
             FfiConverterSequenceTypeReaction.allocationSize(value.`reactions`) +
+            FfiConverterOptionalTypeInReplyToDetails.allocationSize(value.`inReplyTo`) +
             FfiConverterOptionalString.allocationSize(value.`threadRoot`) +
-            FfiConverterOptionalTypeInReplyToDetails.allocationSize(value.`inReplyTo`)
+            FfiConverterOptionalTypeThreadSummary.allocationSize(value.`threadSummary`)
     )
 
     override fun write(value: MsgLikeContent, buf: ByteBuffer) {
             FfiConverterTypeMsgLikeKind.write(value.`kind`, buf)
             FfiConverterSequenceTypeReaction.write(value.`reactions`, buf)
-            FfiConverterOptionalString.write(value.`threadRoot`, buf)
             FfiConverterOptionalTypeInReplyToDetails.write(value.`inReplyTo`, buf)
+            FfiConverterOptionalString.write(value.`threadRoot`, buf)
+            FfiConverterOptionalTypeThreadSummary.write(value.`threadSummary`, buf)
     }
 }
 
@@ -38153,8 +38409,10 @@ sealed class StateEventContent {
     object RoomTombstone : StateEventContent()
     
     
-    object RoomTopic : StateEventContent()
-    
+    data class RoomTopic(
+        val `topic`: kotlin.String) : StateEventContent() {
+        companion object
+    }
     
     object SpaceChild : StateEventContent()
     
@@ -38191,7 +38449,9 @@ public object FfiConverterTypeStateEventContent : FfiConverterRustBuffer<StateEv
             16 -> StateEventContent.RoomServerAcl
             17 -> StateEventContent.RoomThirdPartyInvite
             18 -> StateEventContent.RoomTombstone
-            19 -> StateEventContent.RoomTopic
+            19 -> StateEventContent.RoomTopic(
+                FfiConverterString.read(buf),
+                )
             20 -> StateEventContent.SpaceChild
             21 -> StateEventContent.SpaceParent
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -38313,6 +38573,7 @@ public object FfiConverterTypeStateEventContent : FfiConverterRustBuffer<StateEv
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterString.allocationSize(value.`topic`)
             )
         }
         is StateEventContent.SpaceChild -> {
@@ -38407,6 +38668,7 @@ public object FfiConverterTypeStateEventContent : FfiConverterRustBuffer<StateEv
             }
             is StateEventContent.RoomTopic -> {
                 buf.putInt(19)
+                FfiConverterString.write(value.`topic`, buf)
                 Unit
             }
             is StateEventContent.SpaceChild -> {
@@ -38548,6 +38810,135 @@ public object FfiConverterTypeSyncServiceState: FfiConverterRustBuffer<SyncServi
 
     override fun write(value: SyncServiceState, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+sealed class ThreadSummaryLatestEventDetails: Disposable  {
+    
+    object Unavailable : ThreadSummaryLatestEventDetails()
+    
+    
+    object Pending : ThreadSummaryLatestEventDetails()
+    
+    
+    data class Ready(
+        val `sender`: kotlin.String, 
+        val `senderProfile`: ProfileDetails, 
+        val `content`: TimelineItemContent) : ThreadSummaryLatestEventDetails() {
+        companion object
+    }
+    
+    data class Error(
+        val `message`: kotlin.String) : ThreadSummaryLatestEventDetails() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is ThreadSummaryLatestEventDetails.Unavailable -> {// Nothing to destroy
+            }
+            is ThreadSummaryLatestEventDetails.Pending -> {// Nothing to destroy
+            }
+            is ThreadSummaryLatestEventDetails.Ready -> {
+                
+        Disposable.destroy(this.`sender`)
+    
+        Disposable.destroy(this.`senderProfile`)
+    
+        Disposable.destroy(this.`content`)
+    
+                
+            }
+            is ThreadSummaryLatestEventDetails.Error -> {
+                
+        Disposable.destroy(this.`message`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeThreadSummaryLatestEventDetails : FfiConverterRustBuffer<ThreadSummaryLatestEventDetails>{
+    override fun read(buf: ByteBuffer): ThreadSummaryLatestEventDetails {
+        return when(buf.getInt()) {
+            1 -> ThreadSummaryLatestEventDetails.Unavailable
+            2 -> ThreadSummaryLatestEventDetails.Pending
+            3 -> ThreadSummaryLatestEventDetails.Ready(
+                FfiConverterString.read(buf),
+                FfiConverterTypeProfileDetails.read(buf),
+                FfiConverterTypeTimelineItemContent.read(buf),
+                )
+            4 -> ThreadSummaryLatestEventDetails.Error(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ThreadSummaryLatestEventDetails) = when(value) {
+        is ThreadSummaryLatestEventDetails.Unavailable -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ThreadSummaryLatestEventDetails.Pending -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ThreadSummaryLatestEventDetails.Ready -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`sender`)
+                + FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`)
+                + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
+            )
+        }
+        is ThreadSummaryLatestEventDetails.Error -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+    }
+
+    override fun write(value: ThreadSummaryLatestEventDetails, buf: ByteBuffer) {
+        when(value) {
+            is ThreadSummaryLatestEventDetails.Unavailable -> {
+                buf.putInt(1)
+                Unit
+            }
+            is ThreadSummaryLatestEventDetails.Pending -> {
+                buf.putInt(2)
+                Unit
+            }
+            is ThreadSummaryLatestEventDetails.Ready -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`sender`, buf)
+                FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
+                FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+                Unit
+            }
+            is ThreadSummaryLatestEventDetails.Error -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -41554,6 +41945,35 @@ public object FfiConverterOptionalTypeTaskHandle: FfiConverterRustBuffer<TaskHan
         } else {
             buf.put(1)
             FfiConverterTypeTaskHandle.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeThreadSummary: FfiConverterRustBuffer<ThreadSummary?> {
+    override fun read(buf: ByteBuffer): ThreadSummary? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeThreadSummary.read(buf)
+    }
+
+    override fun allocationSize(value: ThreadSummary?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeThreadSummary.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ThreadSummary?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeThreadSummary.write(value, buf)
         }
     }
 }
