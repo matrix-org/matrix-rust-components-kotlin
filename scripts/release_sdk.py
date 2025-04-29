@@ -214,7 +214,7 @@ def main(args: argparse.Namespace):
         get_publish_task(args.module),
     )
 
-    if not 'SNAPSHOT' in args.version:
+    if not args.version.endswith("-SNAPSHOT"):
         # Success, commit and push changes, then create github release
         commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
         print(f"Commit message: {commit_message}")

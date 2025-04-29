@@ -111,7 +111,7 @@ print(f"SDK git ref: {args.ref}")
 build_version_file_path = get_build_version_file_path(args.module, project_root)
 major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
 
-if 'SNAPSHOT' in args.version:
+if args.version.endswith("-SNAPSHOT"):
     print(f"Version {args.version} is a SNAPSHOT version, skipping version check")
 elif is_provided_version_higher(major, minor, patch, args.version):
     print(
