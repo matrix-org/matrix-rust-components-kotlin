@@ -153,18 +153,13 @@ def get_asset_path(root_project_dir: str, module: Module) -> str:
         raise ValueError(f"Unknown module: {module}")
 
 
-def get_publish_task(module: Module, is_snapshot: bool) -> str:
+def get_publish_task(module: Module) -> str:
     if module == Module.SDK:
-        command = ":sdk:sdk-android:publishToSonatype"
+        return ":sdk:sdk-android:publishToSonatype"
     elif module == Module.CRYPTO:
-        command = ":crypto:crypto-android:publishToSonatype"
+        return ":crypto:crypto-android:publishToSonatype"
     else:
         raise ValueError(f"Unknown module: {module}")
-
-    if is_snapshot:
-        return f"{command} -Psnapshot"
-    else:
-        return command
 
 
 def run_publish_close_and_release_tasks(root_project_dir, publish_task: str):
@@ -216,7 +211,7 @@ def main(args: argparse.Namespace):
     # First release on Maven
     run_publish_close_and_release_tasks(
         project_root,
-        get_publish_task(args.module, args.version.endswith("-SNAPSHOT")),
+        get_publish_task(args.module),
     )
 
     if not args.version.endswith("-SNAPSHOT"):

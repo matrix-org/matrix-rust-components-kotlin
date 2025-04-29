@@ -46,6 +46,14 @@ afterEvaluate {
     }
 }
 
+nexusPublishing {
+    useStaging.convention(project.provider {
+        def isSnapshot = PUBLISH_VERSION.endsWith("-SNAPSHOT")
+        println("Is snapshot: $isSnapshot. Version: $PUBLISH_VERSION")
+        !isSnapshot
+    })
+}
+
 signing {
     useInMemoryPgpKeys(
             rootProject.ext["signing.keyId"],
