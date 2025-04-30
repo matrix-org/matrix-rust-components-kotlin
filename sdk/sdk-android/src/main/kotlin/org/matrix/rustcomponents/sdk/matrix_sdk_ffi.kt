@@ -2304,6 +2304,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2426,6 +2428,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_is_report_room_api_supported(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(`ptr`: Pointer,`alias`: RustBuffer.ByValue,
     ): Long
@@ -3635,6 +3639,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
@@ -4613,6 +4619,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() != 49620.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported() != 17934.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() != 23322.toShort()) {
@@ -6485,6 +6494,11 @@ public interface ClientInterface {
     suspend fun `ignoredUsers`(): List<kotlin.String>
     
     /**
+     * Checks if the server supports the report room API.
+     */
+    suspend fun `isReportRoomApiSupported`(): kotlin.Boolean
+    
+    /**
      * Checks if a room alias is not in use yet.
      *
      * Returns:
@@ -7510,6 +7524,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterSequenceString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Checks if the server supports the report room API.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isReportRoomApiSupported`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_is_report_room_api_supported(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -26965,10 +27003,6 @@ data class OidcConfiguration (
      */
     var `policyUri`: kotlin.String?, 
     /**
-     * An array of e-mail addresses of people responsible for this client.
-     */
-    var `contacts`: List<kotlin.String>?, 
-    /**
      * Pre-configured registrations for use with homeservers that don't support
      * dynamic client registration.
      *
@@ -26990,7 +27024,6 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalSequenceString.read(buf),
             FfiConverterMapStringString.read(buf),
         )
     }
@@ -27002,7 +27035,6 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterOptionalString.allocationSize(value.`logoUri`) +
             FfiConverterOptionalString.allocationSize(value.`tosUri`) +
             FfiConverterOptionalString.allocationSize(value.`policyUri`) +
-            FfiConverterOptionalSequenceString.allocationSize(value.`contacts`) +
             FfiConverterMapStringString.allocationSize(value.`staticRegistrations`)
     )
 
@@ -27013,7 +27045,6 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterOptionalString.write(value.`logoUri`, buf)
             FfiConverterOptionalString.write(value.`tosUri`, buf)
             FfiConverterOptionalString.write(value.`policyUri`, buf)
-            FfiConverterOptionalSequenceString.write(value.`contacts`, buf)
             FfiConverterMapStringString.write(value.`staticRegistrations`, buf)
     }
 }
@@ -28762,9 +28793,9 @@ public object FfiConverterTypeUnstableVoiceContent: FfiConverterRustBuffer<Unsta
 
 data class UploadParameters (
     /**
-     * Filename (previously called "url") for the media to be sent.
+     * Source from which to upload data
      */
-    var `filename`: kotlin.String, 
+    var `source`: UploadSource, 
     /**
      * Optional non-formatted caption, for clients that support it.
      */
@@ -28795,7 +28826,7 @@ data class UploadParameters (
 public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadParameters> {
     override fun read(buf: ByteBuffer): UploadParameters {
         return UploadParameters(
-            FfiConverterString.read(buf),
+            FfiConverterTypeUploadSource.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalTypeMentions.read(buf),
@@ -28805,7 +28836,7 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
     }
 
     override fun allocationSize(value: UploadParameters) = (
-            FfiConverterString.allocationSize(value.`filename`) +
+            FfiConverterTypeUploadSource.allocationSize(value.`source`) +
             FfiConverterOptionalString.allocationSize(value.`caption`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterOptionalTypeMentions.allocationSize(value.`mentions`) +
@@ -28814,7 +28845,7 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
     )
 
     override fun write(value: UploadParameters, buf: ByteBuffer) {
-            FfiConverterString.write(value.`filename`, buf)
+            FfiConverterTypeUploadSource.write(value.`source`, buf)
             FfiConverterOptionalString.write(value.`caption`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterOptionalTypeMentions.write(value.`mentions`, buf)
@@ -39696,6 +39727,95 @@ public object FfiConverterTypeTweak : FfiConverterRustBuffer<Tweak>{
                 buf.putInt(3)
                 FfiConverterString.write(value.`name`, buf)
                 FfiConverterString.write(value.`value`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * A source for uploading a file
+ */
+sealed class UploadSource {
+    
+    /**
+     * Upload source is a file on disk
+     */
+    data class File(
+        /**
+         * Path to file
+         */
+        val `filename`: kotlin.String) : UploadSource() {
+        companion object
+    }
+    
+    /**
+     * Upload source is data in memory
+     */
+    data class Data(
+        /**
+         * Bytes being uploaded
+         */
+        val `bytes`: kotlin.ByteArray, 
+        /**
+         * Filename to associate with bytes
+         */
+        val `filename`: kotlin.String) : UploadSource() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeUploadSource : FfiConverterRustBuffer<UploadSource>{
+    override fun read(buf: ByteBuffer): UploadSource {
+        return when(buf.getInt()) {
+            1 -> UploadSource.File(
+                FfiConverterString.read(buf),
+                )
+            2 -> UploadSource.Data(
+                FfiConverterByteArray.read(buf),
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: UploadSource) = when(value) {
+        is UploadSource.File -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`filename`)
+            )
+        }
+        is UploadSource.Data -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterByteArray.allocationSize(value.`bytes`)
+                + FfiConverterString.allocationSize(value.`filename`)
+            )
+        }
+    }
+
+    override fun write(value: UploadSource, buf: ByteBuffer) {
+        when(value) {
+            is UploadSource.File -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`filename`, buf)
+                Unit
+            }
+            is UploadSource.Data -> {
+                buf.putInt(2)
+                FfiConverterByteArray.write(value.`bytes`, buf)
+                FfiConverterString.write(value.`filename`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
