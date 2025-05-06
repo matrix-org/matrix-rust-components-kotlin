@@ -2306,6 +2306,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2695,6 +2697,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_room(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_notificationsettings(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_notificationsettings(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3859,6 +3863,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_room(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_push_encrypted_event_to_device(
@@ -4949,6 +4955,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 2524.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_room() != 26581.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device() != 37323.toShort()) {
@@ -12144,6 +12153,14 @@ public interface NotificationClientInterface {
      */
     suspend fun `getNotification`(`roomId`: kotlin.String, `eventId`: kotlin.String): NotificationItem?
     
+    /**
+     * Fetches a room by its ID using the in-memory state store backed client.
+     *
+     * Useful to retrieve room information after running the limited
+     * notification client sliding sync loop.
+     */
+    fun `getRoom`(`roomId`: kotlin.String): Room?
+    
     companion object
 }
 
@@ -12252,6 +12269,25 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Fetches a room by its ID using the in-memory state store backed client.
+     *
+     * Useful to retrieve room information after running the limited
+     * notification client sliding sync loop.
+     */
+    @Throws(ClientException::class)override fun `getRoom`(`roomId`: kotlin.String): Room? {
+            return FfiConverterOptionalTypeRoom.lift(
+    callWithPointer {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_room(
+        it, FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    )
+    }
+    
 
     
 
