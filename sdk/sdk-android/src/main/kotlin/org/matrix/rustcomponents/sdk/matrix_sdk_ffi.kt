@@ -2308,6 +2308,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2751,6 +2753,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_constructor_qrcodedata_from_bytes(`bytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_server_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_room(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_room(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3907,6 +3911,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_active_room_call_participants(
@@ -5021,6 +5027,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() != 47580.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name() != 30173.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() != 61905.toShort()) {
@@ -13312,6 +13321,15 @@ public object FfiConverterTypeNotificationSettings: FfiConverter<NotificationSet
  */
 public interface QrCodeDataInterface {
     
+    /**
+     * The server name contained within the scanned QR code data.
+     *
+     * Note: This value is only present when scanning a QR code the belongs to
+     * a logged in client. The mode where the new client shows the QR code
+     * will return `None`.
+     */
+    fun `serverName`(): kotlin.String?
+    
     companion object
 }
 
@@ -13401,6 +13419,25 @@ open class QrCodeData: Disposable, AutoCloseable, QrCodeDataInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_qrcodedata(pointer!!, status)
         }
     }
+
+    
+    /**
+     * The server name contained within the scanned QR code data.
+     *
+     * Note: This value is only present when scanning a QR code the belongs to
+     * a logged in client. The mode where the new client shows the QR code
+     * will return `None`.
+     */override fun `serverName`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_qrcodedata_server_name(
+        it, _status)
+}
+    }
+    )
+    }
+    
 
     
 
