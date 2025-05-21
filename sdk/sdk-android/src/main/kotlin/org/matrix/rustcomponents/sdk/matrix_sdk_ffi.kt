@@ -720,6 +720,9 @@ internal interface UniffiCallbackInterfaceKnockRequestsListenerMethod0 : com.sun
 internal interface UniffiCallbackInterfaceLiveLocationShareListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`liveLocationShares`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceMediaPreviewConfigListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`mediaPreviewConfig`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceNotificationSettingsDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -960,6 +963,22 @@ internal open class UniffiVTableCallbackInterfaceLiveLocationShareListener(
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLiveLocationShareListener) {
         `call` = other.`call`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onChange", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceMediaPreviewConfigListener(
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceMediaPreviewConfigListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onChange`: UniffiCallbackInterfaceMediaPreviewConfigListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceMediaPreviewConfigListener(`onChange`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceMediaPreviewConfigListener) {
+        `onChange` = other.`onChange`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -2356,6 +2375,14 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2376,6 +2403,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceIgnoredUsersListener.register(lib)
                 uniffiCallbackInterfaceKnockRequestsListener.register(lib)
                 uniffiCallbackInterfaceLiveLocationShareListener.register(lib)
+                uniffiCallbackInterfaceMediaPreviewConfigListener.register(lib)
                 uniffiCallbackInterfaceNotificationSettingsDelegate.register(lib)
                 uniffiCallbackInterfacePaginationStatusListener.register(lib)
                 uniffiCallbackInterfaceProgressWatcher.register(lib)
@@ -2533,6 +2561,10 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_set_invite_avatars_display_policy(`ptr`: Pointer,`policy`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_preview_display_policy(`ptr`: Pointer,`policy`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(`ptr`: Pointer,`policy`: RustBufferMediaRetentionPolicy.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Pointer,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,
@@ -2543,6 +2575,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_media_preview_config(`ptr`: Pointer,`listener`: Long,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_status(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3391,6 +3425,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationShareListener,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_mediapreviewconfiglistener(`vtable`: UniffiVTableCallbackInterfaceMediaPreviewConfigListener,
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_paginationstatuslistener(`vtable`: UniffiVTableCallbackInterfacePaginationStatusListener,
@@ -3755,6 +3791,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_set_invite_avatars_display_policy(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_preview_display_policy(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher(
@@ -3764,6 +3804,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_media_preview_config(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status(
     ): Short
@@ -4457,6 +4499,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_call(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_mediapreviewconfiglistener_on_change(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update(
@@ -4535,7 +4579,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id() != 15808.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() != 6844.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() != 48529.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() != 30181.toShort()) {
@@ -4775,6 +4819,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name() != 15292.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_invite_avatars_display_policy() != 56691.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_media_preview_display_policy() != 24080.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy() != 2414.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4788,6 +4838,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users() != 23285.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_media_preview_config() != 47047.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status() != 57403.toShort()) {
@@ -5828,6 +5881,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_call() != 34519.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediapreviewconfiglistener_on_change() != 42142.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() != 51708.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6741,6 +6797,16 @@ public interface ClientInterface {
     suspend fun `setDisplayName`(`name`: kotlin.String)
     
     /**
+     * Get the media previews timeline display policy
+     */
+    suspend fun `setInviteAvatarsDisplayPolicy`(`policy`: InviteAvatars)
+    
+    /**
+     * Set the media previews timeline display policy
+     */
+    suspend fun `setMediaPreviewDisplayPolicy`(`policy`: MediaPreviews)
+    
+    /**
      * Set the media retention policy.
      */
     suspend fun `setMediaRetentionPolicy`(`policy`: MediaRetentionPolicy)
@@ -6761,6 +6827,11 @@ public interface ClientInterface {
     suspend fun `startSsoLogin`(`redirectUrl`: kotlin.String, `idpId`: kotlin.String?): SsoHandler
     
     fun `subscribeToIgnoredUsers`(`listener`: IgnoredUsersListener): TaskHandle
+    
+    /**
+     * Subscribe to changes in the media preview configuration.
+     */
+    suspend fun `subscribeToMediaPreviewConfig`(`listener`: MediaPreviewConfigListener): TaskHandle
     
     /**
      * Subscribe to the global enablement status of the send queue, at the
@@ -8246,6 +8317,56 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
+     * Get the media previews timeline display policy
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setInviteAvatarsDisplayPolicy`(`policy`: InviteAvatars) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_set_invite_avatars_display_policy(
+                thisPtr,
+                FfiConverterTypeInviteAvatars.lower(`policy`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Set the media previews timeline display policy
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setMediaPreviewDisplayPolicy`(`policy`: MediaPreviews) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_set_media_preview_display_policy(
+                thisPtr,
+                FfiConverterTypeMediaPreviews.lower(`policy`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Set the media retention policy.
      */
     @Throws(ClientException::class)
@@ -8344,6 +8465,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     )
     }
     
+
+    
+    /**
+     * Subscribe to changes in the media preview configuration.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `subscribeToMediaPreviewConfig`(`listener`: MediaPreviewConfigListener) : TaskHandle {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_media_preview_config(
+                thisPtr,
+                FfiConverterTypeMediaPreviewConfigListener.lower(`listener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeTaskHandle.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     /**
@@ -26929,6 +27074,47 @@ public object FfiConverterTypeMatrixEntity: FfiConverterRustBuffer<MatrixEntity>
 
 
 
+/**
+ * The content of an `m.media_preview_config` event.
+ *
+ * Is also the content of the unstable
+ * `io.element.msc4278.media_preview_config`.
+ */
+data class MediaPreviewConfig (
+    /**
+     * The media previews setting for the user.
+     */
+    var `mediaPreviews`: MediaPreviews, 
+    /**
+     * The invite avatars setting for the user.
+     */
+    var `inviteAvatars`: InviteAvatars
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMediaPreviewConfig: FfiConverterRustBuffer<MediaPreviewConfig> {
+    override fun read(buf: ByteBuffer): MediaPreviewConfig {
+        return MediaPreviewConfig(
+            FfiConverterTypeMediaPreviews.read(buf),
+            FfiConverterTypeInviteAvatars.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MediaPreviewConfig) = (
+            FfiConverterTypeMediaPreviews.allocationSize(value.`mediaPreviews`) +
+            FfiConverterTypeInviteAvatars.allocationSize(value.`inviteAvatars`)
+    )
+
+    override fun write(value: MediaPreviewConfig, buf: ByteBuffer) {
+            FfiConverterTypeMediaPreviews.write(value.`mediaPreviews`, buf)
+            FfiConverterTypeInviteAvatars.write(value.`inviteAvatars`, buf)
+    }
+}
+
+
+
 data class Mentions (
     var `userIds`: List<kotlin.String>, 
     var `room`: kotlin.Boolean
@@ -29885,7 +30071,12 @@ data class VirtualElementCallWidgetOptions (
      * Sentry [environment](https://docs.sentry.io/concepts/key-terms/key-terms/)
      * Supported since Element Call v0.9.0. Only used by the embedded package.
      */
-    var `sentryEnvironment`: kotlin.String?
+    var `sentryEnvironment`: kotlin.String?, 
+    /**
+     * - `false`: the webview shows a a list of devices injected by the
+     * client. (used on ios & android)
+     */
+    var `controlledMediaDevices`: kotlin.Boolean
 ) {
     
     companion object
@@ -29912,6 +30103,7 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -29933,7 +30125,8 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalString.allocationSize(value.`posthogApiKey`) +
             FfiConverterOptionalString.allocationSize(value.`rageshakeSubmitUrl`) +
             FfiConverterOptionalString.allocationSize(value.`sentryDsn`) +
-            FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`)
+            FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`) +
+            FfiConverterBoolean.allocationSize(value.`controlledMediaDevices`)
     )
 
     override fun write(value: VirtualElementCallWidgetOptions, buf: ByteBuffer) {
@@ -29955,6 +30148,7 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalString.write(value.`rageshakeSubmitUrl`, buf)
             FfiConverterOptionalString.write(value.`sentryDsn`, buf)
             FfiConverterOptionalString.write(value.`sentryEnvironment`, buf)
+            FfiConverterBoolean.write(value.`controlledMediaDevices`, buf)
     }
 }
 
@@ -29974,7 +30168,7 @@ data class WidgetCapabilities (
     var `send`: List<WidgetEventFilter>, 
     /**
      * If this capability is requested by the widget, it can not operate
-     * separately from the matrix client.
+     * separately from the Matrix client.
      *
      * This means clients should not offer to open the widget in a separate
      * browser/tab/webview that is not connected to the postmessage widget-api.
@@ -33456,6 +33650,42 @@ public object FfiConverterTypeIntent: FfiConverterRustBuffer<Intent> {
 
 
 /**
+ * The policy that decides if avatars should be shown in invite requests.
+ */
+
+enum class InviteAvatars {
+    
+    /**
+     * Always show avatars in invite requests.
+     */
+    ON,
+    /**
+     * Never show avatars in invite requests.
+     */
+    OFF;
+    companion object
+}
+
+
+public object FfiConverterTypeInviteAvatars: FfiConverterRustBuffer<InviteAvatars> {
+    override fun read(buf: ByteBuffer) = try {
+        InviteAvatars.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: InviteAvatars) = 4UL
+
+    override fun write(value: InviteAvatars, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The rule used for users wishing to join this room.
  */
 sealed class JoinRule {
@@ -33988,6 +34218,46 @@ public object FfiConverterTypeMediaInfoError : FfiConverterRustBuffer<MediaInfoE
     }
 
 }
+
+
+
+/**
+ * The policy that decides if media previews should be shown in the timeline.
+ */
+
+enum class MediaPreviews {
+    
+    /**
+     * Always show media previews in the timeline.
+     */
+    ON,
+    /**
+     * Show media previews in the timeline only if the room is private.
+     */
+    PRIVATE,
+    /**
+     * Never show media previews in the timeline.
+     */
+    OFF;
+    companion object
+}
+
+
+public object FfiConverterTypeMediaPreviews: FfiConverterRustBuffer<MediaPreviews> {
+    override fun read(buf: ByteBuffer) = try {
+        MediaPreviews.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: MediaPreviews) = 4UL
+
+    override fun write(value: MediaPreviews, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
 
 
 
@@ -40655,6 +40925,12 @@ sealed class TimelineFocus {
         companion object
     }
     
+    data class Thread(
+        val `rootEventId`: kotlin.String, 
+        val `numEvents`: kotlin.UShort) : TimelineFocus() {
+        companion object
+    }
+    
     data class PinnedEvents(
         val `maxEventsToLoad`: kotlin.UShort, 
         val `maxConcurrentRequests`: kotlin.UShort) : TimelineFocus() {
@@ -40674,7 +40950,11 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 FfiConverterString.read(buf),
                 FfiConverterUShort.read(buf),
                 )
-            3 -> TimelineFocus.PinnedEvents(
+            3 -> TimelineFocus.Thread(
+                FfiConverterString.read(buf),
+                FfiConverterUShort.read(buf),
+                )
+            4 -> TimelineFocus.PinnedEvents(
                 FfiConverterUShort.read(buf),
                 FfiConverterUShort.read(buf),
                 )
@@ -40695,6 +40975,14 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 4UL
                 + FfiConverterString.allocationSize(value.`eventId`)
                 + FfiConverterUShort.allocationSize(value.`numContextEvents`)
+            )
+        }
+        is TimelineFocus.Thread -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`rootEventId`)
+                + FfiConverterUShort.allocationSize(value.`numEvents`)
             )
         }
         is TimelineFocus.PinnedEvents -> {
@@ -40719,8 +41007,14 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 FfiConverterUShort.write(value.`numContextEvents`, buf)
                 Unit
             }
-            is TimelineFocus.PinnedEvents -> {
+            is TimelineFocus.Thread -> {
                 buf.putInt(3)
+                FfiConverterString.write(value.`rootEventId`, buf)
+                FfiConverterUShort.write(value.`numEvents`, buf)
+                Unit
+            }
+            is TimelineFocus.PinnedEvents -> {
+                buf.putInt(4)
                 FfiConverterUShort.write(value.`maxEventsToLoad`, buf)
                 FfiConverterUShort.write(value.`maxConcurrentRequests`, buf)
                 Unit
@@ -42065,6 +42359,55 @@ internal object uniffiCallbackInterfaceLiveLocationShareListener {
 
 // The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
 public object FfiConverterTypeLiveLocationShareListener: FfiConverterCallbackInterface<LiveLocationShareListener>()
+
+
+
+
+
+public interface MediaPreviewConfigListener {
+    
+    fun `onChange`(`mediaPreviewConfig`: MediaPreviewConfig)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceMediaPreviewConfigListener {
+    internal object `onChange`: UniffiCallbackInterfaceMediaPreviewConfigListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`mediaPreviewConfig`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeMediaPreviewConfigListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onChange`(
+                    FfiConverterTypeMediaPreviewConfig.lift(`mediaPreviewConfig`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeMediaPreviewConfigListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceMediaPreviewConfigListener.UniffiByValue(
+        `onChange`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_mediapreviewconfiglistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeMediaPreviewConfigListener: FfiConverterCallbackInterface<MediaPreviewConfigListener>()
 
 
 
@@ -46533,7 +46876,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
          *
          * # Arguments
          * * `widget_settings` - The widget settings to generate the url for.
-         * * `room` - A matrix room which is used to query the logged in username
+         * * `room` - A Matrix room which is used to query the logged in username
          * * `props` - Properties from the client that can be used by a widget to adapt
          * to the client. e.g. language, font-scale...
          */
