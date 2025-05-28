@@ -67,7 +67,7 @@ fi
 
 if [ "$gradle_module" = "crypto" ]; then
   ## NDK is needed for https://crates.io/crates/olm-sys
-  if [ -z "$ANDROID_NDK" ]; then
+  if [ -z "$ANDROID_NDK" && -z "$ANDROID_HOME" ]; then
     echo "please set the ANDROID_NDK environment variable to your Android NDK installation"
     exit 1
   fi
