@@ -10567,6 +10567,8 @@ sealed class DehydrationException(message: String): kotlin.Exception(message) {
         
         class Pickle(message: String) : DehydrationException(message)
         
+        class LegacyPickle(message: String) : DehydrationException(message)
+        
         class MissingSigningKey(message: String) : DehydrationException(message)
         
         class Json(message: String) : DehydrationException(message)
@@ -10588,11 +10590,12 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
         
             return when(buf.getInt()) {
             1 -> DehydrationException.Pickle(FfiConverterString.read(buf))
-            2 -> DehydrationException.MissingSigningKey(FfiConverterString.read(buf))
-            3 -> DehydrationException.Json(FfiConverterString.read(buf))
-            4 -> DehydrationException.Store(FfiConverterString.read(buf))
-            5 -> DehydrationException.PickleKeyLength(FfiConverterString.read(buf))
-            6 -> DehydrationException.Rand(FfiConverterString.read(buf))
+            2 -> DehydrationException.LegacyPickle(FfiConverterString.read(buf))
+            3 -> DehydrationException.MissingSigningKey(FfiConverterString.read(buf))
+            4 -> DehydrationException.Json(FfiConverterString.read(buf))
+            5 -> DehydrationException.Store(FfiConverterString.read(buf))
+            6 -> DehydrationException.PickleKeyLength(FfiConverterString.read(buf))
+            7 -> DehydrationException.Rand(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -10608,24 +10611,28 @@ public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<Dehydrat
                 buf.putInt(1)
                 Unit
             }
-            is DehydrationException.MissingSigningKey -> {
+            is DehydrationException.LegacyPickle -> {
                 buf.putInt(2)
                 Unit
             }
-            is DehydrationException.Json -> {
+            is DehydrationException.MissingSigningKey -> {
                 buf.putInt(3)
                 Unit
             }
-            is DehydrationException.Store -> {
+            is DehydrationException.Json -> {
                 buf.putInt(4)
                 Unit
             }
-            is DehydrationException.PickleKeyLength -> {
+            is DehydrationException.Store -> {
                 buf.putInt(5)
                 Unit
             }
-            is DehydrationException.Rand -> {
+            is DehydrationException.PickleKeyLength -> {
                 buf.putInt(6)
+                Unit
+            }
+            is DehydrationException.Rand -> {
+                buf.putInt(7)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
