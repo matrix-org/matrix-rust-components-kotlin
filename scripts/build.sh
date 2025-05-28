@@ -94,9 +94,10 @@ shift $((OPTIND - 1))
 
 moveFunction() {
   if [ -z "$output" ]; then
-    echo "No output path provided, keep the generated path"
+    echo -e "\nSUCCESS: Output AAR file is '$1'"
   else
     mv "$1" "$output"
+    echo -e "\nSUCCESS: Output AAR file is '$output'"
   fi
 }
 
