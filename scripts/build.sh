@@ -8,7 +8,8 @@ helpFunction() {
   echo -e "\t-o Optional output path with the expected name of the aar file"
   echo -e "\t-r Flag to build in release mode"
   echo -e "\t-m Option to select the gradle module to build. Default is sdk"
-  echo -e "\t-t Option to to select an android target to build against. Default will build for all targets."
+  echo -e "\t-t Select a target architecture to build for. Default will build for all known Android targets."
+  echo -e "\t-l Build for the local architecture. Incompatible with '-t'."
   exit 1
 }
 
@@ -20,14 +21,16 @@ scripts_dir=$(
 is_release='false'
 gradle_module='sdk'
 only_target=''
+local_target=''
 output=''
 
-while getopts ':rp:m:t:o:' 'opt'; do
+while getopts ':rp:m:t:lo:' 'opt'; do
   case ${opt} in
   'r') is_release='true' ;;
   'p') sdk_path="$OPTARG" ;;
   'm') gradle_module="$OPTARG" ;;
   't') only_target="$OPTARG" ;;
+  'l') local_target='true' ;;
   'o') output="$OPTARG" ;;
   ?) helpFunction ;;
   esac
@@ -36,6 +39,17 @@ done
 if [ -z "$sdk_path" ]; then
   echo "sdk_path is empty, please provide one"
   helpFunction
+fi
+
+if [ -n "$local_target" ]; then
+    if [ -n "$only_target" ]; then
+        echo "Cannot specifiy both '-l' and '-t'." >&2
+        exit 1
+    fi
+
+    only_target="$(uname -m)-linux-android"
+    # On ARM MacOS, `uname -m` returns arm64, but the toolchain is called aarch64
+    only_target="${only_target/arm64/aarch64}"
 fi
 
 if [ -z "$only_target" ]; then
@@ -53,7 +67,7 @@ fi
 
 if [ "$gradle_module" = "crypto" ]; then
   ## NDK is needed for https://crates.io/crates/olm-sys
-  if [ -z "$ANDROID_NDK" ]; then
+  if [ -z "$ANDROID_NDK" && -z "$ANDROID_HOME" ]; then
     echo "please set the ANDROID_NDK environment variable to your Android NDK installation"
     exit 1
   fi
@@ -80,9 +94,10 @@ shift $((OPTIND - 1))
 
 moveFunction() {
   if [ -z "$output" ]; then
-    echo "No output path provided, keep the generated path"
+    echo -e "\nSUCCESS: Output AAR file is '$1'"
   else
     mv "$1" "$output"
+    echo -e "\nSUCCESS: Output AAR file is '$output'"
   fi
 }
 

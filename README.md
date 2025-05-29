@@ -20,23 +20,21 @@ Usage :
 
 ## Testing locally
 As the package vendors a pre-built binary of the SDK, all local development is done via the SDK's repo instead of this one.
-You can use the build script to generate the AAR file for testing. Be sure to have checkout the matrix-rust-sdk first.
+You can use the build script to generate the AAR file for testing. Be sure to have checked out the matrix-rust-sdk first.
 
-Usage:
-
+To build the main crate (eg, for Element-X):
 ```
-./scripts/build.sh -p matrix-rust-sdk-path -m sdk -t aarch64-linux-android
+./scripts/build.sh -p <matrix-rust-sdk-path> -m sdk -l
 ```
 
-To build just the crypto crate, use this instead:
-
+To build just the crypto crate (eg, for Element Android classic), use this instead:
 ```
-./scripts/build.sh -p matrix-rust-sdk-path -m crypto -t aarch64-linux-android
+./scripts/build.sh -p matrix-rust-sdk-path -m crypto -l
 ```
 
 Other useful flags:
 
-- `-o OUTPUT_DIR`: Writes the output AAR file to the dir `OUTPUT_DIR`.
+- `-o OUTPUT_DIR`: Moves the generated AAR file to the dir `OUTPUT_DIR`.
 - `-r`: Produces a release build instead of a development one.
 
 ## Prerequisites
@@ -45,11 +43,7 @@ Other useful flags:
 * the Rust toolchain
 * cargo-ndk `cargo install cargo-ndk`
 * protoc `brew install protobuf` or downloading [here](https://github.com/protocolbuffers/protobuf/releases)
-* android targets (e.g. `rustup target add \
-  aarch64-linux-android \
-  armv7-linux-androideabi \
-  x86_64-linux-android \
-  i686-linux-android`)
+* android targets (e.g. `rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android`)
 
 
 ## License
