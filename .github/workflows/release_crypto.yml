@@ -108,6 +108,15 @@ jobs:
       - name: Configure gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Set linkable git ref
+        id: set_linkable_ref
+        run: |
+          pushd ${{ env.RUST_SDK_PATH }}
+          COMMIT_HASH=$(git rev-parse --verify ${{ github.event.inputs.rust-checkout-ref }})
+          echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
+          echo "Using commit hash $COMMIT_HASH"
+          popd
+
       - name: Run build script
         env:
           ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
@@ -132,26 +141,4 @@ jobs:
           CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./scripts/release_crypto.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk
-
-#      - name: Run test python
-#        run: |
-#          python3 ./main/scripts/hello_world.py
-#
-#      - name: Run test python 2
-#        env:
-#          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-#          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
-#          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-#          RUST_LOG: "trace"
-#        run: |
-#          python3 ./main/scripts/hello_world.py
-#
-#      - name: Run publish script
-#        env:
-#          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-#          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
-#          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-#          RUST_LOG: "trace"
-#        run: |
-#          python3 ./main/scripts/release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk --module CRYPTO
+          python3 ./scripts/publish_release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk --module CRYPTO --linkable-ref ${{ needs.build_targets.outputs.linkable_ref }}
