@@ -1,4 +1,4 @@
-name: Release Crypto Library
+name: Release Crypto Library (parallel)
 
 on:
   workflow_dispatch:
@@ -7,29 +7,25 @@ on:
         description: 'The branch, tag or SHA to checkout on the rust sdk.'
         required: true
         default: 'main'
-      crypto-sdk-version:
-        description: 'The new version for the rust-crypto library.'
+      sdk-version:
+        description: 'The new version for the crypto library.'
         required: true
 
-
 jobs:
-  build_native:
-    name: Build and generate crypto native libs
+  build_targets:
+    strategy:
+      matrix:
+        target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
+    name: "Build Rust target: ${{ matrix.target }}"
     runs-on: ubuntu-24.04
-    env:
-      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-      OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-      SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-      SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
+    outputs:
+      linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
     concurrency:
-      group: ${{ github.ref }}-${{ github.job }}
+      group: ${{ github.ref }}-${{ github.job }}-${{ matrix.target }}
       cancel-in-progress: true
 
     steps:
-
       - name: Checkout this repo
         uses: actions/checkout@v4
 
@@ -38,12 +34,10 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-      - name: Checkout matrix rust sdk repo
-        uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
         with:
-          repository: matrix-org/matrix-rust-sdk
-          path: rust-sdk
-          ref: '${{ github.event.inputs.rust-checkout-ref }}'
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
+          cache-on-failure: true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -54,45 +48,13 @@ jobs:
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
 
-      - name: Install android ndk
-        uses: nttld/setup-ndk@v1
-        id: install-ndk
-        with:
-          ndk-version: r27
-
-      # - name: Create symlinks for buildchain
-      #   run: |
-      #     export PATH="${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH"
-      #     echo $PATH
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      #      - name: Create cargo config
-      #        run: |
-      #          echo [target.aarch64-linux-android] > $HOME/.cargo/config.toml
-      #          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-      #          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android30-clang\"  >> $HOME/.cargo/config.toml
-      #
-      #          echo [target.i686-linux-android] >> $HOME/.cargo/config.toml
-      #          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-      #          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android30-clang\"  >> $HOME/.cargo/config.toml
-      #
-      #          echo [target.armv7-linux-androideabi] >> $HOME/.cargo/config.toml
-      #          echo ar = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/ar\" >> $HOME/.cargo/config.toml
-      #          echo linker = \"${{ steps.install-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/darwin-x86_64/bin/armv7a-linux-androideabi30-clang\"  >> $HOME/.cargo/config.toml
-      #
-      #          cat $HOME/.cargo/config.toml
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add Rust targets
         run: |
@@ -105,53 +67,118 @@ jobs:
         continue-on-error: true
         run: cargo install cargo-ndk
 
-      - name: Configure gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install argparse
+          pip install requests
 
       - name: Run build script
-        env:
-          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-        run: ./scripts/build.sh -r -m crypto -p rust-sdk
+        run: |
+          python3 ./scripts/build-rust-for-target.py --module CRYPTO --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --target ${{ matrix.target }}
 
-      - name: Find all .aar files
-        run: find . -name "*.aar"
+      - name: Set linkable git ref
+        id: set_linkable_ref
+        run: |
+          pushd ${{ env.RUST_SDK_PATH }}
+          COMMIT_HASH=$(git rev-parse --verify ${{ github.event.inputs.rust-checkout-ref }})
+          echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
+          echo "Using commit hash $COMMIT_HASH"
+          popd
+
+      - name: Upload target artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: targets-${{ matrix.target }}
+          if-no-files-found: error
+          path: ./crypto/crypto-android/src/main/jniLibs/*/libmatrix_sdk_crypto_ffi.so
+          retention-days: 7
+
+      - name: Upload FFI bindings
+        # The FFI bindings will be identical for the 4 architectures, so upload as artifact
+        # only once.
+        if: (success() || failure()) && matrix.target == 'x86_64-linux-android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffi-bindings
+          if-no-files-found: error
+          path: ./crypto/crypto-android/src/main/kotlin/
+          retention-days: 7
+
+  release_library:
+    name: "Release SDK Library"
+    needs: build_targets
+    runs-on: ubuntu-24.04
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.job }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Configure git user
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Download target artifacts to their right folders
+        uses: actions/download-artifact@v4
+        with:
+          pattern: targets-*
+          merge-multiple: true
+          path: crypto/crypto-android/src/main/jniLibs/
+
+      - name: Download FFI bindings to their package
+        uses: actions/download-artifact@v4
+        with:
+          name: ffi-bindings
+          path: crypto/crypto-android/src/main/kotlin/
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin' # See 'Supported distributions' for available options
+
+      - name: Install android sdk
+        uses: malinskiy/action-android/install-sdk@release/0.1.4
 
       - name: Set up Python 3
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install argparse
           pip install requests
 
-      - name: Run publish script
+      - name: Run release script
         env:
-          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 ./scripts/release_crypto.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk
+          python3 ./scripts/publish_release.py --module CRYPTO --version ${{ github.event.inputs.sdk-version }} --linkable-ref ${{ needs.build_targets.outputs.linkable_ref }}
 
-#      - name: Run test python
-#        run: |
-#          python3 ./main/scripts/hello_world.py
-#
-#      - name: Run test python 2
-#        env:
-#          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-#          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
-#          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-#          RUST_LOG: "trace"
-#        run: |
-#          python3 ./main/scripts/hello_world.py
-#
-#      - name: Run publish script
-#        env:
-#          ANDROID_NDK: ${{ steps.install-ndk.outputs.ndk-path }}
-#          CRYPTO_SDK_VERSION: ${{ github.event.inputs.crypto-sdk-version }}
-#          GITHUB_API_TOKEN: ${{ secrets.API_TOKEN }}
-#          RUST_LOG: "trace"
-#        run: |
-#          python3 ./main/scripts/release.py --version ${{ github.event.inputs.crypto-sdk-version }} --sdk_path ./rust-sdk --module CRYPTO
+      - name: Upload AAR results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-android-release
+          if-no-files-found: error
+          path: ./sdk/sdk-android/build/**/*.aar
+          retention-days: 7

@@ -23,7 +23,7 @@ Usage :
 # To build the SDK/crypto library binaries from the matrix-rust-sdk repo:
 ./scripts/build.sh -p <matrix-rust-sdk-path> -m <sdk/crypto> -r
 # To release the built SDK/crypto library binaries to maven:
-python3 ./scripts/release_sdk.py --version <version> --linkable-ref <sdk-branch/SHA> --module <SDK/CRYPTO>
+python3 ./scripts/publish_release.py --version <version> --linkable-ref <sdk-branch/SHA> --module <SDK/CRYPTO>
 ```
 
 ## Testing locally
