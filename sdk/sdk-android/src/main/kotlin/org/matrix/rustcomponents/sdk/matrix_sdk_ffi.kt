@@ -5398,7 +5398,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification() != 43366.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed() != 53551.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed() != 52926.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location() != 34248.toShort()) {
@@ -14519,8 +14519,13 @@ public interface RoomInterface {
      * It will configure the notify type: ring or notify based on:
      * - is this a DM room -> ring
      * - is this a group with more than one other member -> notify
+     *
+     * Returns:
+     * - `Ok(true)` if the event was successfully sent.
+     * - `Ok(false)` if we didn't send it because it was unnecessary.
+     * - `Err(_)` if sending the event failed.
      */
-    suspend fun `sendCallNotificationIfNeeded`()
+    suspend fun `sendCallNotificationIfNeeded`(): kotlin.Boolean
     
     /**
      * Send the current users live location beacon in the room.
@@ -16346,10 +16351,15 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      * It will configure the notify type: ring or notify based on:
      * - is this a DM room -> ring
      * - is this a group with more than one other member -> notify
+     *
+     * Returns:
+     * - `Ok(true)` if the event was successfully sent.
+     * - `Ok(false)` if we didn't send it because it was unnecessary.
+     * - `Err(_)` if sending the event failed.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendCallNotificationIfNeeded`() {
+    override suspend fun `sendCallNotificationIfNeeded`() : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification_if_needed(
@@ -16357,12 +16367,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
                 
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
         // lift function
-        { Unit },
-        
+        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -41512,16 +41521,35 @@ public object FfiConverterTypeTimelineFilter : FfiConverterRustBuffer<TimelineFi
 
 sealed class TimelineFocus {
     
-    object Live : TimelineFocus()
-    
+    data class Live(
+        /**
+         * Whether to hide in-thread replies from the live timeline.
+         */
+        val `hideThreadedEvents`: kotlin.Boolean) : TimelineFocus() {
+        companion object
+    }
     
     data class Event(
+        /**
+         * The initial event to focus on. This is usually the target of a
+         * permalink.
+         */
         val `eventId`: kotlin.String, 
-        val `numContextEvents`: kotlin.UShort) : TimelineFocus() {
+        /**
+         * The number of context events to load around the focused event.
+         */
+        val `numContextEvents`: kotlin.UShort, 
+        /**
+         * Whether to hide in-thread replies from the live timeline.
+         */
+        val `hideThreadedEvents`: kotlin.Boolean) : TimelineFocus() {
         companion object
     }
     
     data class Thread(
+        /**
+         * The thread root event ID to focus on.
+         */
         val `rootEventId`: kotlin.String, 
         val `numEvents`: kotlin.UShort) : TimelineFocus() {
         companion object
@@ -41541,10 +41569,13 @@ sealed class TimelineFocus {
 public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFocus>{
     override fun read(buf: ByteBuffer): TimelineFocus {
         return when(buf.getInt()) {
-            1 -> TimelineFocus.Live
+            1 -> TimelineFocus.Live(
+                FfiConverterBoolean.read(buf),
+                )
             2 -> TimelineFocus.Event(
                 FfiConverterString.read(buf),
                 FfiConverterUShort.read(buf),
+                FfiConverterBoolean.read(buf),
                 )
             3 -> TimelineFocus.Thread(
                 FfiConverterString.read(buf),
@@ -41563,6 +41594,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterBoolean.allocationSize(value.`hideThreadedEvents`)
             )
         }
         is TimelineFocus.Event -> {
@@ -41571,6 +41603,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 4UL
                 + FfiConverterString.allocationSize(value.`eventId`)
                 + FfiConverterUShort.allocationSize(value.`numContextEvents`)
+                + FfiConverterBoolean.allocationSize(value.`hideThreadedEvents`)
             )
         }
         is TimelineFocus.Thread -> {
@@ -41595,12 +41628,14 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
         when(value) {
             is TimelineFocus.Live -> {
                 buf.putInt(1)
+                FfiConverterBoolean.write(value.`hideThreadedEvents`, buf)
                 Unit
             }
             is TimelineFocus.Event -> {
                 buf.putInt(2)
                 FfiConverterString.write(value.`eventId`, buf)
                 FfiConverterUShort.write(value.`numContextEvents`, buf)
+                FfiConverterBoolean.write(value.`hideThreadedEvents`, buf)
                 Unit
             }
             is TimelineFocus.Thread -> {
