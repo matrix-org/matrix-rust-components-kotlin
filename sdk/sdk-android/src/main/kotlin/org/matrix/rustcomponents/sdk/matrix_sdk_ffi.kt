@@ -2380,6 +2380,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2888,7 +2890,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(`ptr`: Pointer,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(`ptr`: Pointer,`threadRoot`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(`ptr`: Pointer,
     ): Long
@@ -2948,7 +2950,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Pointer,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Pointer,`threadRoot`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
     ): Long
@@ -2996,7 +2998,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(`ptr`: Pointer,`draft`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(`ptr`: Pointer,`draft`: RustBuffer.ByValue,`threadRoot`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification(`ptr`: Pointer,`callId`: RustBuffer.ByValue,`application`: RustBuffer.ByValue,`notifyType`: RustBuffer.ByValue,`mentions`: RustBuffer.ByValue,
     ): Long
@@ -3248,6 +3250,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_latest_event(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_num_replies(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_timeline(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_timeline(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3292,7 +3296,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`params`: RustBuffer.ByValue,`thumbnailPath`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,`replyParams`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(`ptr`: Pointer,`pollStartEventId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,
     ): Long
@@ -4348,6 +4352,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_num_replies(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content(
@@ -5230,7 +5236,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias() != 19786.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft() != 39667.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft() != 59182.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_event_cache_storage() != 13838.toShort()) {
@@ -5320,7 +5326,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 63688.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft() != 38115.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft() != 62856.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 57806.toShort()) {
@@ -5392,7 +5398,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info() != 41146.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft() != 62232.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft() != 27585.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification() != 43366.toShort()) {
@@ -5656,6 +5662,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event() != 52917.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_threadsummary_num_replies() != 10634.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener() != 18746.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5716,7 +5725,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 25436.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() != 47400.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() != 57832.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_poll_response() != 7453.toShort()) {
@@ -14186,7 +14195,7 @@ public interface RoomInterface {
     /**
      * Remove the `ComposerDraft` stored in the state store for this room.
      */
-    suspend fun `clearComposerDraft`()
+    suspend fun `clearComposerDraft`(`threadRoot`: kotlin.String?)
     
     /**
      * Clear the event cache storage for the current room.
@@ -14343,7 +14352,7 @@ public interface RoomInterface {
     /**
      * Retrieve the `ComposerDraft` stored in the state store for this room.
      */
-    suspend fun `loadComposerDraft`(): ComposerDraft?
+    suspend fun `loadComposerDraft`(`threadRoot`: kotlin.String?): ComposerDraft?
     
     /**
      * Mark a room as read, by attaching a read receipt on the latest event.
@@ -14492,7 +14501,7 @@ public interface RoomInterface {
      * Store the given `ComposerDraft` in the state store using the current
      * room id, as identifier.
      */
-    suspend fun `saveComposerDraft`(`draft`: ComposerDraft)
+    suspend fun `saveComposerDraft`(`draft`: ComposerDraft, `threadRoot`: kotlin.String?)
     
     /**
      * Send a call notification event in the current room.
@@ -15076,12 +15085,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `clearComposerDraft`() {
+    override suspend fun `clearComposerDraft`(`threadRoot`: kotlin.String?) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(
                 thisPtr,
-                
+                FfiConverterOptionalString.lower(`threadRoot`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -15712,12 +15721,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `loadComposerDraft`() : ComposerDraft? {
+    override suspend fun `loadComposerDraft`(`threadRoot`: kotlin.String?) : ComposerDraft? {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(
                 thisPtr,
-                
+                FfiConverterOptionalString.lower(`threadRoot`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -16286,12 +16295,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `saveComposerDraft`(`draft`: ComposerDraft) {
+    override suspend fun `saveComposerDraft`(`draft`: ComposerDraft, `threadRoot`: kotlin.String?) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(
                 thisPtr,
-                FfiConverterTypeComposerDraft.lower(`draft`),
+                FfiConverterTypeComposerDraft.lower(`draft`),FfiConverterOptionalString.lower(`threadRoot`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22495,6 +22504,8 @@ public interface ThreadSummaryInterface {
     
     fun `latestEvent`(): EmbeddedEventDetails
     
+    fun `numReplies`(): kotlin.ULong
+    
     companion object
 }
 
@@ -22584,6 +22595,18 @@ open class ThreadSummary: Disposable, AutoCloseable, ThreadSummaryInterface {
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_threadsummary_latest_event(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `numReplies`(): kotlin.ULong {
+            return FfiConverterULong.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_threadsummary_num_replies(
         it, _status)
 }
     }
@@ -22834,7 +22857,7 @@ public interface TimelineInterface {
     
     fun `sendImage`(`params`: UploadParameters, `thumbnailPath`: kotlin.String?, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
     
-    suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?)
+    suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?, `replyParams`: ReplyParameters?)
     
     suspend fun `sendPollResponse`(`pollStartEventId`: kotlin.String, `answers`: List<kotlin.String>)
     
@@ -23407,13 +23430,14 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     
 
     
+    @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?) {
+    override suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?, `replyParams`: ReplyParameters?) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(
                 thisPtr,
-                FfiConverterString.lower(`body`),FfiConverterString.lower(`geoUri`),FfiConverterOptionalString.lower(`description`),FfiConverterOptionalUByte.lower(`zoomLevel`),FfiConverterOptionalTypeAssetType.lower(`assetType`),
+                FfiConverterString.lower(`body`),FfiConverterString.lower(`geoUri`),FfiConverterOptionalString.lower(`description`),FfiConverterOptionalUByte.lower(`zoomLevel`),FfiConverterOptionalTypeAssetType.lower(`assetType`),FfiConverterOptionalTypeReplyParameters.lower(`replyParams`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -23423,7 +23447,7 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         { Unit },
         
         // Error FFI converter
-        UniffiNullRustCallStatusErrorHandler,
+        ClientException.ErrorHandler,
     )
     }
 
