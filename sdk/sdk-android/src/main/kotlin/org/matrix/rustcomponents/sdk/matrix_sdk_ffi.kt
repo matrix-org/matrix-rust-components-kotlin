@@ -46,10 +46,12 @@ import uniffi.matrix_sdk.FfiConverterTypeOAuthAuthorizationData
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
+import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetOptions
 import uniffi.matrix_sdk.OAuthAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
+import uniffi.matrix_sdk.VirtualElementCallWidgetOptions
 import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
@@ -57,12 +59,12 @@ import uniffi.matrix_sdk_base.MediaRetentionPolicy
 import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
 import uniffi.matrix_sdk_common.ShieldStateCode
 import uniffi.matrix_sdk_crypto.CollectStrategy
+import uniffi.matrix_sdk_crypto.DecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
+import uniffi.matrix_sdk_crypto.FfiConverterTypeDecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeIdentityState
-import uniffi.matrix_sdk_crypto.FfiConverterTypeTrustRequirement
 import uniffi.matrix_sdk_crypto.FfiConverterTypeUtdCause
 import uniffi.matrix_sdk_crypto.IdentityState
-import uniffi.matrix_sdk_crypto.TrustRequirement
 import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
@@ -73,12 +75,13 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
+import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetOptions
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
-import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferTrustRequirement
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
@@ -2388,6 +2391,26 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2464,7 +2487,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Pointer,
+    fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Pointer,`syncService`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Pointer,`request`: RustBuffer.ByValue,
     ): Long
@@ -2634,6 +2657,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_store_locks_holder_name(`ptr`: Pointer,`holderName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_decryption_settings(`ptr`: Pointer,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2649,8 +2674,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Pointer,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_decryption_trust_requirement(`ptr`: Pointer,`trustRequirement`: RustBufferTrustRequirement.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_strategy(`ptr`: Pointer,`strategy`: RustBufferCollectStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -2923,7 +2946,7 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_encrypted(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_public(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_send_queue_enabled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_room_is_space(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3118,6 +3141,24 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_roompowerlevels(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_ban(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_invite(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_kick(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_pin_unpin(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_other(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_own(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_message(`ptr`: Pointer,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_state(`ptr`: Pointer,`stateEvent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_trigger_room_notification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_ban(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_invite(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3136,6 +3177,8 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_trigger_room_notification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
+    fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_user_power_levels(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_values(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_roompreview(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3520,7 +3563,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBufferVirtualElementCallWidgetOptions.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -3874,6 +3917,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_store_locks_holder_name(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_decryption_settings(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates(
@@ -3889,8 +3934,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_decryption_trust_requirement(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy(
     ): Short
@@ -4276,6 +4319,24 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_ban(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_invite(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_kick(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_pin_unpin(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_other(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_own(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_message(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_state(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_trigger_room_notification(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_ban(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_invite(
@@ -4293,6 +4354,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_state(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_trigger_room_notification(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_user_power_levels(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_values(
     ): Short
@@ -4651,7 +4714,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 57839.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 4988.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 61776.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() != 49710.toShort()) {
@@ -4696,7 +4759,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account() != 39890.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches() != 65177.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches() != 55711.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() != 52700.toShort()) {
@@ -4942,6 +5005,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_store_locks_holder_name() != 46627.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_decryption_settings() != 34715.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh() != 43839.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4964,9 +5030,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config() != 58783.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_decryption_trust_requirement() != 2776.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy() != 41183.toShort()) {
@@ -5293,7 +5356,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_encrypted() != 63995.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_public() != 7336.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_public() != 57746.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_send_queue_enabled() != 36591.toShort()) {
@@ -5545,10 +5608,37 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk() != 23186.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_ban() != 7183.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_invite() != 57708.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_kick() != 461.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_pin_unpin() != 52852.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_other() != 60699.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_own() != 32905.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_message() != 2424.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_state() != 33539.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_trigger_room_notification() != 64150.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_ban() != 57457.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_invite() != 58911.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_invite() != 41275.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_kick() != 51066.toShort()) {
@@ -5570,6 +5660,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_trigger_room_notification() != 26319.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_user_power_levels() != 16221.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_values() != 38774.toShort()) {
@@ -6566,9 +6659,16 @@ public interface ClientInterface {
      * Clear all the non-critical caches for this Client instance.
      *
      * WARNING: This will clear all the caches, including the base store (state
-     * store), so callers must make sure that any sync is inactive before
-     * calling this method. In particular, the `SyncService` must not be
-     * running. After the method returns, the Client will be in an unstable
+     * store), so callers must make sure that the Client is at rest before
+     * calling it.
+     *
+     * In particular, if a [`SyncService`] is running, it must be passed here
+     * as a parameter, or stopped before calling this method. Ideally, the
+     * send queues should have been disabled and must all be inactive (i.e.
+     * not sending events); this method will disable them, but it might not
+     * be enough if the queues are still processing events.
+     *
+     * After the method returns, the Client will be in an unstable
      * state, and it is required that the caller reinstantiates a new
      * Client instance, be it via dropping the previous and re-creating it,
      * restarting their application, or any other similar means.
@@ -6579,7 +6679,7 @@ public interface ClientInterface {
      * - This will empty the media cache according to the current media
      * retention policy.
      */
-    suspend fun `clearCaches`()
+    suspend fun `clearCaches`(`syncService`: SyncService?)
     
     suspend fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
     
@@ -7273,9 +7373,16 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      * Clear all the non-critical caches for this Client instance.
      *
      * WARNING: This will clear all the caches, including the base store (state
-     * store), so callers must make sure that any sync is inactive before
-     * calling this method. In particular, the `SyncService` must not be
-     * running. After the method returns, the Client will be in an unstable
+     * store), so callers must make sure that the Client is at rest before
+     * calling it.
+     *
+     * In particular, if a [`SyncService`] is running, it must be passed here
+     * as a parameter, or stopped before calling this method. Ideally, the
+     * send queues should have been disabled and must all be inactive (i.e.
+     * not sending events); this method will disable them, but it might not
+     * be enough if the queues are still processing events.
+     *
+     * After the method returns, the Client will be in an unstable
      * state, and it is required that the caller reinstantiates a new
      * Client instance, be it via dropping the previous and re-creating it,
      * restarting their application, or any other similar means.
@@ -7288,12 +7395,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `clearCaches`() {
+    override suspend fun `clearCaches`(`syncService`: SyncService?) {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(
                 thisPtr,
-                
+                FfiConverterOptionalTypeSyncService.lower(`syncService`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9158,6 +9265,11 @@ public interface ClientBuilderInterface {
     
     fun `crossProcessStoreLocksHolderName`(`holderName`: kotlin.String): ClientBuilder
     
+    /**
+     * Set the trust requirement to be used when decrypting events.
+     */
+    fun `decryptionSettings`(`decryptionSettings`: DecryptionSettings): ClientBuilder
+    
     fun `disableAutomaticTokenRefresh`(): ClientBuilder
     
     /**
@@ -9187,11 +9299,6 @@ public interface ClientBuilderInterface {
      * Add a default request config to this client.
      */
     fun `requestConfig`(`config`: RequestConfig): ClientBuilder
-    
-    /**
-     * Set the trust requirement to be used when decrypting events.
-     */
-    fun `roomDecryptionTrustRequirement`(`trustRequirement`: TrustRequirement): ClientBuilder
     
     /**
      * Set the strategy to be used for picking recipient devices when sending
@@ -9494,6 +9601,21 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     }
     
 
+    
+    /**
+     * Set the trust requirement to be used when decrypting events.
+     */override fun `decryptionSettings`(`decryptionSettings`: DecryptionSettings): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_decryption_settings(
+        it, FfiConverterTypeDecryptionSettings.lower(`decryptionSettings`),_status)
+}
+    }
+    )
+    }
+    
+
     override fun `disableAutomaticTokenRefresh`(): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithPointer {
@@ -9598,21 +9720,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(
         it, FfiConverterTypeRequestConfig.lower(`config`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Set the trust requirement to be used when decrypting events.
-     */override fun `roomDecryptionTrustRequirement`(`trustRequirement`: TrustRequirement): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_decryption_trust_requirement(
-        it, FfiConverterTypeTrustRequirement.lower(`trustRequirement`),_status)
 }
     }
     )
@@ -14362,7 +14469,12 @@ public interface RoomInterface {
      */
     suspend fun `isEncrypted`(): kotlin.Boolean
     
-    fun `isPublic`(): kotlin.Boolean
+    /**
+     * Whether the room can be publicly joined or not, based on its join rule.
+     *
+     * Can return `None` if the join rule state event is missing.
+     */
+    fun `isPublic`(): kotlin.Boolean?
     
     /**
      * Returns whether the send queue for that particular room is enabled or
@@ -15402,8 +15514,13 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     )
     }
 
-    override fun `isPublic`(): kotlin.Boolean {
-            return FfiConverterBoolean.lift(
+    
+    /**
+     * Whether the room can be publicly joined or not, based on its join rule.
+     *
+     * Can return `None` if the join rule state event is missing.
+     */override fun `isPublic`(): kotlin.Boolean? {
+            return FfiConverterOptionalBoolean.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_is_public(
@@ -18980,6 +19097,57 @@ public object FfiConverterTypeRoomMessageEventContentWithoutRelation: FfiConvert
 public interface RoomPowerLevelsInterface {
     
     /**
+     * Returns true if the current user is able to ban in the room.
+     */
+    fun `canOwnUserBan`(): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to invite in the room.
+     */
+    fun `canOwnUserInvite`(): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to kick in the room.
+     */
+    fun `canOwnUserKick`(): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to pin or unpin events in the
+     * room.
+     */
+    fun `canOwnUserPinUnpin`(): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user user is able to redact messages of
+     * other users in the room.
+     */
+    fun `canOwnUserRedactOther`(): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to redact their own messages in
+     * the room.
+     */
+    fun `canOwnUserRedactOwn`(): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to send a specific message type
+     * in the room.
+     */
+    fun `canOwnUserSendMessage`(`message`: MessageLikeEventType): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to send a specific state event
+     * type in the room.
+     */
+    fun `canOwnUserSendState`(`stateEvent`: StateEventType): kotlin.Boolean
+    
+    /**
+     * Returns true if the current user is able to trigger a notification in
+     * the room.
+     */
+    fun `canOwnUserTriggerRoomNotification`(): kotlin.Boolean
+    
+    /**
      * Returns true if the user with the given user_id is able to ban in the
      * room.
      *
@@ -18988,7 +19156,7 @@ public interface RoomPowerLevelsInterface {
     fun `canUserBan`(`userId`: kotlin.String): kotlin.Boolean
     
     /**
-     * Returns true if the user with the given user_id is able to kick in the
+     * Returns true if the user with the given user_id is able to invite in the
      * room.
      *
      * The call may fail if there is an error in getting the power levels.
@@ -19050,6 +19218,12 @@ public interface RoomPowerLevelsInterface {
      * The call may fail if there is an error in getting the power levels.
      */
     fun `canUserTriggerRoomNotification`(`userId`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Gets a map with the `UserId` of users with power levels other than `0`
+     * and their power level.
+     */
+    fun `userPowerLevels`(): Map<kotlin.String, kotlin.Long>
     
     fun `values`(): RoomPowerLevelsValues
     
@@ -19139,6 +19313,147 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface 
 
     
     /**
+     * Returns true if the current user is able to ban in the room.
+     */override fun `canOwnUserBan`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_ban(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to invite in the room.
+     */override fun `canOwnUserInvite`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_invite(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to kick in the room.
+     */override fun `canOwnUserKick`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_kick(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to pin or unpin events in the
+     * room.
+     */override fun `canOwnUserPinUnpin`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_pin_unpin(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user user is able to redact messages of
+     * other users in the room.
+     */override fun `canOwnUserRedactOther`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_other(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to redact their own messages in
+     * the room.
+     */override fun `canOwnUserRedactOwn`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_own(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to send a specific message type
+     * in the room.
+     */override fun `canOwnUserSendMessage`(`message`: MessageLikeEventType): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_message(
+        it, FfiConverterTypeMessageLikeEventType.lower(`message`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to send a specific state event
+     * type in the room.
+     */override fun `canOwnUserSendState`(`stateEvent`: StateEventType): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_state(
+        it, FfiConverterTypeStateEventType.lower(`stateEvent`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns true if the current user is able to trigger a notification in
+     * the room.
+     */override fun `canOwnUserTriggerRoomNotification`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_trigger_room_notification(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Returns true if the user with the given user_id is able to ban in the
      * room.
      *
@@ -19158,7 +19473,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface 
 
     
     /**
-     * Returns true if the user with the given user_id is able to kick in the
+     * Returns true if the user with the given user_id is able to invite in the
      * room.
      *
      * The call may fail if there is an error in getting the power levels.
@@ -19302,6 +19617,22 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface 
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_trigger_room_notification(
         it, FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Gets a map with the `UserId` of users with power levels other than `0`
+     * and their power level.
+     */override fun `userPowerLevels`(): Map<kotlin.String, kotlin.Long> {
+            return FfiConverterMapStringLong.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_user_power_levels(
+        it, _status)
 }
     }
     )
@@ -28072,8 +28403,7 @@ data class NotificationRoomInfo (
     var `joinRule`: JoinRule?, 
     var `joinedMembersCount`: kotlin.ULong, 
     var `isEncrypted`: kotlin.Boolean?, 
-    var `isDirect`: kotlin.Boolean, 
-    var `isPublic`: kotlin.Boolean
+    var `isDirect`: kotlin.Boolean
 ) {
     
     companion object
@@ -28089,7 +28419,6 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterULong.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -28100,8 +28429,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isEncrypted`) +
-            FfiConverterBoolean.allocationSize(value.`isDirect`) +
-            FfiConverterBoolean.allocationSize(value.`isPublic`)
+            FfiConverterBoolean.allocationSize(value.`isDirect`)
     )
 
     override fun write(value: NotificationRoomInfo, buf: ByteBuffer) {
@@ -28112,7 +28440,6 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
             FfiConverterOptionalBoolean.write(value.`isEncrypted`, buf)
             FfiConverterBoolean.write(value.`isDirect`, buf)
-            FfiConverterBoolean.write(value.`isPublic`, buf)
     }
 }
 
@@ -28936,7 +29263,13 @@ data class RoomInfo (
     var `topic`: kotlin.String?, 
     var `avatarUrl`: kotlin.String?, 
     var `isDirect`: kotlin.Boolean, 
-    var `isPublic`: kotlin.Boolean, 
+    /**
+     * Whether the room is public or not, based on the join rules.
+     *
+     * Can be `None` if the join rules state event is not available for this
+     * room.
+     */
+    var `isPublic`: kotlin.Boolean?, 
     var `isSpace`: kotlin.Boolean, 
     /**
      * If present, it means the room has been archived/upgraded.
@@ -28958,7 +29291,6 @@ data class RoomInfo (
     var `activeMembersCount`: kotlin.ULong, 
     var `invitedMembersCount`: kotlin.ULong, 
     var `joinedMembersCount`: kotlin.ULong, 
-    var `userPowerLevels`: Map<kotlin.String, kotlin.Long>, 
     var `highlightCount`: kotlin.ULong, 
     var `notificationCount`: kotlin.ULong, 
     var `cachedUserDefinedNotificationMode`: RoomNotificationMode?, 
@@ -28994,8 +29326,85 @@ data class RoomInfo (
     /**
      * The history visibility for this room, if known.
      */
-    var `historyVisibility`: RoomHistoryVisibility
-) {
+    var `historyVisibility`: RoomHistoryVisibility, 
+    /**
+     * This room's current power levels.
+     *
+     * Can be missing if the room power levels event is missing from the store.
+     */
+    var `powerLevels`: RoomPowerLevels?
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+        Disposable.destroy(this.`id`)
+    
+        Disposable.destroy(this.`encryptionState`)
+    
+        Disposable.destroy(this.`creator`)
+    
+        Disposable.destroy(this.`displayName`)
+    
+        Disposable.destroy(this.`rawName`)
+    
+        Disposable.destroy(this.`topic`)
+    
+        Disposable.destroy(this.`avatarUrl`)
+    
+        Disposable.destroy(this.`isDirect`)
+    
+        Disposable.destroy(this.`isPublic`)
+    
+        Disposable.destroy(this.`isSpace`)
+    
+        Disposable.destroy(this.`successorRoom`)
+    
+        Disposable.destroy(this.`isFavourite`)
+    
+        Disposable.destroy(this.`canonicalAlias`)
+    
+        Disposable.destroy(this.`alternativeAliases`)
+    
+        Disposable.destroy(this.`membership`)
+    
+        Disposable.destroy(this.`inviter`)
+    
+        Disposable.destroy(this.`heroes`)
+    
+        Disposable.destroy(this.`activeMembersCount`)
+    
+        Disposable.destroy(this.`invitedMembersCount`)
+    
+        Disposable.destroy(this.`joinedMembersCount`)
+    
+        Disposable.destroy(this.`highlightCount`)
+    
+        Disposable.destroy(this.`notificationCount`)
+    
+        Disposable.destroy(this.`cachedUserDefinedNotificationMode`)
+    
+        Disposable.destroy(this.`hasRoomCall`)
+    
+        Disposable.destroy(this.`activeRoomCallParticipants`)
+    
+        Disposable.destroy(this.`isMarkedUnread`)
+    
+        Disposable.destroy(this.`numUnreadMessages`)
+    
+        Disposable.destroy(this.`numUnreadNotifications`)
+    
+        Disposable.destroy(this.`numUnreadMentions`)
+    
+        Disposable.destroy(this.`pinnedEventIds`)
+    
+        Disposable.destroy(this.`joinRule`)
+    
+        Disposable.destroy(this.`historyVisibility`)
+    
+        Disposable.destroy(this.`powerLevels`)
+    
+    }
     
     companion object
 }
@@ -29011,7 +29420,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterBoolean.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterOptionalTypeSuccessorRoom.read(buf),
             FfiConverterBoolean.read(buf),
@@ -29023,7 +29432,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
-            FfiConverterMapStringLong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterOptionalTypeRoomNotificationMode.read(buf),
@@ -29036,6 +29444,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterSequenceString.read(buf),
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterTypeRoomHistoryVisibility.read(buf),
+            FfiConverterOptionalTypeRoomPowerLevels.read(buf),
         )
     }
 
@@ -29048,7 +29457,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.allocationSize(value.`topic`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
             FfiConverterBoolean.allocationSize(value.`isDirect`) +
-            FfiConverterBoolean.allocationSize(value.`isPublic`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`isPublic`) +
             FfiConverterBoolean.allocationSize(value.`isSpace`) +
             FfiConverterOptionalTypeSuccessorRoom.allocationSize(value.`successorRoom`) +
             FfiConverterBoolean.allocationSize(value.`isFavourite`) +
@@ -29060,7 +29469,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.allocationSize(value.`activeMembersCount`) +
             FfiConverterULong.allocationSize(value.`invitedMembersCount`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
-            FfiConverterMapStringLong.allocationSize(value.`userPowerLevels`) +
             FfiConverterULong.allocationSize(value.`highlightCount`) +
             FfiConverterULong.allocationSize(value.`notificationCount`) +
             FfiConverterOptionalTypeRoomNotificationMode.allocationSize(value.`cachedUserDefinedNotificationMode`) +
@@ -29072,7 +29480,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.allocationSize(value.`numUnreadMentions`) +
             FfiConverterSequenceString.allocationSize(value.`pinnedEventIds`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
-            FfiConverterTypeRoomHistoryVisibility.allocationSize(value.`historyVisibility`)
+            FfiConverterTypeRoomHistoryVisibility.allocationSize(value.`historyVisibility`) +
+            FfiConverterOptionalTypeRoomPowerLevels.allocationSize(value.`powerLevels`)
     )
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
@@ -29084,7 +29493,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalString.write(value.`topic`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
             FfiConverterBoolean.write(value.`isDirect`, buf)
-            FfiConverterBoolean.write(value.`isPublic`, buf)
+            FfiConverterOptionalBoolean.write(value.`isPublic`, buf)
             FfiConverterBoolean.write(value.`isSpace`, buf)
             FfiConverterOptionalTypeSuccessorRoom.write(value.`successorRoom`, buf)
             FfiConverterBoolean.write(value.`isFavourite`, buf)
@@ -29096,7 +29505,6 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`activeMembersCount`, buf)
             FfiConverterULong.write(value.`invitedMembersCount`, buf)
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
-            FfiConverterMapStringLong.write(value.`userPowerLevels`, buf)
             FfiConverterULong.write(value.`highlightCount`, buf)
             FfiConverterULong.write(value.`notificationCount`, buf)
             FfiConverterOptionalTypeRoomNotificationMode.write(value.`cachedUserDefinedNotificationMode`, buf)
@@ -29109,6 +29517,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterSequenceString.write(value.`pinnedEventIds`, buf)
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterTypeRoomHistoryVisibility.write(value.`historyVisibility`, buf)
+            FfiConverterOptionalTypeRoomPowerLevels.write(value.`powerLevels`, buf)
     }
 }
 
@@ -29433,7 +29842,7 @@ data class RoomPreviewInfo (
     /**
      * The join rule for this room (private, public, knock, etc.).
      */
-    var `joinRule`: JoinRule, 
+    var `joinRule`: JoinRule?, 
     /**
      * Whether the room is direct or not, if known.
      */
@@ -29460,7 +29869,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterTypeRoomType.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalTypeMembership.read(buf),
-            FfiConverterTypeJoinRule.read(buf),
+            FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalSequenceTypeRoomHero.read(buf),
         )
@@ -29477,7 +29886,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterTypeRoomType.allocationSize(value.`roomType`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isHistoryWorldReadable`) +
             FfiConverterOptionalTypeMembership.allocationSize(value.`membership`) +
-            FfiConverterTypeJoinRule.allocationSize(value.`joinRule`) +
+            FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isDirect`) +
             FfiConverterOptionalSequenceTypeRoomHero.allocationSize(value.`heroes`)
     )
@@ -29493,7 +29902,7 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterTypeRoomType.write(value.`roomType`, buf)
             FfiConverterOptionalBoolean.write(value.`isHistoryWorldReadable`, buf)
             FfiConverterOptionalTypeMembership.write(value.`membership`, buf)
-            FfiConverterTypeJoinRule.write(value.`joinRule`, buf)
+            FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterOptionalBoolean.write(value.`isDirect`, buf)
             FfiConverterOptionalSequenceTypeRoomHero.write(value.`heroes`, buf)
     }
@@ -30681,199 +31090,6 @@ public object FfiConverterTypeVideoMessageContent: FfiConverterRustBuffer<VideoM
             FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterTypeMediaSource.write(value.`source`, buf)
             FfiConverterOptionalTypeVideoInfo.write(value.`info`, buf)
-    }
-}
-
-
-
-/**
- * Properties to create a new virtual Element Call widget.
- */
-data class VirtualElementCallWidgetOptions (
-    /**
-     * The url to the Element Call app including any `/room` path if required.
-     *
-     * E.g. <https://call.element.io>, <https://call.element.dev>, <https://call.element.dev/room>
-     */
-    var `elementCallUrl`: kotlin.String, 
-    /**
-     * The widget id.
-     */
-    var `widgetId`: kotlin.String, 
-    /**
-     * The url that is used as the target for the PostMessages sent
-     * by the widget (to the client).
-     *
-     * For a web app client this is the client url. In case of using other
-     * platforms the client most likely is setup up to listen to
-     * postmessages in the same webview the widget is hosted. In this case
-     * the `parent_url` is set to the url of the webview with the widget. Be
-     * aware that this means that the widget will receive its own postmessage
-     * messages. The `matrix-widget-api` (js) ignores those so this works but
-     * it might break custom implementations.
-     *
-     * Defaults to `element_call_url` for the non-iframe (dedicated webview)
-     * usecase.
-     */
-    var `parentUrl`: kotlin.String?, 
-    /**
-     * Whether the branding header of Element call should be hidden.
-     *
-     * Default: `true`
-     */
-    var `hideHeader`: kotlin.Boolean?, 
-    /**
-     * If set, the lobby will be skipped and the widget will join the
-     * call on the `io.element.join` action.
-     *
-     * Default: `false`
-     */
-    var `preload`: kotlin.Boolean?, 
-    /**
-     * The font scale which will be used inside element call.
-     *
-     * Default: `1`
-     */
-    var `fontScale`: kotlin.Double?, 
-    /**
-     * Whether element call should prompt the user to open in the browser or
-     * the app.
-     *
-     * Default: `false`
-     */
-    var `appPrompt`: kotlin.Boolean?, 
-    /**
-     * Make it not possible to get to the calls list in the webview.
-     *
-     * Default: `true`
-     */
-    var `confineToRoom`: kotlin.Boolean?, 
-    /**
-     * The font to use, to adapt to the system font.
-     */
-    var `font`: kotlin.String?, 
-    /**
-     * The encryption system to use.
-     *
-     * Use `EncryptionSystem::Unencrypted` to disable encryption.
-     */
-    var `encryption`: EncryptionSystem, 
-    /**
-     * The intent of showing the call.
-     * If the user wants to start a call or join an existing one.
-     * Controls if the lobby is skipped or not.
-     */
-    var `intent`: Intent?, 
-    /**
-     * Do not show the screenshare button.
-     */
-    var `hideScreensharing`: kotlin.Boolean, 
-    /**
-     * Can be used to pass a PostHog id to element call.
-     */
-    var `posthogUserId`: kotlin.String?, 
-    /**
-     * The host of the posthog api.
-     * Supported since Element Call v0.9.0. Only used by the embedded package.
-     */
-    var `posthogApiHost`: kotlin.String?, 
-    /**
-     * The key for the posthog api.
-     * Supported since Element Call v0.9.0. Only used by the embedded package.
-     */
-    var `posthogApiKey`: kotlin.String?, 
-    /**
-     * The url to use for submitting rageshakes.
-     * Supported since Element Call v0.9.0. Only used by the embedded package.
-     */
-    var `rageshakeSubmitUrl`: kotlin.String?, 
-    /**
-     * Sentry [DSN](https://docs.sentry.io/concepts/key-terms/dsn-explainer/)
-     * Supported since Element Call v0.9.0. Only used by the embedded package.
-     */
-    var `sentryDsn`: kotlin.String?, 
-    /**
-     * Sentry [environment](https://docs.sentry.io/concepts/key-terms/key-terms/)
-     * Supported since Element Call v0.9.0. Only used by the embedded package.
-     */
-    var `sentryEnvironment`: kotlin.String?, 
-    /**
-     * - `false`: the webview shows a a list of devices injected by the
-     * client. (used on ios & android)
-     */
-    var `controlledMediaDevices`: kotlin.Boolean
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustBuffer<VirtualElementCallWidgetOptions> {
-    override fun read(buf: ByteBuffer): VirtualElementCallWidgetOptions {
-        return VirtualElementCallWidgetOptions(
-            FfiConverterString.read(buf),
-            FfiConverterString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalDouble.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterTypeEncryptionSystem.read(buf),
-            FfiConverterOptionalTypeIntent.read(buf),
-            FfiConverterBoolean.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalString.read(buf),
-            FfiConverterBoolean.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: VirtualElementCallWidgetOptions) = (
-            FfiConverterString.allocationSize(value.`elementCallUrl`) +
-            FfiConverterString.allocationSize(value.`widgetId`) +
-            FfiConverterOptionalString.allocationSize(value.`parentUrl`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`hideHeader`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`preload`) +
-            FfiConverterOptionalDouble.allocationSize(value.`fontScale`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`appPrompt`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`confineToRoom`) +
-            FfiConverterOptionalString.allocationSize(value.`font`) +
-            FfiConverterTypeEncryptionSystem.allocationSize(value.`encryption`) +
-            FfiConverterOptionalTypeIntent.allocationSize(value.`intent`) +
-            FfiConverterBoolean.allocationSize(value.`hideScreensharing`) +
-            FfiConverterOptionalString.allocationSize(value.`posthogUserId`) +
-            FfiConverterOptionalString.allocationSize(value.`posthogApiHost`) +
-            FfiConverterOptionalString.allocationSize(value.`posthogApiKey`) +
-            FfiConverterOptionalString.allocationSize(value.`rageshakeSubmitUrl`) +
-            FfiConverterOptionalString.allocationSize(value.`sentryDsn`) +
-            FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`) +
-            FfiConverterBoolean.allocationSize(value.`controlledMediaDevices`)
-    )
-
-    override fun write(value: VirtualElementCallWidgetOptions, buf: ByteBuffer) {
-            FfiConverterString.write(value.`elementCallUrl`, buf)
-            FfiConverterString.write(value.`widgetId`, buf)
-            FfiConverterOptionalString.write(value.`parentUrl`, buf)
-            FfiConverterOptionalBoolean.write(value.`hideHeader`, buf)
-            FfiConverterOptionalBoolean.write(value.`preload`, buf)
-            FfiConverterOptionalDouble.write(value.`fontScale`, buf)
-            FfiConverterOptionalBoolean.write(value.`appPrompt`, buf)
-            FfiConverterOptionalBoolean.write(value.`confineToRoom`, buf)
-            FfiConverterOptionalString.write(value.`font`, buf)
-            FfiConverterTypeEncryptionSystem.write(value.`encryption`, buf)
-            FfiConverterOptionalTypeIntent.write(value.`intent`, buf)
-            FfiConverterBoolean.write(value.`hideScreensharing`, buf)
-            FfiConverterOptionalString.write(value.`posthogUserId`, buf)
-            FfiConverterOptionalString.write(value.`posthogApiHost`, buf)
-            FfiConverterOptionalString.write(value.`posthogApiKey`, buf)
-            FfiConverterOptionalString.write(value.`rageshakeSubmitUrl`, buf)
-            FfiConverterOptionalString.write(value.`sentryDsn`, buf)
-            FfiConverterOptionalString.write(value.`sentryEnvironment`, buf)
-            FfiConverterBoolean.write(value.`controlledMediaDevices`, buf)
     }
 }
 
@@ -32752,100 +32968,6 @@ public object FfiConverterTypeEncryptedMessage : FfiConverterRustBuffer<Encrypte
             }
             is EncryptedMessage.Unknown -> {
                 buf.putInt(3)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-/**
- * Defines if a call is encrypted and which encryption system should be used.
- *
- * This controls the url parameters: `perParticipantE2EE`, `password`.
- */
-sealed class EncryptionSystem {
-    
-    /**
-     * Equivalent to the element call url parameter: `enableE2EE=false`
-     */
-    object Unencrypted : EncryptionSystem()
-    
-    
-    /**
-     * Equivalent to the element call url parameter:
-     * `perParticipantE2EE=true`
-     */
-    object PerParticipantKeys : EncryptionSystem()
-    
-    
-    /**
-     * Equivalent to the element call url parameter:
-     * `password={secret}`
-     */
-    data class SharedSecret(
-        /**
-         * The secret/password which is used in the url.
-         */
-        val `secret`: kotlin.String) : EncryptionSystem() {
-        companion object
-    }
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeEncryptionSystem : FfiConverterRustBuffer<EncryptionSystem>{
-    override fun read(buf: ByteBuffer): EncryptionSystem {
-        return when(buf.getInt()) {
-            1 -> EncryptionSystem.Unencrypted
-            2 -> EncryptionSystem.PerParticipantKeys
-            3 -> EncryptionSystem.SharedSecret(
-                FfiConverterString.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: EncryptionSystem) = when(value) {
-        is EncryptionSystem.Unencrypted -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is EncryptionSystem.PerParticipantKeys -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is EncryptionSystem.SharedSecret -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterString.allocationSize(value.`secret`)
-            )
-        }
-    }
-
-    override fun write(value: EncryptionSystem, buf: ByteBuffer) {
-        when(value) {
-            is EncryptionSystem.Unencrypted -> {
-                buf.putInt(1)
-                Unit
-            }
-            is EncryptionSystem.PerParticipantKeys -> {
-                buf.putInt(2)
-                Unit
-            }
-            is EncryptionSystem.SharedSecret -> {
-                buf.putInt(3)
-                FfiConverterString.write(value.`secret`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -34852,44 +34974,6 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
     }
 
 }
-
-
-
-/**
- * Defines the intent of showing the call.
- *
- * This controls whether to show or skip the lobby.
- */
-
-enum class Intent {
-    
-    /**
-     * The user wants to start a call.
-     */
-    START_CALL,
-    /**
-     * The user wants to join an existing call.
-     */
-    JOIN_EXISTING;
-    companion object
-}
-
-
-public object FfiConverterTypeIntent: FfiConverterRustBuffer<Intent> {
-    override fun read(buf: ByteBuffer) = try {
-        Intent.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: Intent) = 4UL
-
-    override fun write(value: Intent, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
 
 
 
@@ -44899,6 +44983,35 @@ public object FfiConverterOptionalTypeRoomMessageEventContentWithoutRelation: Ff
 
 
 
+public object FfiConverterOptionalTypeRoomPowerLevels: FfiConverterRustBuffer<RoomPowerLevels?> {
+    override fun read(buf: ByteBuffer): RoomPowerLevels? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRoomPowerLevels.read(buf)
+    }
+
+    override fun allocationSize(value: RoomPowerLevels?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRoomPowerLevels.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RoomPowerLevels?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRoomPowerLevels.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeSendHandle: FfiConverterRustBuffer<SendHandle?> {
     override fun read(buf: ByteBuffer): SendHandle? {
         if (buf.get().toInt() == 0) {
@@ -44921,6 +45034,35 @@ public object FfiConverterOptionalTypeSendHandle: FfiConverterRustBuffer<SendHan
         } else {
             buf.put(1)
             FfiConverterTypeSendHandle.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeSyncService: FfiConverterRustBuffer<SyncService?> {
+    override fun read(buf: ByteBuffer): SyncService? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeSyncService.read(buf)
+    }
+
+    override fun allocationSize(value: SyncService?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeSyncService.allocationSize(value)
+        }
+    }
+
+    override fun write(value: SyncService?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeSyncService.write(value, buf)
         }
     }
 }
@@ -45936,35 +46078,6 @@ public object FfiConverterOptionalTypeEventSendState: FfiConverterRustBuffer<Eve
         } else {
             buf.put(1)
             FfiConverterTypeEventSendState.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeIntent: FfiConverterRustBuffer<Intent?> {
-    override fun read(buf: ByteBuffer): Intent? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeIntent.read(buf)
-    }
-
-    override fun allocationSize(value: Intent?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeIntent.allocationSize(value)
-        }
-    }
-
-    override fun write(value: Intent?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeIntent.write(value, buf)
         }
     }
 }
@@ -47869,6 +47982,10 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
         }
     }
 }
+
+
+
+
 
 
 
