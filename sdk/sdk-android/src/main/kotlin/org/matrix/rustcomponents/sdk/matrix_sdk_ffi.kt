@@ -2409,8 +2409,6 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -3545,8 +3543,6 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_func_make_element_well_known(`string`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_room_alias_permalink(`roomAlias`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3704,8 +3700,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_func_make_element_well_known(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver(
     ): Short
@@ -4684,10 +4678,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid() != 54845.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 62286.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_make_element_well_known() != 21379.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() != 55646.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() != 34206.toShort()) {
@@ -27052,66 +27043,6 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
 
 
 
-/**
- * Well-known settings specific to ElementCall
- */
-data class ElementCallWellKnown (
-    var `widgetUrl`: kotlin.String
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeElementCallWellKnown: FfiConverterRustBuffer<ElementCallWellKnown> {
-    override fun read(buf: ByteBuffer): ElementCallWellKnown {
-        return ElementCallWellKnown(
-            FfiConverterString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: ElementCallWellKnown) = (
-            FfiConverterString.allocationSize(value.`widgetUrl`)
-    )
-
-    override fun write(value: ElementCallWellKnown, buf: ByteBuffer) {
-            FfiConverterString.write(value.`widgetUrl`, buf)
-    }
-}
-
-
-
-/**
- * Element specific well-known settings
- */
-data class ElementWellKnown (
-    var `call`: ElementCallWellKnown?, 
-    var `registrationHelperUrl`: kotlin.String?
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeElementWellKnown: FfiConverterRustBuffer<ElementWellKnown> {
-    override fun read(buf: ByteBuffer): ElementWellKnown {
-        return ElementWellKnown(
-            FfiConverterOptionalTypeElementCallWellKnown.read(buf),
-            FfiConverterOptionalString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: ElementWellKnown) = (
-            FfiConverterOptionalTypeElementCallWellKnown.allocationSize(value.`call`) +
-            FfiConverterOptionalString.allocationSize(value.`registrationHelperUrl`)
-    )
-
-    override fun write(value: ElementWellKnown, buf: ByteBuffer) {
-            FfiConverterOptionalTypeElementCallWellKnown.write(value.`call`, buf)
-            FfiConverterOptionalString.write(value.`registrationHelperUrl`, buf)
-    }
-}
-
-
-
 data class EmoteMessageContent (
     var `body`: kotlin.String, 
     var `formatted`: FormattedBody?
@@ -28400,6 +28331,7 @@ data class NotificationRoomInfo (
     var `displayName`: kotlin.String, 
     var `avatarUrl`: kotlin.String?, 
     var `canonicalAlias`: kotlin.String?, 
+    var `topic`: kotlin.String?, 
     var `joinRule`: JoinRule?, 
     var `joinedMembersCount`: kotlin.ULong, 
     var `isEncrypted`: kotlin.Boolean?, 
@@ -28415,6 +28347,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterOptionalBoolean.read(buf),
@@ -28426,6 +28359,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
+            FfiConverterOptionalString.allocationSize(value.`topic`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isEncrypted`) +
@@ -28436,6 +28370,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
+            FfiConverterOptionalString.write(value.`topic`, buf)
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
             FfiConverterOptionalBoolean.write(value.`isEncrypted`, buf)
@@ -45244,35 +45179,6 @@ public object FfiConverterOptionalTypeComposerDraft: FfiConverterRustBuffer<Comp
 
 
 
-public object FfiConverterOptionalTypeElementCallWellKnown: FfiConverterRustBuffer<ElementCallWellKnown?> {
-    override fun read(buf: ByteBuffer): ElementCallWellKnown? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeElementCallWellKnown.read(buf)
-    }
-
-    override fun allocationSize(value: ElementCallWellKnown?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeElementCallWellKnown.allocationSize(value)
-        }
-    }
-
-    override fun write(value: ElementCallWellKnown?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeElementCallWellKnown.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeEventTimelineItem: FfiConverterRustBuffer<EventTimelineItem?> {
     override fun read(buf: ByteBuffer): EventTimelineItem? {
         if (buf.get().toInt() == 0) {
@@ -48195,7 +48101,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
          * Log an event.
          *
          * The target should be something like a module path, and can be referenced in
-         * the filter string given to `setup_tracing`. `level` and `target` for a
+         * the filter string given to `init_platform`. `level` and `target` for a
          * callsite are fixed at the first `log_event` call for that callsite and can
          * not be changed afterwards, i.e. the level and target passed for second and
          * following `log_event`s with the same callsite will be ignored.
@@ -48211,19 +48117,6 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
         FfiConverterString.lower(`file`),FfiConverterOptionalUInt.lower(`line`),FfiConverterTypeLogLevel.lower(`level`),FfiConverterString.lower(`target`),FfiConverterString.lower(`message`),_status)
 }
     
-    
-
-        /**
-         * Helper function to parse a string into a ElementWellKnown struct
-         */
-    @Throws(ClientException::class) fun `makeElementWellKnown`(`string`: kotlin.String): ElementWellKnown {
-            return FfiConverterTypeElementWellKnown.lift(
-    uniffiRustCallWithError(ClientException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_make_element_well_known(
-        FfiConverterString.lower(`string`),_status)
-}
-    )
-    }
     
 
     @Throws(ParseException::class) fun `makeWidgetDriver`(`settings`: WidgetSettings): WidgetDriverAndHandle {

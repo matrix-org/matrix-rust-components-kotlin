@@ -1,5 +1,5 @@
 object BuildVersionsSDK {
 	const val majorVersion = 25
-	const val minorVersion = 6
-	const val patchVersion = 25
+	const val minorVersion = 7
+	const val patchVersion = 1
 }
