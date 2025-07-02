@@ -42335,7 +42335,11 @@ enum class TraceLogPacks {
     /**
      * Enables all the logs relevant to the timeline.
      */
-    TIMELINE;
+    TIMELINE,
+    /**
+     * Enables all the logs relevant to the notification client.
+     */
+    NOTIFICATION_CLIENT;
     companion object
 }
 
