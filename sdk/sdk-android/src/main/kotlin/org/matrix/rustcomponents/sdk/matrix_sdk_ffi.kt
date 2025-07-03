@@ -32573,7 +32573,9 @@ sealed class EmbeddedEventDetails: Disposable  {
     data class Ready(
         val `content`: TimelineItemContent, 
         val `sender`: kotlin.String, 
-        val `senderProfile`: ProfileDetails) : EmbeddedEventDetails() {
+        val `senderProfile`: ProfileDetails, 
+        val `timestamp`: Timestamp, 
+        val `eventOrTransactionId`: EventOrTransactionId) : EmbeddedEventDetails() {
         companion object
     }
     
@@ -32599,6 +32601,10 @@ sealed class EmbeddedEventDetails: Disposable  {
     
         Disposable.destroy(this.`senderProfile`)
     
+        Disposable.destroy(this.`timestamp`)
+    
+        Disposable.destroy(this.`eventOrTransactionId`)
+    
                 
             }
             is EmbeddedEventDetails.Error -> {
@@ -32622,6 +32628,8 @@ public object FfiConverterTypeEmbeddedEventDetails : FfiConverterRustBuffer<Embe
                 FfiConverterTypeTimelineItemContent.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterTypeProfileDetails.read(buf),
+                FfiConverterTypeTimestamp.read(buf),
+                FfiConverterTypeEventOrTransactionId.read(buf),
                 )
             4 -> EmbeddedEventDetails.Error(
                 FfiConverterString.read(buf),
@@ -32650,6 +32658,8 @@ public object FfiConverterTypeEmbeddedEventDetails : FfiConverterRustBuffer<Embe
                 + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
                 + FfiConverterString.allocationSize(value.`sender`)
                 + FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`)
+                + FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+                + FfiConverterTypeEventOrTransactionId.allocationSize(value.`eventOrTransactionId`)
             )
         }
         is EmbeddedEventDetails.Error -> {
@@ -32676,6 +32686,8 @@ public object FfiConverterTypeEmbeddedEventDetails : FfiConverterRustBuffer<Embe
                 FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
                 FfiConverterString.write(value.`sender`, buf)
                 FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
+                FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
+                FfiConverterTypeEventOrTransactionId.write(value.`eventOrTransactionId`, buf)
                 Unit
             }
             is EmbeddedEventDetails.Error -> {
