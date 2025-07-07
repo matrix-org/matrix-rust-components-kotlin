@@ -2409,6 +2409,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2694,6 +2696,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Pointer,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`: Pointer,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3951,6 +3955,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
@@ -5056,6 +5062,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() != 6898.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled() != 33768.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent() != 13719.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5188,10 +5197,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_url() != 62692.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 2524.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() != 52873.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notifications() != 30600.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notifications() != 32112.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_room() != 26581.toShort()) {
@@ -9372,6 +9381,8 @@ public interface ClientBuilderInterface {
      */
     fun `systemIsMemoryConstrained`(): ClientBuilder
     
+    fun `threadsEnabled`(`enabled`: kotlin.Boolean): ClientBuilder
+    
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
     
     fun `username`(`username`: kotlin.String): ClientBuilder
@@ -9902,6 +9913,18 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(
         it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `threadsEnabled`(`enabled`: kotlin.Boolean): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(
+        it, FfiConverterBoolean.lower(`enabled`),_status)
 }
     }
     )
@@ -12839,10 +12862,16 @@ public object FfiConverterTypeMediaSource: FfiConverter<MediaSource, Pointer> {
 public interface NotificationClientInterface {
     
     /**
-     * See also documentation of
-     * `MatrixNotificationClient::get_notification`.
+     * Fetches the content of a notification.
+     *
+     * This will first try to get the notification using a short-lived sliding
+     * sync, and if the sliding-sync can't find the event, then it'll use a
+     * `/context` query to find the event with associated member information.
+     *
+     * An error result means that we couldn't resolve the notification; in that
+     * case, a dummy notification may be displayed instead.
      */
-    suspend fun `getNotification`(`roomId`: kotlin.String, `eventId`: kotlin.String): NotificationItem?
+    suspend fun `getNotification`(`roomId`: kotlin.String, `eventId`: kotlin.String): NotificationStatus
     
     /**
      * Get several notification items in a single batch.
@@ -12852,7 +12881,7 @@ public interface NotificationClientInterface {
      * [`NotificationItem`] or no entry for it if it failed to fetch a
      * notification for the provided [`EventId`].
      */
-    suspend fun `getNotifications`(`requests`: List<NotificationItemsRequest>): Map<kotlin.String, NotificationItem>
+    suspend fun `getNotifications`(`requests`: List<NotificationItemsRequest>): Map<kotlin.String, BatchNotificationResult>
     
     /**
      * Fetches a room by its ID using the in-memory state store backed client.
@@ -12948,12 +12977,18 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
 
     
     /**
-     * See also documentation of
-     * `MatrixNotificationClient::get_notification`.
+     * Fetches the content of a notification.
+     *
+     * This will first try to get the notification using a short-lived sliding
+     * sync, and if the sliding-sync can't find the event, then it'll use a
+     * `/context` query to find the event with associated member information.
+     *
+     * An error result means that we couldn't resolve the notification; in that
+     * case, a dummy notification may be displayed instead.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getNotification`(`roomId`: kotlin.String, `eventId`: kotlin.String) : NotificationItem? {
+    override suspend fun `getNotification`(`roomId`: kotlin.String, `eventId`: kotlin.String) : NotificationStatus {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(
@@ -12965,7 +13000,7 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterOptionalTypeNotificationItem.lift(it) },
+        { FfiConverterTypeNotificationStatus.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -12982,7 +13017,7 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getNotifications`(`requests`: List<NotificationItemsRequest>) : Map<kotlin.String, NotificationItem> {
+    override suspend fun `getNotifications`(`requests`: List<NotificationItemsRequest>) : Map<kotlin.String, BatchNotificationResult> {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notifications(
@@ -12994,7 +13029,7 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterMapStringTypeNotificationItem.lift(it) },
+        { FfiConverterMapStringTypeBatchNotificationResult.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -32008,6 +32043,100 @@ public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupU
 
 
 
+sealed class BatchNotificationResult: Disposable  {
+    
+    /**
+     * We have more detailed information about the notification.
+     */
+    data class Ok(
+        val `status`: NotificationStatus) : BatchNotificationResult() {
+        companion object
+    }
+    
+    /**
+     * An error occurred while trying to fetch the notification.
+     */
+    data class Error(
+        /**
+         * The error message observed while handling a specific notification.
+         */
+        val `message`: kotlin.String) : BatchNotificationResult() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is BatchNotificationResult.Ok -> {
+                
+        Disposable.destroy(this.`status`)
+    
+                
+            }
+            is BatchNotificationResult.Error -> {
+                
+        Disposable.destroy(this.`message`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeBatchNotificationResult : FfiConverterRustBuffer<BatchNotificationResult>{
+    override fun read(buf: ByteBuffer): BatchNotificationResult {
+        return when(buf.getInt()) {
+            1 -> BatchNotificationResult.Ok(
+                FfiConverterTypeNotificationStatus.read(buf),
+                )
+            2 -> BatchNotificationResult.Error(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: BatchNotificationResult) = when(value) {
+        is BatchNotificationResult.Ok -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeNotificationStatus.allocationSize(value.`status`)
+            )
+        }
+        is BatchNotificationResult.Error -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`message`)
+            )
+        }
+    }
+
+    override fun write(value: BatchNotificationResult, buf: ByteBuffer) {
+        when(value) {
+            is BatchNotificationResult.Ok -> {
+                buf.putInt(1)
+                FfiConverterTypeNotificationStatus.write(value.`status`, buf)
+                Unit
+            }
+            is BatchNotificationResult.Error -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`message`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 
 sealed class ClientBuildException(message: String): kotlin.Exception(message) {
@@ -37110,6 +37239,108 @@ public object FfiConverterTypeNotificationSettingsError : FfiConverterRustBuffer
 
 
 
+sealed class NotificationStatus: Disposable  {
+    
+    /**
+     * The event has been found and was not filtered out.
+     */
+    data class Event(
+        val `item`: NotificationItem) : NotificationStatus() {
+        companion object
+    }
+    
+    /**
+     * The event couldn't be found in the network queries used to find it.
+     */
+    object EventNotFound : NotificationStatus()
+    
+    
+    /**
+     * The event has been filtered out, either because of the user's push
+     * rules, or because the user which triggered it is ignored by the
+     * current user.
+     */
+    object EventFilteredOut : NotificationStatus()
+    
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is NotificationStatus.Event -> {
+                
+        Disposable.destroy(this.`item`)
+    
+                
+            }
+            is NotificationStatus.EventNotFound -> {// Nothing to destroy
+            }
+            is NotificationStatus.EventFilteredOut -> {// Nothing to destroy
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<NotificationStatus>{
+    override fun read(buf: ByteBuffer): NotificationStatus {
+        return when(buf.getInt()) {
+            1 -> NotificationStatus.Event(
+                FfiConverterTypeNotificationItem.read(buf),
+                )
+            2 -> NotificationStatus.EventNotFound
+            3 -> NotificationStatus.EventFilteredOut
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: NotificationStatus) = when(value) {
+        is NotificationStatus.Event -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeNotificationItem.allocationSize(value.`item`)
+            )
+        }
+        is NotificationStatus.EventNotFound -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is NotificationStatus.EventFilteredOut -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: NotificationStatus, buf: ByteBuffer) {
+        when(value) {
+            is NotificationStatus.Event -> {
+                buf.putInt(1)
+                FfiConverterTypeNotificationItem.write(value.`item`, buf)
+                Unit
+            }
+            is NotificationStatus.EventNotFound -> {
+                buf.putInt(2)
+                Unit
+            }
+            is NotificationStatus.EventFilteredOut -> {
+                buf.putInt(3)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 enum class NotifyType {
     
@@ -41940,8 +42171,7 @@ sealed class TimelineFocus {
         /**
          * The thread root event ID to focus on.
          */
-        val `rootEventId`: kotlin.String, 
-        val `numEvents`: kotlin.UShort) : TimelineFocus() {
+        val `rootEventId`: kotlin.String) : TimelineFocus() {
         companion object
     }
     
@@ -41969,7 +42199,6 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 )
             3 -> TimelineFocus.Thread(
                 FfiConverterString.read(buf),
-                FfiConverterUShort.read(buf),
                 )
             4 -> TimelineFocus.PinnedEvents(
                 FfiConverterUShort.read(buf),
@@ -42001,7 +42230,6 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             (
                 4UL
                 + FfiConverterString.allocationSize(value.`rootEventId`)
-                + FfiConverterUShort.allocationSize(value.`numEvents`)
             )
         }
         is TimelineFocus.PinnedEvents -> {
@@ -42031,7 +42259,6 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             is TimelineFocus.Thread -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`rootEventId`, buf)
-                FfiConverterUShort.write(value.`numEvents`, buf)
                 Unit
             }
             is TimelineFocus.PinnedEvents -> {
@@ -45427,35 +45654,6 @@ public object FfiConverterOptionalTypeMentions: FfiConverterRustBuffer<Mentions?
 
 
 
-public object FfiConverterOptionalTypeNotificationItem: FfiConverterRustBuffer<NotificationItem?> {
-    override fun read(buf: ByteBuffer): NotificationItem? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeNotificationItem.read(buf)
-    }
-
-    override fun allocationSize(value: NotificationItem?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeNotificationItem.allocationSize(value)
-        }
-    }
-
-    override fun write(value: NotificationItem?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeNotificationItem.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeNotificationPowerLevels: FfiConverterRustBuffer<NotificationPowerLevels?> {
     override fun read(buf: ByteBuffer): NotificationPowerLevels? {
         if (buf.get().toInt() == 0) {
@@ -47767,41 +47965,6 @@ public object FfiConverterMapStringTypeIgnoredUser: FfiConverterRustBuffer<Map<k
 
 
 
-public object FfiConverterMapStringTypeNotificationItem: FfiConverterRustBuffer<Map<kotlin.String, NotificationItem>> {
-    override fun read(buf: ByteBuffer): Map<kotlin.String, NotificationItem> {
-        val len = buf.getInt()
-        return buildMap<kotlin.String, NotificationItem>(len) {
-            repeat(len) {
-                val k = FfiConverterString.read(buf)
-                val v = FfiConverterTypeNotificationItem.read(buf)
-                this[k] = v
-            }
-        }
-    }
-
-    override fun allocationSize(value: Map<kotlin.String, NotificationItem>): ULong {
-        val spaceForMapSize = 4UL
-        val spaceForChildren = value.map { (k, v) ->
-            FfiConverterString.allocationSize(k) +
-            FfiConverterTypeNotificationItem.allocationSize(v)
-        }.sum()
-        return spaceForMapSize + spaceForChildren
-    }
-
-    override fun write(value: Map<kotlin.String, NotificationItem>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterString.write(k, buf)
-            FfiConverterTypeNotificationItem.write(v, buf)
-        }
-    }
-}
-
-
-
 public object FfiConverterMapStringTypeReceipt: FfiConverterRustBuffer<Map<kotlin.String, Receipt>> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, Receipt> {
         val len = buf.getInt()
@@ -47831,6 +47994,41 @@ public object FfiConverterMapStringTypeReceipt: FfiConverterRustBuffer<Map<kotli
         value.forEach { (k, v) ->
             FfiConverterString.write(k, buf)
             FfiConverterTypeReceipt.write(v, buf)
+        }
+    }
+}
+
+
+
+public object FfiConverterMapStringTypeBatchNotificationResult: FfiConverterRustBuffer<Map<kotlin.String, BatchNotificationResult>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, BatchNotificationResult> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, BatchNotificationResult>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterTypeBatchNotificationResult.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, BatchNotificationResult>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterTypeBatchNotificationResult.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, BatchNotificationResult>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterTypeBatchNotificationResult.write(v, buf)
         }
     }
 }
