@@ -2413,6 +2413,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2565,6 +2567,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Pointer,`callbackUrl`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(`ptr`: Pointer,`qrCodeData`: Pointer,`oidcConfiguration`: RustBuffer.ByValue,`progressListener`: Long,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Pointer,`processSetup`: RustBuffer.ByValue,
@@ -2633,7 +2637,7 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_upload_media(`ptr`: Pointer,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(`ptr`: Pointer,`oidcConfiguration`: RustBuffer.ByValue,`prompt`: RustBuffer.ByValue,`loginHint`: RustBuffer.ByValue,
+    fun uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(`ptr`: Pointer,`oidcConfiguration`: RustBuffer.ByValue,`prompt`: RustBuffer.ByValue,`loginHint`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -2654,8 +2658,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_backup_download_strategy(`ptr`: Pointer,`backupDownloadStrategy`: RustBufferBackupDownloadStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Pointer,
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build_with_qr_code(`ptr`: Pointer,`qrCodeData`: Pointer,`oidcConfiguration`: RustBuffer.ByValue,`progressListener`: Long,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_store_locks_holder_name(`ptr`: Pointer,`holderName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3571,6 +3573,8 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_func_reload_tracing_file_writer(`configuration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_func_room_alias_name_from_room_display_name(`roomName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(uniffi_out_err: UniffiRustCallStatus, 
@@ -3729,6 +3733,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_func_reload_tracing_file_writer(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha(
@@ -3831,6 +3837,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_qr_code(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_notification_client(
@@ -3914,8 +3922,6 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download_strategy(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build_with_qr_code(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_store_locks_holder_name(
     ): Short
@@ -4723,6 +4729,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() != 49710.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_reload_tracing_file_writer() != 1447.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name() != 65010.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4876,6 +4885,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 32591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_qr_code() != 3481.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4978,7 +4990,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_media() != 51195.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc() != 28386.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc() != 34524.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id() != 40531.toShort()) {
@@ -5000,9 +5012,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() != 56018.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build_with_qr_code() != 42452.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_store_locks_holder_name() != 46627.toShort()) {
@@ -6889,6 +6898,21 @@ public interface ClientInterface {
     suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String)
     
     /**
+     * Log in using the provided [`QrCodeData`]. The `Client` must be built
+     * by providing [`QrCodeData::server_name`] as the server name for this
+     * login to succeed.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such
+     * this method requires OAuth 2.0 support as well as sliding sync support.
+     *
+     * The usage of the progress_listener is required to transfer the
+     * [`CheckCode`] to the existing client.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    suspend fun `loginWithQrCode`(`qrCodeData`: QrCodeData, `oidcConfiguration`: OidcConfiguration, `progressListener`: QrLoginProgressListener)
+    
+    /**
      * Log the current user out.
      */
     suspend fun `logout`()
@@ -7088,8 +7112,13 @@ public interface ClientInterface {
      * However, it should be noted that when providing a user ID as a hint
      * for MAS (with no upstream provider), then the format to use is defined
      * by [MSC4198]: https://github.com/matrix-org/matrix-spec-proposals/pull/4198
+     *
+     * * `device_id` - The unique ID that will be associated with the session.
+     * If not set, a random one will be generated. It can be an existing
+     * device ID from a previous login call. Note that this should be done
+     * only if the client also holds the corresponding encryption keys.
      */
-    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?, `loginHint`: kotlin.String?): OAuthAuthorizationData
+    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?, `loginHint`: kotlin.String?, `deviceId`: kotlin.String?): OAuthAuthorizationData
     
     fun `userId`(): kotlin.String
     
@@ -8289,6 +8318,41 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
+     * Log in using the provided [`QrCodeData`]. The `Client` must be built
+     * by providing [`QrCodeData::server_name`] as the server name for this
+     * login to succeed.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such
+     * this method requires OAuth 2.0 support as well as sliding sync support.
+     *
+     * The usage of the progress_listener is required to transfer the
+     * [`CheckCode`] to the existing client.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    @Throws(HumanQrLoginException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `loginWithQrCode`(`qrCodeData`: QrCodeData, `oidcConfiguration`: OidcConfiguration, `progressListener`: QrLoginProgressListener) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(
+                thisPtr,
+                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterTypeQrLoginProgressListener.lower(`progressListener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        HumanQrLoginException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Log the current user out.
      */
     @Throws(ClientException::class)
@@ -9053,15 +9117,20 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
      * However, it should be noted that when providing a user ID as a hint
      * for MAS (with no upstream provider), then the format to use is defined
      * by [MSC4198]: https://github.com/matrix-org/matrix-spec-proposals/pull/4198
+     *
+     * * `device_id` - The unique ID that will be associated with the session.
+     * If not set, a random one will be generated. It can be an existing
+     * device ID from a previous login call. Note that this should be done
+     * only if the client also holds the corresponding encryption keys.
      */
     @Throws(OidcException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?, `loginHint`: kotlin.String?) : OAuthAuthorizationData {
+    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?, `loginHint`: kotlin.String?, `deviceId`: kotlin.String?) : OAuthAuthorizationData {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(
                 thisPtr,
-                FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalTypeOidcPrompt.lower(`prompt`),FfiConverterOptionalString.lower(`loginHint`),
+                FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalTypeOidcPrompt.lower(`prompt`),FfiConverterOptionalString.lower(`loginHint`),FfiConverterOptionalString.lower(`deviceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
@@ -9255,22 +9324,6 @@ public interface ClientBuilderInterface {
     fun `backupDownloadStrategy`(`backupDownloadStrategy`: BackupDownloadStrategy): ClientBuilder
     
     suspend fun `build`(): Client
-    
-    /**
-     * Finish the building of the client and attempt to log in using the
-     * provided [`QrCodeData`].
-     *
-     * This method will build the client and immediately attempt to log the
-     * client in using the provided [`QrCodeData`] using the login
-     * mechanism described in [MSC4108]. As such this methods requires OAuth
-     * 2.0 support as well as sliding sync support.
-     *
-     * The usage of the progress_listener is required to transfer the
-     * [`CheckCode`] to the existing client.
-     *
-     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
-     */
-    suspend fun `buildWithQrCode`(`qrCodeData`: QrCodeData, `oidcConfiguration`: OidcConfiguration, `progressListener`: QrLoginProgressListener): Client
     
     fun `crossProcessStoreLocksHolderName`(`holderName`: kotlin.String): ClientBuilder
     
@@ -9562,41 +9615,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
         { FfiConverterTypeClient.lift(it) },
         // Error FFI converter
         ClientBuildException.ErrorHandler,
-    )
-    }
-
-    
-    /**
-     * Finish the building of the client and attempt to log in using the
-     * provided [`QrCodeData`].
-     *
-     * This method will build the client and immediately attempt to log the
-     * client in using the provided [`QrCodeData`] using the login
-     * mechanism described in [MSC4108]. As such this methods requires OAuth
-     * 2.0 support as well as sliding sync support.
-     *
-     * The usage of the progress_listener is required to transfer the
-     * [`CheckCode`] to the existing client.
-     *
-     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
-     */
-    @Throws(HumanQrLoginException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `buildWithQrCode`(`qrCodeData`: QrCodeData, `oidcConfiguration`: OidcConfiguration, `progressListener`: QrLoginProgressListener) : Client {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build_with_qr_code(
-                thisPtr,
-                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterTypeQrLoginProgressListener.lower(`progressListener`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
-        // lift function
-        { FfiConverterTypeClient.lift(it) },
-        // Error FFI converter
-        HumanQrLoginException.ErrorHandler,
     )
     }
 
@@ -48486,6 +48504,22 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
 }
     )
     }
+    
+
+        /**
+         * Updates the tracing subscriber with a new file writer based on the provided
+         * configuration.
+         *
+         * This method will throw if `init_platform` hasn't been called, or if it was
+         * called with `write_to_files` set to `None`.
+         */
+    @Throws(ClientException::class) fun `reloadTracingFileWriter`(`configuration`: TracingFileConfiguration)
+        = 
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_reload_tracing_file_writer(
+        FfiConverterTypeTracingFileConfiguration.lower(`configuration`),_status)
+}
+    
     
 
         /**
