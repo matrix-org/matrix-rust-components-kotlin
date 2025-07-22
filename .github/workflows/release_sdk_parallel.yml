@@ -18,6 +18,8 @@ jobs:
         target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
     name: "Build Rust target: ${{ matrix.target }}"
     runs-on: ubuntu-24.04
+    env:
+      NDK_VERSION: 28.2.13676358
     outputs:
       linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
@@ -47,6 +49,17 @@ jobs:
 
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
+
+      - name: Configure android ndk
+        run: |
+          NDK_PATH=$ANDROID_HOME/ndk/$NDK_VERSION
+          if [ -d "$NDK_PATH" ]; then
+            echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+            echo "Using ndk $NDK_PATH"
+          else
+            echo "NDK_PATH not found, abort."
+            exit 1
+          fi
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
