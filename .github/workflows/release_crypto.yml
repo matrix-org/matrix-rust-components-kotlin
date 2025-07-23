@@ -47,12 +47,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin' # See 'Supported distributions' for available options
 
-      - name: Install android sdk
-        uses: malinskiy/action-android/install-sdk@release/0.1.4
-
+        # Note: the install android SDK step resets the `ANDROID_HOME` variable to a new folder with an update SDK but no NDK, 
+        # so we need to set this NDK_PATH before that happens
       - name: Configure android ndk
         run: |
           NDK_PATH=$ANDROID_HOME/ndk/$NDK_VERSION
+          echo $NDK_PATH
           if [ -d "$NDK_PATH" ]; then
             echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
             echo "Using ndk $NDK_PATH"
@@ -60,6 +60,9 @@ jobs:
             echo "NDK_PATH not found, abort."
             exit 1
           fi
+
+      - name: Install android sdk
+        uses: malinskiy/action-android/install-sdk@release/0.1.4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
