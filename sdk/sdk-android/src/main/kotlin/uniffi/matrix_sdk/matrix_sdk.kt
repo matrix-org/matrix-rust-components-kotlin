@@ -2020,6 +2020,19 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
 enum class RoomMemberRole {
     
     /**
+     * The member is a creator.
+     *
+     * A creator has an infinite power level and cannot be demoted, so this
+     * role is immutable. A room can have several creators.
+     *
+     * It is available in room versions where
+     * `explicitly_privilege_room_creators` in [`AuthorizationRules`] is set to
+     * `true`.
+     *
+     * [`AuthorizationRules`]: ruma::room_version_rules::AuthorizationRules
+     */
+    CREATOR,
+    /**
      * The member is an administrator.
      */
     ADMINISTRATOR,
