@@ -2417,6 +2417,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2929,6 +2933,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_room_encryption_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBufferEncryptionState.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(`ptr`: Pointer,`threadRootEventId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_forget(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(`ptr`: Pointer,
@@ -3036,6 +3042,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Pointer,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_name(`ptr`: Pointer,`name`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_set_thread_subscription(`ptr`: Pointer,`threadRootEventId`: RustBuffer.ByValue,`subscribed`: Byte,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Pointer,`topic`: RustBuffer.ByValue,
     ): Long
@@ -4141,6 +4149,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_forget(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels(
@@ -4248,6 +4258,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
     ): Short
@@ -5341,6 +5353,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state() != 9101.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription() != 51696.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_forget() != 37840.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5501,6 +5516,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 52127.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() != 3684.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() != 5576.toShort()) {
@@ -14504,6 +14522,16 @@ public interface RoomInterface {
     fun `encryptionState`(): EncryptionState
     
     /**
+     * Return the current MSC4306 thread subscription for the given thread root
+     * in this room.
+     *
+     * Returns `None` if the thread doesn't exist, or isn't subscribed to, or
+     * the server can't handle MSC4306; otherwise, returns the thread
+     * subscription status.
+     */
+    suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String): ThreadSubscription?
+    
+    /**
      * Forget this room.
      *
      * This communicates to the homeserver that it should forget the room.
@@ -14825,6 +14853,21 @@ public interface RoomInterface {
      * Sets a new name to the room.
      */
     suspend fun `setName`(`name`: kotlin.String)
+    
+    /**
+     * Toggle a MSC4306 subscription to a thread in this room, based on the
+     * thread root event id.
+     *
+     * If `subscribed` is `true`, it will subscribe to the thread, with a
+     * precision that the subscription was manually requested by the user
+     * (i.e. not automatic).
+     *
+     * If the thread was already subscribed to (resp. unsubscribed from), while
+     * trying to subscribe to it (resp. unsubscribe from it), it will do
+     * nothing, i.e. subscribing (resp. unsubscribing) to a thread is an
+     * idempotent operation.
+     */
+    suspend fun `setThreadSubscription`(`threadRootEventId`: kotlin.String, `subscribed`: kotlin.Boolean)
     
     /**
      * Sets a new topic in the room.
@@ -15334,6 +15377,35 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     )
     }
     
+
+    
+    /**
+     * Return the current MSC4306 thread subscription for the given thread root
+     * in this room.
+     *
+     * Returns `None` if the thread doesn't exist, or isn't subscribed to, or
+     * the server can't handle MSC4306; otherwise, returns the thread
+     * subscription status.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String) : ThreadSubscription? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(
+                thisPtr,
+                FfiConverterString.lower(`threadRootEventId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeThreadSubscription.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     /**
@@ -16579,6 +16651,41 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_name(
                 thisPtr,
                 FfiConverterString.lower(`name`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Toggle a MSC4306 subscription to a thread in this room, based on the
+     * thread root event id.
+     *
+     * If `subscribed` is `true`, it will subscribe to the thread, with a
+     * precision that the subscription was manually requested by the user
+     * (i.e. not automatic).
+     *
+     * If the thread was already subscribed to (resp. unsubscribed from), while
+     * trying to subscribe to it (resp. unsubscribe from it), it will do
+     * nothing, i.e. subscribing (resp. unsubscribing) to a thread is an
+     * idempotent operation.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setThreadSubscription`(`threadRootEventId`: kotlin.String, `subscribed`: kotlin.Boolean) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_set_thread_subscription(
+                thisPtr,
+                FfiConverterString.lower(`threadRootEventId`),FfiConverterBoolean.lower(`subscribed`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -29357,7 +29464,16 @@ data class RoomInfo (
      *
      * Can be missing if the room power levels event is missing from the store.
      */
-    var `powerLevels`: RoomPowerLevels?
+    var `powerLevels`: RoomPowerLevels?, 
+    /**
+     * This room's version.
+     */
+    var `roomVersion`: kotlin.String?, 
+    /**
+     * Whether creators are privileged over every other user (have infinite
+     * power level).
+     */
+    var `privilegedCreatorsRole`: kotlin.Boolean
 ) : Disposable {
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -29429,6 +29545,10 @@ data class RoomInfo (
     
         Disposable.destroy(this.`powerLevels`)
     
+        Disposable.destroy(this.`roomVersion`)
+    
+        Disposable.destroy(this.`privilegedCreatorsRole`)
+    
     }
     
     companion object
@@ -29470,6 +29590,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterTypeRoomHistoryVisibility.read(buf),
             FfiConverterOptionalTypeRoomPowerLevels.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -29506,7 +29628,9 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterSequenceString.allocationSize(value.`pinnedEventIds`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterTypeRoomHistoryVisibility.allocationSize(value.`historyVisibility`) +
-            FfiConverterOptionalTypeRoomPowerLevels.allocationSize(value.`powerLevels`)
+            FfiConverterOptionalTypeRoomPowerLevels.allocationSize(value.`powerLevels`) +
+            FfiConverterOptionalString.allocationSize(value.`roomVersion`) +
+            FfiConverterBoolean.allocationSize(value.`privilegedCreatorsRole`)
     )
 
     override fun write(value: RoomInfo, buf: ByteBuffer) {
@@ -29543,6 +29667,8 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterTypeRoomHistoryVisibility.write(value.`historyVisibility`, buf)
             FfiConverterOptionalTypeRoomPowerLevels.write(value.`powerLevels`, buf)
+            FfiConverterOptionalString.write(value.`roomVersion`, buf)
+            FfiConverterBoolean.write(value.`privilegedCreatorsRole`, buf)
     }
 }
 
@@ -30381,6 +30507,38 @@ public object FfiConverterTypeTextMessageContent: FfiConverterRustBuffer<TextMes
     override fun write(value: TextMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
+    }
+}
+
+
+
+/**
+ * Status of a thread subscription (MSC4306).
+ */
+data class ThreadSubscription (
+    /**
+     * Whether the thread subscription happened automatically (e.g. after a
+     * mention) or if it was manually requested by the user.
+     */
+    var `automatic`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeThreadSubscription: FfiConverterRustBuffer<ThreadSubscription> {
+    override fun read(buf: ByteBuffer): ThreadSubscription {
+        return ThreadSubscription(
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ThreadSubscription) = (
+            FfiConverterBoolean.allocationSize(value.`automatic`)
+    )
+
+    override fun write(value: ThreadSubscription, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`automatic`, buf)
     }
 }
 
@@ -46035,6 +46193,35 @@ public object FfiConverterOptionalTypeSuccessorRoom: FfiConverterRustBuffer<Succ
         } else {
             buf.put(1)
             FfiConverterTypeSuccessorRoom.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeThreadSubscription: FfiConverterRustBuffer<ThreadSubscription?> {
+    override fun read(buf: ByteBuffer): ThreadSubscription? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeThreadSubscription.read(buf)
+    }
+
+    override fun allocationSize(value: ThreadSubscription?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeThreadSubscription.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ThreadSubscription?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeThreadSubscription.write(value, buf)
         }
     }
 }
