@@ -2399,28 +2399,6 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2513,6 +2491,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Pointer,`enable`: Byte,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(`ptr`: Pointer,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_client_encryption(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_fetch_media_preview_config(`ptr`: Pointer,
@@ -3029,10 +3009,6 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(`ptr`: Pointer,`draft`: RustBuffer.ByValue,`threadRoot`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification(`ptr`: Pointer,`callId`: RustBuffer.ByValue,`application`: RustBuffer.ByValue,`notifyType`: RustBuffer.ByValue,`mentions`: RustBuffer.ByValue,
-    ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification_if_needed(`ptr`: Pointer,
-    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(`ptr`: Pointer,`geoUri`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
@@ -3391,28 +3367,6 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_clone_timelinediff(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_free_timelinediff(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_append(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_change(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_insert(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_push_back(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_push_front(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_remove(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_reset(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_set(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_ffi_fn_method_timelinediff_truncate(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_timelineevent(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_timelineevent(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3788,6 +3742,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_encryption(
     ): Short
@@ -4245,10 +4201,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_send_raw(
@@ -4523,24 +4475,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event(
     ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_append(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_change(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_insert(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_push_back(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_push_front(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_remove(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_reset(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_set(
-    ): Short
-    fun uniffi_matrix_sdk_ffi_checksum_method_timelinediff_truncate(
-    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_type(
@@ -4811,6 +4745,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues() != 30834.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress() != 10688.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_encryption() != 9657.toShort()) {
@@ -5353,7 +5290,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state() != 9101.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription() != 51696.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription() != 47497.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_forget() != 37840.toShort()) {
@@ -5495,12 +5432,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft() != 27585.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification() != 43366.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_call_notification_if_needed() != 52926.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location() != 34248.toShort()) {
@@ -5914,33 +5845,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event() != 52414.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_append() != 8453.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_change() != 4562.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_insert() != 26630.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_push_back() != 53464.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_push_front() != 42084.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_remove() != 74.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_reset() != 34118.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_set() != 13334.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinediff_truncate() != 34040.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id() != 11088.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6124,7 +6028,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update() != 62231.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() != 30147.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() != 53990.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call() != 64299.toShort()) {
@@ -6768,6 +6672,12 @@ public interface ClientInterface {
      * [`Room::enable_send_queue`].
      */
     suspend fun `enableAllSendQueues`(`enable`: kotlin.Boolean)
+    
+    /**
+     * Enables or disables progress reporting for media uploads in the send
+     * queue.
+     */
+    fun `enableSendQueueUploadProgress`(`enable`: kotlin.Boolean)
     
     fun `encryption`(): Encryption
     
@@ -7661,6 +7571,21 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         UniffiNullRustCallStatusErrorHandler,
     )
     }
+
+    
+    /**
+     * Enables or disables progress reporting for media uploads in the send
+     * queue.
+     */override fun `enableSendQueueUploadProgress`(`enable`: kotlin.Boolean)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(
+        it, FfiConverterBoolean.lower(`enable`),_status)
+}
+    }
+    
+    
 
     override fun `encryption`(): Encryption {
             return FfiConverterTypeEncryption.lift(
@@ -14529,7 +14454,7 @@ public interface RoomInterface {
      * the server can't handle MSC4306; otherwise, returns the thread
      * subscription status.
      */
-    suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String): ThreadSubscription?
+    suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String): ThreadStatus?
     
     /**
      * Forget this room.
@@ -14795,39 +14720,6 @@ public interface RoomInterface {
      * room id, as identifier.
      */
     suspend fun `saveComposerDraft`(`draft`: ComposerDraft, `threadRoot`: kotlin.String?)
-    
-    /**
-     * Send a call notification event in the current room.
-     *
-     * This is only supposed to be used in **custom** situations where the user
-     * explicitly chooses to send a `m.call.notify` event to invite/notify
-     * someone explicitly in unusual conditions. The default should be to
-     * use `send_call_notification_if_necessary` just before a new room call is
-     * created/joined.
-     *
-     * One example could be that the UI allows to start a call with a subset of
-     * users of the room members first. And then later on the user can
-     * invite more users to the call.
-     */
-    suspend fun `sendCallNotification`(`callId`: kotlin.String, `application`: RtcApplicationType, `notifyType`: NotifyType, `mentions`: Mentions)
-    
-    /**
-     * This will only send a call notification event if appropriate.
-     *
-     * This function is supposed to be called whenever the user creates a room
-     * call. It will send a `m.call.notify` event if:
-     * - there is not yet a running call.
-     *
-     * It will configure the notify type: ring or notify based on:
-     * - is this a DM room -> ring
-     * - is this a group with more than one other member -> notify
-     *
-     * Returns:
-     * - `Ok(true)` if the event was successfully sent.
-     * - `Ok(false)` if we didn't send it because it was unnecessary.
-     * - `Err(_)` if sending the event failed.
-     */
-    suspend fun `sendCallNotificationIfNeeded`(): kotlin.Boolean
     
     /**
      * Send the current users live location beacon in the room.
@@ -15389,7 +15281,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String) : ThreadSubscription? {
+    override suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String) : ThreadStatus? {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(
@@ -15401,7 +15293,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterOptionalTypeThreadSubscription.lift(it) },
+        { FfiConverterOptionalTypeThreadStatus.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -16462,78 +16354,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         // lift function
         { Unit },
         
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
-     * Send a call notification event in the current room.
-     *
-     * This is only supposed to be used in **custom** situations where the user
-     * explicitly chooses to send a `m.call.notify` event to invite/notify
-     * someone explicitly in unusual conditions. The default should be to
-     * use `send_call_notification_if_necessary` just before a new room call is
-     * created/joined.
-     *
-     * One example could be that the UI allows to start a call with a subset of
-     * users of the room members first. And then later on the user can
-     * invite more users to the call.
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendCallNotification`(`callId`: kotlin.String, `application`: RtcApplicationType, `notifyType`: NotifyType, `mentions`: Mentions) {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification(
-                thisPtr,
-                FfiConverterString.lower(`callId`),FfiConverterTypeRtcApplicationType.lower(`application`),FfiConverterTypeNotifyType.lower(`notifyType`),FfiConverterTypeMentions.lower(`mentions`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
-     * This will only send a call notification event if appropriate.
-     *
-     * This function is supposed to be called whenever the user creates a room
-     * call. It will send a `m.call.notify` event if:
-     * - there is not yet a running call.
-     *
-     * It will configure the notify type: ring or notify based on:
-     * - is this a DM room -> ring
-     * - is this a group with more than one other member -> notify
-     *
-     * Returns:
-     * - `Ok(true)` if the event was successfully sent.
-     * - `Ok(false)` if we didn't send it because it was unnecessary.
-     * - `Err(_)` if sending the event failed.
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendCallNotificationIfNeeded`() : kotlin.Boolean {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_send_call_notification_if_needed(
-                thisPtr,
-                
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
-        // lift function
-        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -24666,350 +24486,6 @@ public object FfiConverterTypeTimeline: FfiConverter<Timeline, Pointer> {
 //
 
 
-public interface TimelineDiffInterface {
-    
-    fun `append`(): List<TimelineItem>?
-    
-    fun `change`(): TimelineChange
-    
-    fun `insert`(): InsertData?
-    
-    fun `pushBack`(): TimelineItem?
-    
-    fun `pushFront`(): TimelineItem?
-    
-    fun `remove`(): kotlin.UInt?
-    
-    fun `reset`(): List<TimelineItem>?
-    
-    fun `set`(): SetData?
-    
-    fun `truncate`(): kotlin.UInt?
-    
-    companion object
-}
-
-open class TimelineDiff: Disposable, AutoCloseable, TimelineDiffInterface {
-
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    /**
-     * This constructor can be used to instantiate a fake object. Only used for tests. Any
-     * attempt to actually use an object constructed this way will fail as there is no
-     * connected Rust object.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
-
-    private val wasDestroyed = AtomicBoolean(false)
-    private val callCounter = AtomicLong(1)
-
-    override fun destroy() {
-        // Only allow a single call to this method.
-        // TODO: maybe we should log a warning if called more than once?
-        if (this.wasDestroyed.compareAndSet(false, true)) {
-            // This decrement always matches the initial count of 1 given at creation time.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    @Synchronized
-    override fun close() {
-        this.destroy()
-    }
-
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
-        // Check and increment the call counter, to keep the object alive.
-        // This needs a compare-and-set retry loop in case of concurrent updates.
-        do {
-            val c = this.callCounter.get()
-            if (c == 0L) {
-                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
-            }
-            if (c == Long.MAX_VALUE) {
-                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
-            }
-        } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
-        try {
-            return block(this.uniffiClonePointer())
-        } finally {
-            // This decrement always matches the increment we performed above.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    // Use a static inner class instead of a closure so as not to accidentally
-    // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
-        override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_timelinediff(ptr, status)
-                }
-            }
-        }
-    }
-
-    fun uniffiClonePointer(): Pointer {
-        return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_timelinediff(pointer!!, status)
-        }
-    }
-
-    override fun `append`(): List<TimelineItem>? {
-            return FfiConverterOptionalSequenceTypeTimelineItem.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_append(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `change`(): TimelineChange {
-            return FfiConverterTypeTimelineChange.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_change(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `insert`(): InsertData? {
-            return FfiConverterOptionalTypeInsertData.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_insert(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `pushBack`(): TimelineItem? {
-            return FfiConverterOptionalTypeTimelineItem.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_push_back(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `pushFront`(): TimelineItem? {
-            return FfiConverterOptionalTypeTimelineItem.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_push_front(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `remove`(): kotlin.UInt? {
-            return FfiConverterOptionalUInt.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_remove(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `reset`(): List<TimelineItem>? {
-            return FfiConverterOptionalSequenceTypeTimelineItem.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_reset(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `set`(): SetData? {
-            return FfiConverterOptionalTypeSetData.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_set(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `truncate`(): kotlin.UInt? {
-            return FfiConverterOptionalUInt.lift(
-    callWithPointer {
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelinediff_truncate(
-        it, _status)
-}
-    }
-    )
-    }
-    
-
-    
-
-    
-    
-    companion object
-    
-}
-
-public object FfiConverterTypeTimelineDiff: FfiConverter<TimelineDiff, Pointer> {
-
-    override fun lower(value: TimelineDiff): Pointer {
-        return value.uniffiClonePointer()
-    }
-
-    override fun lift(value: Pointer): TimelineDiff {
-        return TimelineDiff(value)
-    }
-
-    override fun read(buf: ByteBuffer): TimelineDiff {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: TimelineDiff) = 8UL
-
-    override fun write(value: TimelineDiff, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
-
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
-// to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
-//
-// There's some subtlety here, because we have to be careful not to operate on a Rust
-// struct after it has been dropped, and because we must expose a public API for freeing
-// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
-//
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
-//     the Rust FFI.
-//
-//   * When an instance is no longer needed, its pointer should be passed to a
-//     special destructor function provided by the Rust FFI, which will drop the
-//     underlying Rust struct.
-//
-//   * Given an instance, calling code is expected to call the special
-//     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so risks
-//     leaking the underlying Rust struct.
-//
-//   * We can't assume that calling code will do the right thing, and must be prepared
-//     to handle Kotlin method calls executing concurrently with or even after a call to
-//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
-//
-//   * We must never allow Rust code to operate on the underlying Rust struct after
-//     the destructor has been called, and must never call the destructor more than once.
-//     Doing so may trigger memory unsafety.
-//
-//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
-//     is implemented to call the destructor when the Kotlin object becomes unreachable.
-//     This is done in a background thread. This is not a panacea, and client code should be aware that
-//      1. the thread may starve if some there are objects that have poorly performing
-//     `drop` methods or do significant work in their `drop` methods.
-//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
-//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
-//
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
-// possibility of a race between a method call and a concurrent call to `destroy`:
-//
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
-//    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
-//      a use-after-free.
-//
-// One possible solution would be to use a `ReadWriteLock`, with each method call taking
-// a read lock (and thus allowed to run concurrently) and the special `destroy` method
-// taking a write lock (and thus blocking on live method calls). However, we aim not to
-// generate methods with any hidden blocking semantics, and a `destroy` method that might
-// block if called incorrectly seems to meet that bar.
-//
-// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
-// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
-// has been called. These are updated according to the following rules:
-//
-//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
-//      The initial value for the flag is false.
-//
-//    * At the start of each method call, we atomically check the counter.
-//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
-//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
-//
-//    * At the end of each method call, we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-//    * When `destroy` is called, we atomically flip the flag from false to true.
-//      If the flag was already true we silently fail.
-//      Otherwise we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
-// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
-//
-// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
-// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
-// of the underlying Rust code.
-//
-// This makes a cleaner a better alternative to _not_ calling `destroy()` as
-// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
-// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
-// thread may be starved, and the app will leak memory.
-//
-// In this case, `destroy`ing manually may be a better solution.
-//
-// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
-// with Rust peers are reclaimed:
-//
-// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
-// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
-// 3. The memory is reclaimed when the process terminates.
-//
-// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
-//
-
-
 public interface TimelineEventInterface {
     
     fun `eventId`(): kotlin.String
@@ -30507,38 +29983,6 @@ public object FfiConverterTypeTextMessageContent: FfiConverterRustBuffer<TextMes
     override fun write(value: TextMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
-    }
-}
-
-
-
-/**
- * Status of a thread subscription (MSC4306).
- */
-data class ThreadSubscription (
-    /**
-     * Whether the thread subscription happened automatically (e.g. after a
-     * mention) or if it was manually requested by the user.
-     */
-    var `automatic`: kotlin.Boolean
-) {
-    
-    companion object
-}
-
-public object FfiConverterTypeThreadSubscription: FfiConverterRustBuffer<ThreadSubscription> {
-    override fun read(buf: ByteBuffer): ThreadSubscription {
-        return ThreadSubscription(
-            FfiConverterBoolean.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: ThreadSubscription) = (
-            FfiConverterBoolean.allocationSize(value.`automatic`)
-    )
-
-    override fun write(value: ThreadSubscription, buf: ByteBuffer) {
-            FfiConverterBoolean.write(value.`automatic`, buf)
     }
 }
 
@@ -39893,6 +39337,9 @@ sealed class RoomListEntriesDynamicFilterKind {
         companion object
     }
     
+    object NonSpace : RoomListEntriesDynamicFilterKind()
+    
+    
     object NonLeft : RoomListEntriesDynamicFilterKind()
     
     
@@ -39943,22 +39390,23 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             2 -> RoomListEntriesDynamicFilterKind.Any(
                 FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.read(buf),
                 )
-            3 -> RoomListEntriesDynamicFilterKind.NonLeft
-            4 -> RoomListEntriesDynamicFilterKind.Joined
-            5 -> RoomListEntriesDynamicFilterKind.Unread
-            6 -> RoomListEntriesDynamicFilterKind.Favourite
-            7 -> RoomListEntriesDynamicFilterKind.Invite
-            8 -> RoomListEntriesDynamicFilterKind.Category(
+            3 -> RoomListEntriesDynamicFilterKind.NonSpace
+            4 -> RoomListEntriesDynamicFilterKind.NonLeft
+            5 -> RoomListEntriesDynamicFilterKind.Joined
+            6 -> RoomListEntriesDynamicFilterKind.Unread
+            7 -> RoomListEntriesDynamicFilterKind.Favourite
+            8 -> RoomListEntriesDynamicFilterKind.Invite
+            9 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            9 -> RoomListEntriesDynamicFilterKind.None
-            10 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            10 -> RoomListEntriesDynamicFilterKind.None
+            11 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            11 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            12 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            12 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
+            13 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -39976,6 +39424,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             (
                 4UL
                 + FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.allocationSize(value.`filters`)
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.NonSpace -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
             )
         }
         is RoomListEntriesDynamicFilterKind.NonLeft -> {
@@ -40055,47 +39509,51 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.write(value.`filters`, buf)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.NonLeft -> {
+            is RoomListEntriesDynamicFilterKind.NonSpace -> {
                 buf.putInt(3)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Joined -> {
+            is RoomListEntriesDynamicFilterKind.NonLeft -> {
                 buf.putInt(4)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Unread -> {
+            is RoomListEntriesDynamicFilterKind.Joined -> {
                 buf.putInt(5)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Favourite -> {
+            is RoomListEntriesDynamicFilterKind.Unread -> {
                 buf.putInt(6)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Invite -> {
+            is RoomListEntriesDynamicFilterKind.Favourite -> {
                 buf.putInt(7)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.Invite -> {
                 buf.putInt(8)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(9)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(9)
+                buf.putInt(10)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(10)
-                FfiConverterString.write(value.`pattern`, buf)
-                Unit
-            }
-            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
                 buf.putInt(11)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
+            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
                 buf.putInt(12)
+                FfiConverterString.write(value.`pattern`, buf)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
+                buf.putInt(13)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -42190,6 +41648,80 @@ public object FfiConverterTypeTagName : FfiConverterRustBuffer<TagName>{
 
 
 
+/**
+ * Status of a thread subscription (MSC4306).
+ */
+sealed class ThreadStatus {
+    
+    /**
+     * The thread is subscribed to.
+     */
+    data class Subscribed(
+        /**
+         * Whether the thread subscription happened automatically (e.g. after a
+         * mention) or if it was manually requested by the user.
+         */
+        val `automatic`: kotlin.Boolean) : ThreadStatus() {
+        companion object
+    }
+    
+    /**
+     * The thread is not subscribed to.
+     */
+    object Unsubscribed : ThreadStatus()
+    
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeThreadStatus : FfiConverterRustBuffer<ThreadStatus>{
+    override fun read(buf: ByteBuffer): ThreadStatus {
+        return when(buf.getInt()) {
+            1 -> ThreadStatus.Subscribed(
+                FfiConverterBoolean.read(buf),
+                )
+            2 -> ThreadStatus.Unsubscribed
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ThreadStatus) = when(value) {
+        is ThreadStatus.Subscribed -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`automatic`)
+            )
+        }
+        is ThreadStatus.Unsubscribed -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: ThreadStatus, buf: ByteBuffer) {
+        when(value) {
+            is ThreadStatus.Subscribed -> {
+                buf.putInt(1)
+                FfiConverterBoolean.write(value.`automatic`, buf)
+                Unit
+            }
+            is ThreadStatus.Unsubscribed -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 enum class TimelineChange {
     
@@ -42219,6 +41751,307 @@ public object FfiConverterTypeTimelineChange: FfiConverterRustBuffer<TimelineCha
 
     override fun write(value: TimelineChange, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+sealed class TimelineDiff: Disposable  {
+    
+    data class Append(
+        val `values`: List<TimelineItem>) : TimelineDiff() {
+        companion object
+    }
+    
+    object Clear : TimelineDiff()
+    
+    
+    data class PushFront(
+        val `value`: TimelineItem) : TimelineDiff() {
+        companion object
+    }
+    
+    data class PushBack(
+        val `value`: TimelineItem) : TimelineDiff() {
+        companion object
+    }
+    
+    object PopFront : TimelineDiff()
+    
+    
+    object PopBack : TimelineDiff()
+    
+    
+    data class Insert(
+        val `index`: kotlin.UInt, 
+        val `value`: TimelineItem) : TimelineDiff() {
+        companion object
+    }
+    
+    data class Set(
+        val `index`: kotlin.UInt, 
+        val `value`: TimelineItem) : TimelineDiff() {
+        companion object
+    }
+    
+    data class Remove(
+        val `index`: kotlin.UInt) : TimelineDiff() {
+        companion object
+    }
+    
+    data class Truncate(
+        val `length`: kotlin.UInt) : TimelineDiff() {
+        companion object
+    }
+    
+    data class Reset(
+        val `values`: List<TimelineItem>) : TimelineDiff() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is TimelineDiff.Append -> {
+                
+        Disposable.destroy(this.`values`)
+    
+                
+            }
+            is TimelineDiff.Clear -> {// Nothing to destroy
+            }
+            is TimelineDiff.PushFront -> {
+                
+        Disposable.destroy(this.`value`)
+    
+                
+            }
+            is TimelineDiff.PushBack -> {
+                
+        Disposable.destroy(this.`value`)
+    
+                
+            }
+            is TimelineDiff.PopFront -> {// Nothing to destroy
+            }
+            is TimelineDiff.PopBack -> {// Nothing to destroy
+            }
+            is TimelineDiff.Insert -> {
+                
+        Disposable.destroy(this.`index`)
+    
+        Disposable.destroy(this.`value`)
+    
+                
+            }
+            is TimelineDiff.Set -> {
+                
+        Disposable.destroy(this.`index`)
+    
+        Disposable.destroy(this.`value`)
+    
+                
+            }
+            is TimelineDiff.Remove -> {
+                
+        Disposable.destroy(this.`index`)
+    
+                
+            }
+            is TimelineDiff.Truncate -> {
+                
+        Disposable.destroy(this.`length`)
+    
+                
+            }
+            is TimelineDiff.Reset -> {
+                
+        Disposable.destroy(this.`values`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeTimelineDiff : FfiConverterRustBuffer<TimelineDiff>{
+    override fun read(buf: ByteBuffer): TimelineDiff {
+        return when(buf.getInt()) {
+            1 -> TimelineDiff.Append(
+                FfiConverterSequenceTypeTimelineItem.read(buf),
+                )
+            2 -> TimelineDiff.Clear
+            3 -> TimelineDiff.PushFront(
+                FfiConverterTypeTimelineItem.read(buf),
+                )
+            4 -> TimelineDiff.PushBack(
+                FfiConverterTypeTimelineItem.read(buf),
+                )
+            5 -> TimelineDiff.PopFront
+            6 -> TimelineDiff.PopBack
+            7 -> TimelineDiff.Insert(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeTimelineItem.read(buf),
+                )
+            8 -> TimelineDiff.Set(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeTimelineItem.read(buf),
+                )
+            9 -> TimelineDiff.Remove(
+                FfiConverterUInt.read(buf),
+                )
+            10 -> TimelineDiff.Truncate(
+                FfiConverterUInt.read(buf),
+                )
+            11 -> TimelineDiff.Reset(
+                FfiConverterSequenceTypeTimelineItem.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: TimelineDiff) = when(value) {
+        is TimelineDiff.Append -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeTimelineItem.allocationSize(value.`values`)
+            )
+        }
+        is TimelineDiff.Clear -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineDiff.PushFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimelineItem.allocationSize(value.`value`)
+            )
+        }
+        is TimelineDiff.PushBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimelineItem.allocationSize(value.`value`)
+            )
+        }
+        is TimelineDiff.PopFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineDiff.PopBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineDiff.Insert -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeTimelineItem.allocationSize(value.`value`)
+            )
+        }
+        is TimelineDiff.Set -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeTimelineItem.allocationSize(value.`value`)
+            )
+        }
+        is TimelineDiff.Remove -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+            )
+        }
+        is TimelineDiff.Truncate -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`length`)
+            )
+        }
+        is TimelineDiff.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeTimelineItem.allocationSize(value.`values`)
+            )
+        }
+    }
+
+    override fun write(value: TimelineDiff, buf: ByteBuffer) {
+        when(value) {
+            is TimelineDiff.Append -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeTimelineItem.write(value.`values`, buf)
+                Unit
+            }
+            is TimelineDiff.Clear -> {
+                buf.putInt(2)
+                Unit
+            }
+            is TimelineDiff.PushFront -> {
+                buf.putInt(3)
+                FfiConverterTypeTimelineItem.write(value.`value`, buf)
+                Unit
+            }
+            is TimelineDiff.PushBack -> {
+                buf.putInt(4)
+                FfiConverterTypeTimelineItem.write(value.`value`, buf)
+                Unit
+            }
+            is TimelineDiff.PopFront -> {
+                buf.putInt(5)
+                Unit
+            }
+            is TimelineDiff.PopBack -> {
+                buf.putInt(6)
+                Unit
+            }
+            is TimelineDiff.Insert -> {
+                buf.putInt(7)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeTimelineItem.write(value.`value`, buf)
+                Unit
+            }
+            is TimelineDiff.Set -> {
+                buf.putInt(8)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeTimelineItem.write(value.`value`, buf)
+                Unit
+            }
+            is TimelineDiff.Remove -> {
+                buf.putInt(9)
+                FfiConverterUInt.write(value.`index`, buf)
+                Unit
+            }
+            is TimelineDiff.Truncate -> {
+                buf.putInt(10)
+                FfiConverterUInt.write(value.`length`, buf)
+                Unit
+            }
+            is TimelineDiff.Reset -> {
+                buf.putInt(11)
+                FfiConverterSequenceTypeTimelineItem.write(value.`values`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -45591,35 +45424,6 @@ public object FfiConverterOptionalTypeThreadSummary: FfiConverterRustBuffer<Thre
 
 
 
-public object FfiConverterOptionalTypeTimelineItem: FfiConverterRustBuffer<TimelineItem?> {
-    override fun read(buf: ByteBuffer): TimelineItem? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeTimelineItem.read(buf)
-    }
-
-    override fun allocationSize(value: TimelineItem?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeTimelineItem.allocationSize(value)
-        }
-    }
-
-    override fun write(value: TimelineItem?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeTimelineItem.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserIdentity?> {
     override fun read(buf: ByteBuffer): UserIdentity? {
         if (buf.get().toInt() == 0) {
@@ -45816,35 +45620,6 @@ public object FfiConverterOptionalTypeImageInfo: FfiConverterRustBuffer<ImageInf
         } else {
             buf.put(1)
             FfiConverterTypeImageInfo.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeInsertData: FfiConverterRustBuffer<InsertData?> {
-    override fun read(buf: ByteBuffer): InsertData? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeInsertData.read(buf)
-    }
-
-    override fun allocationSize(value: InsertData?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeInsertData.allocationSize(value)
-        }
-    }
-
-    override fun write(value: InsertData?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeInsertData.write(value, buf)
         }
     }
 }
@@ -46142,35 +45917,6 @@ public object FfiConverterOptionalTypeRoomMemberWithSenderInfo: FfiConverterRust
 
 
 
-public object FfiConverterOptionalTypeSetData: FfiConverterRustBuffer<SetData?> {
-    override fun read(buf: ByteBuffer): SetData? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeSetData.read(buf)
-    }
-
-    override fun allocationSize(value: SetData?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeSetData.allocationSize(value)
-        }
-    }
-
-    override fun write(value: SetData?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeSetData.write(value, buf)
-        }
-    }
-}
-
-
-
-
 public object FfiConverterOptionalTypeSuccessorRoom: FfiConverterRustBuffer<SuccessorRoom?> {
     override fun read(buf: ByteBuffer): SuccessorRoom? {
         if (buf.get().toInt() == 0) {
@@ -46193,35 +45939,6 @@ public object FfiConverterOptionalTypeSuccessorRoom: FfiConverterRustBuffer<Succ
         } else {
             buf.put(1)
             FfiConverterTypeSuccessorRoom.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeThreadSubscription: FfiConverterRustBuffer<ThreadSubscription?> {
-    override fun read(buf: ByteBuffer): ThreadSubscription? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeThreadSubscription.read(buf)
-    }
-
-    override fun allocationSize(value: ThreadSubscription?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeThreadSubscription.allocationSize(value)
-        }
-    }
-
-    override fun write(value: ThreadSubscription?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeThreadSubscription.write(value, buf)
         }
     }
 }
@@ -46809,6 +46526,35 @@ public object FfiConverterOptionalTypeShieldState: FfiConverterRustBuffer<Shield
 
 
 
+public object FfiConverterOptionalTypeThreadStatus: FfiConverterRustBuffer<ThreadStatus?> {
+    override fun read(buf: ByteBuffer): ThreadStatus? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeThreadStatus.read(buf)
+    }
+
+    override fun allocationSize(value: ThreadStatus?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeThreadStatus.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ThreadStatus?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeThreadStatus.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeVirtualTimelineItem: FfiConverterRustBuffer<VirtualTimelineItem?> {
     override fun read(buf: ByteBuffer): VirtualTimelineItem? {
         if (buf.get().toInt() == 0) {
@@ -47005,35 +46751,6 @@ public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<ko
         } else {
             buf.put(1)
             FfiConverterSequenceString.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalSequenceTypeTimelineItem: FfiConverterRustBuffer<List<TimelineItem>?> {
-    override fun read(buf: ByteBuffer): List<TimelineItem>? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterSequenceTypeTimelineItem.read(buf)
-    }
-
-    override fun allocationSize(value: List<TimelineItem>?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterSequenceTypeTimelineItem.allocationSize(value)
-        }
-    }
-
-    override fun write(value: List<TimelineItem>?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterSequenceTypeTimelineItem.write(value, buf)
         }
     }
 }
@@ -47304,31 +47021,6 @@ public object FfiConverterSequenceTypeSessionVerificationEmoji: FfiConverterRust
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeSessionVerificationEmoji.write(it, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterSequenceTypeTimelineDiff: FfiConverterRustBuffer<List<TimelineDiff>> {
-    override fun read(buf: ByteBuffer): List<TimelineDiff> {
-        val len = buf.getInt()
-        return List<TimelineDiff>(len) {
-            FfiConverterTypeTimelineDiff.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<TimelineDiff>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeTimelineDiff.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(value: List<TimelineDiff>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterTypeTimelineDiff.write(it, buf)
         }
     }
 }
@@ -48054,6 +47746,31 @@ public object FfiConverterSequenceTypeSlidingSyncVersion: FfiConverterRustBuffer
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeSlidingSyncVersion.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeTimelineDiff: FfiConverterRustBuffer<List<TimelineDiff>> {
+    override fun read(buf: ByteBuffer): List<TimelineDiff> {
+        val len = buf.getInt()
+        return List<TimelineDiff>(len) {
+            FfiConverterTypeTimelineDiff.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<TimelineDiff>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeTimelineDiff.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<TimelineDiff>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeTimelineDiff.write(it, buf)
         }
     }
 }

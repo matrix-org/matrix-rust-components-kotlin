@@ -1531,7 +1531,12 @@ data class VirtualElementCallWidgetOptions (
      * - `false`: the webview shows a a list of devices injected by the
      * client. (used on ios & android)
      */
-    var `controlledMediaDevices`: kotlin.Boolean
+    var `controlledMediaDevices`: kotlin.Boolean, 
+    /**
+     * Whether and what type of notification Element Call should send, when
+     * starting a call.
+     */
+    var `sendNotificationType`: NotificationType?
 ) {
     
     companion object
@@ -1560,6 +1565,7 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeNotificationType.read(buf),
         )
     }
 
@@ -1583,7 +1589,8 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalString.allocationSize(value.`rageshakeSubmitUrl`) +
             FfiConverterOptionalString.allocationSize(value.`sentryDsn`) +
             FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`) +
-            FfiConverterBoolean.allocationSize(value.`controlledMediaDevices`)
+            FfiConverterBoolean.allocationSize(value.`controlledMediaDevices`) +
+            FfiConverterOptionalTypeNotificationType.allocationSize(value.`sendNotificationType`)
     )
 
     override fun write(value: VirtualElementCallWidgetOptions, buf: ByteBuffer) {
@@ -1607,6 +1614,7 @@ public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustB
             FfiConverterOptionalString.write(value.`sentryDsn`, buf)
             FfiConverterOptionalString.write(value.`sentryEnvironment`, buf)
             FfiConverterBoolean.write(value.`controlledMediaDevices`, buf)
+            FfiConverterOptionalTypeNotificationType.write(value.`sendNotificationType`, buf)
     }
 }
 
@@ -1829,6 +1837,42 @@ public object FfiConverterTypeIntent: FfiConverterRustBuffer<Intent> {
     override fun allocationSize(value: Intent) = 4UL
 
     override fun write(value: Intent, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * Types of call notifications.
+ */
+
+enum class NotificationType {
+    
+    /**
+     * The receiving client should display a visual notification.
+     */
+    NOTIFICATION,
+    /**
+     * The receiving client should ring with an audible sound.
+     */
+    RING;
+    companion object
+}
+
+
+public object FfiConverterTypeNotificationType: FfiConverterRustBuffer<NotificationType> {
+    override fun read(buf: ByteBuffer) = try {
+        NotificationType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: NotificationType) = 4UL
+
+    override fun write(value: NotificationType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -2308,6 +2352,35 @@ public object FfiConverterOptionalTypeIntent: FfiConverterRustBuffer<Intent?> {
         } else {
             buf.put(1)
             FfiConverterTypeIntent.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeNotificationType: FfiConverterRustBuffer<NotificationType?> {
+    override fun read(buf: ByteBuffer): NotificationType? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeNotificationType.read(buf)
+    }
+
+    override fun allocationSize(value: NotificationType?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeNotificationType.allocationSize(value)
+        }
+    }
+
+    override fun write(value: NotificationType?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeNotificationType.write(value, buf)
         }
     }
 }
