@@ -1410,6 +1410,44 @@ public object FfiConverterTypeRoomPowerLevelChanges: FfiConverterRustBuffer<Room
 
 
 /**
+ * Information about the server vendor obtained from the federation API.
+ */
+data class ServerVendorInfo (
+    /**
+     * The server name.
+     */
+    var `serverName`: kotlin.String, 
+    /**
+     * The server version.
+     */
+    var `version`: kotlin.String
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeServerVendorInfo: FfiConverterRustBuffer<ServerVendorInfo> {
+    override fun read(buf: ByteBuffer): ServerVendorInfo {
+        return ServerVendorInfo(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ServerVendorInfo) = (
+            FfiConverterString.allocationSize(value.`serverName`) +
+            FfiConverterString.allocationSize(value.`version`)
+    )
+
+    override fun write(value: ServerVendorInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`serverName`, buf)
+            FfiConverterString.write(value.`version`, buf)
+    }
+}
+
+
+
+/**
  * Properties to create a new virtual Element Call widget.
  */
 data class VirtualElementCallWidgetOptions (

@@ -46,11 +46,13 @@ import uniffi.matrix_sdk.FfiConverterTypeOAuthAuthorizationData
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
+import uniffi.matrix_sdk.FfiConverterTypeServerVendorInfo
 import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetOptions
 import uniffi.matrix_sdk.OAuthAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
+import uniffi.matrix_sdk.ServerVendorInfo
 import uniffi.matrix_sdk.VirtualElementCallWidgetOptions
 import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
@@ -75,6 +77,7 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
+import uniffi.matrix_sdk.RustBuffer as RustBufferServerVendorInfo
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetOptions
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
@@ -2399,6 +2402,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2583,6 +2588,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_server(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_server_vendor_info(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_session(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(`ptr`: Pointer,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
@@ -2687,7 +2694,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`: Pointer,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`: Pointer,`enabled`: Byte,`threadSubscriptions`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Pointer,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3341,13 +3348,13 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send(`ptr`: Pointer,`msg`: Pointer,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Pointer,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`params`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Pointer,`params`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_gallery(`ptr`: Pointer,`params`: RustBuffer.ByValue,`itemInfos`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`params`: RustBuffer.ByValue,`thumbnailPath`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Pointer,`params`: RustBuffer.ByValue,`thumbnailSource`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Pointer,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,`repliedToEventId`: RustBuffer.ByValue,
     ): Long
@@ -3357,9 +3364,9 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(`ptr`: Pointer,`msg`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Pointer,`params`: RustBuffer.ByValue,`thumbnailPath`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Pointer,`params`: RustBuffer.ByValue,`thumbnailSource`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Pointer,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Pointer,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Pointer,`listener`: Long,
     ): Long
@@ -3834,6 +3841,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_search_users(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_server(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_session(
     ): Short
@@ -4885,6 +4894,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_server() != 63276.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info() != 51933.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_session() != 8085.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5032,7 +5044,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() != 6898.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled() != 33768.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled() != 23935.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent() != 13719.toShort()) {
@@ -5290,7 +5302,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state() != 9101.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription() != 47497.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription() != 51696.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_forget() != 37840.toShort()) {
@@ -5449,7 +5461,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 52127.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() != 3684.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() != 48337.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() != 5576.toShort()) {
@@ -5806,16 +5818,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send() != 9553.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 22559.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() != 36723.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 4588.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() != 4740.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_gallery() != 61071.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 25436.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() != 29043.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() != 39080.toShort()) {
@@ -5830,10 +5842,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply() != 11149.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 1445.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 52974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 50042.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 17589.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 46161.toShort()) {
@@ -6939,6 +6951,14 @@ public interface ClientInterface {
      * name, then the homeserver has been discovered, and we know both.
      */
     fun `server`(): kotlin.String?
+    
+    /**
+     * Get server vendor information from the federation API.
+     *
+     * This method retrieves information about the server's name and version
+     * by calling the `/_matrix/federation/v1/version` endpoint.
+     */
+    suspend fun `serverVendorInfo`(): ServerVendorInfo
     
     fun `session`(): Session
     
@@ -8634,6 +8654,33 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     
 
     
+    /**
+     * Get server vendor information from the federation API.
+     *
+     * This method retrieves information about the server's name and version
+     * by calling the `/_matrix/federation/v1/version` endpoint.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `serverVendorInfo`() : ServerVendorInfo {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_server_vendor_info(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation).let { RustBufferServerVendorInfo.create(it.capacity.toULong(), it.len.toULong(), it.data) } },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeServerVendorInfo.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
     @Throws(ClientException::class)override fun `session`(): Session {
             return FfiConverterTypeSession.lift(
     callWithPointer {
@@ -9419,7 +9466,11 @@ public interface ClientBuilderInterface {
      */
     fun `systemIsMemoryConstrained`(): ClientBuilder
     
-    fun `threadsEnabled`(`enabled`: kotlin.Boolean): ClientBuilder
+    /**
+     * Whether the client should support threads client-side or not, and enable
+     * experimental support for MSC4306 (threads subscriptions) or not.
+     */
+    fun `threadsEnabled`(`enabled`: kotlin.Boolean, `threadSubscriptions`: kotlin.Boolean): ClientBuilder
     
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
     
@@ -9922,12 +9973,16 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface {
     }
     
 
-    override fun `threadsEnabled`(`enabled`: kotlin.Boolean): ClientBuilder {
+    
+    /**
+     * Whether the client should support threads client-side or not, and enable
+     * experimental support for MSC4306 (threads subscriptions) or not.
+     */override fun `threadsEnabled`(`enabled`: kotlin.Boolean, `threadSubscriptions`: kotlin.Boolean): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(
-        it, FfiConverterBoolean.lower(`enabled`),_status)
+        it, FfiConverterBoolean.lower(`enabled`),FfiConverterBoolean.lower(`threadSubscriptions`),_status)
 }
     }
     )
@@ -14454,7 +14509,7 @@ public interface RoomInterface {
      * the server can't handle MSC4306; otherwise, returns the thread
      * subscription status.
      */
-    suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String): ThreadStatus?
+    suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String): ThreadSubscription?
     
     /**
      * Forget this room.
@@ -14747,8 +14802,8 @@ public interface RoomInterface {
     suspend fun `setName`(`name`: kotlin.String)
     
     /**
-     * Toggle a MSC4306 subscription to a thread in this room, based on the
-     * thread root event id.
+     * Set a MSC4306 subscription to a thread in this room, based on the thread
+     * root event id.
      *
      * If `subscribed` is `true`, it will subscribe to the thread, with a
      * precision that the subscription was manually requested by the user
@@ -15281,7 +15336,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String) : ThreadStatus? {
+    override suspend fun `fetchThreadSubscription`(`threadRootEventId`: kotlin.String) : ThreadSubscription? {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(
@@ -15293,7 +15348,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterOptionalTypeThreadStatus.lift(it) },
+        { FfiConverterOptionalTypeThreadSubscription.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -16486,8 +16541,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
 
     
     /**
-     * Toggle a MSC4306 subscription to a thread in this room, based on the
-     * thread root event id.
+     * Set a MSC4306 subscription to a thread in this room, based on the thread
+     * root event id.
      *
      * If `subscribed` is `true`, it will subscribe to the thread, with a
      * precision that the subscription was manually requested by the user
@@ -23569,13 +23624,13 @@ public interface TimelineInterface {
      */
     suspend fun `send`(`msg`: RoomMessageEventContentWithoutRelation): SendHandle
     
-    fun `sendAudio`(`params`: UploadParameters, `audioInfo`: AudioInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendAudio`(`params`: UploadParameters, `audioInfo`: AudioInfo): SendAttachmentJoinHandle
     
-    fun `sendFile`(`params`: UploadParameters, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendFile`(`params`: UploadParameters, `fileInfo`: FileInfo): SendAttachmentJoinHandle
     
     fun `sendGallery`(`params`: GalleryUploadParameters, `itemInfos`: List<GalleryItemInfo>): SendGalleryJoinHandle
     
-    fun `sendImage`(`params`: UploadParameters, `thumbnailPath`: kotlin.String?, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendImage`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `imageInfo`: ImageInfo): SendAttachmentJoinHandle
     
     suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?, `repliedToEventId`: kotlin.String?)
     
@@ -23592,9 +23647,9 @@ public interface TimelineInterface {
      */
     suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String)
     
-    fun `sendVideo`(`params`: UploadParameters, `thumbnailPath`: kotlin.String?, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendVideo`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `videoInfo`: VideoInfo): SendAttachmentJoinHandle
     
-    fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle
+    fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>): SendAttachmentJoinHandle
     
     suspend fun `subscribeToBackPaginationStatus`(`listener`: PaginationStatusListener): TaskHandle
     
@@ -24098,12 +24153,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     }
 
     
-    @Throws(RoomException::class)override fun `sendAudio`(`params`: UploadParameters, `audioInfo`: AudioInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    @Throws(RoomException::class)override fun `sendAudio`(`params`: UploadParameters, `audioInfo`: AudioInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(
-        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),_status)
 }
     }
     )
@@ -24111,12 +24166,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     
 
     
-    @Throws(RoomException::class)override fun `sendFile`(`params`: UploadParameters, `fileInfo`: FileInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    @Throws(RoomException::class)override fun `sendFile`(`params`: UploadParameters, `fileInfo`: FileInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(
-        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeFileInfo.lower(`fileInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeFileInfo.lower(`fileInfo`),_status)
 }
     }
     )
@@ -24137,12 +24192,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     
 
     
-    @Throws(RoomException::class)override fun `sendImage`(`params`: UploadParameters, `thumbnailPath`: kotlin.String?, `imageInfo`: ImageInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    @Throws(RoomException::class)override fun `sendImage`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `imageInfo`: ImageInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(
-        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterOptionalString.lower(`thumbnailPath`),FfiConverterTypeImageInfo.lower(`imageInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterOptionalTypeUploadSource.lower(`thumbnailSource`),FfiConverterTypeImageInfo.lower(`imageInfo`),_status)
 }
     }
     )
@@ -24245,12 +24300,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     }
 
     
-    @Throws(RoomException::class)override fun `sendVideo`(`params`: UploadParameters, `thumbnailPath`: kotlin.String?, `videoInfo`: VideoInfo, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    @Throws(RoomException::class)override fun `sendVideo`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `videoInfo`: VideoInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(
-        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterOptionalString.lower(`thumbnailPath`),FfiConverterTypeVideoInfo.lower(`videoInfo`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterOptionalTypeUploadSource.lower(`thumbnailSource`),FfiConverterTypeVideoInfo.lower(`videoInfo`),_status)
 }
     }
     )
@@ -24258,12 +24313,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     
 
     
-    @Throws(RoomException::class)override fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>, `progressWatcher`: ProgressWatcher?): SendAttachmentJoinHandle {
+    @Throws(RoomException::class)override fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(
-        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),_status)
+        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),_status)
 }
     }
     )
@@ -26404,6 +26459,50 @@ public object FfiConverterTypeWidgetDriverHandle: FfiConverter<WidgetDriverHandl
 
 
 
+/**
+ * Progress of an operation in abstract units.
+ *
+ * Contrary to [`TransmissionProgress`], this allows tracking the progress
+ * of sending or receiving a payload in estimated pseudo units representing a
+ * percentage. This is helpful in cases where the exact progress in bytes isn't
+ * known, for instance, because encryption (which changes the size) happens on
+ * the fly.
+ */
+data class AbstractProgress (
+    /**
+     * How many units were already transferred.
+     */
+    var `current`: kotlin.ULong, 
+    /**
+     * How many units there are in total.
+     */
+    var `total`: kotlin.ULong
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeAbstractProgress: FfiConverterRustBuffer<AbstractProgress> {
+    override fun read(buf: ByteBuffer): AbstractProgress {
+        return AbstractProgress(
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AbstractProgress) = (
+            FfiConverterULong.allocationSize(value.`current`) +
+            FfiConverterULong.allocationSize(value.`total`)
+    )
+
+    override fun write(value: AbstractProgress, buf: ByteBuffer) {
+            FfiConverterULong.write(value.`current`, buf)
+            FfiConverterULong.write(value.`total`, buf)
+    }
+}
+
+
+
 data class AudioInfo (
     var `duration`: java.time.Duration?, 
     var `size`: kotlin.ULong?, 
@@ -27403,44 +27502,6 @@ public object FfiConverterTypeImageMessageContent: FfiConverterRustBuffer<ImageM
 
 
 
-data class InsertData (
-    var `index`: kotlin.UInt, 
-    var `item`: TimelineItem
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-        Disposable.destroy(this.`index`)
-    
-        Disposable.destroy(this.`item`)
-    
-    }
-    
-    companion object
-}
-
-public object FfiConverterTypeInsertData: FfiConverterRustBuffer<InsertData> {
-    override fun read(buf: ByteBuffer): InsertData {
-        return InsertData(
-            FfiConverterUInt.read(buf),
-            FfiConverterTypeTimelineItem.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: InsertData) = (
-            FfiConverterUInt.allocationSize(value.`index`) +
-            FfiConverterTypeTimelineItem.allocationSize(value.`item`)
-    )
-
-    override fun write(value: InsertData, buf: ByteBuffer) {
-            FfiConverterUInt.write(value.`index`, buf)
-            FfiConverterTypeTimelineItem.write(value.`item`, buf)
-    }
-}
-
-
-
 /**
  * An FFI representation of a request to join a room.
  */
@@ -27743,6 +27804,48 @@ public object FfiConverterTypeMediaPreviewConfig: FfiConverterRustBuffer<MediaPr
     override fun write(value: MediaPreviewConfig, buf: ByteBuffer) {
             FfiConverterOptionalTypeMediaPreviews.write(value.`mediaPreviews`, buf)
             FfiConverterOptionalTypeInviteAvatars.write(value.`inviteAvatars`, buf)
+    }
+}
+
+
+
+/**
+ * This type represents the progress of a media (consisting of a file and
+ * possibly a thumbnail) being uploaded.
+ */
+data class MediaUploadProgress (
+    /**
+     * The index of the media within the transaction. A file and its
+     * thumbnail share the same index. Will always be 0 for non-gallery
+     * media uploads.
+     */
+    var `index`: kotlin.ULong, 
+    /**
+     * The current combined upload progress for both the file and,
+     * if it exists, its thumbnail.
+     */
+    var `progress`: AbstractProgress
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMediaUploadProgress: FfiConverterRustBuffer<MediaUploadProgress> {
+    override fun read(buf: ByteBuffer): MediaUploadProgress {
+        return MediaUploadProgress(
+            FfiConverterULong.read(buf),
+            FfiConverterTypeAbstractProgress.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MediaUploadProgress) = (
+            FfiConverterULong.allocationSize(value.`index`) +
+            FfiConverterTypeAbstractProgress.allocationSize(value.`progress`)
+    )
+
+    override fun write(value: MediaUploadProgress, buf: ByteBuffer) {
+            FfiConverterULong.write(value.`index`, buf)
+            FfiConverterTypeAbstractProgress.write(value.`progress`, buf)
     }
 }
 
@@ -28778,38 +28881,6 @@ public object FfiConverterTypeRoomDescription: FfiConverterRustBuffer<RoomDescri
 
 
 
-data class RoomDirectorySearchEntriesResult (
-    var `entriesStream`: TaskHandle
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-        Disposable.destroy(this.`entriesStream`)
-    
-    }
-    
-    companion object
-}
-
-public object FfiConverterTypeRoomDirectorySearchEntriesResult: FfiConverterRustBuffer<RoomDirectorySearchEntriesResult> {
-    override fun read(buf: ByteBuffer): RoomDirectorySearchEntriesResult {
-        return RoomDirectorySearchEntriesResult(
-            FfiConverterTypeTaskHandle.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: RoomDirectorySearchEntriesResult) = (
-            FfiConverterTypeTaskHandle.allocationSize(value.`entriesStream`)
-    )
-
-    override fun write(value: RoomDirectorySearchEntriesResult, buf: ByteBuffer) {
-            FfiConverterTypeTaskHandle.write(value.`entriesStream`, buf)
-    }
-}
-
-
-
 /**
  * Information about a member considered to be a room hero.
  */
@@ -29789,44 +29860,6 @@ public object FfiConverterTypeSessionVerificationRequestDetails: FfiConverterRus
 
 
 
-data class SetData (
-    var `index`: kotlin.UInt, 
-    var `item`: TimelineItem
-) : Disposable {
-    
-    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
-    override fun destroy() {
-        
-        Disposable.destroy(this.`index`)
-    
-        Disposable.destroy(this.`item`)
-    
-    }
-    
-    companion object
-}
-
-public object FfiConverterTypeSetData: FfiConverterRustBuffer<SetData> {
-    override fun read(buf: ByteBuffer): SetData {
-        return SetData(
-            FfiConverterUInt.read(buf),
-            FfiConverterTypeTimelineItem.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: SetData) = (
-            FfiConverterUInt.allocationSize(value.`index`) +
-            FfiConverterTypeTimelineItem.allocationSize(value.`item`)
-    )
-
-    override fun write(value: SetData, buf: ByteBuffer) {
-            FfiConverterUInt.write(value.`index`, buf)
-            FfiConverterTypeTimelineItem.write(value.`item`, buf)
-    }
-}
-
-
-
 /**
  * A push rule is a single rule that states under what conditions an event
  * should be passed onto a push gateway and how the notification should be
@@ -29983,6 +30016,38 @@ public object FfiConverterTypeTextMessageContent: FfiConverterRustBuffer<TextMes
     override fun write(value: TextMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
+    }
+}
+
+
+
+/**
+ * A thread subscription (MSC4306).
+ */
+data class ThreadSubscription (
+    /**
+     * Whether the thread subscription happened automatically (e.g. after a
+     * mention) or if it was manually requested by the user.
+     */
+    var `automatic`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeThreadSubscription: FfiConverterRustBuffer<ThreadSubscription> {
+    override fun read(buf: ByteBuffer): ThreadSubscription {
+        return ThreadSubscription(
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ThreadSubscription) = (
+            FfiConverterBoolean.allocationSize(value.`automatic`)
+    )
+
+    override fun write(value: ThreadSubscription, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`automatic`, buf)
     }
 }
 
@@ -30445,13 +30510,7 @@ data class UploadParameters (
     /**
      * Optional Event ID to reply to.
      */
-    var `inReplyTo`: kotlin.String?, 
-    /**
-     * Should the media be sent with the send queue, or synchronously?
-     *
-     * Watching progress only works with the synchronous method, at the moment.
-     */
-    var `useSendQueue`: kotlin.Boolean
+    var `inReplyTo`: kotlin.String?
 ) {
     
     companion object
@@ -30465,7 +30524,6 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalTypeMentions.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -30474,8 +30532,7 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
             FfiConverterOptionalString.allocationSize(value.`caption`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterOptionalTypeMentions.allocationSize(value.`mentions`) +
-            FfiConverterOptionalString.allocationSize(value.`inReplyTo`) +
-            FfiConverterBoolean.allocationSize(value.`useSendQueue`)
+            FfiConverterOptionalString.allocationSize(value.`inReplyTo`)
     )
 
     override fun write(value: UploadParameters, buf: ByteBuffer) {
@@ -30484,7 +30541,6 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
             FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterOptionalTypeMentions.write(value.`mentions`, buf)
             FfiConverterOptionalString.write(value.`inReplyTo`, buf)
-            FfiConverterBoolean.write(value.`useSendQueue`, buf)
     }
 }
 
@@ -33880,8 +33936,14 @@ sealed class EventSendState {
     /**
      * The local event has not been sent yet.
      */
-    object NotSentYet : EventSendState()
-    
+    data class NotSentYet(
+        /**
+         * The progress of the sending operation, if the event involves a media
+         * upload.
+         */
+        val `progress`: MediaUploadProgress?) : EventSendState() {
+        companion object
+    }
     
     /**
      * The local event has been sent to the server, but unsuccessfully: The
@@ -33919,7 +33981,9 @@ sealed class EventSendState {
 public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendState>{
     override fun read(buf: ByteBuffer): EventSendState {
         return when(buf.getInt()) {
-            1 -> EventSendState.NotSentYet
+            1 -> EventSendState.NotSentYet(
+                FfiConverterOptionalTypeMediaUploadProgress.read(buf),
+                )
             2 -> EventSendState.SendingFailed(
                 FfiConverterTypeQueueWedgeError.read(buf),
                 FfiConverterBoolean.read(buf),
@@ -33936,6 +34000,7 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterOptionalTypeMediaUploadProgress.allocationSize(value.`progress`)
             )
         }
         is EventSendState.SendingFailed -> {
@@ -33959,6 +34024,7 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
         when(value) {
             is EventSendState.NotSentYet -> {
                 buf.putInt(1)
+                FfiConverterOptionalTypeMediaUploadProgress.write(value.`progress`, buf)
                 Unit
             }
             is EventSendState.SendingFailed -> {
@@ -34154,7 +34220,7 @@ sealed class GalleryItemInfo: Disposable  {
     
     data class Audio(
         val `audioInfo`: AudioInfo, 
-        val `filename`: kotlin.String, 
+        val `source`: UploadSource, 
         val `caption`: kotlin.String?, 
         val `formattedCaption`: FormattedBody?) : GalleryItemInfo() {
         companion object
@@ -34162,7 +34228,7 @@ sealed class GalleryItemInfo: Disposable  {
     
     data class File(
         val `fileInfo`: FileInfo, 
-        val `filename`: kotlin.String, 
+        val `source`: UploadSource, 
         val `caption`: kotlin.String?, 
         val `formattedCaption`: FormattedBody?) : GalleryItemInfo() {
         companion object
@@ -34170,19 +34236,19 @@ sealed class GalleryItemInfo: Disposable  {
     
     data class Image(
         val `imageInfo`: ImageInfo, 
-        val `filename`: kotlin.String, 
+        val `source`: UploadSource, 
         val `caption`: kotlin.String?, 
         val `formattedCaption`: FormattedBody?, 
-        val `thumbnailPath`: kotlin.String?) : GalleryItemInfo() {
+        val `thumbnailSource`: UploadSource?) : GalleryItemInfo() {
         companion object
     }
     
     data class Video(
         val `videoInfo`: VideoInfo, 
-        val `filename`: kotlin.String, 
+        val `source`: UploadSource, 
         val `caption`: kotlin.String?, 
         val `formattedCaption`: FormattedBody?, 
-        val `thumbnailPath`: kotlin.String?) : GalleryItemInfo() {
+        val `thumbnailSource`: UploadSource?) : GalleryItemInfo() {
         companion object
     }
     
@@ -34195,7 +34261,7 @@ sealed class GalleryItemInfo: Disposable  {
                 
         Disposable.destroy(this.`audioInfo`)
     
-        Disposable.destroy(this.`filename`)
+        Disposable.destroy(this.`source`)
     
         Disposable.destroy(this.`caption`)
     
@@ -34207,7 +34273,7 @@ sealed class GalleryItemInfo: Disposable  {
                 
         Disposable.destroy(this.`fileInfo`)
     
-        Disposable.destroy(this.`filename`)
+        Disposable.destroy(this.`source`)
     
         Disposable.destroy(this.`caption`)
     
@@ -34219,13 +34285,13 @@ sealed class GalleryItemInfo: Disposable  {
                 
         Disposable.destroy(this.`imageInfo`)
     
-        Disposable.destroy(this.`filename`)
+        Disposable.destroy(this.`source`)
     
         Disposable.destroy(this.`caption`)
     
         Disposable.destroy(this.`formattedCaption`)
     
-        Disposable.destroy(this.`thumbnailPath`)
+        Disposable.destroy(this.`thumbnailSource`)
     
                 
             }
@@ -34233,13 +34299,13 @@ sealed class GalleryItemInfo: Disposable  {
                 
         Disposable.destroy(this.`videoInfo`)
     
-        Disposable.destroy(this.`filename`)
+        Disposable.destroy(this.`source`)
     
         Disposable.destroy(this.`caption`)
     
         Disposable.destroy(this.`formattedCaption`)
     
-        Disposable.destroy(this.`thumbnailPath`)
+        Disposable.destroy(this.`thumbnailSource`)
     
                 
             }
@@ -34254,29 +34320,29 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
         return when(buf.getInt()) {
             1 -> GalleryItemInfo.Audio(
                 FfiConverterTypeAudioInfo.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeFormattedBody.read(buf),
                 )
             2 -> GalleryItemInfo.File(
                 FfiConverterTypeFileInfo.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeFormattedBody.read(buf),
                 )
             3 -> GalleryItemInfo.Image(
                 FfiConverterTypeImageInfo.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeFormattedBody.read(buf),
-                FfiConverterOptionalString.read(buf),
+                FfiConverterOptionalTypeUploadSource.read(buf),
                 )
             4 -> GalleryItemInfo.Video(
                 FfiConverterTypeVideoInfo.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
                 FfiConverterOptionalString.read(buf),
                 FfiConverterOptionalTypeFormattedBody.read(buf),
-                FfiConverterOptionalString.read(buf),
+                FfiConverterOptionalTypeUploadSource.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -34288,7 +34354,7 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             (
                 4UL
                 + FfiConverterTypeAudioInfo.allocationSize(value.`audioInfo`)
-                + FfiConverterString.allocationSize(value.`filename`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
                 + FfiConverterOptionalString.allocationSize(value.`caption`)
                 + FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`)
             )
@@ -34298,7 +34364,7 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             (
                 4UL
                 + FfiConverterTypeFileInfo.allocationSize(value.`fileInfo`)
-                + FfiConverterString.allocationSize(value.`filename`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
                 + FfiConverterOptionalString.allocationSize(value.`caption`)
                 + FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`)
             )
@@ -34308,10 +34374,10 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             (
                 4UL
                 + FfiConverterTypeImageInfo.allocationSize(value.`imageInfo`)
-                + FfiConverterString.allocationSize(value.`filename`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
                 + FfiConverterOptionalString.allocationSize(value.`caption`)
                 + FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`)
-                + FfiConverterOptionalString.allocationSize(value.`thumbnailPath`)
+                + FfiConverterOptionalTypeUploadSource.allocationSize(value.`thumbnailSource`)
             )
         }
         is GalleryItemInfo.Video -> {
@@ -34319,10 +34385,10 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             (
                 4UL
                 + FfiConverterTypeVideoInfo.allocationSize(value.`videoInfo`)
-                + FfiConverterString.allocationSize(value.`filename`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
                 + FfiConverterOptionalString.allocationSize(value.`caption`)
                 + FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`)
-                + FfiConverterOptionalString.allocationSize(value.`thumbnailPath`)
+                + FfiConverterOptionalTypeUploadSource.allocationSize(value.`thumbnailSource`)
             )
         }
     }
@@ -34332,7 +34398,7 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             is GalleryItemInfo.Audio -> {
                 buf.putInt(1)
                 FfiConverterTypeAudioInfo.write(value.`audioInfo`, buf)
-                FfiConverterString.write(value.`filename`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
                 FfiConverterOptionalString.write(value.`caption`, buf)
                 FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
                 Unit
@@ -34340,7 +34406,7 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             is GalleryItemInfo.File -> {
                 buf.putInt(2)
                 FfiConverterTypeFileInfo.write(value.`fileInfo`, buf)
-                FfiConverterString.write(value.`filename`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
                 FfiConverterOptionalString.write(value.`caption`, buf)
                 FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
                 Unit
@@ -34348,19 +34414,19 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
             is GalleryItemInfo.Image -> {
                 buf.putInt(3)
                 FfiConverterTypeImageInfo.write(value.`imageInfo`, buf)
-                FfiConverterString.write(value.`filename`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
                 FfiConverterOptionalString.write(value.`caption`, buf)
                 FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
-                FfiConverterOptionalString.write(value.`thumbnailPath`, buf)
+                FfiConverterOptionalTypeUploadSource.write(value.`thumbnailSource`, buf)
                 Unit
             }
             is GalleryItemInfo.Video -> {
                 buf.putInt(4)
                 FfiConverterTypeVideoInfo.write(value.`videoInfo`, buf)
-                FfiConverterString.write(value.`filename`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
                 FfiConverterOptionalString.write(value.`caption`, buf)
                 FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
-                FfiConverterOptionalString.write(value.`thumbnailPath`, buf)
+                FfiConverterOptionalTypeUploadSource.write(value.`thumbnailSource`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -39352,6 +39418,12 @@ sealed class RoomListEntriesDynamicFilterKind {
     object Favourite : RoomListEntriesDynamicFilterKind()
     
     
+    object LowPriority : RoomListEntriesDynamicFilterKind()
+    
+    
+    object NonLowPriority : RoomListEntriesDynamicFilterKind()
+    
+    
     object Invite : RoomListEntriesDynamicFilterKind()
     
     
@@ -39395,18 +39467,20 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             5 -> RoomListEntriesDynamicFilterKind.Joined
             6 -> RoomListEntriesDynamicFilterKind.Unread
             7 -> RoomListEntriesDynamicFilterKind.Favourite
-            8 -> RoomListEntriesDynamicFilterKind.Invite
-            9 -> RoomListEntriesDynamicFilterKind.Category(
+            8 -> RoomListEntriesDynamicFilterKind.LowPriority
+            9 -> RoomListEntriesDynamicFilterKind.NonLowPriority
+            10 -> RoomListEntriesDynamicFilterKind.Invite
+            11 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            10 -> RoomListEntriesDynamicFilterKind.None
-            11 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            12 -> RoomListEntriesDynamicFilterKind.None
+            13 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            12 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            14 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            13 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
+            15 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -39451,6 +39525,18 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             )
         }
         is RoomListEntriesDynamicFilterKind.Favourite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.LowPriority -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.NonLowPriority -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -39529,31 +39615,39 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(7)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Invite -> {
+            is RoomListEntriesDynamicFilterKind.LowPriority -> {
                 buf.putInt(8)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.NonLowPriority -> {
                 buf.putInt(9)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Invite -> {
+                buf.putInt(10)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(11)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(10)
+                buf.putInt(12)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(11)
+                buf.putInt(13)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
-                buf.putInt(12)
+                buf.putInt(14)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
-                buf.putInt(13)
+                buf.putInt(15)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -41641,116 +41735,6 @@ public object FfiConverterTypeTagName : FfiConverterRustBuffer<TagName>{
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-/**
- * Status of a thread subscription (MSC4306).
- */
-sealed class ThreadStatus {
-    
-    /**
-     * The thread is subscribed to.
-     */
-    data class Subscribed(
-        /**
-         * Whether the thread subscription happened automatically (e.g. after a
-         * mention) or if it was manually requested by the user.
-         */
-        val `automatic`: kotlin.Boolean) : ThreadStatus() {
-        companion object
-    }
-    
-    /**
-     * The thread is not subscribed to.
-     */
-    object Unsubscribed : ThreadStatus()
-    
-    
-
-    
-    companion object
-}
-
-public object FfiConverterTypeThreadStatus : FfiConverterRustBuffer<ThreadStatus>{
-    override fun read(buf: ByteBuffer): ThreadStatus {
-        return when(buf.getInt()) {
-            1 -> ThreadStatus.Subscribed(
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> ThreadStatus.Unsubscribed
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: ThreadStatus) = when(value) {
-        is ThreadStatus.Subscribed -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`automatic`)
-            )
-        }
-        is ThreadStatus.Unsubscribed -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: ThreadStatus, buf: ByteBuffer) {
-        when(value) {
-            is ThreadStatus.Subscribed -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`automatic`, buf)
-                Unit
-            }
-            is ThreadStatus.Unsubscribed -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-
-enum class TimelineChange {
-    
-    APPEND,
-    CLEAR,
-    INSERT,
-    SET,
-    REMOVE,
-    PUSH_BACK,
-    PUSH_FRONT,
-    POP_BACK,
-    POP_FRONT,
-    TRUNCATE,
-    RESET;
-    companion object
-}
-
-
-public object FfiConverterTypeTimelineChange: FfiConverterRustBuffer<TimelineChange> {
-    override fun read(buf: ByteBuffer) = try {
-        TimelineChange.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: TimelineChange) = 4UL
-
-    override fun write(value: TimelineChange, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -45685,6 +45669,35 @@ public object FfiConverterOptionalTypeMediaPreviewConfig: FfiConverterRustBuffer
 
 
 
+public object FfiConverterOptionalTypeMediaUploadProgress: FfiConverterRustBuffer<MediaUploadProgress?> {
+    override fun read(buf: ByteBuffer): MediaUploadProgress? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeMediaUploadProgress.read(buf)
+    }
+
+    override fun allocationSize(value: MediaUploadProgress?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeMediaUploadProgress.allocationSize(value)
+        }
+    }
+
+    override fun write(value: MediaUploadProgress?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeMediaUploadProgress.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeMentions: FfiConverterRustBuffer<Mentions?> {
     override fun read(buf: ByteBuffer): Mentions? {
         if (buf.get().toInt() == 0) {
@@ -45939,6 +45952,35 @@ public object FfiConverterOptionalTypeSuccessorRoom: FfiConverterRustBuffer<Succ
         } else {
             buf.put(1)
             FfiConverterTypeSuccessorRoom.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeThreadSubscription: FfiConverterRustBuffer<ThreadSubscription?> {
+    override fun read(buf: ByteBuffer): ThreadSubscription? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeThreadSubscription.read(buf)
+    }
+
+    override fun allocationSize(value: ThreadSubscription?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeThreadSubscription.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ThreadSubscription?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeThreadSubscription.write(value, buf)
         }
     }
 }
@@ -46526,28 +46568,28 @@ public object FfiConverterOptionalTypeShieldState: FfiConverterRustBuffer<Shield
 
 
 
-public object FfiConverterOptionalTypeThreadStatus: FfiConverterRustBuffer<ThreadStatus?> {
-    override fun read(buf: ByteBuffer): ThreadStatus? {
+public object FfiConverterOptionalTypeUploadSource: FfiConverterRustBuffer<UploadSource?> {
+    override fun read(buf: ByteBuffer): UploadSource? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeThreadStatus.read(buf)
+        return FfiConverterTypeUploadSource.read(buf)
     }
 
-    override fun allocationSize(value: ThreadStatus?): ULong {
+    override fun allocationSize(value: UploadSource?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeThreadStatus.allocationSize(value)
+            return 1UL + FfiConverterTypeUploadSource.allocationSize(value)
         }
     }
 
-    override fun write(value: ThreadStatus?, buf: ByteBuffer) {
+    override fun write(value: UploadSource?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeThreadStatus.write(value, buf)
+            FfiConverterTypeUploadSource.write(value, buf)
         }
     }
 }
@@ -48104,6 +48146,10 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
         }
     }
 }
+
+
+
+
 
 
 
