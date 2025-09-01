@@ -71,7 +71,9 @@ import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
+import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
+import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
@@ -88,6 +90,7 @@ import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -786,6 +789,15 @@ internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateM
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod6 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceSpaceRoomListEntriesListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`rooms`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceSpaceRoomListPaginationStateListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`paginationState`: RustBufferSpaceRoomListPaginationState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceSpaceServiceJoinedSpacesListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`roomUpdates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceSyncServiceStateObserverMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -1221,6 +1233,54 @@ internal open class UniffiVTableCallbackInterfaceSessionVerificationControllerDe
         `didFail` = other.`didFail`
         `didCancel` = other.`didCancel`
         `didFinish` = other.`didFinish`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSpaceRoomListEntriesListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceSpaceRoomListEntriesListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSpaceRoomListPaginationStateListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceSpaceRoomListPaginationStateListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSpaceServiceJoinedSpacesListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceSpaceServiceJoinedSpacesListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener) {
+        `onUpdate` = other.`onUpdate`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -2404,6 +2464,36 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2439,6 +2529,9 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceRoomListServiceSyncIndicatorListener.register(lib)
                 uniffiCallbackInterfaceSendQueueRoomErrorListener.register(lib)
                 uniffiCallbackInterfaceSessionVerificationControllerDelegate.register(lib)
+                uniffiCallbackInterfaceSpaceRoomListEntriesListener.register(lib)
+                uniffiCallbackInterfaceSpaceRoomListPaginationStateListener.register(lib)
+                uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener.register(lib)
                 uniffiCallbackInterfaceSyncServiceStateObserver.register(lib)
                 uniffiCallbackInterfaceTimelineListener.register(lib)
                 uniffiCallbackInterfaceTypingNotificationsListener.register(lib)
@@ -2610,6 +2703,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_sliding_sync_version(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_client_space_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_start_sso_login(`ptr`: Pointer,`redirectUrl`: RustBuffer.ByValue,`idpId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3250,6 +3345,30 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationemoji_symbol(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_clone_spaceroomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_spaceroomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_paginate(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_pagination_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferSpaceRoomListPaginationState.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_clone_spaceservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_spaceservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_spaces(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_room_list(`ptr`: Pointer,`spaceId`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_joined_spaces(`ptr`: Pointer,`listener`: Long,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_span(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_span(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3276,6 +3395,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_syncservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_syncservice_expire_sessions(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_room_list_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start(`ptr`: Pointer,
@@ -3495,6 +3616,12 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomerrorlistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomErrorListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sessionverificationcontrollerdelegate(`vtable`: UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicejoinedspaceslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncservicestateobserver(`vtable`: UniffiVTableCallbackInterfaceSyncServiceStateObserver,
     ): Unit
@@ -3863,6 +3990,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_set_utd_delegate(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_space_service(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login(
     ): Short
@@ -4392,6 +4521,22 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_symbol(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_paginate(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_pagination_state(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_joined_spaces(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_span_enter(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_span_exit(
@@ -4401,6 +4546,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_room_list_service(
     ): Short
@@ -4603,6 +4750,12 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_cancel(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistentrieslistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update(
     ): Short
@@ -4925,6 +5078,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version() != 4957.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_space_service() != 31959.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login() != 34571.toShort()) {
@@ -5719,6 +5875,30 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_symbol() != 46075.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_paginate() != 57707.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_pagination_state() != 33381.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms() != 24664.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates() != 16775.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update() != 55793.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces() != 54285.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list() != 6768.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_joined_spaces() != 10090.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_span_enter() != 8900.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5732,6 +5912,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url() != 10889.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions() != 45579.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_room_list_service() != 26426.toShort()) {
@@ -6035,6 +6218,15 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish() != 37905.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistentrieslistener_on_update() != 31502.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update() != 11960.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update() != 19262.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update() != 62231.toShort()) {
@@ -7007,6 +7199,8 @@ public interface ClientInterface {
      * The sliding sync version.
      */
     fun `slidingSyncVersion`(): SlidingSyncVersion
+    
+    fun `spaceService`(): SpaceService
     
     /**
      * Returns a handler to start the SSO login process.
@@ -8893,6 +9087,18 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_sliding_sync_version(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `spaceService`(): SpaceService {
+            return FfiConverterTypeSpaceService.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_space_service(
         it, _status)
 }
     }
@@ -21851,6 +22057,681 @@ public object FfiConverterTypeSessionVerificationEmoji: FfiConverter<SessionVeri
 //
 
 
+/**
+ * The `SpaceRoomList`represents a paginated list of direct rooms
+ * that belong to a particular space.
+ *
+ * It can be used to paginate through the list (and have live updates on the
+ * pagination state) as well as subscribe to changes as rooms are joined or
+ * left.
+ *
+ * The `SpaceRoomList` also automatically subscribes to client room changes
+ * and updates the list accordingly as rooms are joined or left.
+ */
+public interface SpaceRoomListInterface {
+    
+    /**
+     * Ask the list to retrieve the next page if the end hasn't been reached
+     * yet. Otherwise it no-ops.
+     */
+    suspend fun `paginate`()
+    
+    /**
+     * Returns if the room list is currently paginating or not.
+     */
+    fun `paginationState`(): SpaceRoomListPaginationState
+    
+    /**
+     * Return the current list of rooms.
+     */
+    fun `rooms`(): List<SpaceRoom>
+    
+    /**
+     * Subscribe to pagination updates.
+     */
+    fun `subscribeToPaginationStateUpdates`(`listener`: SpaceRoomListPaginationStateListener): TaskHandle
+    
+    /**
+     * Subscribes to room list updates.
+     */
+    fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener): TaskHandle
+    
+    companion object
+}
+
+/**
+ * The `SpaceRoomList`represents a paginated list of direct rooms
+ * that belong to a particular space.
+ *
+ * It can be used to paginate through the list (and have live updates on the
+ * pagination state) as well as subscribe to changes as rooms are joined or
+ * left.
+ *
+ * The `SpaceRoomList` also automatically subscribes to client room changes
+ * and updates the list accordingly as rooms are joined or left.
+ */
+open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_spaceroomlist(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_spaceroomlist(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * Ask the list to retrieve the next page if the end hasn't been reached
+     * yet. Otherwise it no-ops.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `paginate`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_paginate(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns if the room list is currently paginating or not.
+     */override fun `paginationState`(): SpaceRoomListPaginationState {
+            return FfiConverterTypeSpaceRoomListPaginationState.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_pagination_state(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Return the current list of rooms.
+     */override fun `rooms`(): List<SpaceRoom> {
+            return FfiConverterSequenceTypeSpaceRoom.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Subscribe to pagination updates.
+     */override fun `subscribeToPaginationStateUpdates`(`listener`: SpaceRoomListPaginationStateListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(
+        it, FfiConverterTypeSpaceRoomListPaginationStateListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Subscribes to room list updates.
+     */override fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(
+        it, FfiConverterTypeSpaceRoomListEntriesListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeSpaceRoomList: FfiConverter<SpaceRoomList, Pointer> {
+
+    override fun lower(value: SpaceRoomList): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): SpaceRoomList {
+        return SpaceRoomList(value)
+    }
+
+    override fun read(buf: ByteBuffer): SpaceRoomList {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SpaceRoomList) = 8UL
+
+    override fun write(value: SpaceRoomList, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * The main entry point into the Spaces facilities.
+ *
+ * The spaces service is responsible for retrieving one's joined rooms,
+ * building a graph out of their `m.space.parent` and `m.space.child` state
+ * events, and providing access to the top-level spaces and their children.
+ */
+public interface SpaceServiceInterface {
+    
+    /**
+     * Returns a list of all the top-level joined spaces. It will eagerly
+     * compute the latest version and also notify subscribers if there were
+     * any changes.
+     */
+    suspend fun `joinedSpaces`(): List<SpaceRoom>
+    
+    /**
+     * Returns a `SpaceRoomList` for the given space ID.
+     */
+    suspend fun `spaceRoomList`(`spaceId`: kotlin.String): SpaceRoomList
+    
+    /**
+     * Subscribes to updates on the joined spaces list. If space rooms are
+     * joined or left, the stream will yield diffs that reflect the changes.
+     */
+    suspend fun `subscribeToJoinedSpaces`(`listener`: SpaceServiceJoinedSpacesListener): TaskHandle
+    
+    companion object
+}
+
+/**
+ * The main entry point into the Spaces facilities.
+ *
+ * The spaces service is responsible for retrieving one's joined rooms,
+ * building a graph out of their `m.space.parent` and `m.space.child` state
+ * events, and providing access to the top-level spaces and their children.
+ */
+open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_spaceservice(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_spaceservice(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * Returns a list of all the top-level joined spaces. It will eagerly
+     * compute the latest version and also notify subscribers if there were
+     * any changes.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `joinedSpaces`() : List<SpaceRoom> {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_spaces(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeSpaceRoom.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns a `SpaceRoomList` for the given space ID.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `spaceRoomList`(`spaceId`: kotlin.String) : SpaceRoomList {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_room_list(
+                thisPtr,
+                FfiConverterString.lower(`spaceId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeSpaceRoomList.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Subscribes to updates on the joined spaces list. If space rooms are
+     * joined or left, the stream will yield diffs that reflect the changes.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `subscribeToJoinedSpaces`(`listener`: SpaceServiceJoinedSpacesListener) : TaskHandle {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_joined_spaces(
+                thisPtr,
+                FfiConverterTypeSpaceServiceJoinedSpacesListener.lower(`listener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeTaskHandle.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeSpaceService: FfiConverter<SpaceService, Pointer> {
+
+    override fun lower(value: SpaceService): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): SpaceService {
+        return SpaceService(value)
+    }
+
+    override fun read(buf: ByteBuffer): SpaceService {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: SpaceService) = 8UL
+
+    override fun write(value: SpaceService, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface SpanInterface {
     
     fun `enter`()
@@ -22433,6 +23314,15 @@ public object FfiConverterTypeSsoHandler: FfiConverter<SsoHandler, Pointer> {
 
 public interface SyncServiceInterface {
     
+    /**
+     * Force expiring both sliding sync sessions.
+     *
+     * This ensures that the sync service is stopped before expiring both
+     * sessions. It should be used sparingly, as it will cause a restart of
+     * the sessions on the server as well.
+     */
+    suspend fun `expireSessions`()
+    
     fun `roomListService`(): RoomListService
     
     suspend fun `start`()
@@ -22523,6 +23413,34 @@ open class SyncService: Disposable, AutoCloseable, SyncServiceInterface {
         return uniffiRustCall() { status ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_syncservice(pointer!!, status)
         }
+    }
+
+    
+    /**
+     * Force expiring both sliding sync sessions.
+     *
+     * This ensures that the sync service is stopped before expiring both
+     * sessions. It should be used sparingly, as it will cause a restart of
+     * the sessions on the server as well.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `expireSessions`() {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_syncservice_expire_sessions(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
     }
 
     override fun `roomListService`(): RoomListService {
@@ -29912,6 +30830,122 @@ public object FfiConverterTypeSimplePushRule: FfiConverterRustBuffer<SimplePushR
             FfiConverterBoolean.write(value.`default`, buf)
             FfiConverterBoolean.write(value.`enabled`, buf)
             FfiConverterString.write(value.`ruleId`, buf)
+    }
+}
+
+
+
+/**
+ * Structure representing a room in a space and aggregated information
+ * relevant to the UI layer.
+ */
+data class SpaceRoom (
+    /**
+     * The ID of the room.
+     */
+    var `roomId`: kotlin.String, 
+    /**
+     * The canonical alias of the room, if any.
+     */
+    var `canonicalAlias`: kotlin.String?, 
+    /**
+     * The name of the room, if any.
+     */
+    var `name`: kotlin.String?, 
+    /**
+     * The topic of the room, if any.
+     */
+    var `topic`: kotlin.String?, 
+    /**
+     * The URL for the room's avatar, if one is set.
+     */
+    var `avatarUrl`: kotlin.String?, 
+    /**
+     * The type of room from `m.room.create`, if any.
+     */
+    var `roomType`: RoomType, 
+    /**
+     * The number of members joined to the room.
+     */
+    var `numJoinedMembers`: kotlin.ULong, 
+    /**
+     * The join rule of the room.
+     */
+    var `joinRule`: JoinRule?, 
+    /**
+     * Whether the room may be viewed by users without joining.
+     */
+    var `worldReadable`: kotlin.Boolean?, 
+    /**
+     * Whether guest users may join the room and participate in it.
+     */
+    var `guestCanJoin`: kotlin.Boolean, 
+    /**
+     * The number of children room this has, if a space.
+     */
+    var `childrenCount`: kotlin.ULong, 
+    /**
+     * Whether this room is joined, left etc.
+     */
+    var `state`: Membership?, 
+    /**
+     * A list of room members considered to be heroes.
+     */
+    var `heroes`: List<RoomHero>?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
+    override fun read(buf: ByteBuffer): SpaceRoom {
+        return SpaceRoom(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterTypeRoomType.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterOptionalTypeJoinRule.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterOptionalTypeMembership.read(buf),
+            FfiConverterOptionalSequenceTypeRoomHero.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SpaceRoom) = (
+            FfiConverterString.allocationSize(value.`roomId`) +
+            FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
+            FfiConverterOptionalString.allocationSize(value.`name`) +
+            FfiConverterOptionalString.allocationSize(value.`topic`) +
+            FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
+            FfiConverterTypeRoomType.allocationSize(value.`roomType`) +
+            FfiConverterULong.allocationSize(value.`numJoinedMembers`) +
+            FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`worldReadable`) +
+            FfiConverterBoolean.allocationSize(value.`guestCanJoin`) +
+            FfiConverterULong.allocationSize(value.`childrenCount`) +
+            FfiConverterOptionalTypeMembership.allocationSize(value.`state`) +
+            FfiConverterOptionalSequenceTypeRoomHero.allocationSize(value.`heroes`)
+    )
+
+    override fun write(value: SpaceRoom, buf: ByteBuffer) {
+            FfiConverterString.write(value.`roomId`, buf)
+            FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
+            FfiConverterOptionalString.write(value.`name`, buf)
+            FfiConverterOptionalString.write(value.`topic`, buf)
+            FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+            FfiConverterTypeRoomType.write(value.`roomType`, buf)
+            FfiConverterULong.write(value.`numJoinedMembers`, buf)
+            FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
+            FfiConverterOptionalBoolean.write(value.`worldReadable`, buf)
+            FfiConverterBoolean.write(value.`guestCanJoin`, buf)
+            FfiConverterULong.write(value.`childrenCount`, buf)
+            FfiConverterOptionalTypeMembership.write(value.`state`, buf)
+            FfiConverterOptionalSequenceTypeRoomHero.write(value.`heroes`, buf)
     }
 }
 
@@ -41117,6 +42151,243 @@ public object FfiConverterTypeSlidingSyncVersionBuilder: FfiConverterRustBuffer<
 
 
 
+sealed class SpaceListUpdate {
+    
+    data class Append(
+        val `values`: List<SpaceRoom>) : SpaceListUpdate() {
+        companion object
+    }
+    
+    object Clear : SpaceListUpdate()
+    
+    
+    data class PushFront(
+        val `value`: SpaceRoom) : SpaceListUpdate() {
+        companion object
+    }
+    
+    data class PushBack(
+        val `value`: SpaceRoom) : SpaceListUpdate() {
+        companion object
+    }
+    
+    object PopFront : SpaceListUpdate()
+    
+    
+    object PopBack : SpaceListUpdate()
+    
+    
+    data class Insert(
+        val `index`: kotlin.UInt, 
+        val `value`: SpaceRoom) : SpaceListUpdate() {
+        companion object
+    }
+    
+    data class Set(
+        val `index`: kotlin.UInt, 
+        val `value`: SpaceRoom) : SpaceListUpdate() {
+        companion object
+    }
+    
+    data class Remove(
+        val `index`: kotlin.UInt) : SpaceListUpdate() {
+        companion object
+    }
+    
+    data class Truncate(
+        val `length`: kotlin.UInt) : SpaceListUpdate() {
+        companion object
+    }
+    
+    data class Reset(
+        val `values`: List<SpaceRoom>) : SpaceListUpdate() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeSpaceListUpdate : FfiConverterRustBuffer<SpaceListUpdate>{
+    override fun read(buf: ByteBuffer): SpaceListUpdate {
+        return when(buf.getInt()) {
+            1 -> SpaceListUpdate.Append(
+                FfiConverterSequenceTypeSpaceRoom.read(buf),
+                )
+            2 -> SpaceListUpdate.Clear
+            3 -> SpaceListUpdate.PushFront(
+                FfiConverterTypeSpaceRoom.read(buf),
+                )
+            4 -> SpaceListUpdate.PushBack(
+                FfiConverterTypeSpaceRoom.read(buf),
+                )
+            5 -> SpaceListUpdate.PopFront
+            6 -> SpaceListUpdate.PopBack
+            7 -> SpaceListUpdate.Insert(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeSpaceRoom.read(buf),
+                )
+            8 -> SpaceListUpdate.Set(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeSpaceRoom.read(buf),
+                )
+            9 -> SpaceListUpdate.Remove(
+                FfiConverterUInt.read(buf),
+                )
+            10 -> SpaceListUpdate.Truncate(
+                FfiConverterUInt.read(buf),
+                )
+            11 -> SpaceListUpdate.Reset(
+                FfiConverterSequenceTypeSpaceRoom.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SpaceListUpdate) = when(value) {
+        is SpaceListUpdate.Append -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeSpaceRoom.allocationSize(value.`values`)
+            )
+        }
+        is SpaceListUpdate.Clear -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SpaceListUpdate.PushFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeSpaceRoom.allocationSize(value.`value`)
+            )
+        }
+        is SpaceListUpdate.PushBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeSpaceRoom.allocationSize(value.`value`)
+            )
+        }
+        is SpaceListUpdate.PopFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SpaceListUpdate.PopBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SpaceListUpdate.Insert -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeSpaceRoom.allocationSize(value.`value`)
+            )
+        }
+        is SpaceListUpdate.Set -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeSpaceRoom.allocationSize(value.`value`)
+            )
+        }
+        is SpaceListUpdate.Remove -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+            )
+        }
+        is SpaceListUpdate.Truncate -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`length`)
+            )
+        }
+        is SpaceListUpdate.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeSpaceRoom.allocationSize(value.`values`)
+            )
+        }
+    }
+
+    override fun write(value: SpaceListUpdate, buf: ByteBuffer) {
+        when(value) {
+            is SpaceListUpdate.Append -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeSpaceRoom.write(value.`values`, buf)
+                Unit
+            }
+            is SpaceListUpdate.Clear -> {
+                buf.putInt(2)
+                Unit
+            }
+            is SpaceListUpdate.PushFront -> {
+                buf.putInt(3)
+                FfiConverterTypeSpaceRoom.write(value.`value`, buf)
+                Unit
+            }
+            is SpaceListUpdate.PushBack -> {
+                buf.putInt(4)
+                FfiConverterTypeSpaceRoom.write(value.`value`, buf)
+                Unit
+            }
+            is SpaceListUpdate.PopFront -> {
+                buf.putInt(5)
+                Unit
+            }
+            is SpaceListUpdate.PopBack -> {
+                buf.putInt(6)
+                Unit
+            }
+            is SpaceListUpdate.Insert -> {
+                buf.putInt(7)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeSpaceRoom.write(value.`value`, buf)
+                Unit
+            }
+            is SpaceListUpdate.Set -> {
+                buf.putInt(8)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeSpaceRoom.write(value.`value`, buf)
+                Unit
+            }
+            is SpaceListUpdate.Remove -> {
+                buf.putInt(9)
+                FfiConverterUInt.write(value.`index`, buf)
+                Unit
+            }
+            is SpaceListUpdate.Truncate -> {
+                buf.putInt(10)
+                FfiConverterUInt.write(value.`length`, buf)
+                Unit
+            }
+            is SpaceListUpdate.Reset -> {
+                buf.putInt(11)
+                FfiConverterSequenceTypeSpaceRoom.write(value.`values`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 
 sealed class SsoException(message: String): kotlin.Exception(message) {
@@ -44564,6 +45835,153 @@ public object FfiConverterTypeSessionVerificationControllerDelegate: FfiConverte
 
 
 
+public interface SpaceRoomListEntriesListener {
+    
+    fun `onUpdate`(`rooms`: List<SpaceListUpdate>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSpaceRoomListEntriesListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceSpaceRoomListEntriesListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`rooms`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSpaceRoomListEntriesListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterSequenceTypeSpaceListUpdate.lift(`rooms`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSpaceRoomListEntriesListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistentrieslistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSpaceRoomListEntriesListener: FfiConverterCallbackInterface<SpaceRoomListEntriesListener>()
+
+
+
+
+
+public interface SpaceRoomListPaginationStateListener {
+    
+    fun `onUpdate`(`paginationState`: SpaceRoomListPaginationState)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSpaceRoomListPaginationStateListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceSpaceRoomListPaginationStateListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`paginationState`: RustBufferSpaceRoomListPaginationState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSpaceRoomListPaginationStateListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeSpaceRoomListPaginationState.lift(`paginationState`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSpaceRoomListPaginationStateListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistpaginationstatelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSpaceRoomListPaginationStateListener: FfiConverterCallbackInterface<SpaceRoomListPaginationStateListener>()
+
+
+
+
+
+public interface SpaceServiceJoinedSpacesListener {
+    
+    fun `onUpdate`(`roomUpdates`: List<SpaceListUpdate>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceSpaceServiceJoinedSpacesListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`roomUpdates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSpaceServiceJoinedSpacesListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterSequenceTypeSpaceListUpdate.lift(`roomUpdates`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSpaceServiceJoinedSpacesListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicejoinedspaceslistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSpaceServiceJoinedSpacesListener: FfiConverterCallbackInterface<SpaceServiceJoinedSpacesListener>()
+
+
+
+
+
 public interface SyncServiceStateObserver {
     
     fun `onUpdate`(`state`: SyncServiceState)
@@ -47420,6 +48838,31 @@ public object FfiConverterSequenceTypeSimplePushRule: FfiConverterRustBuffer<Lis
 
 
 
+public object FfiConverterSequenceTypeSpaceRoom: FfiConverterRustBuffer<List<SpaceRoom>> {
+    override fun read(buf: ByteBuffer): List<SpaceRoom> {
+        val len = buf.getInt()
+        return List<SpaceRoom>(len) {
+            FfiConverterTypeSpaceRoom.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<SpaceRoom>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeSpaceRoom.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<SpaceRoom>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeSpaceRoom.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeUserPowerLevelUpdate: FfiConverterRustBuffer<List<UserPowerLevelUpdate>> {
     override fun read(buf: ByteBuffer): List<UserPowerLevelUpdate> {
         val len = buf.getInt()
@@ -47795,6 +49238,31 @@ public object FfiConverterSequenceTypeSlidingSyncVersion: FfiConverterRustBuffer
 
 
 
+public object FfiConverterSequenceTypeSpaceListUpdate: FfiConverterRustBuffer<List<SpaceListUpdate>> {
+    override fun read(buf: ByteBuffer): List<SpaceListUpdate> {
+        val len = buf.getInt()
+        return List<SpaceListUpdate>(len) {
+            FfiConverterTypeSpaceListUpdate.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<SpaceListUpdate>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeSpaceListUpdate.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<SpaceListUpdate>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeSpaceListUpdate.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeTimelineDiff: FfiConverterRustBuffer<List<TimelineDiff>> {
     override fun read(buf: ByteBuffer): List<TimelineDiff> {
         val len = buf.getInt()
@@ -48146,6 +49614,10 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
         }
     }
 }
+
+
+
+
 
 
 
