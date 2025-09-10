@@ -1448,9 +1448,132 @@ public object FfiConverterTypeServerVendorInfo: FfiConverterRustBuffer<ServerVen
 
 
 /**
- * Properties to create a new virtual Element Call widget.
+ * Configuration parameters, to create a new virtual Element Call widget.
+ *
+ * If `intent` is provided the appropriate default values for all other
+ * parameters will be used by element call.
+ * In most cases its enough to only set the intent. Use the other properties
+ * only if you want to deviate from the `intent` defaults.
+ *
+ * Set [`docs/url-params.md`](https://github.com/element-hq/element-call/blob/livekit/docs/url-params.md)
+ * to find out more about the parameters and their defaults.
  */
-data class VirtualElementCallWidgetOptions (
+data class VirtualElementCallWidgetConfig (
+    /**
+     * The intent of showing the call.
+     * If the user wants to start a call or join an existing one.
+     * Controls if the lobby is skipped or not.
+     */
+    var `intent`: Intent?, 
+    /**
+     * Skip the lobby when joining a call.
+     */
+    var `skipLobby`: kotlin.Boolean?, 
+    /**
+     * Whether the branding header of Element call should be shown or if a
+     * mobile header navbar should be render.
+     *
+     * Default: [`HeaderStyle::Standard`]
+     */
+    var `header`: HeaderStyle?, 
+    /**
+     * Whether the branding header of Element call should be hidden.
+     *
+     * Default: `true`
+     */
+    var `hideHeader`: kotlin.Boolean?, 
+    /**
+     * If set, the lobby will be skipped and the widget will join the
+     * call on the `io.element.join` action.
+     *
+     * Default: `false`
+     */
+    var `preload`: kotlin.Boolean?, 
+    /**
+     * Whether element call should prompt the user to open in the browser or
+     * the app.
+     *
+     * Default: `false`
+     */
+    var `appPrompt`: kotlin.Boolean?, 
+    /**
+     * Make it not possible to get to the calls list in the webview.
+     *
+     * Default: `true`
+     */
+    var `confineToRoom`: kotlin.Boolean?, 
+    /**
+     * Do not show the screenshare button.
+     */
+    var `hideScreensharing`: kotlin.Boolean?, 
+    /**
+     * Make the audio devices be controlled by the os instead of the
+     * element-call webview.
+     */
+    var `controlledAudioDevices`: kotlin.Boolean?, 
+    /**
+     * Whether and what type of notification Element Call should send, when
+     * starting a call.
+     */
+    var `sendNotificationType`: NotificationType?
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVirtualElementCallWidgetConfig: FfiConverterRustBuffer<VirtualElementCallWidgetConfig> {
+    override fun read(buf: ByteBuffer): VirtualElementCallWidgetConfig {
+        return VirtualElementCallWidgetConfig(
+            FfiConverterOptionalTypeIntent.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalTypeHeaderStyle.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
+            FfiConverterOptionalTypeNotificationType.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VirtualElementCallWidgetConfig) = (
+            FfiConverterOptionalTypeIntent.allocationSize(value.`intent`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`skipLobby`) +
+            FfiConverterOptionalTypeHeaderStyle.allocationSize(value.`header`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`hideHeader`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`preload`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`appPrompt`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`confineToRoom`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`hideScreensharing`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`controlledAudioDevices`) +
+            FfiConverterOptionalTypeNotificationType.allocationSize(value.`sendNotificationType`)
+    )
+
+    override fun write(value: VirtualElementCallWidgetConfig, buf: ByteBuffer) {
+            FfiConverterOptionalTypeIntent.write(value.`intent`, buf)
+            FfiConverterOptionalBoolean.write(value.`skipLobby`, buf)
+            FfiConverterOptionalTypeHeaderStyle.write(value.`header`, buf)
+            FfiConverterOptionalBoolean.write(value.`hideHeader`, buf)
+            FfiConverterOptionalBoolean.write(value.`preload`, buf)
+            FfiConverterOptionalBoolean.write(value.`appPrompt`, buf)
+            FfiConverterOptionalBoolean.write(value.`confineToRoom`, buf)
+            FfiConverterOptionalBoolean.write(value.`hideScreensharing`, buf)
+            FfiConverterOptionalBoolean.write(value.`controlledAudioDevices`, buf)
+            FfiConverterOptionalTypeNotificationType.write(value.`sendNotificationType`, buf)
+    }
+}
+
+
+
+/**
+ * Properties to create a new virtual Element Call widget.
+ *
+ * All these are required to start the widget in the first place.
+ * This is different from the `VirtualElementCallWidgetConfiguration` which
+ * configures the widgets behavior.
+ */
+data class VirtualElementCallWidgetProperties (
     /**
      * The url to the app.
      *
@@ -1478,44 +1601,11 @@ data class VirtualElementCallWidgetOptions (
      */
     var `parentUrl`: kotlin.String?, 
     /**
-     * Whether the branding header of Element call should be shown or if a
-     * mobile header navbar should be render.
-     *
-     * Default: [`HeaderStyle::Standard`]
-     */
-    var `header`: HeaderStyle?, 
-    /**
-     * Whether the branding header of Element call should be hidden.
-     *
-     * Default: `true`
-     */
-    var `hideHeader`: kotlin.Boolean?, 
-    /**
-     * If set, the lobby will be skipped and the widget will join the
-     * call on the `io.element.join` action.
-     *
-     * Default: `false`
-     */
-    var `preload`: kotlin.Boolean?, 
-    /**
      * The font scale which will be used inside element call.
      *
      * Default: `1`
      */
     var `fontScale`: kotlin.Double?, 
-    /**
-     * Whether element call should prompt the user to open in the browser or
-     * the app.
-     *
-     * Default: `false`
-     */
-    var `appPrompt`: kotlin.Boolean?, 
-    /**
-     * Make it not possible to get to the calls list in the webview.
-     *
-     * Default: `true`
-     */
-    var `confineToRoom`: kotlin.Boolean?, 
     /**
      * The font to use, to adapt to the system font.
      */
@@ -1526,16 +1616,6 @@ data class VirtualElementCallWidgetOptions (
      * Use `EncryptionSystem::Unencrypted` to disable encryption.
      */
     var `encryption`: EncryptionSystem, 
-    /**
-     * The intent of showing the call.
-     * If the user wants to start a call or join an existing one.
-     * Controls if the lobby is skipped or not.
-     */
-    var `intent`: Intent?, 
-    /**
-     * Do not show the screenshare button.
-     */
-    var `hideScreensharing`: kotlin.Boolean, 
     /**
      * Can be used to pass a PostHog id to element call.
      */
@@ -1564,95 +1644,58 @@ data class VirtualElementCallWidgetOptions (
      * Sentry [environment](https://docs.sentry.io/concepts/key-terms/key-terms/)
      * This is only used by the embedded package of Element Call.
      */
-    var `sentryEnvironment`: kotlin.String?, 
-    /**
-     * - `false`: the webview shows a a list of devices injected by the
-     * client. (used on ios & android)
-     */
-    var `controlledMediaDevices`: kotlin.Boolean, 
-    /**
-     * Whether and what type of notification Element Call should send, when
-     * starting a call.
-     */
-    var `sendNotificationType`: NotificationType?
+    var `sentryEnvironment`: kotlin.String?
 ) {
     
     companion object
 }
 
-public object FfiConverterTypeVirtualElementCallWidgetOptions: FfiConverterRustBuffer<VirtualElementCallWidgetOptions> {
-    override fun read(buf: ByteBuffer): VirtualElementCallWidgetOptions {
-        return VirtualElementCallWidgetOptions(
+public object FfiConverterTypeVirtualElementCallWidgetProperties: FfiConverterRustBuffer<VirtualElementCallWidgetProperties> {
+    override fun read(buf: ByteBuffer): VirtualElementCallWidgetProperties {
+        return VirtualElementCallWidgetProperties(
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterOptionalTypeHeaderStyle.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalDouble.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
-            FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeEncryptionSystem.read(buf),
-            FfiConverterOptionalTypeIntent.read(buf),
-            FfiConverterBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
-            FfiConverterBoolean.read(buf),
-            FfiConverterOptionalTypeNotificationType.read(buf),
         )
     }
 
-    override fun allocationSize(value: VirtualElementCallWidgetOptions) = (
+    override fun allocationSize(value: VirtualElementCallWidgetProperties) = (
             FfiConverterString.allocationSize(value.`elementCallUrl`) +
             FfiConverterString.allocationSize(value.`widgetId`) +
             FfiConverterOptionalString.allocationSize(value.`parentUrl`) +
-            FfiConverterOptionalTypeHeaderStyle.allocationSize(value.`header`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`hideHeader`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`preload`) +
             FfiConverterOptionalDouble.allocationSize(value.`fontScale`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`appPrompt`) +
-            FfiConverterOptionalBoolean.allocationSize(value.`confineToRoom`) +
             FfiConverterOptionalString.allocationSize(value.`font`) +
             FfiConverterTypeEncryptionSystem.allocationSize(value.`encryption`) +
-            FfiConverterOptionalTypeIntent.allocationSize(value.`intent`) +
-            FfiConverterBoolean.allocationSize(value.`hideScreensharing`) +
             FfiConverterOptionalString.allocationSize(value.`posthogUserId`) +
             FfiConverterOptionalString.allocationSize(value.`posthogApiHost`) +
             FfiConverterOptionalString.allocationSize(value.`posthogApiKey`) +
             FfiConverterOptionalString.allocationSize(value.`rageshakeSubmitUrl`) +
             FfiConverterOptionalString.allocationSize(value.`sentryDsn`) +
-            FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`) +
-            FfiConverterBoolean.allocationSize(value.`controlledMediaDevices`) +
-            FfiConverterOptionalTypeNotificationType.allocationSize(value.`sendNotificationType`)
+            FfiConverterOptionalString.allocationSize(value.`sentryEnvironment`)
     )
 
-    override fun write(value: VirtualElementCallWidgetOptions, buf: ByteBuffer) {
+    override fun write(value: VirtualElementCallWidgetProperties, buf: ByteBuffer) {
             FfiConverterString.write(value.`elementCallUrl`, buf)
             FfiConverterString.write(value.`widgetId`, buf)
             FfiConverterOptionalString.write(value.`parentUrl`, buf)
-            FfiConverterOptionalTypeHeaderStyle.write(value.`header`, buf)
-            FfiConverterOptionalBoolean.write(value.`hideHeader`, buf)
-            FfiConverterOptionalBoolean.write(value.`preload`, buf)
             FfiConverterOptionalDouble.write(value.`fontScale`, buf)
-            FfiConverterOptionalBoolean.write(value.`appPrompt`, buf)
-            FfiConverterOptionalBoolean.write(value.`confineToRoom`, buf)
             FfiConverterOptionalString.write(value.`font`, buf)
             FfiConverterTypeEncryptionSystem.write(value.`encryption`, buf)
-            FfiConverterOptionalTypeIntent.write(value.`intent`, buf)
-            FfiConverterBoolean.write(value.`hideScreensharing`, buf)
             FfiConverterOptionalString.write(value.`posthogUserId`, buf)
             FfiConverterOptionalString.write(value.`posthogApiHost`, buf)
             FfiConverterOptionalString.write(value.`posthogApiKey`, buf)
             FfiConverterOptionalString.write(value.`rageshakeSubmitUrl`, buf)
             FfiConverterOptionalString.write(value.`sentryDsn`, buf)
             FfiConverterOptionalString.write(value.`sentryEnvironment`, buf)
-            FfiConverterBoolean.write(value.`controlledMediaDevices`, buf)
-            FfiConverterOptionalTypeNotificationType.write(value.`sendNotificationType`, buf)
     }
 }
 
@@ -1860,7 +1903,16 @@ enum class Intent {
     /**
      * The user wants to join an existing call.
      */
-    JOIN_EXISTING;
+    JOIN_EXISTING,
+    /**
+     * The user wants to join an existing call that is a "Direct Message" (DM)
+     * room.
+     */
+    JOIN_EXISTING_DM,
+    /**
+     * The user wants to start a call in a "Direct Message" (DM) room.
+     */
+    START_CALL_DM;
     companion object
 }
 

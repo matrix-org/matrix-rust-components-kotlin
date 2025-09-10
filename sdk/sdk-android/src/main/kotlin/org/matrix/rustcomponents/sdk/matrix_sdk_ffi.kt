@@ -47,13 +47,15 @@ import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.FfiConverterTypeServerVendorInfo
-import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetOptions
+import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetConfig
+import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk.OAuthAuthorizationData
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
 import uniffi.matrix_sdk.ServerVendorInfo
-import uniffi.matrix_sdk.VirtualElementCallWidgetOptions
+import uniffi.matrix_sdk.VirtualElementCallWidgetConfig
+import uniffi.matrix_sdk.VirtualElementCallWidgetProperties
 import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
@@ -80,7 +82,8 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
 import uniffi.matrix_sdk.RustBuffer as RustBufferServerVendorInfo
-import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetOptions
+import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetConfig
+import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
@@ -702,6 +705,9 @@ internal interface UniffiCallbackInterfaceBackupStateListenerMethod0 : com.sun.j
 internal interface UniffiCallbackInterfaceBackupSteadyStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceCallDeclineListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`declinerUserId`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceClientDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`isSoftLogout`: Byte,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -860,6 +866,22 @@ internal open class UniffiVTableCallbackInterfaceBackupSteadyStateListener(
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceBackupSteadyStateListener) {
         `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("call", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceCallDeclineListener(
+    @JvmField internal var `call`: UniffiCallbackInterfaceCallDeclineListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `call`: UniffiCallbackInterfaceCallDeclineListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceCallDeclineListener(`call`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceCallDeclineListener) {
+        `call` = other.`call`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -2494,6 +2516,14 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2507,6 +2537,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceAccountDataListener.register(lib)
                 uniffiCallbackInterfaceBackupStateListener.register(lib)
                 uniffiCallbackInterfaceBackupSteadyStateListener.register(lib)
+                uniffiCallbackInterfaceCallDeclineListener.register(lib)
                 uniffiCallbackInterfaceClientDelegate.register(lib)
                 uniffiCallbackInterfaceClientSessionDelegate.register(lib)
                 uniffiCallbackInterfaceEnableRecoveryProgressListener.register(lib)
@@ -3003,6 +3034,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_decline_call(`ptr`: Pointer,`rtcNotificationEventId`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_discard_room_key(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3083,6 +3116,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_room_new_latest_event(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_room_predecessor_room(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3131,6 +3166,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_stop_live_location_share(`ptr`: Pointer,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_call_decline_events(`ptr`: Pointer,`rtcNotificationEventId`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(`ptr`: Pointer,`listener`: Long,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_knock_requests(`ptr`: Pointer,`listener`: Long,
@@ -3573,6 +3610,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupsteadystatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupSteadyStateListener,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_calldeclinelistener(`vtable`: UniffiVTableCallbackInterfaceCallDeclineListener,
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientdelegate(`vtable`: UniffiVTableCallbackInterfaceClientDelegate,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientsessiondelegate(`vtable`: UniffiVTableCallbackInterfaceClientSessionDelegate,
@@ -3669,7 +3708,7 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-    fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBufferVirtualElementCallWidgetOptions.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBufferVirtualElementCallWidgetProperties.ByValue,`config`: RustBufferVirtualElementCallWidgetConfig.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -4231,6 +4270,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_event_cache_storage(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_decline_call(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_display_name(
@@ -4311,6 +4352,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_new_latest_event(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_predecessor_room(
@@ -4358,6 +4401,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes(
     ): Short
@@ -4693,6 +4738,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_calldeclinelistener_call(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_retrieve_session_from_keychain(
@@ -4837,7 +4884,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() != 57839.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 61776.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() != 7233.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() != 49710.toShort()) {
@@ -5440,6 +5487,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_event_cache_storage() != 13838.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_decline_call() != 36115.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key() != 18081.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5560,6 +5610,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 45951.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_new_latest_event() != 11947.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() != 39510.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5630,6 +5683,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share() != 19983.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events() != 62256.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes() != 8526.toShort()) {
@@ -6131,6 +6187,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update() != 41052.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_calldeclinelistener_call() != 13016.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error() != 26350.toShort()) {
@@ -14670,6 +14729,16 @@ public interface RoomInterface {
     suspend fun `clearEventCacheStorage`()
     
     /**
+     * Declines a call (and stop ringing).
+     *
+     * # Arguments
+     *
+     * * `rtc_notification_event_id` - the event id of the m.rtc.notification
+     * event.
+     */
+    suspend fun `declineCall`(`rtcNotificationEventId`: kotlin.String)
+    
+    /**
      * Forces the currently active room key, which is used to encrypt messages,
      * to be rotated.
      *
@@ -14872,6 +14941,8 @@ public interface RoomInterface {
      */
     fun `membership`(): Membership
     
+    suspend fun `newLatestEvent`(): LatestEventValue
+    
     fun `ownUserId`(): kotlin.String
     
     /**
@@ -15042,6 +15113,15 @@ public interface RoomInterface {
      * Stop the current users live location share in the room.
      */
     suspend fun `stopLiveLocationShare`()
+    
+    /**
+     * Subscribes to call decline for a currently ringing call, using a
+     * `listener` to be notified when someone declines.
+     *
+     * Will error if `rtc_notification_event_id` is not a valid event id.
+     * Use the [`TaskHandle`] to cancel the subscription.
+     */
+    fun `subscribeToCallDeclineEvents`(`rtcNotificationEventId`: kotlin.String, `listener`: CallDeclineListener): TaskHandle
     
     suspend fun `subscribeToIdentityStatusChanges`(`listener`: IdentityStatusChangeListener): TaskHandle
     
@@ -15391,6 +15471,36 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(
                 thisPtr,
                 
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Declines a call (and stop ringing).
+     *
+     * # Arguments
+     *
+     * * `rtc_notification_event_id` - the event id of the m.rtc.notification
+     * event.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `declineCall`(`rtcNotificationEventId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_decline_call(
+                thisPtr,
+                FfiConverterString.lower(`rtcNotificationEventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -16266,6 +16376,26 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     }
     
 
+    
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `newLatestEvent`() : LatestEventValue {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_new_latest_event(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeLatestEventValue.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
     override fun `ownUserId`(): kotlin.String {
             return FfiConverterString.lift(
     callWithPointer {
@@ -16880,6 +17010,26 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Subscribes to call decline for a currently ringing call, using a
+     * `listener` to be notified when someone declines.
+     *
+     * Will error if `rtc_notification_event_id` is not a valid event id.
+     * Use the [`TaskHandle`] to cancel the subscription.
+     */
+    @Throws(ClientException::class)override fun `subscribeToCallDeclineEvents`(`rtcNotificationEventId`: kotlin.String, `listener`: CallDeclineListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_call_decline_events(
+        it, FfiConverterString.lower(`rtcNotificationEventId`),FfiConverterTypeCallDeclineListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(ClientException::class)
@@ -30184,7 +30334,6 @@ data class RoomMember (
     var `membership`: MembershipState, 
     var `isNameAmbiguous`: kotlin.Boolean, 
     var `powerLevel`: PowerLevel, 
-    var `normalizedPowerLevel`: PowerLevel, 
     var `isIgnored`: kotlin.Boolean, 
     var `suggestedRoleForPowerLevel`: RoomMemberRole, 
     var `membershipChangeReason`: kotlin.String?
@@ -30202,7 +30351,6 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterTypeMembershipState.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterTypePowerLevel.read(buf),
-            FfiConverterTypePowerLevel.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterTypeRoomMemberRole.read(buf),
             FfiConverterOptionalString.read(buf),
@@ -30216,7 +30364,6 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterTypeMembershipState.allocationSize(value.`membership`) +
             FfiConverterBoolean.allocationSize(value.`isNameAmbiguous`) +
             FfiConverterTypePowerLevel.allocationSize(value.`powerLevel`) +
-            FfiConverterTypePowerLevel.allocationSize(value.`normalizedPowerLevel`) +
             FfiConverterBoolean.allocationSize(value.`isIgnored`) +
             FfiConverterTypeRoomMemberRole.allocationSize(value.`suggestedRoleForPowerLevel`) +
             FfiConverterOptionalString.allocationSize(value.`membershipChangeReason`)
@@ -30229,7 +30376,6 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterTypeMembershipState.write(value.`membership`, buf)
             FfiConverterBoolean.write(value.`isNameAmbiguous`, buf)
             FfiConverterTypePowerLevel.write(value.`powerLevel`, buf)
-            FfiConverterTypePowerLevel.write(value.`normalizedPowerLevel`, buf)
             FfiConverterBoolean.write(value.`isIgnored`, buf)
             FfiConverterTypeRoomMemberRole.write(value.`suggestedRoleForPowerLevel`, buf)
             FfiConverterOptionalString.write(value.`membershipChangeReason`, buf)
@@ -36161,6 +36307,146 @@ public object FfiConverterTypeKeyDerivationAlgorithm: FfiConverterRustBuffer<Key
 
     override fun write(value: KeyDerivationAlgorithm, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * Mimic the [`UiLatestEventValue`] type.
+ */
+sealed class LatestEventValue: Disposable  {
+    
+    object None : LatestEventValue()
+    
+    
+    data class Remote(
+        val `timestamp`: Timestamp, 
+        val `sender`: kotlin.String, 
+        val `isOwn`: kotlin.Boolean, 
+        val `profile`: ProfileDetails, 
+        val `content`: TimelineItemContent) : LatestEventValue() {
+        companion object
+    }
+    
+    data class Local(
+        val `timestamp`: Timestamp, 
+        val `content`: TimelineItemContent, 
+        val `isSending`: kotlin.Boolean) : LatestEventValue() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is LatestEventValue.None -> {// Nothing to destroy
+            }
+            is LatestEventValue.Remote -> {
+                
+        Disposable.destroy(this.`timestamp`)
+    
+        Disposable.destroy(this.`sender`)
+    
+        Disposable.destroy(this.`isOwn`)
+    
+        Disposable.destroy(this.`profile`)
+    
+        Disposable.destroy(this.`content`)
+    
+                
+            }
+            is LatestEventValue.Local -> {
+                
+        Disposable.destroy(this.`timestamp`)
+    
+        Disposable.destroy(this.`content`)
+    
+        Disposable.destroy(this.`isSending`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEventValue>{
+    override fun read(buf: ByteBuffer): LatestEventValue {
+        return when(buf.getInt()) {
+            1 -> LatestEventValue.None
+            2 -> LatestEventValue.Remote(
+                FfiConverterTypeTimestamp.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterBoolean.read(buf),
+                FfiConverterTypeProfileDetails.read(buf),
+                FfiConverterTypeTimelineItemContent.read(buf),
+                )
+            3 -> LatestEventValue.Local(
+                FfiConverterTypeTimestamp.read(buf),
+                FfiConverterTypeTimelineItemContent.read(buf),
+                FfiConverterBoolean.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: LatestEventValue) = when(value) {
+        is LatestEventValue.None -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is LatestEventValue.Remote -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+                + FfiConverterString.allocationSize(value.`sender`)
+                + FfiConverterBoolean.allocationSize(value.`isOwn`)
+                + FfiConverterTypeProfileDetails.allocationSize(value.`profile`)
+                + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
+            )
+        }
+        is LatestEventValue.Local -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+                + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
+                + FfiConverterBoolean.allocationSize(value.`isSending`)
+            )
+        }
+    }
+
+    override fun write(value: LatestEventValue, buf: ByteBuffer) {
+        when(value) {
+            is LatestEventValue.None -> {
+                buf.putInt(1)
+                Unit
+            }
+            is LatestEventValue.Remote -> {
+                buf.putInt(2)
+                FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
+                FfiConverterString.write(value.`sender`, buf)
+                FfiConverterBoolean.write(value.`isOwn`, buf)
+                FfiConverterTypeProfileDetails.write(value.`profile`, buf)
+                FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+                Unit
+            }
+            is LatestEventValue.Local -> {
+                buf.putInt(3)
+                FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
+                FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+                FfiConverterBoolean.write(value.`isSending`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -43951,7 +44237,11 @@ enum class TraceLogPacks {
     /**
      * Enables all the logs relevant to the notification client.
      */
-    NOTIFICATION_CLIENT;
+    NOTIFICATION_CLIENT,
+    /**
+     * Enables all the logs relevant to sync profiling.
+     */
+    SYNC_PROFILING;
     companion object
 }
 
@@ -44624,6 +44914,58 @@ internal object uniffiCallbackInterfaceBackupSteadyStateListener {
 
 // The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
 public object FfiConverterTypeBackupSteadyStateListener: FfiConverterCallbackInterface<BackupSteadyStateListener>()
+
+
+
+
+
+/**
+ * A listener for receiving call decline events in a room.
+ */
+public interface CallDeclineListener {
+    
+    fun `call`(`declinerUserId`: kotlin.String)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceCallDeclineListener {
+    internal object `call`: UniffiCallbackInterfaceCallDeclineListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`declinerUserId`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeCallDeclineListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`call`(
+                    FfiConverterString.lift(`declinerUserId`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeCallDeclineListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceCallDeclineListener.UniffiByValue(
+        `call`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_calldeclinelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeCallDeclineListener: FfiConverterCallbackInterface<CallDeclineListener>()
 
 
 
@@ -49685,6 +50027,10 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
 
 
 
+
+
+
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -49950,11 +50296,11 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
          * * `props` - A struct containing the configuration parameters for a element
          * call widget.
          */
-    @Throws(ParseException::class) fun `newVirtualElementCallWidget`(`props`: VirtualElementCallWidgetOptions): WidgetSettings {
+    @Throws(ParseException::class) fun `newVirtualElementCallWidget`(`props`: VirtualElementCallWidgetProperties, `config`: VirtualElementCallWidgetConfig): WidgetSettings {
             return FfiConverterTypeWidgetSettings.lift(
     uniffiRustCallWithError(ParseException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(
-        FfiConverterTypeVirtualElementCallWidgetOptions.lower(`props`),_status)
+        FfiConverterTypeVirtualElementCallWidgetProperties.lower(`props`),FfiConverterTypeVirtualElementCallWidgetConfig.lower(`config`),_status)
 }
     )
     }
