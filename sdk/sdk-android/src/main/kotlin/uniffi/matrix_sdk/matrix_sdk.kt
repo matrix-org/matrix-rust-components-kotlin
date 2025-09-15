@@ -1468,54 +1468,54 @@ data class VirtualElementCallWidgetConfig (
     /**
      * Skip the lobby when joining a call.
      */
-    var `skipLobby`: kotlin.Boolean?, 
+    var `skipLobby`: kotlin.Boolean? = null, 
     /**
      * Whether the branding header of Element call should be shown or if a
      * mobile header navbar should be render.
      *
      * Default: [`HeaderStyle::Standard`]
      */
-    var `header`: HeaderStyle?, 
+    var `header`: HeaderStyle? = null, 
     /**
      * Whether the branding header of Element call should be hidden.
      *
      * Default: `true`
      */
-    var `hideHeader`: kotlin.Boolean?, 
+    var `hideHeader`: kotlin.Boolean? = null, 
     /**
      * If set, the lobby will be skipped and the widget will join the
      * call on the `io.element.join` action.
      *
      * Default: `false`
      */
-    var `preload`: kotlin.Boolean?, 
+    var `preload`: kotlin.Boolean? = null, 
     /**
      * Whether element call should prompt the user to open in the browser or
      * the app.
      *
      * Default: `false`
      */
-    var `appPrompt`: kotlin.Boolean?, 
+    var `appPrompt`: kotlin.Boolean? = null, 
     /**
      * Make it not possible to get to the calls list in the webview.
      *
      * Default: `true`
      */
-    var `confineToRoom`: kotlin.Boolean?, 
+    var `confineToRoom`: kotlin.Boolean? = null, 
     /**
      * Do not show the screenshare button.
      */
-    var `hideScreensharing`: kotlin.Boolean?, 
+    var `hideScreensharing`: kotlin.Boolean? = null, 
     /**
      * Make the audio devices be controlled by the os instead of the
      * element-call webview.
      */
-    var `controlledAudioDevices`: kotlin.Boolean?, 
+    var `controlledAudioDevices`: kotlin.Boolean? = null, 
     /**
      * Whether and what type of notification Element Call should send, when
      * starting a call.
      */
-    var `sendNotificationType`: NotificationType?
+    var `sendNotificationType`: NotificationType? = null
 ) {
     
     companion object
@@ -1599,17 +1599,17 @@ data class VirtualElementCallWidgetProperties (
      * Defaults to `element_call_url` for the non-iframe (dedicated webview)
      * usecase.
      */
-    var `parentUrl`: kotlin.String?, 
+    var `parentUrl`: kotlin.String? = null, 
     /**
      * The font scale which will be used inside element call.
      *
      * Default: `1`
      */
-    var `fontScale`: kotlin.Double?, 
+    var `fontScale`: kotlin.Double? = null, 
     /**
      * The font to use, to adapt to the system font.
      */
-    var `font`: kotlin.String?, 
+    var `font`: kotlin.String? = null, 
     /**
      * The encryption system to use.
      *
@@ -1619,32 +1619,32 @@ data class VirtualElementCallWidgetProperties (
     /**
      * Can be used to pass a PostHog id to element call.
      */
-    var `posthogUserId`: kotlin.String?, 
+    var `posthogUserId`: kotlin.String? = null, 
     /**
      * The host of the posthog api.
      * This is only used by the embedded package of Element Call.
      */
-    var `posthogApiHost`: kotlin.String?, 
+    var `posthogApiHost`: kotlin.String? = null, 
     /**
      * The key for the posthog api.
      * This is only used by the embedded package of Element Call.
      */
-    var `posthogApiKey`: kotlin.String?, 
+    var `posthogApiKey`: kotlin.String? = null, 
     /**
      * The url to use for submitting rageshakes.
      * This is only used by the embedded package of Element Call.
      */
-    var `rageshakeSubmitUrl`: kotlin.String?, 
+    var `rageshakeSubmitUrl`: kotlin.String? = null, 
     /**
      * Sentry [DSN](https://docs.sentry.io/concepts/key-terms/dsn-explainer/)
      * This is only used by the embedded package of Element Call.
      */
-    var `sentryDsn`: kotlin.String?, 
+    var `sentryDsn`: kotlin.String? = null, 
     /**
      * Sentry [environment](https://docs.sentry.io/concepts/key-terms/key-terms/)
      * This is only used by the embedded package of Element Call.
      */
-    var `sentryEnvironment`: kotlin.String?
+    var `sentryEnvironment`: kotlin.String? = null
 ) {
     
     companion object

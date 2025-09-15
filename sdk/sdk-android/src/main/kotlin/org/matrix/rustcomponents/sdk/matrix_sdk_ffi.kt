@@ -2524,6 +2524,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2594,6 +2598,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Pointer,`action`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(`ptr`: Pointer,`emoji`: RustBuffer.ByValue,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_available_sliding_sync_versions(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_avatar_url(`ptr`: Pointer,
@@ -2643,6 +2649,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_notification_settings(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_profile(`ptr`: Pointer,`userId`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_get_recent_emojis(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Pointer,
     ): Long
@@ -3890,6 +3898,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_account_url(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_add_recent_emoji(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url(
@@ -3939,6 +3949,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_notification_settings(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_profile(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
     ): Short
@@ -4917,6 +4929,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_url() != 42373.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_add_recent_emoji() != 29688.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions() != 35296.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4990,6 +5005,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_profile() != 60062.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis() != 64362.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
@@ -6090,7 +6108,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 46161.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 29303.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() != 13555.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event() != 52414.toShort()) {
@@ -6831,6 +6849,12 @@ public interface ClientInterface {
     suspend fun `accountUrl`(`action`: AccountManagementAction?): kotlin.String?
     
     /**
+     * Adds a recently used emoji to the list and uploads the updated
+     * `io.element.recent_emoji` content to the global account data.
+     */
+    suspend fun `addRecentEmoji`(`emoji`: kotlin.String)
+    
+    /**
      * Find all sliding sync versions that are available.
      *
      * Be careful: This method may hit the store and will send new requests for
@@ -6983,6 +7007,12 @@ public interface ClientInterface {
     suspend fun `getNotificationSettings`(): NotificationSettings
     
     suspend fun `getProfile`(`userId`: kotlin.String): UserProfile
+    
+    /**
+     * Gets the list of recently used emojis from the `io.element.recent_emoji`
+     * global account data.
+     */
+    suspend fun `getRecentEmojis`(): List<RecentEmoji>
     
     suspend fun `getRecentlyVisitedRooms`(): List<kotlin.String>
     
@@ -7501,6 +7531,32 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterOptionalString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Adds a recently used emoji to the list and uploads the updated
+     * `io.element.recent_emoji` content to the global account data.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `addRecentEmoji`(`emoji`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(
+                thisPtr,
+                FfiConverterString.lower(`emoji`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -8088,6 +8144,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterTypeUserProfile.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Gets the list of recently used emojis from the `io.element.recent_emoji`
+     * global account data.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getRecentEmojis`() : List<RecentEmoji> {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_get_recent_emojis(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeRecentEmoji.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -24733,8 +24814,10 @@ public interface TimelineInterface {
      *
      * Ensures that only one reaction is sent at a time to avoid race
      * conditions and spamming the homeserver with requests.
+     *
+     * Returns `true` if the reaction was added, `false` if it was removed.
      */
-    suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String)
+    suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String): kotlin.Boolean
     
     /**
      * Adds a new pinned event by sending an updated `m.room.pinned_events`
@@ -25427,10 +25510,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
      *
      * Ensures that only one reaction is sent at a time to avoid race
      * conditions and spamming the homeserver with requests.
+     *
+     * Returns `true` if the reaction was added, `false` if it was removed.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String) {
+    override suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String) : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(
@@ -25438,12 +25523,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
                 FfiConverterTypeEventOrTransactionId.lower(`itemId`),FfiConverterString.lower(`key`),
             )
         },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
         // lift function
-        { Unit },
-        
+        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -29801,6 +29885,44 @@ public object FfiConverterTypeReceipt: FfiConverterRustBuffer<Receipt> {
 
     override fun write(value: Receipt, buf: ByteBuffer) {
             FfiConverterOptionalTypeTimestamp.write(value.`timestamp`, buf)
+    }
+}
+
+
+
+/**
+ * Represents an emoji recently used for reactions.
+ */
+data class RecentEmoji (
+    /**
+     * The actual emoji text representation.
+     */
+    var `emoji`: kotlin.String, 
+    /**
+     * The number of times this emoji has been used for reactions.
+     */
+    var `count`: kotlin.ULong
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeRecentEmoji: FfiConverterRustBuffer<RecentEmoji> {
+    override fun read(buf: ByteBuffer): RecentEmoji {
+        return RecentEmoji(
+            FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RecentEmoji) = (
+            FfiConverterString.allocationSize(value.`emoji`) +
+            FfiConverterULong.allocationSize(value.`count`)
+    )
+
+    override fun write(value: RecentEmoji, buf: ByteBuffer) {
+            FfiConverterString.write(value.`emoji`, buf)
+            FfiConverterULong.write(value.`count`, buf)
     }
 }
 
@@ -49073,6 +49195,31 @@ public object FfiConverterSequenceTypeReactionSenderData: FfiConverterRustBuffer
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeReactionSenderData.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeRecentEmoji: FfiConverterRustBuffer<List<RecentEmoji>> {
+    override fun read(buf: ByteBuffer): List<RecentEmoji> {
+        val len = buf.getInt()
+        return List<RecentEmoji>(len) {
+            FfiConverterTypeRecentEmoji.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RecentEmoji>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRecentEmoji.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RecentEmoji>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRecentEmoji.write(it, buf)
         }
     }
 }
