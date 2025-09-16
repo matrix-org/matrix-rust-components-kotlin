@@ -801,6 +801,9 @@ internal interface UniffiCallbackInterfaceSpaceRoomListEntriesListenerMethod0 : 
 internal interface UniffiCallbackInterfaceSpaceRoomListPaginationStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`paginationState`: RustBufferSpaceRoomListPaginationState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceSpaceRoomListSpaceListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`space`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceSpaceServiceJoinedSpacesListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomUpdates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -1286,6 +1289,22 @@ internal open class UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateLis
     ): UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSpaceRoomListSpaceListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceSpaceRoomListSpaceListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener) {
         `onUpdate` = other.`onUpdate`
         `uniffiFree` = other.`uniffiFree`
     }
@@ -2528,6 +2547,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2566,6 +2591,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceSessionVerificationControllerDelegate.register(lib)
                 uniffiCallbackInterfaceSpaceRoomListEntriesListener.register(lib)
                 uniffiCallbackInterfaceSpaceRoomListPaginationStateListener.register(lib)
+                uniffiCallbackInterfaceSpaceRoomListSpaceListener.register(lib)
                 uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener.register(lib)
                 uniffiCallbackInterfaceSyncServiceStateObserver.register(lib)
                 uniffiCallbackInterfaceTimelineListener.register(lib)
@@ -3400,9 +3426,13 @@ internal interface UniffiLib : Library {
     ): RustBufferSpaceRoomListPaginationState.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_space(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_space_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_clone_spaceservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3667,6 +3697,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistspacelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicejoinedspaceslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener,
     ): Unit
@@ -4584,9 +4616,13 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_space(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_space_updates(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces(
     ): Short
@@ -4813,6 +4849,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistentrieslistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistspacelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update(
     ): Short
@@ -5958,10 +5996,16 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms() != 24664.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_space() != 25368.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates() != 16775.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update() != 55793.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_space_updates() != 26327.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces() != 54285.toShort()) {
@@ -6301,6 +6345,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update() != 11960.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistspacelistener_on_update() != 39714.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update() != 19262.toShort()) {
@@ -22318,6 +22365,11 @@ public interface SpaceRoomListInterface {
     fun `rooms`(): List<SpaceRoom>
     
     /**
+     * Returns the space of the room list if known.
+     */
+    fun `space`(): SpaceRoom?
+    
+    /**
      * Subscribe to pagination updates.
      */
     fun `subscribeToPaginationStateUpdates`(`listener`: SpaceRoomListPaginationStateListener): TaskHandle
@@ -22326,6 +22378,11 @@ public interface SpaceRoomListInterface {
      * Subscribes to room list updates.
      */
     fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener): TaskHandle
+    
+    /**
+     * Subscribe to space updates.
+     */
+    fun `subscribeToSpaceUpdates`(`listener`: SpaceRoomListSpaceListener): TaskHandle
     
     companion object
 }
@@ -22480,6 +22537,21 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface {
 
     
     /**
+     * Returns the space of the room list if known.
+     */override fun `space`(): SpaceRoom? {
+            return FfiConverterOptionalTypeSpaceRoom.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_space(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Subscribe to pagination updates.
      */override fun `subscribeToPaginationStateUpdates`(`listener`: SpaceRoomListPaginationStateListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -22502,6 +22574,21 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(
         it, FfiConverterTypeSpaceRoomListEntriesListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Subscribe to space updates.
+     */override fun `subscribeToSpaceUpdates`(`listener`: SpaceRoomListSpaceListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_space_updates(
+        it, FfiConverterTypeSpaceRoomListSpaceListener.lower(`listener`),_status)
 }
     }
     )
@@ -46397,6 +46484,55 @@ public object FfiConverterTypeSpaceRoomListPaginationStateListener: FfiConverter
 
 
 
+public interface SpaceRoomListSpaceListener {
+    
+    fun `onUpdate`(`space`: SpaceRoom?)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSpaceRoomListSpaceListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceSpaceRoomListSpaceListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`space`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSpaceRoomListSpaceListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterOptionalTypeSpaceRoom.lift(`space`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSpaceRoomListSpaceListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistspacelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSpaceRoomListSpaceListener: FfiConverterCallbackInterface<SpaceRoomListSpaceListener>()
+
+
+
+
+
 public interface SpaceServiceJoinedSpacesListener {
     
     fun `onUpdate`(`roomUpdates`: List<SpaceListUpdate>)
@@ -47805,6 +47941,35 @@ public object FfiConverterOptionalTypeRoomMemberWithSenderInfo: FfiConverterRust
         } else {
             buf.put(1)
             FfiConverterTypeRoomMemberWithSenderInfo.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom?> {
+    override fun read(buf: ByteBuffer): SpaceRoom? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeSpaceRoom.read(buf)
+    }
+
+    override fun allocationSize(value: SpaceRoom?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeSpaceRoom.allocationSize(value)
+        }
+    }
+
+    override fun write(value: SpaceRoom?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeSpaceRoom.write(value, buf)
         }
     }
 }
