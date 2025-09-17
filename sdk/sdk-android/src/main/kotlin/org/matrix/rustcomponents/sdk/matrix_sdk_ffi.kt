@@ -31246,7 +31246,11 @@ data class SpaceRoom (
     /**
      * A list of room members considered to be heroes.
      */
-    var `heroes`: List<RoomHero>?
+    var `heroes`: List<RoomHero>?, 
+    /**
+     * The via parameters of the room.
+     */
+    var `via`: List<kotlin.String>
 ) {
     
     companion object
@@ -31268,6 +31272,7 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
             FfiConverterULong.read(buf),
             FfiConverterOptionalTypeMembership.read(buf),
             FfiConverterOptionalSequenceTypeRoomHero.read(buf),
+            FfiConverterSequenceString.read(buf),
         )
     }
 
@@ -31284,7 +31289,8 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
             FfiConverterBoolean.allocationSize(value.`guestCanJoin`) +
             FfiConverterULong.allocationSize(value.`childrenCount`) +
             FfiConverterOptionalTypeMembership.allocationSize(value.`state`) +
-            FfiConverterOptionalSequenceTypeRoomHero.allocationSize(value.`heroes`)
+            FfiConverterOptionalSequenceTypeRoomHero.allocationSize(value.`heroes`) +
+            FfiConverterSequenceString.allocationSize(value.`via`)
     )
 
     override fun write(value: SpaceRoom, buf: ByteBuffer) {
@@ -31301,6 +31307,7 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
             FfiConverterULong.write(value.`childrenCount`, buf)
             FfiConverterOptionalTypeMembership.write(value.`state`, buf)
             FfiConverterOptionalSequenceTypeRoomHero.write(value.`heroes`, buf)
+            FfiConverterSequenceString.write(value.`via`, buf)
     }
 }
 
@@ -37193,8 +37200,12 @@ sealed class MessageLikeEventContent: Disposable  {
     object CallInvite : MessageLikeEventContent()
     
     
-    data class CallNotify(
-        val `notifyType`: NotifyType) : MessageLikeEventContent() {
+    data class RtcNotification(
+        val `notificationType`: RtcNotificationType, 
+        /**
+         * The timestamp at which this notification is considered invalid.
+         */
+        val `expirationTs`: Timestamp) : MessageLikeEventContent() {
         companion object
     }
     
@@ -37262,9 +37273,11 @@ sealed class MessageLikeEventContent: Disposable  {
             }
             is MessageLikeEventContent.CallInvite -> {// Nothing to destroy
             }
-            is MessageLikeEventContent.CallNotify -> {
+            is MessageLikeEventContent.RtcNotification -> {
                 
-        Disposable.destroy(this.`notifyType`)
+        Disposable.destroy(this.`notificationType`)
+    
+        Disposable.destroy(this.`expirationTs`)
     
                 
             }
@@ -37329,8 +37342,9 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
         return when(buf.getInt()) {
             1 -> MessageLikeEventContent.CallAnswer
             2 -> MessageLikeEventContent.CallInvite
-            3 -> MessageLikeEventContent.CallNotify(
-                FfiConverterTypeNotifyType.read(buf),
+            3 -> MessageLikeEventContent.RtcNotification(
+                FfiConverterTypeRtcNotificationType.read(buf),
+                FfiConverterTypeTimestamp.read(buf),
                 )
             4 -> MessageLikeEventContent.CallHangup
             5 -> MessageLikeEventContent.CallCandidates
@@ -37374,11 +37388,12 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 4UL
             )
         }
-        is MessageLikeEventContent.CallNotify -> {
+        is MessageLikeEventContent.RtcNotification -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeNotifyType.allocationSize(value.`notifyType`)
+                + FfiConverterTypeRtcNotificationType.allocationSize(value.`notificationType`)
+                + FfiConverterTypeTimestamp.allocationSize(value.`expirationTs`)
             )
         }
         is MessageLikeEventContent.CallHangup -> {
@@ -37489,9 +37504,10 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 buf.putInt(2)
                 Unit
             }
-            is MessageLikeEventContent.CallNotify -> {
+            is MessageLikeEventContent.RtcNotification -> {
                 buf.putInt(3)
-                FfiConverterTypeNotifyType.write(value.`notifyType`, buf)
+                FfiConverterTypeRtcNotificationType.write(value.`notificationType`, buf)
+                FfiConverterTypeTimestamp.write(value.`expirationTs`, buf)
                 Unit
             }
             is MessageLikeEventContent.CallHangup -> {
@@ -37575,7 +37591,7 @@ enum class MessageLikeEventType {
     CALL_CANDIDATES,
     CALL_HANGUP,
     CALL_INVITE,
-    CALL_NOTIFY,
+    RTC_NOTIFICATION,
     KEY_VERIFICATION_ACCEPT,
     KEY_VERIFICATION_CANCEL,
     KEY_VERIFICATION_DONE,
@@ -38586,33 +38602,6 @@ public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<Notifi
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-
-enum class NotifyType {
-    
-    RING,
-    NOTIFY;
-    companion object
-}
-
-
-public object FfiConverterTypeNotifyType: FfiConverterRustBuffer<NotifyType> {
-    override fun read(buf: ByteBuffer) = try {
-        NotifyType.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: NotifyType) = 4UL
-
-    override fun write(value: NotifyType, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -42183,23 +42172,24 @@ public object FfiConverterTypeRoomVisibility : FfiConverterRustBuffer<RoomVisibi
 
 
 
-enum class RtcApplicationType {
+enum class RtcNotificationType {
     
-    CALL;
+    RING,
+    NOTIFICATION;
     companion object
 }
 
 
-public object FfiConverterTypeRtcApplicationType: FfiConverterRustBuffer<RtcApplicationType> {
+public object FfiConverterTypeRtcNotificationType: FfiConverterRustBuffer<RtcNotificationType> {
     override fun read(buf: ByteBuffer) = try {
-        RtcApplicationType.values()[buf.getInt() - 1]
+        RtcNotificationType.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: RtcApplicationType) = 4UL
+    override fun allocationSize(value: RtcNotificationType) = 4UL
 
-    override fun write(value: RtcApplicationType, buf: ByteBuffer) {
+    override fun write(value: RtcNotificationType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
@@ -44153,7 +44143,7 @@ sealed class TimelineItemContent: Disposable  {
     object CallInvite : TimelineItemContent()
     
     
-    object CallNotify : TimelineItemContent()
+    object RtcNotification : TimelineItemContent()
     
     
     data class RoomMembership(
@@ -44204,7 +44194,7 @@ sealed class TimelineItemContent: Disposable  {
             }
             is TimelineItemContent.CallInvite -> {// Nothing to destroy
             }
-            is TimelineItemContent.CallNotify -> {// Nothing to destroy
+            is TimelineItemContent.RtcNotification -> {// Nothing to destroy
             }
             is TimelineItemContent.RoomMembership -> {
                 
@@ -44269,7 +44259,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 FfiConverterTypeMsgLikeContent.read(buf),
                 )
             2 -> TimelineItemContent.CallInvite
-            3 -> TimelineItemContent.CallNotify
+            3 -> TimelineItemContent.RtcNotification
             4 -> TimelineItemContent.RoomMembership(
                 FfiConverterString.read(buf),
                 FfiConverterOptionalString.read(buf),
@@ -44313,7 +44303,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 4UL
             )
         }
-        is TimelineItemContent.CallNotify -> {
+        is TimelineItemContent.RtcNotification -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -44377,7 +44367,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 buf.putInt(2)
                 Unit
             }
-            is TimelineItemContent.CallNotify -> {
+            is TimelineItemContent.RtcNotification -> {
                 buf.putInt(3)
                 Unit
             }
