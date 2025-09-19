@@ -2553,6 +2553,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -3259,6 +3261,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(`ptr`: Pointer,`pageSize`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters_with(`ptr`: Pointer,`pageSize`: Int,`enableLatestEventSorter`: Byte,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -4497,6 +4501,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters_with(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state(
     ): Short
@@ -5817,6 +5823,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() != 36097.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters_with() != 21746.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state() != 21585.toShort()) {
@@ -18130,6 +18139,8 @@ public interface RoomListInterface {
     
     fun `entriesWithDynamicAdapters`(`pageSize`: kotlin.UInt, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult
     
+    fun `entriesWithDynamicAdaptersWith`(`pageSize`: kotlin.UInt, `enableLatestEventSorter`: kotlin.Boolean, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult
+    
     fun `loadingState`(`listener`: RoomListLoadingStateListener): RoomListLoadingStateResult
     
     fun `room`(`roomId`: kotlin.String): Room
@@ -18224,6 +18235,18 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(
         it, FfiConverterUInt.lower(`pageSize`),FfiConverterTypeRoomListEntriesListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    override fun `entriesWithDynamicAdaptersWith`(`pageSize`: kotlin.UInt, `enableLatestEventSorter`: kotlin.Boolean, `listener`: RoomListEntriesListener): RoomListEntriesWithDynamicAdaptersResult {
+            return FfiConverterTypeRoomListEntriesWithDynamicAdaptersResult.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters_with(
+        it, FfiConverterUInt.lower(`pageSize`),FfiConverterBoolean.lower(`enableLatestEventSorter`),FfiConverterTypeRoomListEntriesListener.lower(`listener`),_status)
 }
     }
     )
@@ -31236,6 +31259,13 @@ data class SpaceRoom (
      */
     var `guestCanJoin`: kotlin.Boolean, 
     /**
+     * Whether this room is a direct room.
+     *
+     * Only set if the room is known to the client otherwise we
+     * assume DMs shouldn't be exposed publicly in spaces.
+     */
+    var `isDirect`: kotlin.Boolean?, 
+    /**
      * The number of children room this has, if a space.
      */
     var `childrenCount`: kotlin.ULong, 
@@ -31269,6 +31299,7 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterOptionalBoolean.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterOptionalTypeMembership.read(buf),
             FfiConverterOptionalSequenceTypeRoomHero.read(buf),
@@ -31287,6 +31318,7 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterOptionalBoolean.allocationSize(value.`worldReadable`) +
             FfiConverterBoolean.allocationSize(value.`guestCanJoin`) +
+            FfiConverterOptionalBoolean.allocationSize(value.`isDirect`) +
             FfiConverterULong.allocationSize(value.`childrenCount`) +
             FfiConverterOptionalTypeMembership.allocationSize(value.`state`) +
             FfiConverterOptionalSequenceTypeRoomHero.allocationSize(value.`heroes`) +
@@ -31304,6 +31336,7 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterOptionalBoolean.write(value.`worldReadable`, buf)
             FfiConverterBoolean.write(value.`guestCanJoin`, buf)
+            FfiConverterOptionalBoolean.write(value.`isDirect`, buf)
             FfiConverterULong.write(value.`childrenCount`, buf)
             FfiConverterOptionalTypeMembership.write(value.`state`, buf)
             FfiConverterOptionalSequenceTypeRoomHero.write(value.`heroes`, buf)
