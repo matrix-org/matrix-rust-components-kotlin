@@ -2555,6 +2555,12 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2882,6 +2888,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Pointer,`waitForBackupsToUpload`: Byte,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_encryption_has_devices_to_verify_against(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover(`ptr`: Pointer,`recoveryKey`: RustBuffer.ByValue,
@@ -3131,6 +3139,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Pointer,`threadRoot`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
     ): Long
@@ -3583,6 +3593,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_event_type(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_sender_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_thread_root_event_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_timestamp(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -4180,6 +4192,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_verify_against(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover(
@@ -4379,6 +4393,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
     ): Short
@@ -4736,6 +4752,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_sender_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_event_id(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_event(
@@ -5051,7 +5069,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_profile() != 60062.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis() != 64362.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis() != 43545.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() != 22399.toShort()) {
@@ -5340,6 +5358,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() != 64351.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_verify_against() != 7561.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() != 27955.toShort()) {
@@ -5640,6 +5661,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft() != 62856.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event() != 12703.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 57806.toShort()) {
@@ -6174,6 +6198,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_sender_id() != 18142.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_event_id() != 56465.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp() != 50929.toShort()) {
@@ -7065,8 +7092,8 @@ public interface ClientInterface {
     suspend fun `getProfile`(`userId`: kotlin.String): UserProfile
     
     /**
-     * Gets the list of recently used emojis from the `io.element.recent_emoji`
-     * global account data.
+     * Gets the list of recently used emojis from the
+     * `io.element.recent_emoji` global account data.
      */
     suspend fun `getRecentEmojis`(): List<RecentEmoji>
     
@@ -8207,8 +8234,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
-     * Gets the list of recently used emojis from the `io.element.recent_emoji`
-     * global account data.
+     * Gets the list of recently used emojis from the
+     * `io.element.recent_emoji` global account data.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -10584,6 +10611,15 @@ public interface EncryptionInterface {
     
     suspend fun `enableRecovery`(`waitForBackupsToUpload`: kotlin.Boolean, `passphrase`: kotlin.String?, `progressListener`: EnableRecoveryProgressListener): kotlin.String
     
+    /**
+     * Does the user have other devices that the current device can verify
+     * against?
+     *
+     * The device must be signed by the user's cross-signing key, must have an
+     * identity, and must not be a dehydrated device.
+     */
+    suspend fun `hasDevicesToVerifyAgainst`(): kotlin.Boolean
+    
     suspend fun `isLastDevice`(): kotlin.Boolean
     
     suspend fun `recover`(`recoveryKey`: kotlin.String)
@@ -10884,6 +10920,34 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface {
         { FfiConverterString.lift(it) },
         // Error FFI converter
         RecoveryException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Does the user have other devices that the current device can verify
+     * against?
+     *
+     * The device must be signed by the user's cross-signing key, must have an
+     * identity, and must not be a dehydrated device.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `hasDevicesToVerifyAgainst`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_encryption_has_devices_to_verify_against(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
     )
     }
 
@@ -15040,6 +15104,12 @@ public interface RoomInterface {
     suspend fun `loadComposerDraft`(`threadRoot`: kotlin.String?): ComposerDraft?
     
     /**
+     * Either loads the event associated with the `event_id` from the event
+     * cache or fetches it from the homeserver.
+     */
+    suspend fun `loadOrFetchEvent`(`eventId`: kotlin.String): TimelineEvent
+    
+    /**
      * Mark a room as read, by attaching a read receipt on the latest event.
      *
      * Note: this does NOT unset the unread flag; it's the caller's
@@ -16287,6 +16357,31 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterOptionalTypeComposerDraft.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Either loads the event associated with the `event_id` from the event
+     * cache or fetches it from the homeserver.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `loadOrFetchEvent`(`eventId`: kotlin.String) : TimelineEvent {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(
+                thisPtr,
+                FfiConverterString.lower(`eventId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeTimelineEvent.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -25811,6 +25906,12 @@ public interface TimelineEventInterface {
     
     fun `senderId`(): kotlin.String
     
+    /**
+     * Returns the thread root event id for the event, if it's part of a
+     * thread.
+     */
+    fun `threadRootEventId`(): kotlin.String?
+    
     fun `timestamp`(): Timestamp
     
     companion object
@@ -25927,6 +26028,22 @@ open class TimelineEvent: Disposable, AutoCloseable, TimelineEventInterface {
     callWithPointer {
     uniffiRustCall() { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelineevent_sender_id(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns the thread root event id for the event, if it's part of a
+     * thread.
+     */override fun `threadRootEventId`(): kotlin.String? {
+            return FfiConverterOptionalString.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timelineevent_thread_root_event_id(
         it, _status)
 }
     }
@@ -37617,47 +37734,368 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
 
 
 
-
-enum class MessageLikeEventType {
+sealed class MessageLikeEventType {
     
-    CALL_ANSWER,
-    CALL_CANDIDATES,
-    CALL_HANGUP,
-    CALL_INVITE,
-    RTC_NOTIFICATION,
-    KEY_VERIFICATION_ACCEPT,
-    KEY_VERIFICATION_CANCEL,
-    KEY_VERIFICATION_DONE,
-    KEY_VERIFICATION_KEY,
-    KEY_VERIFICATION_MAC,
-    KEY_VERIFICATION_READY,
-    KEY_VERIFICATION_START,
-    POLL_END,
-    POLL_RESPONSE,
-    POLL_START,
-    REACTION,
-    ROOM_ENCRYPTED,
-    ROOM_MESSAGE,
-    ROOM_REDACTION,
-    STICKER,
-    UNSTABLE_POLL_END,
-    UNSTABLE_POLL_RESPONSE,
-    UNSTABLE_POLL_START;
+    object CallAnswer : MessageLikeEventType()
+    
+    
+    object CallCandidates : MessageLikeEventType()
+    
+    
+    object CallHangup : MessageLikeEventType()
+    
+    
+    object CallInvite : MessageLikeEventType()
+    
+    
+    object RtcNotification : MessageLikeEventType()
+    
+    
+    object KeyVerificationAccept : MessageLikeEventType()
+    
+    
+    object KeyVerificationCancel : MessageLikeEventType()
+    
+    
+    object KeyVerificationDone : MessageLikeEventType()
+    
+    
+    object KeyVerificationKey : MessageLikeEventType()
+    
+    
+    object KeyVerificationMac : MessageLikeEventType()
+    
+    
+    object KeyVerificationReady : MessageLikeEventType()
+    
+    
+    object KeyVerificationStart : MessageLikeEventType()
+    
+    
+    object PollEnd : MessageLikeEventType()
+    
+    
+    object PollResponse : MessageLikeEventType()
+    
+    
+    object PollStart : MessageLikeEventType()
+    
+    
+    object Reaction : MessageLikeEventType()
+    
+    
+    object RoomEncrypted : MessageLikeEventType()
+    
+    
+    object RoomMessage : MessageLikeEventType()
+    
+    
+    object RoomRedaction : MessageLikeEventType()
+    
+    
+    object Sticker : MessageLikeEventType()
+    
+    
+    object UnstablePollEnd : MessageLikeEventType()
+    
+    
+    object UnstablePollResponse : MessageLikeEventType()
+    
+    
+    object UnstablePollStart : MessageLikeEventType()
+    
+    
+    data class Other(
+        val v1: kotlin.String) : MessageLikeEventType() {
+        companion object
+    }
+    
+
+    
     companion object
 }
 
-
-public object FfiConverterTypeMessageLikeEventType: FfiConverterRustBuffer<MessageLikeEventType> {
-    override fun read(buf: ByteBuffer) = try {
-        MessageLikeEventType.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+public object FfiConverterTypeMessageLikeEventType : FfiConverterRustBuffer<MessageLikeEventType>{
+    override fun read(buf: ByteBuffer): MessageLikeEventType {
+        return when(buf.getInt()) {
+            1 -> MessageLikeEventType.CallAnswer
+            2 -> MessageLikeEventType.CallCandidates
+            3 -> MessageLikeEventType.CallHangup
+            4 -> MessageLikeEventType.CallInvite
+            5 -> MessageLikeEventType.RtcNotification
+            6 -> MessageLikeEventType.KeyVerificationAccept
+            7 -> MessageLikeEventType.KeyVerificationCancel
+            8 -> MessageLikeEventType.KeyVerificationDone
+            9 -> MessageLikeEventType.KeyVerificationKey
+            10 -> MessageLikeEventType.KeyVerificationMac
+            11 -> MessageLikeEventType.KeyVerificationReady
+            12 -> MessageLikeEventType.KeyVerificationStart
+            13 -> MessageLikeEventType.PollEnd
+            14 -> MessageLikeEventType.PollResponse
+            15 -> MessageLikeEventType.PollStart
+            16 -> MessageLikeEventType.Reaction
+            17 -> MessageLikeEventType.RoomEncrypted
+            18 -> MessageLikeEventType.RoomMessage
+            19 -> MessageLikeEventType.RoomRedaction
+            20 -> MessageLikeEventType.Sticker
+            21 -> MessageLikeEventType.UnstablePollEnd
+            22 -> MessageLikeEventType.UnstablePollResponse
+            23 -> MessageLikeEventType.UnstablePollStart
+            24 -> MessageLikeEventType.Other(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
     }
 
-    override fun allocationSize(value: MessageLikeEventType) = 4UL
+    override fun allocationSize(value: MessageLikeEventType) = when(value) {
+        is MessageLikeEventType.CallAnswer -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.CallCandidates -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.CallHangup -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.CallInvite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.RtcNotification -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationAccept -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationCancel -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationDone -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationKey -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationMac -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationReady -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.KeyVerificationStart -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.PollEnd -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.PollResponse -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.PollStart -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.Reaction -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.RoomEncrypted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.RoomMessage -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.RoomRedaction -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.Sticker -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.UnstablePollEnd -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.UnstablePollResponse -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.UnstablePollStart -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is MessageLikeEventType.Other -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+        }
+    }
 
     override fun write(value: MessageLikeEventType, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
+        when(value) {
+            is MessageLikeEventType.CallAnswer -> {
+                buf.putInt(1)
+                Unit
+            }
+            is MessageLikeEventType.CallCandidates -> {
+                buf.putInt(2)
+                Unit
+            }
+            is MessageLikeEventType.CallHangup -> {
+                buf.putInt(3)
+                Unit
+            }
+            is MessageLikeEventType.CallInvite -> {
+                buf.putInt(4)
+                Unit
+            }
+            is MessageLikeEventType.RtcNotification -> {
+                buf.putInt(5)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationAccept -> {
+                buf.putInt(6)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationCancel -> {
+                buf.putInt(7)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationDone -> {
+                buf.putInt(8)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationKey -> {
+                buf.putInt(9)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationMac -> {
+                buf.putInt(10)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationReady -> {
+                buf.putInt(11)
+                Unit
+            }
+            is MessageLikeEventType.KeyVerificationStart -> {
+                buf.putInt(12)
+                Unit
+            }
+            is MessageLikeEventType.PollEnd -> {
+                buf.putInt(13)
+                Unit
+            }
+            is MessageLikeEventType.PollResponse -> {
+                buf.putInt(14)
+                Unit
+            }
+            is MessageLikeEventType.PollStart -> {
+                buf.putInt(15)
+                Unit
+            }
+            is MessageLikeEventType.Reaction -> {
+                buf.putInt(16)
+                Unit
+            }
+            is MessageLikeEventType.RoomEncrypted -> {
+                buf.putInt(17)
+                Unit
+            }
+            is MessageLikeEventType.RoomMessage -> {
+                buf.putInt(18)
+                Unit
+            }
+            is MessageLikeEventType.RoomRedaction -> {
+                buf.putInt(19)
+                Unit
+            }
+            is MessageLikeEventType.Sticker -> {
+                buf.putInt(20)
+                Unit
+            }
+            is MessageLikeEventType.UnstablePollEnd -> {
+                buf.putInt(21)
+                Unit
+            }
+            is MessageLikeEventType.UnstablePollResponse -> {
+                buf.putInt(22)
+                Unit
+            }
+            is MessageLikeEventType.UnstablePollStart -> {
+                buf.putInt(23)
+                Unit
+            }
+            is MessageLikeEventType.Other -> {
+                buf.putInt(24)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -38012,6 +38450,14 @@ sealed class MsgLikeKind: Disposable  {
         companion object
     }
     
+    /**
+     * A custom message like event.
+     */
+    data class Other(
+        val `eventType`: MessageLikeEventType) : MsgLikeKind() {
+        companion object
+    }
+    
 
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -38059,6 +38505,12 @@ sealed class MsgLikeKind: Disposable  {
     
                 
             }
+            is MsgLikeKind.Other -> {
+                
+        Disposable.destroy(this.`eventType`)
+    
+                
+            }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
     
@@ -38088,6 +38540,9 @@ public object FfiConverterTypeMsgLikeKind : FfiConverterRustBuffer<MsgLikeKind>{
             4 -> MsgLikeKind.Redacted
             5 -> MsgLikeKind.UnableToDecrypt(
                 FfiConverterTypeEncryptedMessage.read(buf),
+                )
+            6 -> MsgLikeKind.Other(
+                FfiConverterTypeMessageLikeEventType.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -38136,6 +38591,13 @@ public object FfiConverterTypeMsgLikeKind : FfiConverterRustBuffer<MsgLikeKind>{
                 + FfiConverterTypeEncryptedMessage.allocationSize(value.`msg`)
             )
         }
+        is MsgLikeKind.Other -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeMessageLikeEventType.allocationSize(value.`eventType`)
+            )
+        }
     }
 
     override fun write(value: MsgLikeKind, buf: ByteBuffer) {
@@ -38170,6 +38632,11 @@ public object FfiConverterTypeMsgLikeKind : FfiConverterRustBuffer<MsgLikeKind>{
             is MsgLikeKind.UnableToDecrypt -> {
                 buf.putInt(5)
                 FfiConverterTypeEncryptedMessage.write(value.`msg`, buf)
+                Unit
+            }
+            is MsgLikeKind.Other -> {
+                buf.putInt(6)
+                FfiConverterTypeMessageLikeEventType.write(value.`eventType`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
