@@ -41424,6 +41424,9 @@ sealed class RoomListEntriesDynamicFilterKind {
     object NonSpace : RoomListEntriesDynamicFilterKind()
     
     
+    object Space : RoomListEntriesDynamicFilterKind()
+    
+    
     object NonLeft : RoomListEntriesDynamicFilterKind()
     
     
@@ -41481,24 +41484,25 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 FfiConverterSequenceTypeRoomListEntriesDynamicFilterKind.read(buf),
                 )
             3 -> RoomListEntriesDynamicFilterKind.NonSpace
-            4 -> RoomListEntriesDynamicFilterKind.NonLeft
-            5 -> RoomListEntriesDynamicFilterKind.Joined
-            6 -> RoomListEntriesDynamicFilterKind.Unread
-            7 -> RoomListEntriesDynamicFilterKind.Favourite
-            8 -> RoomListEntriesDynamicFilterKind.LowPriority
-            9 -> RoomListEntriesDynamicFilterKind.NonLowPriority
-            10 -> RoomListEntriesDynamicFilterKind.Invite
-            11 -> RoomListEntriesDynamicFilterKind.Category(
+            4 -> RoomListEntriesDynamicFilterKind.Space
+            5 -> RoomListEntriesDynamicFilterKind.NonLeft
+            6 -> RoomListEntriesDynamicFilterKind.Joined
+            7 -> RoomListEntriesDynamicFilterKind.Unread
+            8 -> RoomListEntriesDynamicFilterKind.Favourite
+            9 -> RoomListEntriesDynamicFilterKind.LowPriority
+            10 -> RoomListEntriesDynamicFilterKind.NonLowPriority
+            11 -> RoomListEntriesDynamicFilterKind.Invite
+            12 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            12 -> RoomListEntriesDynamicFilterKind.None
-            13 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            13 -> RoomListEntriesDynamicFilterKind.None
+            14 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            14 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            15 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            15 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
+            16 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -41519,6 +41523,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             )
         }
         is RoomListEntriesDynamicFilterKind.NonSpace -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.Space -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -41617,55 +41627,59 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(3)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.NonLeft -> {
+            is RoomListEntriesDynamicFilterKind.Space -> {
                 buf.putInt(4)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Joined -> {
+            is RoomListEntriesDynamicFilterKind.NonLeft -> {
                 buf.putInt(5)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Unread -> {
+            is RoomListEntriesDynamicFilterKind.Joined -> {
                 buf.putInt(6)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Favourite -> {
+            is RoomListEntriesDynamicFilterKind.Unread -> {
                 buf.putInt(7)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.LowPriority -> {
+            is RoomListEntriesDynamicFilterKind.Favourite -> {
                 buf.putInt(8)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.NonLowPriority -> {
+            is RoomListEntriesDynamicFilterKind.LowPriority -> {
                 buf.putInt(9)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Invite -> {
+            is RoomListEntriesDynamicFilterKind.NonLowPriority -> {
                 buf.putInt(10)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.Invite -> {
                 buf.putInt(11)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(12)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(12)
+                buf.putInt(13)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(13)
-                FfiConverterString.write(value.`pattern`, buf)
-                Unit
-            }
-            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
                 buf.putInt(14)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
+            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
                 buf.putInt(15)
+                FfiConverterString.write(value.`pattern`, buf)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
+                buf.putInt(16)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
