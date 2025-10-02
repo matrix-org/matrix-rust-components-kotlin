@@ -2561,6 +2561,14 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2971,6 +2979,14 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_send_handle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_shields(`ptr`: Pointer,`strict`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_clone_leavespacehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_leavespacehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_leave(`ptr`: Pointer,`roomIds`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_rooms(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_matrix_sdk_ffi_fn_clone_mediafilehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
@@ -3453,6 +3469,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_free_spaceservice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_spaces(`ptr`: Pointer,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_leave_space(`ptr`: Pointer,`spaceId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_room_list(`ptr`: Pointer,`spaceId`: RustBuffer.ByValue,
     ): Long
@@ -4256,6 +4274,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_leave(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
@@ -4647,6 +4669,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_space_updates(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_leave_space(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list(
     ): Short
@@ -5456,6 +5480,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields() != 12518.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_leave() != 54036.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms() != 50920.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path() != 16357.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6042,6 +6072,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces() != 54285.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_leave_space() != 7949.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list() != 6768.toShort()) {
@@ -12767,6 +12800,292 @@ public object FfiConverterTypeLazyTimelineItemProvider: FfiConverter<LazyTimelin
     override fun allocationSize(value: LazyTimelineItemProvider) = 8UL
 
     override fun write(value: LazyTimelineItemProvider, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * The `LeaveSpaceHandle` processes rooms to be left in the order they were
+ * provided by the [`SpaceService`] and annotates them with extra data to
+ * inform the leave process e.g. if the current user is the last room admin.
+ *
+ * Once the upstream client decides what rooms should actually be left, the
+ * handle provides a method to execute that too.
+ */
+public interface LeaveSpaceHandleInterface {
+    
+    /**
+     * Bulk leave the given rooms. Stops when encountering an error.
+     */
+    suspend fun `leave`(`roomIds`: List<kotlin.String>)
+    
+    /**
+     * A list of rooms to be left which next to normal [`SpaceRoom`] data also
+     * include leave specific information.
+     */
+    fun `rooms`(): List<LeaveSpaceRoom>
+    
+    companion object
+}
+
+/**
+ * The `LeaveSpaceHandle` processes rooms to be left in the order they were
+ * provided by the [`SpaceService`] and annotates them with extra data to
+ * inform the leave process e.g. if the current user is the last room admin.
+ *
+ * Once the upstream client decides what rooms should actually be left, the
+ * handle provides a method to execute that too.
+ */
+open class LeaveSpaceHandle: Disposable, AutoCloseable, LeaveSpaceHandleInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_leavespacehandle(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_leavespacehandle(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * Bulk leave the given rooms. Stops when encountering an error.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `leave`(`roomIds`: List<kotlin.String>) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_leave(
+                thisPtr,
+                FfiConverterSequenceString.lower(`roomIds`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * A list of rooms to be left which next to normal [`SpaceRoom`] data also
+     * include leave specific information.
+     */override fun `rooms`(): List<LeaveSpaceRoom> {
+            return FfiConverterSequenceTypeLeaveSpaceRoom.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_rooms(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeLeaveSpaceHandle: FfiConverter<LeaveSpaceHandle, Pointer> {
+
+    override fun lower(value: LeaveSpaceHandle): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): LeaveSpaceHandle {
+        return LeaveSpaceHandle(value)
+    }
+
+    override fun read(buf: ByteBuffer): LeaveSpaceHandle {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: LeaveSpaceHandle) = 8UL
+
+    override fun write(value: LeaveSpaceHandle, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -22862,6 +23181,17 @@ public interface SpaceServiceInterface {
     suspend fun `joinedSpaces`(): List<SpaceRoom>
     
     /**
+     * Start a space leave process returning a [`LeaveSpaceHandle`] from which
+     * rooms can be retrieved in reversed BFS order starting from the requested
+     * `space_id` graph node. If the room is unknown then an error will be
+     * returned.
+     *
+     * Once the rooms to be left are chosen the handle can be used to leave
+     * them.
+     */
+    suspend fun `leaveSpace`(`spaceId`: kotlin.String): LeaveSpaceHandle
+    
+    /**
      * Returns a `SpaceRoomList` for the given space ID.
      */
     suspend fun `spaceRoomList`(`spaceId`: kotlin.String): SpaceRoomList
@@ -22985,6 +23315,36 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface {
         { FfiConverterSequenceTypeSpaceRoom.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Start a space leave process returning a [`LeaveSpaceHandle`] from which
+     * rooms can be retrieved in reversed BFS order starting from the requested
+     * `space_id` graph node. If the room is unknown then an error will be
+     * returned.
+     *
+     * Once the rooms to be left are chosen the handle can be used to leave
+     * them.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `leaveSpace`(`spaceId`: kotlin.String) : LeaveSpaceHandle {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_spaceservice_leave_space(
+                thisPtr,
+                FfiConverterString.lower(`spaceId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeLeaveSpaceHandle.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
     )
     }
 
@@ -29023,6 +29383,46 @@ public object FfiConverterTypeLastLocation: FfiConverterRustBuffer<LastLocation>
     override fun write(value: LastLocation, buf: ByteBuffer) {
             FfiConverterTypeLocationContent.write(value.`location`, buf)
             FfiConverterULong.write(value.`ts`, buf)
+    }
+}
+
+
+
+/**
+ * Space leaving specific room that groups normal [`SpaceRoom`] details with
+ * information about the leaving user's role.
+ */
+data class LeaveSpaceRoom (
+    /**
+     * The underlying [`SpaceRoom`]
+     */
+    var `spaceRoom`: SpaceRoom, 
+    /**
+     * Whether the user is the last admin in the room. This helps clients
+     * better inform the user about the consequences of leaving the room.
+     */
+    var `isLastAdmin`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeLeaveSpaceRoom: FfiConverterRustBuffer<LeaveSpaceRoom> {
+    override fun read(buf: ByteBuffer): LeaveSpaceRoom {
+        return LeaveSpaceRoom(
+            FfiConverterTypeSpaceRoom.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: LeaveSpaceRoom) = (
+            FfiConverterTypeSpaceRoom.allocationSize(value.`spaceRoom`) +
+            FfiConverterBoolean.allocationSize(value.`isLastAdmin`)
+    )
+
+    override fun write(value: LeaveSpaceRoom, buf: ByteBuffer) {
+            FfiConverterTypeSpaceRoom.write(value.`spaceRoom`, buf)
+            FfiConverterBoolean.write(value.`isLastAdmin`, buf)
     }
 }
 
@@ -40681,9 +41081,21 @@ sealed class RecoveryException: kotlin.Exception() {
     }
     
     /**
-     * Error in the secret storage subsystem.
+     * Error in the secret storage subsystem, except for when importing a
+     * secret.
      */
     class SecretStorage(
+        
+        val `errorMessage`: kotlin.String
+        ) : RecoveryException() {
+        override val message
+            get() = "errorMessage=${ `errorMessage` }"
+    }
+    
+    /**
+     * Error when importing a secret from secret storage.
+     */
+    class Import(
         
         val `errorMessage`: kotlin.String
         ) : RecoveryException() {
@@ -40711,6 +41123,9 @@ public object FfiConverterTypeRecoveryError : FfiConverterRustBuffer<RecoveryExc
             3 -> RecoveryException.SecretStorage(
                 FfiConverterString.read(buf),
                 )
+            4 -> RecoveryException.Import(
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -40731,6 +41146,11 @@ public object FfiConverterTypeRecoveryError : FfiConverterRustBuffer<RecoveryExc
                 4UL
                 + FfiConverterString.allocationSize(value.`errorMessage`)
             )
+            is RecoveryException.Import -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`errorMessage`)
+            )
         }
     }
 
@@ -40747,6 +41167,11 @@ public object FfiConverterTypeRecoveryError : FfiConverterRustBuffer<RecoveryExc
             }
             is RecoveryException.SecretStorage -> {
                 buf.putInt(3)
+                FfiConverterString.write(value.`errorMessage`, buf)
+                Unit
+            }
+            is RecoveryException.Import -> {
+                buf.putInt(4)
                 FfiConverterString.write(value.`errorMessage`, buf)
                 Unit
             }
@@ -49714,6 +50139,31 @@ public object FfiConverterSequenceTypeKnockRequest: FfiConverterRustBuffer<List<
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeKnockRequest.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeLeaveSpaceRoom: FfiConverterRustBuffer<List<LeaveSpaceRoom>> {
+    override fun read(buf: ByteBuffer): List<LeaveSpaceRoom> {
+        val len = buf.getInt()
+        return List<LeaveSpaceRoom>(len) {
+            FfiConverterTypeLeaveSpaceRoom.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<LeaveSpaceRoom>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeLeaveSpaceRoom.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<LeaveSpaceRoom>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeLeaveSpaceRoom.write(it, buf)
         }
     }
 }
