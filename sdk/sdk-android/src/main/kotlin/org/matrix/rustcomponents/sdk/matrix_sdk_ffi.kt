@@ -2569,6 +2569,8 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -3029,6 +3031,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(`ptr`: Pointer,`isEncrypted`: Byte,`isOneToOne`: Byte,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_raw_push_rules(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
     ): Long
@@ -4300,6 +4304,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_raw_push_rules(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules(
@@ -5517,6 +5523,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode() != 36211.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_raw_push_rules() != 17884.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings() != 55295.toShort()) {
@@ -14087,6 +14096,11 @@ public interface NotificationSettingsInterface {
     suspend fun `getDefaultRoomNotificationMode`(`isEncrypted`: kotlin.Boolean, `isOneToOne`: kotlin.Boolean): RoomNotificationMode
     
     /**
+     * Returns the raw push rules in JSON format.
+     */
+    suspend fun `getRawPushRules`(): kotlin.String?
+    
+    /**
      * Get the notification settings for a room.
      *
      * # Arguments
@@ -14375,6 +14389,30 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         { FfiConverterTypeRoomNotificationMode.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the raw push rules in JSON format.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getRawPushRules`() : kotlin.String? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_raw_push_rules(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
     )
     }
 
@@ -31744,9 +31782,14 @@ data class SpaceRoom (
      */
     var `canonicalAlias`: kotlin.String?, 
     /**
-     * The name of the room, if any.
+     * The room's name from the room state event if received from sync, or one
+     * that's been computed otherwise.
      */
-    var `name`: kotlin.String?, 
+    var `displayName`: kotlin.String, 
+    /**
+     * Room name as defined by the room state event only.
+     */
+    var `rawName`: kotlin.String?, 
     /**
      * The topic of the room, if any.
      */
@@ -31808,6 +31851,7 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
         return SpaceRoom(
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
@@ -31827,7 +31871,8 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
     override fun allocationSize(value: SpaceRoom) = (
             FfiConverterString.allocationSize(value.`roomId`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
-            FfiConverterOptionalString.allocationSize(value.`name`) +
+            FfiConverterString.allocationSize(value.`displayName`) +
+            FfiConverterOptionalString.allocationSize(value.`rawName`) +
             FfiConverterOptionalString.allocationSize(value.`topic`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
             FfiConverterTypeRoomType.allocationSize(value.`roomType`) +
@@ -31845,7 +31890,8 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
     override fun write(value: SpaceRoom, buf: ByteBuffer) {
             FfiConverterString.write(value.`roomId`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
-            FfiConverterOptionalString.write(value.`name`, buf)
+            FfiConverterString.write(value.`displayName`, buf)
+            FfiConverterOptionalString.write(value.`rawName`, buf)
             FfiConverterOptionalString.write(value.`topic`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
             FfiConverterTypeRoomType.write(value.`roomType`, buf)
