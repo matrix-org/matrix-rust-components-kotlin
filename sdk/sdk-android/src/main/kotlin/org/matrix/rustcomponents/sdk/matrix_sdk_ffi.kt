@@ -771,6 +771,9 @@ internal interface UniffiCallbackInterfaceRoomListServiceStateListenerMethod0 : 
 internal interface UniffiCallbackInterfaceRoomListServiceSyncIndicatorListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`syncIndicator`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceSendQueueListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceSendQueueRoomErrorListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomId`: RustBuffer.ByValue,`error`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -1207,6 +1210,22 @@ internal open class UniffiVTableCallbackInterfaceRoomListServiceSyncIndicatorLis
     ): UniffiVTableCallbackInterfaceRoomListServiceSyncIndicatorListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRoomListServiceSyncIndicatorListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSendQueueListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSendQueueListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceSendQueueListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSendQueueListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSendQueueListener) {
         `onUpdate` = other.`onUpdate`
         `uniffiFree` = other.`uniffiFree`
     }
@@ -2571,6 +2590,10 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2605,6 +2628,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceRoomListLoadingStateListener.register(lib)
                 uniffiCallbackInterfaceRoomListServiceStateListener.register(lib)
                 uniffiCallbackInterfaceRoomListServiceSyncIndicatorListener.register(lib)
+                uniffiCallbackInterfaceSendQueueListener.register(lib)
                 uniffiCallbackInterfaceSendQueueRoomErrorListener.register(lib)
                 uniffiCallbackInterfaceSessionVerificationControllerDelegate.register(lib)
                 uniffiCallbackInterfaceSpaceRoomListEntriesListener.register(lib)
@@ -3242,6 +3266,8 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_send_queue_updates(`ptr`: Pointer,`listener`: Long,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_room_successor_room(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3727,6 +3753,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistservicestatelistener(`vtable`: UniffiVTableCallbackInterfaceRoomListServiceStateListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistservicesyncindicatorlistener(`vtable`: UniffiVTableCallbackInterfaceRoomListServiceSyncIndicatorListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueuelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomerrorlistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomErrorListener,
     ): Unit
@@ -4504,6 +4532,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_successor_room(
@@ -4883,6 +4913,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_sendqueuelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error(
     ): Short
@@ -5825,6 +5857,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() != 48209.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates() != 17661.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications() != 38524.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6221,7 +6256,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() != 52974.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 17589.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() != 41701.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() != 46161.toShort()) {
@@ -6393,6 +6428,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update() != 36937.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueuelistener_on_update() != 24843.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error() != 38224.toShort()) {
@@ -6646,6 +6684,26 @@ public object FfiConverterLong: FfiConverter<Long, Long> {
 
     override fun write(value: Long, buf: ByteBuffer) {
         buf.putLong(value)
+    }
+}
+
+public object FfiConverterFloat: FfiConverter<Float, Float> {
+    override fun lift(value: Float): Float {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Float {
+        return buf.getFloat()
+    }
+
+    override fun lower(value: Float): Float {
+        return value
+    }
+
+    override fun allocationSize(value: Float) = 4UL
+
+    override fun write(value: Float, buf: ByteBuffer) {
+        buf.putFloat(value)
     }
 }
 
@@ -15710,6 +15768,15 @@ public interface RoomInterface {
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
+    /**
+     * Subscribe to all send queue updates in this room.
+     *
+     * The given listener will be immediately called with
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
+     * the queue.
+     */
+    suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueListener): TaskHandle
+    
     fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle
     
     /**
@@ -17700,6 +17767,34 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
     )
     }
     
+
+    
+    /**
+     * Subscribe to all send queue updates in this room.
+     *
+     * The given listener will be immediately called with
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
+     * the queue.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueListener) : TaskHandle {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_send_queue_updates(
+                thisPtr,
+                FfiConverterTypeSendQueueListener.lower(`listener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeTaskHandle.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     override fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -25401,7 +25496,7 @@ public interface TimelineInterface {
     
     fun `sendVideo`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `videoInfo`: VideoInfo): SendAttachmentJoinHandle
     
-    fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>): SendAttachmentJoinHandle
+    fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.Float>): SendAttachmentJoinHandle
     
     suspend fun `subscribeToBackPaginationStatus`(`listener`: PaginationStatusListener): TaskHandle
     
@@ -26067,12 +26162,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
     
 
     
-    @Throws(RoomException::class)override fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.UShort>): SendAttachmentJoinHandle {
+    @Throws(RoomException::class)override fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.Float>): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithPointer {
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(
-        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceUShort.lower(`waveform`),_status)
+        it, FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceFloat.lower(`waveform`),_status)
 }
     }
     )
@@ -40813,6 +40908,12 @@ sealed class QrLoginProgress {
     }
     
     /**
+     * We are syncing secrets.
+     */
+    object SyncingSecrets : QrLoginProgress()
+    
+    
+    /**
      * The login has successfully finished.
      */
     object Done : QrLoginProgress()
@@ -40834,7 +40935,8 @@ public object FfiConverterTypeQrLoginProgress : FfiConverterRustBuffer<QrLoginPr
             3 -> QrLoginProgress.WaitingForToken(
                 FfiConverterString.read(buf),
                 )
-            4 -> QrLoginProgress.Done
+            4 -> QrLoginProgress.SyncingSecrets
+            5 -> QrLoginProgress.Done
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -40859,6 +40961,12 @@ public object FfiConverterTypeQrLoginProgress : FfiConverterRustBuffer<QrLoginPr
             (
                 4UL
                 + FfiConverterString.allocationSize(value.`userCode`)
+            )
+        }
+        is QrLoginProgress.SyncingSecrets -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
             )
         }
         is QrLoginProgress.Done -> {
@@ -40886,8 +40994,12 @@ public object FfiConverterTypeQrLoginProgress : FfiConverterRustBuffer<QrLoginPr
                 FfiConverterString.write(value.`userCode`, buf)
                 Unit
             }
-            is QrLoginProgress.Done -> {
+            is QrLoginProgress.SyncingSecrets -> {
                 buf.putInt(4)
+                Unit
+            }
+            is QrLoginProgress.Done -> {
+                buf.putInt(5)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -42978,6 +43090,334 @@ public object FfiConverterTypeRoomPreset: FfiConverterRustBuffer<RoomPreset> {
 
     override fun write(value: RoomPreset, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * An update to a room send queue.
+ */
+sealed class RoomSendQueueUpdate: Disposable  {
+    
+    /**
+     * A new local event is being sent.
+     */
+    data class NewLocalEvent(
+        /**
+         * Transaction id used to identify this event.
+         */
+        val `transactionId`: kotlin.String) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+    /**
+     * A local event that hadn't been sent to the server yet has been cancelled
+     * before sending.
+     */
+    data class CancelledLocalEvent(
+        /**
+         * Transaction id used to identify this event.
+         */
+        val `transactionId`: kotlin.String) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+    /**
+     * A local event's content has been replaced with something else.
+     */
+    data class ReplacedLocalEvent(
+        /**
+         * Transaction id used to identify this event.
+         */
+        val `transactionId`: kotlin.String) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+    /**
+     * An error happened when an event was being sent.
+     *
+     * The event has not been removed from the queue. All the send queues
+     * will be disabled after this happens, and must be manually re-enabled.
+     */
+    data class SendError(
+        /**
+         * Transaction id used to identify this event.
+         */
+        val `transactionId`: kotlin.String, 
+        /**
+         * Error received while sending the event.
+         */
+        val `error`: QueueWedgeError, 
+        /**
+         * Whether the error is considered recoverable or not.
+         *
+         * An error that's recoverable will disable the room's send queue,
+         * while an unrecoverable error will be parked, until the user
+         * decides to cancel sending it.
+         */
+        val `isRecoverable`: kotlin.Boolean) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+    /**
+     * The event has been unwedged and sending is now being retried.
+     */
+    data class RetryEvent(
+        /**
+         * Transaction id used to identify this event.
+         */
+        val `transactionId`: kotlin.String) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+    /**
+     * The event has been sent to the server, and the query returned
+     * successfully.
+     */
+    data class SentEvent(
+        /**
+         * Transaction id used to identify this event.
+         */
+        val `transactionId`: kotlin.String, 
+        /**
+         * Received event id from the send response.
+         */
+        val `eventId`: kotlin.String) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+    /**
+     * A media upload (consisting of a file and possibly a thumbnail) has made
+     * progress.
+     */
+    data class MediaUpload(
+        /**
+         * The media event this uploaded media relates to.
+         */
+        val `relatedTo`: kotlin.String, 
+        /**
+         * The final media source for the file if it has finished uploading.
+         */
+        val `file`: MediaSource?, 
+        /**
+         * The index of the media within the transaction. A file and its
+         * thumbnail share the same index. Will always be 0 for non-gallery
+         * media uploads.
+         */
+        val `index`: kotlin.ULong, 
+        /**
+         * The combined upload progress across the file and, if existing, its
+         * thumbnail. For gallery uploads, the progress is reported per indexed
+         * gallery item.
+         */
+        val `progress`: AbstractProgress) : RoomSendQueueUpdate() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is RoomSendQueueUpdate.NewLocalEvent -> {
+                
+        Disposable.destroy(this.`transactionId`)
+    
+                
+            }
+            is RoomSendQueueUpdate.CancelledLocalEvent -> {
+                
+        Disposable.destroy(this.`transactionId`)
+    
+                
+            }
+            is RoomSendQueueUpdate.ReplacedLocalEvent -> {
+                
+        Disposable.destroy(this.`transactionId`)
+    
+                
+            }
+            is RoomSendQueueUpdate.SendError -> {
+                
+        Disposable.destroy(this.`transactionId`)
+    
+        Disposable.destroy(this.`error`)
+    
+        Disposable.destroy(this.`isRecoverable`)
+    
+                
+            }
+            is RoomSendQueueUpdate.RetryEvent -> {
+                
+        Disposable.destroy(this.`transactionId`)
+    
+                
+            }
+            is RoomSendQueueUpdate.SentEvent -> {
+                
+        Disposable.destroy(this.`transactionId`)
+    
+        Disposable.destroy(this.`eventId`)
+    
+                
+            }
+            is RoomSendQueueUpdate.MediaUpload -> {
+                
+        Disposable.destroy(this.`relatedTo`)
+    
+        Disposable.destroy(this.`file`)
+    
+        Disposable.destroy(this.`index`)
+    
+        Disposable.destroy(this.`progress`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeRoomSendQueueUpdate : FfiConverterRustBuffer<RoomSendQueueUpdate>{
+    override fun read(buf: ByteBuffer): RoomSendQueueUpdate {
+        return when(buf.getInt()) {
+            1 -> RoomSendQueueUpdate.NewLocalEvent(
+                FfiConverterString.read(buf),
+                )
+            2 -> RoomSendQueueUpdate.CancelledLocalEvent(
+                FfiConverterString.read(buf),
+                )
+            3 -> RoomSendQueueUpdate.ReplacedLocalEvent(
+                FfiConverterString.read(buf),
+                )
+            4 -> RoomSendQueueUpdate.SendError(
+                FfiConverterString.read(buf),
+                FfiConverterTypeQueueWedgeError.read(buf),
+                FfiConverterBoolean.read(buf),
+                )
+            5 -> RoomSendQueueUpdate.RetryEvent(
+                FfiConverterString.read(buf),
+                )
+            6 -> RoomSendQueueUpdate.SentEvent(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            7 -> RoomSendQueueUpdate.MediaUpload(
+                FfiConverterString.read(buf),
+                FfiConverterOptionalTypeMediaSource.read(buf),
+                FfiConverterULong.read(buf),
+                FfiConverterTypeAbstractProgress.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: RoomSendQueueUpdate) = when(value) {
+        is RoomSendQueueUpdate.NewLocalEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+            )
+        }
+        is RoomSendQueueUpdate.CancelledLocalEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+            )
+        }
+        is RoomSendQueueUpdate.ReplacedLocalEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+            )
+        }
+        is RoomSendQueueUpdate.SendError -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+                + FfiConverterTypeQueueWedgeError.allocationSize(value.`error`)
+                + FfiConverterBoolean.allocationSize(value.`isRecoverable`)
+            )
+        }
+        is RoomSendQueueUpdate.RetryEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+            )
+        }
+        is RoomSendQueueUpdate.SentEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transactionId`)
+                + FfiConverterString.allocationSize(value.`eventId`)
+            )
+        }
+        is RoomSendQueueUpdate.MediaUpload -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`relatedTo`)
+                + FfiConverterOptionalTypeMediaSource.allocationSize(value.`file`)
+                + FfiConverterULong.allocationSize(value.`index`)
+                + FfiConverterTypeAbstractProgress.allocationSize(value.`progress`)
+            )
+        }
+    }
+
+    override fun write(value: RoomSendQueueUpdate, buf: ByteBuffer) {
+        when(value) {
+            is RoomSendQueueUpdate.NewLocalEvent -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`transactionId`, buf)
+                Unit
+            }
+            is RoomSendQueueUpdate.CancelledLocalEvent -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`transactionId`, buf)
+                Unit
+            }
+            is RoomSendQueueUpdate.ReplacedLocalEvent -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`transactionId`, buf)
+                Unit
+            }
+            is RoomSendQueueUpdate.SendError -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`transactionId`, buf)
+                FfiConverterTypeQueueWedgeError.write(value.`error`, buf)
+                FfiConverterBoolean.write(value.`isRecoverable`, buf)
+                Unit
+            }
+            is RoomSendQueueUpdate.RetryEvent -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`transactionId`, buf)
+                Unit
+            }
+            is RoomSendQueueUpdate.SentEvent -> {
+                buf.putInt(6)
+                FfiConverterString.write(value.`transactionId`, buf)
+                FfiConverterString.write(value.`eventId`, buf)
+                Unit
+            }
+            is RoomSendQueueUpdate.MediaUpload -> {
+                buf.putInt(7)
+                FfiConverterString.write(value.`relatedTo`, buf)
+                FfiConverterOptionalTypeMediaSource.write(value.`file`, buf)
+                FfiConverterULong.write(value.`index`, buf)
+                FfiConverterTypeAbstractProgress.write(value.`progress`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -47171,6 +47611,62 @@ public object FfiConverterTypeRoomListServiceSyncIndicatorListener: FfiConverter
 
 
 /**
+ * A listener to send queue updates in a specific room.
+ */
+public interface SendQueueListener {
+    
+    /**
+     * Called every time the send queue dispatches an update for the given
+     * room.
+     */
+    fun `onUpdate`(`update`: RoomSendQueueUpdate)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSendQueueListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceSendQueueListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSendQueueListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeRoomSendQueueUpdate.lift(`update`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSendQueueListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSendQueueListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueuelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSendQueueListener: FfiConverterCallbackInterface<SendQueueListener>()
+
+
+
+
+
+/**
  * A listener to the global (client-wide) error reporter of the send queue.
  */
 public interface SendQueueRoomErrorListener {
@@ -49985,6 +50481,31 @@ public object FfiConverterSequenceUShort: FfiConverterRustBuffer<List<kotlin.USh
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterUShort.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceFloat: FfiConverterRustBuffer<List<kotlin.Float>> {
+    override fun read(buf: ByteBuffer): List<kotlin.Float> {
+        val len = buf.getInt()
+        return List<kotlin.Float>(len) {
+            FfiConverterFloat.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.Float>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterFloat.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<kotlin.Float>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterFloat.write(it, buf)
         }
     }
 }
