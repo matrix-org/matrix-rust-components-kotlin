@@ -720,6 +720,9 @@ internal interface UniffiCallbackInterfaceClientSessionDelegateMethod1 : com.sun
 internal interface UniffiCallbackInterfaceEnableRecoveryProgressListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceGeneratedQrLoginProgressListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`identityStatusChange`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -776,6 +779,9 @@ internal interface UniffiCallbackInterfaceSendQueueListenerMethod0 : com.sun.jna
 }
 internal interface UniffiCallbackInterfaceSendQueueRoomErrorListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomId`: RustBuffer.ByValue,`error`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceSendQueueRoomUpdateListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`roomId`: RustBuffer.ByValue,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSessionVerificationControllerDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`details`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -938,6 +944,22 @@ internal open class UniffiVTableCallbackInterfaceEnableRecoveryProgressListener(
     ): UniffiVTableCallbackInterfaceEnableRecoveryProgressListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener) {
+        `onUpdate` = other.`onUpdate`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceGeneratedQrLoginProgressListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceGeneratedQrLoginProgressListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener) {
         `onUpdate` = other.`onUpdate`
         `uniffiFree` = other.`uniffiFree`
     }
@@ -1243,6 +1265,22 @@ internal open class UniffiVTableCallbackInterfaceSendQueueRoomErrorListener(
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSendQueueRoomErrorListener) {
         `onError` = other.`onError`
+        `uniffiFree` = other.`uniffiFree`
+    }
+
+}
+@Structure.FieldOrder("onUpdate", "uniffiFree")
+internal open class UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener(
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSendQueueRoomUpdateListenerMethod0? = null,
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `onUpdate`: UniffiCallbackInterfaceSendQueueRoomUpdateListenerMethod0? = null,
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    ): UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener(`onUpdate`,`uniffiFree`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener) {
+        `onUpdate` = other.`onUpdate`
         `uniffiFree` = other.`uniffiFree`
     }
 
@@ -2594,6 +2632,26 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -2611,6 +2669,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceClientDelegate.register(lib)
                 uniffiCallbackInterfaceClientSessionDelegate.register(lib)
                 uniffiCallbackInterfaceEnableRecoveryProgressListener.register(lib)
+                uniffiCallbackInterfaceGeneratedQrLoginProgressListener.register(lib)
                 uniffiCallbackInterfaceIdentityStatusChangeListener.register(lib)
                 uniffiCallbackInterfaceIgnoredUsersListener.register(lib)
                 uniffiCallbackInterfaceKnockRequestsListener.register(lib)
@@ -2630,6 +2689,7 @@ internal interface UniffiLib : Library {
                 uniffiCallbackInterfaceRoomListServiceSyncIndicatorListener.register(lib)
                 uniffiCallbackInterfaceSendQueueListener.register(lib)
                 uniffiCallbackInterfaceSendQueueRoomErrorListener.register(lib)
+                uniffiCallbackInterfaceSendQueueRoomUpdateListener.register(lib)
                 uniffiCallbackInterfaceSessionVerificationControllerDelegate.register(lib)
                 uniffiCallbackInterfaceSpaceRoomListEntriesListener.register(lib)
                 uniffiCallbackInterfaceSpaceRoomListPaginationStateListener.register(lib)
@@ -2656,6 +2716,12 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_method_roommessageeventcontentwithoutrelation_with_mentions(`ptr`: Pointer,`mentions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_checkcodesender(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_checkcodesender_send(`ptr`: Pointer,`code`: Byte,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_client(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_client(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -2758,8 +2824,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Pointer,`callbackUrl`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(`ptr`: Pointer,`qrCodeData`: Pointer,`oidcConfiguration`: RustBuffer.ByValue,`progressListener`: Long,
-    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(`ptr`: Pointer,`oidcConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Pointer,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Pointer,`processSetup`: RustBuffer.ByValue,
@@ -2822,6 +2888,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_status(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_updates(`ptr`: Pointer,`listener`: Long,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Pointer,`room`: RustBuffer.ByValue,
@@ -3014,6 +3082,14 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_rooms(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_matrix_sdk_ffi_fn_clone_loginwithqrcodehandler(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Pointer
+    fun uniffi_matrix_sdk_ffi_fn_free_loginwithqrcodehandler(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_generate(`ptr`: Pointer,`progressListener`: Long,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_scan(`ptr`: Pointer,`qrCodeData`: Pointer,`progressListener`: Long,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_clone_mediafilehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_matrix_sdk_ffi_fn_free_mediafilehandle(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -3185,6 +3261,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Pointer,`threadRoot`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_fully_read_unchecked(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
     ): Long
@@ -3590,6 +3668,8 @@ internal interface UniffiLib : Library {
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_event_timeline_item_by_event_id(`ptr`: Pointer,`eventId`: RustBuffer.ByValue,
     ): Long
+    fun uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event_id(`ptr`: Pointer,
+    ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_load_reply_details(`ptr`: Pointer,`eventIdStr`: RustBuffer.ByValue,
     ): Long
     fun uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(`ptr`: Pointer,`receiptType`: RustBuffer.ByValue,
@@ -3720,6 +3800,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_enablerecoveryprogresslistener(`vtable`: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener,
     ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_generatedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener,
+    ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(`vtable`: UniffiVTableCallbackInterfaceIdentityStatusChangeListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_ignoreduserslistener(`vtable`: UniffiVTableCallbackInterfaceIgnoredUsersListener,
@@ -3757,6 +3839,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueuelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomerrorlistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomErrorListener,
+    ): Unit
+    fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomupdatelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener,
     ): Unit
     fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sessionverificationcontrollerdelegate(`vtable`: UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate,
     ): Unit
@@ -3990,6 +4074,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_checkcodesender_send(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_abort_oidc_auth(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_account_data(
@@ -4152,6 +4238,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
@@ -4310,6 +4398,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
@@ -4451,6 +4543,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
     ): Short
@@ -4764,6 +4858,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event_id(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read(
@@ -4880,6 +4976,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
     ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update(
+    ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
@@ -4917,6 +5015,8 @@ internal interface UniffiLib : Library {
     fun uniffi_matrix_sdk_ffi_checksum_method_sendqueuelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error(
+    ): Short
+    fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomupdatelistener_on_update(
     ): Short
     fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request(
     ): Short
@@ -5042,6 +5142,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions() != 8867.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_checkcodesender_send() != 50179.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_abort_oidc_auth() != 53440.toShort()) {
@@ -5191,7 +5294,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 32591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_qr_code() != 3481.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_qr_code() != 2487.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
@@ -5285,6 +5388,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status() != 57403.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates() != 33603.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_service() != 52812.toShort()) {
@@ -5524,6 +5630,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms() != 50920.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate() != 7203.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan() != 26140.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path() != 16357.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5735,6 +5847,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event() != 12703.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked() != 24981.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() != 57806.toShort()) {
@@ -6205,6 +6320,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() != 33999.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event_id() != 20608.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details() != 54225.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6379,6 +6497,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update() != 13538.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update() != 28731.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call() != 57311.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6434,6 +6555,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error() != 38224.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomupdatelistener_on_update() != 11544.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request() != 3417.toShort()) {
@@ -7013,6 +7137,274 @@ private class AndroidSystemCleanable(
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
+/**
+ * Used to pass back the [`CheckCode`] entered by the user to verify that the
+ * secure channel is indeed secure.
+ */
+public interface CheckCodeSenderInterface {
+    
+    /**
+     * Send the [`CheckCode`].
+     *
+     * Calling this method more than once will result in an error.
+     *
+     * # Arguments
+     *
+     * * `check_code` - The check code in digits representation.
+     */
+    suspend fun `send`(`code`: kotlin.UByte)
+    
+    companion object
+}
+
+/**
+ * Used to pass back the [`CheckCode`] entered by the user to verify that the
+ * secure channel is indeed secure.
+ */
+open class CheckCodeSender: Disposable, AutoCloseable, CheckCodeSenderInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_checkcodesender(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * Send the [`CheckCode`].
+     *
+     * Calling this method more than once will result in an error.
+     *
+     * # Arguments
+     *
+     * * `check_code` - The check code in digits representation.
+     */
+    @Throws(HumanQrLoginException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `send`(`code`: kotlin.UByte) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_checkcodesender_send(
+                thisPtr,
+                FfiConverterUByte.lower(`code`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        HumanQrLoginException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeCheckCodeSender: FfiConverter<CheckCodeSender, Pointer> {
+
+    override fun lower(value: CheckCodeSender): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): CheckCodeSender {
+        return CheckCodeSender(value)
+    }
+
+    override fun read(buf: ByteBuffer): CheckCodeSender {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: CheckCodeSender) = 8UL
+
+    override fun write(value: CheckCodeSender, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
 public interface ClientInterface {
     
     /**
@@ -7317,19 +7709,14 @@ public interface ClientInterface {
     suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String)
     
     /**
-     * Log in using the provided [`QrCodeData`]. The `Client` must be built
-     * by providing [`QrCodeData::server_name`] as the server name for this
-     * login to succeed.
+     * Log in using a QR code.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such
-     * this method requires OAuth 2.0 support as well as sliding sync support.
+     * # Arguments
      *
-     * The usage of the progress_listener is required to transfer the
-     * [`CheckCode`] to the existing client.
-     *
-     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     * * `oidc_configuration` - The data to restore or register the client with
+     * the server.
      */
-    suspend fun `loginWithQrCode`(`qrCodeData`: QrCodeData, `oidcConfiguration`: OidcConfiguration, `progressListener`: QrLoginProgressListener)
+    fun `loginWithQrCode`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler
     
     /**
      * Log the current user out.
@@ -7508,6 +7895,16 @@ public interface ClientInterface {
      * the enablement status.
      */
     fun `subscribeToSendQueueStatus`(`listener`: SendQueueRoomErrorListener): TaskHandle
+    
+    /**
+     * Subscribe to the global send queue update reporter, at the
+     * client-wide level.
+     *
+     * The given listener will be immediately called with
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
+     * the queue.
+     */
+    suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueRoomUpdateListener): TaskHandle
     
     fun `syncService`(): SyncServiceBuilder
     
@@ -8825,38 +9222,23 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
 
     
     /**
-     * Log in using the provided [`QrCodeData`]. The `Client` must be built
-     * by providing [`QrCodeData::server_name`] as the server name for this
-     * login to succeed.
+     * Log in using a QR code.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such
-     * this method requires OAuth 2.0 support as well as sliding sync support.
+     * # Arguments
      *
-     * The usage of the progress_listener is required to transfer the
-     * [`CheckCode`] to the existing client.
-     *
-     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
-     */
-    @Throws(HumanQrLoginException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `loginWithQrCode`(`qrCodeData`: QrCodeData, `oidcConfiguration`: OidcConfiguration, `progressListener`: QrLoginProgressListener) {
-        return uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(
-                thisPtr,
-                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterTypeQrLoginProgressListener.lower(`progressListener`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
-        // Error FFI converter
-        HumanQrLoginException.ErrorHandler,
+     * * `oidc_configuration` - The data to restore or register the client with
+     * the server.
+     */override fun `loginWithQrCode`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler {
+            return FfiConverterTypeLoginWithQrCodeHandler.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(
+        it, FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),_status)
+}
+    }
     )
     }
+    
 
     
     /**
@@ -9540,6 +9922,35 @@ open class Client: Disposable, AutoCloseable, ClientInterface {
     )
     }
     
+
+    
+    /**
+     * Subscribe to the global send queue update reporter, at the
+     * client-wide level.
+     *
+     * The given listener will be immediately called with
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
+     * the queue.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueRoomUpdateListener) : TaskHandle {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_updates(
+                thisPtr,
+                FfiConverterTypeSendQueueRoomUpdateListener.lower(`listener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_pointer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_pointer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
+        // lift function
+        { FfiConverterTypeTaskHandle.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     override fun `syncService`(): SyncServiceBuilder {
             return FfiConverterTypeSyncServiceBuilder.lift(
@@ -13259,6 +13670,366 @@ public object FfiConverterTypeLeaveSpaceHandle: FfiConverter<LeaveSpaceHandle, P
 
 
 /**
+ * Handler for logging in with a QR code.
+ */
+public interface LoginWithQrCodeHandlerInterface {
+    
+    /**
+     * This method allows you to log in by generating a QR code.
+     *
+     * This device needs to call this method and handle its progress updates to
+     * generate a QR code which the existing device can scan and grant the
+     * log in.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     *
+     * For the reverse flow where the existing device generates the QR code
+     * for this device to scan, use [`LoginWithQrCodeHandler::scan`].
+     *
+     * # Arguments
+     *
+     * * `progress_listener` - A progress listener that must also be used to
+     * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    suspend fun `generate`(`progressListener`: GeneratedQrLoginProgressListener)
+    
+    /**
+     * This method allows you to log in with a scanned QR code.
+     *
+     * The existing device needs to display the QR code which this device can
+     * scan, call this method and handle its progress updates to log in.
+     *
+     * For the login to succeed, the [`Client`] associated with the
+     * [`LoginWithQrCodeHandler`] must have been built with
+     * [`QrCodeData::server_name`] as the server name.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     *
+     * For the reverse flow where this device generates the QR code for the
+     * existing device to scan, use [`LoginWithQrCodeHandler::generate`].
+     *
+     * # Arguments
+     *
+     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * * `progress_listener` - A progress listener that must also be used to
+     * transfer the [`CheckCode`] to the existing device.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    suspend fun `scan`(`qrCodeData`: QrCodeData, `progressListener`: QrLoginProgressListener)
+    
+    companion object
+}
+
+/**
+ * Handler for logging in with a QR code.
+ */
+open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHandlerInterface {
+
+    constructor(pointer: Pointer) {
+        this.pointer = pointer
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    /**
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noPointer: NoPointer) {
+        this.pointer = null
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    }
+
+    protected val pointer: Pointer?
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the pointer being freed concurrently.
+        try {
+            return block(this.uniffiClonePointer())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+        override fun run() {
+            pointer?.let { ptr ->
+                uniffiRustCall { status ->
+                    UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_free_loginwithqrcodehandler(ptr, status)
+                }
+            }
+        }
+    }
+
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_clone_loginwithqrcodehandler(pointer!!, status)
+        }
+    }
+
+    
+    /**
+     * This method allows you to log in by generating a QR code.
+     *
+     * This device needs to call this method and handle its progress updates to
+     * generate a QR code which the existing device can scan and grant the
+     * log in.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     *
+     * For the reverse flow where the existing device generates the QR code
+     * for this device to scan, use [`LoginWithQrCodeHandler::scan`].
+     *
+     * # Arguments
+     *
+     * * `progress_listener` - A progress listener that must also be used to
+     * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    @Throws(HumanQrLoginException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `generate`(`progressListener`: GeneratedQrLoginProgressListener) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_generate(
+                thisPtr,
+                FfiConverterTypeGeneratedQrLoginProgressListener.lower(`progressListener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        HumanQrLoginException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * This method allows you to log in with a scanned QR code.
+     *
+     * The existing device needs to display the QR code which this device can
+     * scan, call this method and handle its progress updates to log in.
+     *
+     * For the login to succeed, the [`Client`] associated with the
+     * [`LoginWithQrCodeHandler`] must have been built with
+     * [`QrCodeData::server_name`] as the server name.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     *
+     * For the reverse flow where this device generates the QR code for the
+     * existing device to scan, use [`LoginWithQrCodeHandler::generate`].
+     *
+     * # Arguments
+     *
+     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * * `progress_listener` - A progress listener that must also be used to
+     * transfer the [`CheckCode`] to the existing device.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    @Throws(HumanQrLoginException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `scan`(`qrCodeData`: QrCodeData, `progressListener`: QrLoginProgressListener) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_scan(
+                thisPtr,
+                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeQrLoginProgressListener.lower(`progressListener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        HumanQrLoginException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+    
+    companion object
+    
+}
+
+public object FfiConverterTypeLoginWithQrCodeHandler: FfiConverter<LoginWithQrCodeHandler, Pointer> {
+
+    override fun lower(value: LoginWithQrCodeHandler): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): LoginWithQrCodeHandler {
+        return LoginWithQrCodeHandler(value)
+    }
+
+    override fun read(buf: ByteBuffer): LoginWithQrCodeHandler {
+        // The Rust code always writes pointers as 8 bytes, and will
+        // fail to compile if they don't fit.
+        return lift(Pointer(buf.getLong()))
+    }
+
+    override fun allocationSize(value: LoginWithQrCodeHandler) = 8UL
+
+    override fun write(value: LoginWithQrCodeHandler, buf: ByteBuffer) {
+        // The Rust code always expects pointers written as 8 bytes,
+        // and will fail to compile if they don't fit.
+        buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// to the live Rust struct on the other side of the FFI.
+//
+// Each instance implements core operations for working with the Rust `Arc<T>` and the
+// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque pointer to the underlying Rust struct.
+//     Method calls need to read this pointer from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its pointer should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
+//      before it can pass the pointer over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
  * A file handle that takes ownership of a media file on disk. When the handle
  * is dropped, the file will be removed from the disk.
  */
@@ -15525,6 +16296,19 @@ public interface RoomInterface {
     suspend fun `loadOrFetchEvent`(`eventId`: kotlin.String): TimelineEvent
     
     /**
+     * Mark a room as fully read, by attaching a read receipt to the provided
+     * `event_id`.
+     *
+     * **Warning:** using this method is **NOT** recommended, as providing the
+     * latest event id can cause incorrect read receipts. This method won't
+     * check if sending the read receipt is necessary or valid. It should
+     * *only* be used when some constraint prevents you from instantiating a
+     * [`Timeline`]. For any other case use [`Timeline::mark_as_read`]
+     * instead.
+     */
+    suspend fun `markAsFullyReadUnchecked`(`eventId`: kotlin.String)
+    
+    /**
      * Mark a room as read, by attaching a read receipt on the latest event.
      *
      * Note: this does NOT unset the unread flag; it's the caller's
@@ -16806,6 +17590,39 @@ open class Room: Disposable, AutoCloseable, RoomInterface {
         { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_pointer(future) },
         // lift function
         { FfiConverterTypeTimelineEvent.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Mark a room as fully read, by attaching a read receipt to the provided
+     * `event_id`.
+     *
+     * **Warning:** using this method is **NOT** recommended, as providing the
+     * latest event id can cause incorrect read receipts. This method won't
+     * check if sending the read receipt is necessary or valid. It should
+     * *only* be used when some constraint prevents you from instantiating a
+     * [`Timeline`]. For any other case use [`Timeline::mark_as_read`]
+     * instead.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `markAsFullyReadUnchecked`(`eventId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_fully_read_unchecked(
+                thisPtr,
+                FfiConverterString.lower(`eventId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -25407,6 +26224,11 @@ public interface TimelineInterface {
     suspend fun `getEventTimelineItemByEventId`(`eventId`: kotlin.String): EventTimelineItem
     
     /**
+     * Returns the [`EventId`] of the latest event in the timeline.
+     */
+    suspend fun `latestEventId`(): kotlin.String?
+    
+    /**
      * Load the reply details for the given event id.
      *
      * This will return an `InReplyToDetails` object that contains the details
@@ -25789,6 +26611,29 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface {
         { FfiConverterTypeEventTimelineItem.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the [`EventId`] of the latest event in the timeline.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `latestEventId`() : kotlin.String? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event_id(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalString.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -28575,8 +29420,25 @@ data class ComposerDraft (
     /**
      * The type of draft.
      */
-    var `draftType`: ComposerDraftType
-) {
+    var `draftType`: ComposerDraftType, 
+    /**
+     * Attachments associated with this draft.
+     */
+    var `attachments`: List<DraftAttachment>
+) : Disposable {
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+        Disposable.destroy(this.`plainText`)
+    
+        Disposable.destroy(this.`htmlText`)
+    
+        Disposable.destroy(this.`draftType`)
+    
+        Disposable.destroy(this.`attachments`)
+    
+    }
     
     companion object
 }
@@ -28587,19 +29449,22 @@ public object FfiConverterTypeComposerDraft: FfiConverterRustBuffer<ComposerDraf
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeComposerDraftType.read(buf),
+            FfiConverterSequenceTypeDraftAttachment.read(buf),
         )
     }
 
     override fun allocationSize(value: ComposerDraft) = (
             FfiConverterString.allocationSize(value.`plainText`) +
             FfiConverterOptionalString.allocationSize(value.`htmlText`) +
-            FfiConverterTypeComposerDraftType.allocationSize(value.`draftType`)
+            FfiConverterTypeComposerDraftType.allocationSize(value.`draftType`) +
+            FfiConverterSequenceTypeDraftAttachment.allocationSize(value.`attachments`)
     )
 
     override fun write(value: ComposerDraft, buf: ByteBuffer) {
             FfiConverterString.write(value.`plainText`, buf)
             FfiConverterOptionalString.write(value.`htmlText`, buf)
             FfiConverterTypeComposerDraftType.write(value.`draftType`, buf)
+            FfiConverterSequenceTypeDraftAttachment.write(value.`attachments`, buf)
     }
 }
 
@@ -34368,6 +35233,182 @@ public object FfiConverterTypeDateDividerMode: FfiConverterRustBuffer<DateDivide
 
 
 
+/**
+ * An attachment stored with a composer draft.
+ */
+sealed class DraftAttachment: Disposable  {
+    
+    data class Audio(
+        val `audioInfo`: AudioInfo, 
+        val `source`: UploadSource) : DraftAttachment() {
+        companion object
+    }
+    
+    data class File(
+        val `fileInfo`: FileInfo, 
+        val `source`: UploadSource) : DraftAttachment() {
+        companion object
+    }
+    
+    data class Image(
+        val `imageInfo`: ImageInfo, 
+        val `source`: UploadSource, 
+        val `thumbnailSource`: UploadSource?) : DraftAttachment() {
+        companion object
+    }
+    
+    data class Video(
+        val `videoInfo`: VideoInfo, 
+        val `source`: UploadSource, 
+        val `thumbnailSource`: UploadSource?) : DraftAttachment() {
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is DraftAttachment.Audio -> {
+                
+        Disposable.destroy(this.`audioInfo`)
+    
+        Disposable.destroy(this.`source`)
+    
+                
+            }
+            is DraftAttachment.File -> {
+                
+        Disposable.destroy(this.`fileInfo`)
+    
+        Disposable.destroy(this.`source`)
+    
+                
+            }
+            is DraftAttachment.Image -> {
+                
+        Disposable.destroy(this.`imageInfo`)
+    
+        Disposable.destroy(this.`source`)
+    
+        Disposable.destroy(this.`thumbnailSource`)
+    
+                
+            }
+            is DraftAttachment.Video -> {
+                
+        Disposable.destroy(this.`videoInfo`)
+    
+        Disposable.destroy(this.`source`)
+    
+        Disposable.destroy(this.`thumbnailSource`)
+    
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeDraftAttachment : FfiConverterRustBuffer<DraftAttachment>{
+    override fun read(buf: ByteBuffer): DraftAttachment {
+        return when(buf.getInt()) {
+            1 -> DraftAttachment.Audio(
+                FfiConverterTypeAudioInfo.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
+                )
+            2 -> DraftAttachment.File(
+                FfiConverterTypeFileInfo.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
+                )
+            3 -> DraftAttachment.Image(
+                FfiConverterTypeImageInfo.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
+                FfiConverterOptionalTypeUploadSource.read(buf),
+                )
+            4 -> DraftAttachment.Video(
+                FfiConverterTypeVideoInfo.read(buf),
+                FfiConverterTypeUploadSource.read(buf),
+                FfiConverterOptionalTypeUploadSource.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: DraftAttachment) = when(value) {
+        is DraftAttachment.Audio -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeAudioInfo.allocationSize(value.`audioInfo`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
+            )
+        }
+        is DraftAttachment.File -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeFileInfo.allocationSize(value.`fileInfo`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
+            )
+        }
+        is DraftAttachment.Image -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeImageInfo.allocationSize(value.`imageInfo`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
+                + FfiConverterOptionalTypeUploadSource.allocationSize(value.`thumbnailSource`)
+            )
+        }
+        is DraftAttachment.Video -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeVideoInfo.allocationSize(value.`videoInfo`)
+                + FfiConverterTypeUploadSource.allocationSize(value.`source`)
+                + FfiConverterOptionalTypeUploadSource.allocationSize(value.`thumbnailSource`)
+            )
+        }
+    }
+
+    override fun write(value: DraftAttachment, buf: ByteBuffer) {
+        when(value) {
+            is DraftAttachment.Audio -> {
+                buf.putInt(1)
+                FfiConverterTypeAudioInfo.write(value.`audioInfo`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
+                Unit
+            }
+            is DraftAttachment.File -> {
+                buf.putInt(2)
+                FfiConverterTypeFileInfo.write(value.`fileInfo`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
+                Unit
+            }
+            is DraftAttachment.Image -> {
+                buf.putInt(3)
+                FfiConverterTypeImageInfo.write(value.`imageInfo`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
+                FfiConverterOptionalTypeUploadSource.write(value.`thumbnailSource`, buf)
+                Unit
+            }
+            is DraftAttachment.Video -> {
+                buf.putInt(4)
+                FfiConverterTypeVideoInfo.write(value.`videoInfo`, buf)
+                FfiConverterTypeUploadSource.write(value.`source`, buf)
+                FfiConverterOptionalTypeUploadSource.write(value.`thumbnailSource`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class EditedContent: Disposable  {
     
     data class RoomMessage(
@@ -36693,6 +37734,191 @@ public object FfiConverterTypeGalleryItemType : FfiConverterRustBuffer<GalleryIt
 
 
 
+/**
+ * Enum describing the progress of logging in by generating a QR code and
+ * having an existing device scan it.
+ */
+sealed class GeneratedQrLoginProgress: Disposable  {
+    
+    /**
+     * The login process is starting.
+     */
+    object Starting : GeneratedQrLoginProgress()
+    
+    
+    /**
+     * We have established the secure channel and now need to display the
+     * QR code so that the existing device can scan it.
+     */
+    data class QrReady(
+        val `qrCode`: QrCodeData) : GeneratedQrLoginProgress() {
+        companion object
+    }
+    
+    /**
+     * The existing device has scanned the QR code and is displaying the
+     * checkcode. We now need to ask the user to enter the checkcode so that
+     * we can verify that the channel is indeed secure.
+     */
+    data class QrScanned(
+        val `checkCodeSender`: CheckCodeSender) : GeneratedQrLoginProgress() {
+        companion object
+    }
+    
+    /**
+     * We are waiting for the login and for the OAuth 2.0 authorization server
+     * to give us an access token.
+     */
+    data class WaitingForToken(
+        val `userCode`: kotlin.String) : GeneratedQrLoginProgress() {
+        companion object
+    }
+    
+    /**
+     * We are syncing secrets.
+     */
+    object SyncingSecrets : GeneratedQrLoginProgress()
+    
+    
+    /**
+     * The login has successfully finished.
+     */
+    object Done : GeneratedQrLoginProgress()
+    
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is GeneratedQrLoginProgress.Starting -> {// Nothing to destroy
+            }
+            is GeneratedQrLoginProgress.QrReady -> {
+                
+        Disposable.destroy(this.`qrCode`)
+    
+                
+            }
+            is GeneratedQrLoginProgress.QrScanned -> {
+                
+        Disposable.destroy(this.`checkCodeSender`)
+    
+                
+            }
+            is GeneratedQrLoginProgress.WaitingForToken -> {
+                
+        Disposable.destroy(this.`userCode`)
+    
+                
+            }
+            is GeneratedQrLoginProgress.SyncingSecrets -> {// Nothing to destroy
+            }
+            is GeneratedQrLoginProgress.Done -> {// Nothing to destroy
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+public object FfiConverterTypeGeneratedQrLoginProgress : FfiConverterRustBuffer<GeneratedQrLoginProgress>{
+    override fun read(buf: ByteBuffer): GeneratedQrLoginProgress {
+        return when(buf.getInt()) {
+            1 -> GeneratedQrLoginProgress.Starting
+            2 -> GeneratedQrLoginProgress.QrReady(
+                FfiConverterTypeQrCodeData.read(buf),
+                )
+            3 -> GeneratedQrLoginProgress.QrScanned(
+                FfiConverterTypeCheckCodeSender.read(buf),
+                )
+            4 -> GeneratedQrLoginProgress.WaitingForToken(
+                FfiConverterString.read(buf),
+                )
+            5 -> GeneratedQrLoginProgress.SyncingSecrets
+            6 -> GeneratedQrLoginProgress.Done
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: GeneratedQrLoginProgress) = when(value) {
+        is GeneratedQrLoginProgress.Starting -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is GeneratedQrLoginProgress.QrReady -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeQrCodeData.allocationSize(value.`qrCode`)
+            )
+        }
+        is GeneratedQrLoginProgress.QrScanned -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeCheckCodeSender.allocationSize(value.`checkCodeSender`)
+            )
+        }
+        is GeneratedQrLoginProgress.WaitingForToken -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`userCode`)
+            )
+        }
+        is GeneratedQrLoginProgress.SyncingSecrets -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is GeneratedQrLoginProgress.Done -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: GeneratedQrLoginProgress, buf: ByteBuffer) {
+        when(value) {
+            is GeneratedQrLoginProgress.Starting -> {
+                buf.putInt(1)
+                Unit
+            }
+            is GeneratedQrLoginProgress.QrReady -> {
+                buf.putInt(2)
+                FfiConverterTypeQrCodeData.write(value.`qrCode`, buf)
+                Unit
+            }
+            is GeneratedQrLoginProgress.QrScanned -> {
+                buf.putInt(3)
+                FfiConverterTypeCheckCodeSender.write(value.`checkCodeSender`, buf)
+                Unit
+            }
+            is GeneratedQrLoginProgress.WaitingForToken -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`userCode`, buf)
+                Unit
+            }
+            is GeneratedQrLoginProgress.SyncingSecrets -> {
+                buf.putInt(5)
+                Unit
+            }
+            is GeneratedQrLoginProgress.Done -> {
+                buf.putInt(6)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 
 sealed class HumanQrLoginException: kotlin.Exception() {
@@ -36751,6 +37977,18 @@ sealed class HumanQrLoginException: kotlin.Exception() {
             get() = ""
     }
     
+    class CheckCodeAlreadySent(
+        ) : HumanQrLoginException() {
+        override val message
+            get() = ""
+    }
+    
+    class CheckCodeCannotBeSent(
+        ) : HumanQrLoginException() {
+        override val message
+            get() = ""
+    }
+    
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<HumanQrLoginException> {
         override fun lift(error_buf: RustBuffer.ByValue): HumanQrLoginException = FfiConverterTypeHumanQrLoginError.lift(error_buf)
@@ -36773,6 +38011,8 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
             7 -> HumanQrLoginException.SlidingSyncNotAvailable()
             8 -> HumanQrLoginException.OidcMetadataInvalid()
             9 -> HumanQrLoginException.OtherDeviceNotSignedIn()
+            10 -> HumanQrLoginException.CheckCodeAlreadySent()
+            11 -> HumanQrLoginException.CheckCodeCannotBeSent()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -36815,6 +38055,14 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
+            is HumanQrLoginException.CheckCodeAlreadySent -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is HumanQrLoginException.CheckCodeCannotBeSent -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
         }
     }
 
@@ -36854,6 +38102,14 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
             }
             is HumanQrLoginException.OtherDeviceNotSignedIn -> {
                 buf.putInt(9)
+                Unit
+            }
+            is HumanQrLoginException.CheckCodeAlreadySent -> {
+                buf.putInt(10)
+                Unit
+            }
+            is HumanQrLoginException.CheckCodeCannotBeSent -> {
+                buf.putInt(11)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -40870,7 +42126,8 @@ public object FfiConverterTypeQrCodeDecodeError : FfiConverterRustBuffer<QrCodeD
 
 
 /**
- * Enum describing the progress of the QR-code login.
+ * Enum describing the progress of logging in by scanning a QR code that was
+ * generated on an existing device.
  */
 sealed class QrLoginProgress {
     
@@ -46762,6 +48019,55 @@ public object FfiConverterTypeEnableRecoveryProgressListener: FfiConverterCallba
 
 
 
+public interface GeneratedQrLoginProgressListener {
+    
+    fun `onUpdate`(`state`: GeneratedQrLoginProgress)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceGeneratedQrLoginProgressListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceGeneratedQrLoginProgressListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeGeneratedQrLoginProgressListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeGeneratedQrLoginProgress.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeGeneratedQrLoginProgressListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_generatedqrloginprogresslistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeGeneratedQrLoginProgressListener: FfiConverterCallbackInterface<GeneratedQrLoginProgressListener>()
+
+
+
+
+
 public interface IdentityStatusChangeListener {
     
     fun `call`(`identityStatusChange`: List<IdentityStatusChange>)
@@ -47718,6 +49024,62 @@ internal object uniffiCallbackInterfaceSendQueueRoomErrorListener {
 
 // The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
 public object FfiConverterTypeSendQueueRoomErrorListener: FfiConverterCallbackInterface<SendQueueRoomErrorListener>()
+
+
+
+
+
+/**
+ * A listener to the global (client-wide) update reporter of the send queue.
+ */
+public interface SendQueueRoomUpdateListener {
+    
+    /**
+     * Called every time the send queue emits an update for a given room.
+     */
+    fun `onUpdate`(`roomId`: kotlin.String, `update`: RoomSendQueueUpdate)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSendQueueRoomUpdateListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceSendQueueRoomUpdateListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`roomId`: RustBuffer.ByValue,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSendQueueRoomUpdateListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterString.lift(`roomId`),
+                    FfiConverterTypeRoomSendQueueUpdate.lift(`update`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSendQueueRoomUpdateListener.handleMap.remove(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener.UniffiByValue(
+        `onUpdate`,
+        uniffiFree,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomupdatelistener(vtable)
+    }
+}
+
+// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+public object FfiConverterTypeSendQueueRoomUpdateListener: FfiConverterCallbackInterface<SendQueueRoomUpdateListener>()
 
 
 
@@ -51131,6 +52493,31 @@ public object FfiConverterSequenceTypeAllowRule: FfiConverterRustBuffer<List<All
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeAllowRule.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeDraftAttachment: FfiConverterRustBuffer<List<DraftAttachment>> {
+    override fun read(buf: ByteBuffer): List<DraftAttachment> {
+        val len = buf.getInt()
+        return List<DraftAttachment>(len) {
+            FfiConverterTypeDraftAttachment.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<DraftAttachment>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeDraftAttachment.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<DraftAttachment>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeDraftAttachment.write(it, buf)
         }
     }
 }

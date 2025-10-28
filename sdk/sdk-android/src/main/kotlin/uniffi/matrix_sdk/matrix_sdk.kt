@@ -2074,6 +2074,12 @@ sealed class QrCodeLoginException(message: String): kotlin.Exception(message) {
      */
         class SecretImport(message: String) : QrCodeLoginException(message)
         
+    /**
+     * The other party told us to use a different homeserver but we failed to
+     * reset the server URL.
+     */
+        class ServerReset(message: String) : QrCodeLoginException(message)
+        
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<QrCodeLoginException> {
         override fun lift(error_buf: RustBuffer.ByValue): QrCodeLoginException = FfiConverterTypeQRCodeLoginError.lift(error_buf)
@@ -2093,6 +2099,7 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
             7 -> QrCodeLoginException.SessionTokens(FfiConverterString.read(buf))
             8 -> QrCodeLoginException.DeviceKeyUpload(FfiConverterString.read(buf))
             9 -> QrCodeLoginException.SecretImport(FfiConverterString.read(buf))
+            10 -> QrCodeLoginException.ServerReset(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -2138,6 +2145,10 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
             }
             is QrCodeLoginException.SecretImport -> {
                 buf.putInt(9)
+                Unit
+            }
+            is QrCodeLoginException.ServerReset -> {
+                buf.putInt(10)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
