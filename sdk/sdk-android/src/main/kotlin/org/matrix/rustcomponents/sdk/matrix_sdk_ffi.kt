@@ -1853,6 +1853,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_hi
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_in_memory_store(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
@@ -1863,19 +1865,13 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_cache_size(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_journal_size_limit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_passphrase(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_pool_max_size(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sqlite_store(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained(
 ): Short
@@ -2385,6 +2381,16 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_span_exit(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_span_is_none(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_passphrase(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url(
@@ -2528,6 +2534,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes(
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_current(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_new(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_constructor_sqlitestorebuilder_new(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventtypefilter_exclude(
 ): Short
@@ -2680,11 +2688,11 @@ internal object UniffiLib {
         uniffiCallbackInterfaceUnableToDecryptDelegate.register(this)
         uniffiCallbackInterfaceVerificationStateListener.register(this)
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
-        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
-        uniffi.matrix_sdk.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         uniffi.matrix_sdk_common.uniffiEnsureInitialized()
         uniffi.matrix_sdk_base.uniffiEnsureInitialized()
+        uniffi.matrix_sdk.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
         
     }
     external fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2909,6 +2917,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_homeserver_url(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_in_memory_store(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Long,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -2919,19 +2929,13 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(`ptr`: Lo
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(`ptr`: Long,`serverNameOrUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_cache_size(`ptr`: Long,`cacheSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_journal_size_limit(`ptr`: Long,`limit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_passphrase(`ptr`: Long,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_paths(`ptr`: Long,`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_pool_max_size(`ptr`: Long,`poolMaxSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(`ptr`: Long,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Long,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sqlite_store(`ptr`: Long,`config`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3575,6 +3579,22 @@ external fun uniffi_matrix_sdk_ffi_fn_method_span_exit(`ptr`: Long,uniffi_out_er
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_span_is_none(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Byte
+external fun uniffi_matrix_sdk_ffi_fn_clone_sqlitestorebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_sqlitestorebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_constructor_sqlitestorebuilder_new(`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_cache_size(`ptr`: Long,`cacheSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_journal_size_limit(`ptr`: Long,`limit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_passphrase(`ptr`: Long,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_pool_max_size(`ptr`: Long,`poolMaxSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_system_is_memory_constrained(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_ssohandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_ssohandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4392,6 +4412,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url() != 28347.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_in_memory_store() != 28117.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy() != 5659.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4407,19 +4430,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url() != 30022.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_cache_size() != 32604.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_journal_size_limit() != 21378.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_passphrase() != 55403.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths() != 54230.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_pool_max_size() != 6011.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths() != 40778.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate() != 8576.toShort()) {
@@ -4428,7 +4439,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder() != 39381.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() != 6898.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sqlite_store() != 55579.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() != 30452.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled() != 23935.toShort()) {
@@ -5190,6 +5204,21 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_span_is_none() != 33327.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size() != 52005.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit() != 18671.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_passphrase() != 58378.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size() != 65399.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained() != 16295.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish() != 64706.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5404,6 +5433,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new() != 14105.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_sqlitestorebuilder_new() != 51363.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventtypefilter_exclude() != 53805.toShort()) {
@@ -9438,6 +9470,11 @@ public interface ClientBuilderInterface {
     
     fun `homeserverUrl`(`url`: kotlin.String): ClientBuilder
     
+    /**
+     * Use in-memory session storage.
+     */
+    fun `inMemoryStore`(): ClientBuilder
+    
     fun `proxy`(`url`: kotlin.String): ClientBuilder
     
     /**
@@ -9456,73 +9493,32 @@ public interface ClientBuilderInterface {
     fun `serverNameOrHomeserverUrl`(`serverNameOrUrl`: kotlin.String): ClientBuilder
     
     /**
-     * Set the cache size for the SQLite stores given to
-     * [`ClientBuilder::session_paths`].
+     * Sets the paths that the client will use to store its data and caches
+     * with SQLite.
      *
-     * Each store exposes a SQLite connection. This method controls the cache
-     * size, in **bytes (!)**.
-     *
-     * The cache represents data SQLite holds in memory at once per open
-     * database file. The default cache implementation does not allocate the
-     * full amount of cache memory all at once. Cache memory is allocated
-     * in smaller chunks on an as-needed basis.
-     *
-     * See [`SqliteStoreConfig::cache_size`] to learn more.
-     */
-    fun `sessionCacheSize`(`cacheSize`: kotlin.UInt?): ClientBuilder
-    
-    /**
-     * Set the size limit for the SQLite WAL files of stores given to
-     * [`ClientBuilder::session_paths`].
-     *
-     * Each store uses the WAL journal mode. This method controls the size
-     * limit of the WAL files, in **bytes (!)**.
-     *
-     * See [`SqliteStoreConfig::journal_size_limit`] to learn more.
-     */
-    fun `sessionJournalSizeLimit`(`limit`: kotlin.UInt?): ClientBuilder
-    
-    /**
-     * Set the passphrase for the stores given to
-     * [`ClientBuilder::session_paths`].
-     */
-    fun `sessionPassphrase`(`passphrase`: kotlin.String?): ClientBuilder
-    
-    /**
-     * Sets the paths that the client will use to store its data and caches.
-     * Both paths **must** be unique per session as the SDK stores aren't
-     * capable of handling multiple users, however it is valid to use the
-     * same path for both stores on a single session.
-     *
-     * Leaving this unset tells the client to use an in-memory data store.
+     * Both paths **must** be unique per session as the SDK
+     * stores aren't capable of handling multiple users, however it is
+     * valid to use the same path for both stores on a single session.
      */
     fun `sessionPaths`(`dataPath`: kotlin.String, `cachePath`: kotlin.String): ClientBuilder
-    
-    /**
-     * Set the pool max size for the SQLite stores given to
-     * [`ClientBuilder::session_paths`].
-     *
-     * Each store exposes an async pool of connections. This method controls
-     * the size of the pool. The larger the pool is, the more memory is
-     * consumed, but also the more the app is reactive because it doesn't need
-     * to wait on a pool to be available to run queries.
-     *
-     * See [`SqliteStoreConfig::pool_max_size`] to learn more.
-     */
-    fun `sessionPoolMaxSize`(`poolMaxSize`: kotlin.UInt?): ClientBuilder
     
     fun `setSessionDelegate`(`sessionDelegate`: ClientSessionDelegate): ClientBuilder
     
     fun `slidingSyncVersionBuilder`(`versionBuilder`: SlidingSyncVersionBuilder): ClientBuilder
     
     /**
+     * Use SQLite as the session storage.
+     */
+    fun `sqliteStore`(`config`: SqliteStoreBuilder): ClientBuilder
+    
+    /**
      * Tell the client that the system is memory constrained, like in a push
      * notification process for example.
      *
      * So far, at the time of writing (2025-04-07), it changes the defaults of
-     * [`SqliteStoreConfig`], so one might not need to call
-     * [`ClientBuilder::session_cache_size`] and siblings for example. Please
-     * check [`SqliteStoreConfig::with_low_memory_config`].
+     * `matrix_sdk::SqliteStoreConfig` (if the `sqlite` feature is enabled).
+     * Please check
+     * `matrix_sdk::SqliteStoreConfig::with_low_memory_config`.
      */
     fun `systemIsMemoryConstrained`(): ClientBuilder
     
@@ -9843,6 +9839,22 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
+    
+    /**
+     * Use in-memory session storage.
+     */override fun `inMemoryStore`(): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_in_memory_store(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
     override fun `proxy`(`url`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
@@ -9917,78 +9929,12 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
 
     
     /**
-     * Set the cache size for the SQLite stores given to
-     * [`ClientBuilder::session_paths`].
+     * Sets the paths that the client will use to store its data and caches
+     * with SQLite.
      *
-     * Each store exposes a SQLite connection. This method controls the cache
-     * size, in **bytes (!)**.
-     *
-     * The cache represents data SQLite holds in memory at once per open
-     * database file. The default cache implementation does not allocate the
-     * full amount of cache memory all at once. Cache memory is allocated
-     * in smaller chunks on an as-needed basis.
-     *
-     * See [`SqliteStoreConfig::cache_size`] to learn more.
-     */override fun `sessionCacheSize`(`cacheSize`: kotlin.UInt?): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_cache_size(
-        it,
-        FfiConverterOptionalUInt.lower(`cacheSize`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Set the size limit for the SQLite WAL files of stores given to
-     * [`ClientBuilder::session_paths`].
-     *
-     * Each store uses the WAL journal mode. This method controls the size
-     * limit of the WAL files, in **bytes (!)**.
-     *
-     * See [`SqliteStoreConfig::journal_size_limit`] to learn more.
-     */override fun `sessionJournalSizeLimit`(`limit`: kotlin.UInt?): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_journal_size_limit(
-        it,
-        FfiConverterOptionalUInt.lower(`limit`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Set the passphrase for the stores given to
-     * [`ClientBuilder::session_paths`].
-     */override fun `sessionPassphrase`(`passphrase`: kotlin.String?): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_passphrase(
-        it,
-        FfiConverterOptionalString.lower(`passphrase`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Sets the paths that the client will use to store its data and caches.
-     * Both paths **must** be unique per session as the SDK stores aren't
-     * capable of handling multiple users, however it is valid to use the
-     * same path for both stores on a single session.
-     *
-     * Leaving this unset tells the client to use an in-memory data store.
+     * Both paths **must** be unique per session as the SDK
+     * stores aren't capable of handling multiple users, however it is
+     * valid to use the same path for both stores on a single session.
      */override fun `sessionPaths`(`dataPath`: kotlin.String, `cachePath`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
@@ -9996,30 +9942,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_paths(
         it,
         FfiConverterString.lower(`dataPath`),FfiConverterString.lower(`cachePath`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Set the pool max size for the SQLite stores given to
-     * [`ClientBuilder::session_paths`].
-     *
-     * Each store exposes an async pool of connections. This method controls
-     * the size of the pool. The larger the pool is, the more memory is
-     * consumed, but also the more the app is reactive because it doesn't need
-     * to wait on a pool to be available to run queries.
-     *
-     * See [`SqliteStoreConfig::pool_max_size`] to learn more.
-     */override fun `sessionPoolMaxSize`(`poolMaxSize`: kotlin.UInt?): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_pool_max_size(
-        it,
-        FfiConverterOptionalUInt.lower(`poolMaxSize`),_status)
 }
     }
     )
@@ -10054,13 +9976,29 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
 
     
     /**
+     * Use SQLite as the session storage.
+     */override fun `sqliteStore`(`config`: SqliteStoreBuilder): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sqlite_store(
+        it,
+        FfiConverterTypeSqliteStoreBuilder.lower(`config`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Tell the client that the system is memory constrained, like in a push
      * notification process for example.
      *
      * So far, at the time of writing (2025-04-07), it changes the defaults of
-     * [`SqliteStoreConfig`], so one might not need to call
-     * [`ClientBuilder::session_cache_size`] and siblings for example. Please
-     * check [`SqliteStoreConfig::with_low_memory_config`].
+     * `matrix_sdk::SqliteStoreConfig` (if the `sqlite` feature is enabled).
+     * Please check
+     * `matrix_sdk::SqliteStoreConfig::with_low_memory_config`.
      */override fun `systemIsMemoryConstrained`(): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
@@ -24503,6 +24441,423 @@ public object FfiConverterTypeSpan: FfiConverter<Span, Long> {
     override fun allocationSize(value: Span) = 8UL
 
     override fun write(value: Span, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+//
+/**
+ * A builder for configuring a Sqlite session store.
+ */
+public interface SqliteStoreBuilderInterface {
+    
+    /**
+     * Set the cache size for the stores.
+     *
+     * Each store exposes a SQLite connection. This method controls the
+     * cache size, in **bytes (!)**.
+     *
+     * The cache represents data SQLite holds in memory at once per open
+     * database file. The default cache implementation does not allocate
+     * the full amount of cache memory all at once. Cache memory is
+     * allocated in smaller chunks on an as-needed basis.
+     *
+     * See [`SqliteStoreConfig::cache_size`] to learn more.
+     */
+    fun `cacheSize`(`cacheSize`: kotlin.UInt?): SqliteStoreBuilder
+    
+    /**
+     * Set the size limit for the SQLite WAL files of stores.
+     *
+     * Each store uses the WAL journal mode. This method controls the size
+     * limit of the WAL files, in **bytes (!)**.
+     *
+     * See [`SqliteStoreConfig::journal_size_limit`] to learn more.
+     */
+    fun `journalSizeLimit`(`limit`: kotlin.UInt?): SqliteStoreBuilder
+    
+    /**
+     * Set the passphrase for the stores.
+     */
+    fun `passphrase`(`passphrase`: kotlin.String?): SqliteStoreBuilder
+    
+    /**
+     * Set the pool max size for the stores.
+     *
+     * Each store exposes an async pool of connections. This method
+     * controls the size of the pool. The larger the pool is, the more
+     * memory is consumed, but also the more the app is reactive because it
+     * doesn't need to wait on a pool to be available to run queries.
+     *
+     * See [`SqliteStoreConfig::pool_max_size`] to learn more.
+     */
+    fun `poolMaxSize`(`poolMaxSize`: kotlin.UInt?): SqliteStoreBuilder
+    
+    /**
+     * Tell the client that the system is memory constrained, like in a
+     * push notification process for example.
+     *
+     * So far, at the time of writing (2025-04-07), it changes
+     * the defaults of [`SqliteStoreConfig`]. Please check
+     * [`SqliteStoreConfig::with_low_memory_config`].
+     */
+    fun `systemIsMemoryConstrained`(): SqliteStoreBuilder
+    
+    companion object
+}
+
+/**
+ * A builder for configuring a Sqlite session store.
+ */
+open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+    /**
+     * Construct a [`SqliteStoreBuilder`] and set the paths that the client
+     * will use to store its data and caches.
+     *
+     * Both paths **must** be unique per session as the SDK stores aren't
+     * capable of handling multiple users, however it is valid to use the
+     * same path for both stores on a single session.
+     */
+    constructor(`dataPath`: kotlin.String, `cachePath`: kotlin.String) :
+        this(UniffiWithHandle, 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_sqlitestorebuilder_new(
+    
+        FfiConverterString.lower(`dataPath`),FfiConverterString.lower(`cachePath`),_status)
+}
+    )
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_sqlitestorebuilder(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_sqlitestorebuilder(handle, status)
+        }
+    }
+
+    
+    /**
+     * Set the cache size for the stores.
+     *
+     * Each store exposes a SQLite connection. This method controls the
+     * cache size, in **bytes (!)**.
+     *
+     * The cache represents data SQLite holds in memory at once per open
+     * database file. The default cache implementation does not allocate
+     * the full amount of cache memory all at once. Cache memory is
+     * allocated in smaller chunks on an as-needed basis.
+     *
+     * See [`SqliteStoreConfig::cache_size`] to learn more.
+     */override fun `cacheSize`(`cacheSize`: kotlin.UInt?): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_cache_size(
+        it,
+        FfiConverterOptionalUInt.lower(`cacheSize`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set the size limit for the SQLite WAL files of stores.
+     *
+     * Each store uses the WAL journal mode. This method controls the size
+     * limit of the WAL files, in **bytes (!)**.
+     *
+     * See [`SqliteStoreConfig::journal_size_limit`] to learn more.
+     */override fun `journalSizeLimit`(`limit`: kotlin.UInt?): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_journal_size_limit(
+        it,
+        FfiConverterOptionalUInt.lower(`limit`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set the passphrase for the stores.
+     */override fun `passphrase`(`passphrase`: kotlin.String?): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_passphrase(
+        it,
+        FfiConverterOptionalString.lower(`passphrase`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set the pool max size for the stores.
+     *
+     * Each store exposes an async pool of connections. This method
+     * controls the size of the pool. The larger the pool is, the more
+     * memory is consumed, but also the more the app is reactive because it
+     * doesn't need to wait on a pool to be available to run queries.
+     *
+     * See [`SqliteStoreConfig::pool_max_size`] to learn more.
+     */override fun `poolMaxSize`(`poolMaxSize`: kotlin.UInt?): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_pool_max_size(
+        it,
+        FfiConverterOptionalUInt.lower(`poolMaxSize`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Tell the client that the system is memory constrained, like in a
+     * push notification process for example.
+     *
+     * So far, at the time of writing (2025-04-07), it changes
+     * the defaults of [`SqliteStoreConfig`]. Please check
+     * [`SqliteStoreConfig::with_low_memory_config`].
+     */override fun `systemIsMemoryConstrained`(): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_system_is_memory_constrained(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSqliteStoreBuilder: FfiConverter<SqliteStoreBuilder, Long> {
+    override fun lower(value: SqliteStoreBuilder): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): SqliteStoreBuilder {
+        return SqliteStoreBuilder(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): SqliteStoreBuilder {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: SqliteStoreBuilder) = 8UL
+
+    override fun write(value: SqliteStoreBuilder, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
