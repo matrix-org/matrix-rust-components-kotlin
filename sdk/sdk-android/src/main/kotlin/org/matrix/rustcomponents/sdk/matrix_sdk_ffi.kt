@@ -2688,11 +2688,11 @@ internal object UniffiLib {
         uniffiCallbackInterfaceUnableToDecryptDelegate.register(this)
         uniffiCallbackInterfaceVerificationStateListener.register(this)
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
-        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_base.uniffiEnsureInitialized()
         uniffi.matrix_sdk.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_base.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
         uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         
     }
     external fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
