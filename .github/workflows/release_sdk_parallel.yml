@@ -10,6 +10,9 @@ on:
       sdk-version:
         description: 'The new version for the sdk library.'
         required: true
+      clean-build:
+        description: 'Perform a clean build'
+        default: 'false'
 
 jobs:
   build_targets:
@@ -37,6 +40,7 @@ jobs:
           git config user.email github-actions@github.com
 
       - uses: Swatinem/rust-cache@v2
+        if: ${{ github.event.inputs.clean-build != 'true' }}
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
           cache-on-failure: true
