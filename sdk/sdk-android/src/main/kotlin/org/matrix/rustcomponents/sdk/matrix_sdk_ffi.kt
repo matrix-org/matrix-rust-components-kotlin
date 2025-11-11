@@ -701,6 +701,12 @@ internal interface UniffiCallbackInterfaceEnableRecoveryProgressListenerMethod0 
 internal interface UniffiCallbackInterfaceGeneratedQrLoginProgressListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceGrantGeneratedQrLoginProgressListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceGrantQrLoginProgressListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`identityStatusChange`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -793,6 +799,9 @@ internal interface UniffiCallbackInterfaceSpaceRoomListSpaceListenerMethod0 : co
 }
 internal interface UniffiCallbackInterfaceSpaceServiceJoinedSpacesListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomUpdates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceSyncNotificationListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`notification`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSyncServiceStateObserverMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -961,6 +970,44 @@ internal open class UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListene
     ): UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceGrantGeneratedQrLoginProgressListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceGrantGeneratedQrLoginProgressListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceGrantQrLoginProgressListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceGrantQrLoginProgressListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceGrantQrLoginProgressListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceGrantQrLoginProgressListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceGrantQrLoginProgressListener) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `onUpdate` = other.`onUpdate`
@@ -1460,6 +1507,25 @@ internal open class UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListene
     }
 
 }
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onNotification")
+internal open class UniffiVTableCallbackInterfaceSyncNotificationListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onNotification`: UniffiCallbackInterfaceSyncNotificationListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onNotification`: UniffiCallbackInterfaceSyncNotificationListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceSyncNotificationListener(`uniffiFree`,`uniffiClone`,`onNotification`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSyncNotificationListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onNotification` = other.`onNotification`
+    }
+
+}
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
 internal open class UniffiVTableCallbackInterfaceSyncServiceStateObserver(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
@@ -1745,15 +1811,19 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_qr_code(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_notification_client(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_account_data_event(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_room_account_data_event(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
 ): Short
@@ -1922,6 +1992,10 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
 ): Short
@@ -2559,6 +2633,10 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistene
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_grantgeneratedqrloginprogresslistener_on_update(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_grantqrloginprogresslistener_on_update(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
@@ -2621,6 +2699,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistspacelistener_on
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_syncnotificationlistener_on_notification(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
@@ -2657,6 +2737,8 @@ internal object UniffiLib {
         uniffiCallbackInterfaceClientSessionDelegate.register(this)
         uniffiCallbackInterfaceEnableRecoveryProgressListener.register(this)
         uniffiCallbackInterfaceGeneratedQrLoginProgressListener.register(this)
+        uniffiCallbackInterfaceGrantGeneratedQrLoginProgressListener.register(this)
+        uniffiCallbackInterfaceGrantQrLoginProgressListener.register(this)
         uniffiCallbackInterfaceIdentityStatusChangeListener.register(this)
         uniffiCallbackInterfaceIgnoredUsersListener.register(this)
         uniffiCallbackInterfaceKnockRequestsListener.register(this)
@@ -2682,6 +2764,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceSpaceRoomListPaginationStateListener.register(this)
         uniffiCallbackInterfaceSpaceRoomListSpaceListener.register(this)
         uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener.register(this)
+        uniffiCallbackInterfaceSyncNotificationListener.register(this)
         uniffiCallbackInterfaceSyncServiceStateObserver.register(this)
         uniffiCallbackInterfaceTimelineListener.register(this)
         uniffiCallbackInterfaceTypingNotificationsListener.register(this)
@@ -2689,9 +2772,9 @@ internal object UniffiLib {
         uniffiCallbackInterfaceVerificationStateListener.register(this)
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
         uniffi.matrix_sdk.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
         uniffi.matrix_sdk_base.uniffiEnsureInitialized()
         uniffi.matrix_sdk_common.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
         uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         
     }
@@ -2803,15 +2886,19 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(`ptr`: Long
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(`ptr`: Long,`oidcConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_new_grant_login_with_qr_code_handler(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(`ptr`: Long,`oidcConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Long,`processSetup`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_account_data_event(`ptr`: Long,`eventType`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_room_account_data_event(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handler(`ptr`: Long,`listener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_remove_avatar(`ptr`: Long,
 ): Long
@@ -2990,6 +3077,14 @@ external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state_liste
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(`ptr`: Long,`progressListener`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_e2ee_initialization_tasks(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_clone_grantloginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_grantloginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_generate(`ptr`: Long,`progressListener`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_scan(`ptr`: Long,`qrCodeData`: Long,`progressListener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_homeserverlogindetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3799,6 +3894,10 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_enablerecoveryprogres
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_generatedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener,
 ): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantgeneratedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener,
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGrantQrLoginProgressListener,
+): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(`vtable`: UniffiVTableCallbackInterfaceIdentityStatusChangeListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_ignoreduserslistener(`vtable`: UniffiVTableCallbackInterfaceIgnoredUsersListener,
@@ -3848,6 +3947,8 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistpaginati
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistspacelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicejoinedspaceslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener,
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncnotificationlistener(`vtable`: UniffiVTableCallbackInterfaceSyncNotificationListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncservicestateobserver(`vtable`: UniffiVTableCallbackInterfaceSyncServiceStateObserver,
 ): Unit
@@ -4250,10 +4351,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback() != 32591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_qr_code() != 2487.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() != 42911.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler() != 48299.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler() != 4124.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() != 37308.toShort()) {
@@ -4263,6 +4367,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_observe_room_account_data_event() != 15699.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler() != 47103.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar() != 29033.toShort()) {
@@ -4517,6 +4624,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks() != 41585.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate() != 56670.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan() != 60730.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version() != 36573.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4580,10 +4693,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms() != 50920.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate() != 7203.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate() != 59689.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan() != 26140.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan() != 53560.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path() != 16357.toShort()) {
@@ -5471,6 +5584,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update() != 28731.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_grantgeneratedqrloginprogresslistener_on_update() != 2320.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_grantqrloginprogresslistener_on_update() != 35830.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call() != 57311.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -5562,6 +5681,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update() != 19262.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncnotificationlistener_on_notification() != 38017.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update() != 62231.toShort()) {
@@ -6821,19 +6943,26 @@ public interface ClientInterface {
     suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String)
     
     /**
-     * Log in using a QR code.
+     * Log the current user out.
+     */
+    suspend fun `logout`()
+    
+    /**
+     * Create a handler for granting login from this device to a new device by
+     * way of a QR code.
+     */
+    fun `newGrantLoginWithQrCodeHandler`(): GrantLoginWithQrCodeHandler
+    
+    /**
+     * Create a handler for requesting an existing device to grant login to
+     * this device by way of a QR code.
      *
      * # Arguments
      *
      * * `oidc_configuration` - The data to restore or register the client with
      * the server.
      */
-    fun `loginWithQrCode`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler
-    
-    /**
-     * Log the current user out.
-     */
-    suspend fun `logout`()
+    fun `newLoginWithQrCodeHandler`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler
     
     suspend fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClient
     
@@ -6854,6 +6983,21 @@ public interface ClientInterface {
      * they will see all values.
      */
     fun `observeRoomAccountDataEvent`(`roomId`: kotlin.String, `eventType`: RoomAccountDataEventType, `listener`: RoomAccountDataListener): TaskHandle
+    
+    /**
+     * Register a handler for notifications generated from sync responses.
+     *
+     * The handler will be called during sync for each event that triggers
+     * a notification based on the user's push rules.
+     *
+     * The handler receives:
+     * - The notification with push actions and event data
+     * - The room ID where the notification occurred
+     *
+     * This is useful for implementing custom notification logic, such as
+     * displaying local notifications or updating notification badges.
+     */
+    suspend fun `registerNotificationHandler`(`listener`: SyncNotificationListener)
     
     suspend fun `removeAvatar`()
     
@@ -8356,27 +8500,6 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Log in using a QR code.
-     *
-     * # Arguments
-     *
-     * * `oidc_configuration` - The data to restore or register the client with
-     * the server.
-     */override fun `loginWithQrCode`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler {
-            return FfiConverterTypeLoginWithQrCodeHandler.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_login_with_qr_code(
-        it,
-        FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
      * Log the current user out.
      */
     @Throws(ClientException::class)
@@ -8399,6 +8522,45 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Create a handler for granting login from this device to a new device by
+     * way of a QR code.
+     */override fun `newGrantLoginWithQrCodeHandler`(): GrantLoginWithQrCodeHandler {
+            return FfiConverterTypeGrantLoginWithQrCodeHandler.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_new_grant_login_with_qr_code_handler(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Create a handler for requesting an existing device to grant login to
+     * this device by way of a QR code.
+     *
+     * # Arguments
+     *
+     * * `oidc_configuration` - The data to restore or register the client with
+     * the server.
+     */override fun `newLoginWithQrCodeHandler`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler {
+            return FfiConverterTypeLoginWithQrCodeHandler.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(
+        it,
+        FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),_status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(ClientException::class)
@@ -8461,6 +8623,40 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     )
     }
     
+
+    
+    /**
+     * Register a handler for notifications generated from sync responses.
+     *
+     * The handler will be called during sync for each event that triggers
+     * a notification based on the user's push rules.
+     *
+     * The handler receives:
+     * - The notification with push actions and event data
+     * - The room ID where the notification occurred
+     *
+     * This is useful for implementing custom notification logic, such as
+     * displaying local notifications or updating notification badges.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `registerNotificationHandler`(`listener`: SyncNotificationListener) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handler(
+                uniffiHandle,
+                FfiConverterTypeSyncNotificationListener.lower(`listener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -10967,6 +11163,376 @@ public object FfiConverterTypeEncryption: FfiConverter<Encryption, Long> {
 
 
 //
+/**
+ * Handler for granting login in with a QR code.
+ */
+public interface GrantLoginWithQrCodeHandlerInterface {
+    
+    /**
+     * This method allows you to grant login by generating a QR code.
+     *
+     * This device needs to call this method and handle its progress updates to
+     * generate a QR code which the new device can scan to log in.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support.
+     *
+     * For the reverse flow where the existing device generates the QR code
+     * for this device to scan, use [`GrantLoginWithQrCodeHandler::scan`].
+     *
+     * # Arguments
+     *
+     * * `progress_listener` - A progress listener that must also be used to
+     * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    suspend fun `generate`(`progressListener`: GrantGeneratedQrLoginProgressListener)
+    
+    /**
+     * This method allows you to grant login with a scanned QR code.
+     *
+     * The new device needs to display the QR code which this device can
+     * scan, call this method and handle its progress updates to grant the
+     * login.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support.
+     *
+     * For the reverse flow where this device generates the QR code for the
+     * existing device to scan, use [`GrantLoginWithQrCodeHandler::generate`].
+     *
+     * # Arguments
+     *
+     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * * `progress_listener` - A progress listener that must also be used to
+     * transfer the [`CheckCode`] to the new device.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    suspend fun `scan`(`qrCodeData`: QrCodeData, `progressListener`: GrantQrLoginProgressListener)
+    
+    companion object
+}
+
+/**
+ * Handler for granting login in with a QR code.
+ */
+open class GrantLoginWithQrCodeHandler: Disposable, AutoCloseable, GrantLoginWithQrCodeHandlerInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_grantloginwithqrcodehandler(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_grantloginwithqrcodehandler(handle, status)
+        }
+    }
+
+    
+    /**
+     * This method allows you to grant login by generating a QR code.
+     *
+     * This device needs to call this method and handle its progress updates to
+     * generate a QR code which the new device can scan to log in.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support.
+     *
+     * For the reverse flow where the existing device generates the QR code
+     * for this device to scan, use [`GrantLoginWithQrCodeHandler::scan`].
+     *
+     * # Arguments
+     *
+     * * `progress_listener` - A progress listener that must also be used to
+     * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    @Throws(HumanQrGrantLoginException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `generate`(`progressListener`: GrantGeneratedQrLoginProgressListener) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_generate(
+                uniffiHandle,
+                FfiConverterTypeGrantGeneratedQrLoginProgressListener.lower(`progressListener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        HumanQrGrantLoginException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * This method allows you to grant login with a scanned QR code.
+     *
+     * The new device needs to display the QR code which this device can
+     * scan, call this method and handle its progress updates to grant the
+     * login.
+     *
+     * This method uses the login mechanism described in [MSC4108]. As such,
+     * it requires OAuth 2.0 support.
+     *
+     * For the reverse flow where this device generates the QR code for the
+     * existing device to scan, use [`GrantLoginWithQrCodeHandler::generate`].
+     *
+     * # Arguments
+     *
+     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * * `progress_listener` - A progress listener that must also be used to
+     * transfer the [`CheckCode`] to the new device.
+     *
+     * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
+     */
+    @Throws(HumanQrGrantLoginException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `scan`(`qrCodeData`: QrCodeData, `progressListener`: GrantQrLoginProgressListener) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_scan(
+                uniffiHandle,
+                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeGrantQrLoginProgressListener.lower(`progressListener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        HumanQrGrantLoginException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGrantLoginWithQrCodeHandler: FfiConverter<GrantLoginWithQrCodeHandler, Long> {
+    override fun lower(value: GrantLoginWithQrCodeHandler): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): GrantLoginWithQrCodeHandler {
+        return GrantLoginWithQrCodeHandler(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): GrantLoginWithQrCodeHandler {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: GrantLoginWithQrCodeHandler) = 8UL
+
+    override fun write(value: GrantLoginWithQrCodeHandler, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+//
 public interface HomeserverLoginDetailsInterface {
     
     /**
@@ -12933,7 +13499,7 @@ public interface LoginWithQrCodeHandlerInterface {
      * log in.
      *
      * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     * it requires OAuth 2.0 support.
      *
      * For the reverse flow where the existing device generates the QR code
      * for this device to scan, use [`LoginWithQrCodeHandler::scan`].
@@ -12958,7 +13524,7 @@ public interface LoginWithQrCodeHandlerInterface {
      * [`QrCodeData::server_name`] as the server name.
      *
      * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     * it requires OAuth 2.0 support.
      *
      * For the reverse flow where this device generates the QR code for the
      * existing device to scan, use [`LoginWithQrCodeHandler::generate`].
@@ -13084,7 +13650,7 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
      * log in.
      *
      * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     * it requires OAuth 2.0 support.
      *
      * For the reverse flow where the existing device generates the QR code
      * for this device to scan, use [`LoginWithQrCodeHandler::scan`].
@@ -13129,7 +13695,7 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
      * [`QrCodeData::server_name`] as the server name.
      *
      * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support as well as Sliding Sync support.
+     * it requires OAuth 2.0 support.
      *
      * For the reverse flow where this device generates the QR code for the
      * existing device to scan, use [`LoginWithQrCodeHandler::generate`].
@@ -31521,6 +32087,11 @@ data class NotificationItem (
     var `hasMention`: kotlin.Boolean?
     , 
     var `threadId`: kotlin.String?
+    , 
+    /**
+     * The push actions for this notification (notify, sound, highlight, etc.).
+     */
+    var `actions`: List<Action>?
     
 ): Disposable{
     
@@ -31535,7 +32106,8 @@ data class NotificationItem (
         this.`roomInfo`,
         this.`isNoisy`,
         this.`hasMention`,
-        this.`threadId`
+        this.`threadId`,
+        this.`actions`
     )
     }
     
@@ -31554,6 +32126,7 @@ public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<Notificat
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalSequenceTypeAction.read(buf),
         )
     }
 
@@ -31563,7 +32136,8 @@ public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<Notificat
             FfiConverterTypeNotificationRoomInfo.allocationSize(value.`roomInfo`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isNoisy`) +
             FfiConverterOptionalBoolean.allocationSize(value.`hasMention`) +
-            FfiConverterOptionalString.allocationSize(value.`threadId`)
+            FfiConverterOptionalString.allocationSize(value.`threadId`) +
+            FfiConverterOptionalSequenceTypeAction.allocationSize(value.`actions`)
     )
 
     override fun write(value: NotificationItem, buf: ByteBuffer) {
@@ -31573,6 +32147,7 @@ public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<Notificat
             FfiConverterOptionalBoolean.write(value.`isNoisy`, buf)
             FfiConverterOptionalBoolean.write(value.`hasMention`, buf)
             FfiConverterOptionalString.write(value.`threadId`, buf)
+            FfiConverterOptionalSequenceTypeAction.write(value.`actions`, buf)
     }
 }
 
@@ -39436,6 +40011,603 @@ public object FfiConverterTypeGeneratedQrLoginProgress : FfiConverterRustBuffer<
 
 
 
+/**
+ * Enum describing the progress of granting login by generating a QR code to
+ * be scanned on the new device.
+ */
+sealed class GrantGeneratedQrLoginProgress: Disposable  {
+    
+    /**
+     * The login process is starting.
+     */
+    object Starting : GrantGeneratedQrLoginProgress()
+    
+    
+    /**
+     * We have established the secure channel and now need to display the
+     * QR code so that the existing device can scan it.
+     */
+    data class QrReady(
+        val `qrCode`: QrCodeData) : GrantGeneratedQrLoginProgress()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The existing device has scanned the QR code and is displaying the
+     * checkcode. We now need to ask the user to enter the checkcode so that
+     * we can verify that the channel is indeed secure.
+     */
+    data class QrScanned(
+        val `checkCodeSender`: CheckCodeSender) : GrantGeneratedQrLoginProgress()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The secure channel has been confirmed using the [`CheckCode`] and this
+     * device is waiting for the authorization to complete.
+     */
+    data class WaitingForAuth(
+        /**
+         * A URI to open in a (secure) system browser to verify the new login.
+         */
+        val `verificationUri`: kotlin.String) : GrantGeneratedQrLoginProgress()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * We are syncing secrets.
+     */
+    object SyncingSecrets : GrantGeneratedQrLoginProgress()
+    
+    
+    /**
+     * The login has successfully finished.
+     */
+    object Done : GrantGeneratedQrLoginProgress()
+    
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is GrantGeneratedQrLoginProgress.Starting -> {// Nothing to destroy
+            }
+            is GrantGeneratedQrLoginProgress.QrReady -> {
+                
+    Disposable.destroy(
+        this.`qrCode`
+    )
+                
+            }
+            is GrantGeneratedQrLoginProgress.QrScanned -> {
+                
+    Disposable.destroy(
+        this.`checkCodeSender`
+    )
+                
+            }
+            is GrantGeneratedQrLoginProgress.WaitingForAuth -> {
+                
+    Disposable.destroy(
+        this.`verificationUri`
+    )
+                
+            }
+            is GrantGeneratedQrLoginProgress.SyncingSecrets -> {// Nothing to destroy
+            }
+            is GrantGeneratedQrLoginProgress.Done -> {// Nothing to destroy
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGrantGeneratedQrLoginProgress : FfiConverterRustBuffer<GrantGeneratedQrLoginProgress>{
+    override fun read(buf: ByteBuffer): GrantGeneratedQrLoginProgress {
+        return when(buf.getInt()) {
+            1 -> GrantGeneratedQrLoginProgress.Starting
+            2 -> GrantGeneratedQrLoginProgress.QrReady(
+                FfiConverterTypeQrCodeData.read(buf),
+                )
+            3 -> GrantGeneratedQrLoginProgress.QrScanned(
+                FfiConverterTypeCheckCodeSender.read(buf),
+                )
+            4 -> GrantGeneratedQrLoginProgress.WaitingForAuth(
+                FfiConverterString.read(buf),
+                )
+            5 -> GrantGeneratedQrLoginProgress.SyncingSecrets
+            6 -> GrantGeneratedQrLoginProgress.Done
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: GrantGeneratedQrLoginProgress) = when(value) {
+        is GrantGeneratedQrLoginProgress.Starting -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is GrantGeneratedQrLoginProgress.QrReady -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeQrCodeData.allocationSize(value.`qrCode`)
+            )
+        }
+        is GrantGeneratedQrLoginProgress.QrScanned -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeCheckCodeSender.allocationSize(value.`checkCodeSender`)
+            )
+        }
+        is GrantGeneratedQrLoginProgress.WaitingForAuth -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`verificationUri`)
+            )
+        }
+        is GrantGeneratedQrLoginProgress.SyncingSecrets -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is GrantGeneratedQrLoginProgress.Done -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: GrantGeneratedQrLoginProgress, buf: ByteBuffer) {
+        when(value) {
+            is GrantGeneratedQrLoginProgress.Starting -> {
+                buf.putInt(1)
+                Unit
+            }
+            is GrantGeneratedQrLoginProgress.QrReady -> {
+                buf.putInt(2)
+                FfiConverterTypeQrCodeData.write(value.`qrCode`, buf)
+                Unit
+            }
+            is GrantGeneratedQrLoginProgress.QrScanned -> {
+                buf.putInt(3)
+                FfiConverterTypeCheckCodeSender.write(value.`checkCodeSender`, buf)
+                Unit
+            }
+            is GrantGeneratedQrLoginProgress.WaitingForAuth -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`verificationUri`, buf)
+                Unit
+            }
+            is GrantGeneratedQrLoginProgress.SyncingSecrets -> {
+                buf.putInt(5)
+                Unit
+            }
+            is GrantGeneratedQrLoginProgress.Done -> {
+                buf.putInt(6)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * Enum describing the progress of granting login in by scanning a QR code that
+ * was generated on a new device.
+ */
+sealed class GrantQrLoginProgress {
+    
+    /**
+     * The login process is starting.
+     */
+    object Starting : GrantQrLoginProgress()
+    
+    
+    /**
+     * We established a secure channel with the other device.
+     */
+    data class EstablishingSecureChannel(
+        /**
+         * The check code that the device should display so the other device
+         * can confirm that the channel is secure as well.
+         */
+        val `checkCode`: kotlin.UByte, 
+        /**
+         * The string representation of the check code, will be guaranteed to
+         * be 2 characters long, preserving the leading zero if the
+         * first digit is a zero.
+         */
+        val `checkCodeString`: kotlin.String) : GrantQrLoginProgress()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The secure channel has been confirmed using the [`CheckCode`] and this
+     * device is waiting for the authorization to complete.
+     */
+    data class WaitingForAuth(
+        /**
+         * A URI to open in a (secure) system browser to verify the new login.
+         */
+        val `verificationUri`: kotlin.String) : GrantQrLoginProgress()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * We are syncing secrets.
+     */
+    object SyncingSecrets : GrantQrLoginProgress()
+    
+    
+    /**
+     * The login has successfully finished.
+     */
+    object Done : GrantQrLoginProgress()
+    
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGrantQrLoginProgress : FfiConverterRustBuffer<GrantQrLoginProgress>{
+    override fun read(buf: ByteBuffer): GrantQrLoginProgress {
+        return when(buf.getInt()) {
+            1 -> GrantQrLoginProgress.Starting
+            2 -> GrantQrLoginProgress.EstablishingSecureChannel(
+                FfiConverterUByte.read(buf),
+                FfiConverterString.read(buf),
+                )
+            3 -> GrantQrLoginProgress.WaitingForAuth(
+                FfiConverterString.read(buf),
+                )
+            4 -> GrantQrLoginProgress.SyncingSecrets
+            5 -> GrantQrLoginProgress.Done
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: GrantQrLoginProgress) = when(value) {
+        is GrantQrLoginProgress.Starting -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is GrantQrLoginProgress.EstablishingSecureChannel -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUByte.allocationSize(value.`checkCode`)
+                + FfiConverterString.allocationSize(value.`checkCodeString`)
+            )
+        }
+        is GrantQrLoginProgress.WaitingForAuth -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`verificationUri`)
+            )
+        }
+        is GrantQrLoginProgress.SyncingSecrets -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is GrantQrLoginProgress.Done -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: GrantQrLoginProgress, buf: ByteBuffer) {
+        when(value) {
+            is GrantQrLoginProgress.Starting -> {
+                buf.putInt(1)
+                Unit
+            }
+            is GrantQrLoginProgress.EstablishingSecureChannel -> {
+                buf.putInt(2)
+                FfiConverterUByte.write(value.`checkCode`, buf)
+                FfiConverterString.write(value.`checkCodeString`, buf)
+                Unit
+            }
+            is GrantQrLoginProgress.WaitingForAuth -> {
+                buf.putInt(3)
+                FfiConverterString.write(value.`verificationUri`, buf)
+                Unit
+            }
+            is GrantQrLoginProgress.SyncingSecrets -> {
+                buf.putInt(4)
+                Unit
+            }
+            is GrantQrLoginProgress.Done -> {
+                buf.putInt(5)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class HistoryVisibility {
+    
+    /**
+     * Previous events are accessible to newly joined members from the point
+     * they were invited onwards.
+     *
+     * Events stop being accessible when the member' state changes to
+     * something other than *invite* or *join*.
+     */
+    object Invited : HistoryVisibility()
+    
+    
+    /**
+     * Previous events are accessible to newly joined members from the point
+     * they joined the room onwards.
+     * Events stop being accessible when the member' state changes to
+     * something other than *join*.
+     */
+    object Joined : HistoryVisibility()
+    
+    
+    /**
+     * Previous events are always accessible to newly joined members.
+     *
+     * All events in the room are accessible, even those sent when the member
+     * was not a part of the room.
+     */
+    object Shared : HistoryVisibility()
+    
+    
+    /**
+     * All events while this is the `HistoryVisibility` value may be shared by
+     * any participating homeserver with anyone, regardless of whether they
+     * have ever joined the room.
+     */
+    object WorldReadable : HistoryVisibility()
+    
+    
+    /**
+     * A custom history visibility, up for interpretation by the consumer.
+     */
+    data class Custom(
+        /**
+         * The string representation for this custom history visibility.
+         */
+        val `repr`: kotlin.String) : HistoryVisibility()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHistoryVisibility : FfiConverterRustBuffer<HistoryVisibility>{
+    override fun read(buf: ByteBuffer): HistoryVisibility {
+        return when(buf.getInt()) {
+            1 -> HistoryVisibility.Invited
+            2 -> HistoryVisibility.Joined
+            3 -> HistoryVisibility.Shared
+            4 -> HistoryVisibility.WorldReadable
+            5 -> HistoryVisibility.Custom(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: HistoryVisibility) = when(value) {
+        is HistoryVisibility.Invited -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is HistoryVisibility.Joined -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is HistoryVisibility.Shared -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is HistoryVisibility.WorldReadable -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is HistoryVisibility.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`repr`)
+            )
+        }
+    }
+
+    override fun write(value: HistoryVisibility, buf: ByteBuffer) {
+        when(value) {
+            is HistoryVisibility.Invited -> {
+                buf.putInt(1)
+                Unit
+            }
+            is HistoryVisibility.Joined -> {
+                buf.putInt(2)
+                Unit
+            }
+            is HistoryVisibility.Shared -> {
+                buf.putInt(3)
+                Unit
+            }
+            is HistoryVisibility.WorldReadable -> {
+                buf.putInt(4)
+                Unit
+            }
+            is HistoryVisibility.Custom -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`repr`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+
+sealed class HumanQrGrantLoginException(message: String): kotlin.Exception(message) {
+        
+    /**
+     * The requested device ID is already in use.
+     */
+        class DeviceIdAlreadyInUse(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The check code was incorrect.
+     */
+        class InvalidCheckCode(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The other client proposed an unsupported protocol.
+     */
+        class UnsupportedProtocol(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * Secrets backup not set up properly.
+     */
+        class MissingSecretsBackup(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The device could not be created.
+     */
+        class UnableToCreateDevice(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * An unknown error has happened.
+     */
+        class Unknown(message: String) : HumanQrGrantLoginException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<HumanQrGrantLoginException> {
+        override fun lift(error_buf: RustBuffer.ByValue): HumanQrGrantLoginException = FfiConverterTypeHumanQrGrantLoginError.lift(error_buf)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeHumanQrGrantLoginError : FfiConverterRustBuffer<HumanQrGrantLoginException> {
+    override fun read(buf: ByteBuffer): HumanQrGrantLoginException {
+        
+            return when(buf.getInt()) {
+            1 -> HumanQrGrantLoginException.DeviceIdAlreadyInUse(FfiConverterString.read(buf))
+            2 -> HumanQrGrantLoginException.InvalidCheckCode(FfiConverterString.read(buf))
+            3 -> HumanQrGrantLoginException.UnsupportedProtocol(FfiConverterString.read(buf))
+            4 -> HumanQrGrantLoginException.MissingSecretsBackup(FfiConverterString.read(buf))
+            5 -> HumanQrGrantLoginException.UnableToCreateDevice(FfiConverterString.read(buf))
+            6 -> HumanQrGrantLoginException.Unknown(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: HumanQrGrantLoginException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: HumanQrGrantLoginException, buf: ByteBuffer) {
+        when(value) {
+            is HumanQrGrantLoginException.DeviceIdAlreadyInUse -> {
+                buf.putInt(1)
+                Unit
+            }
+            is HumanQrGrantLoginException.InvalidCheckCode -> {
+                buf.putInt(2)
+                Unit
+            }
+            is HumanQrGrantLoginException.UnsupportedProtocol -> {
+                buf.putInt(3)
+                Unit
+            }
+            is HumanQrGrantLoginException.MissingSecretsBackup -> {
+                buf.putInt(4)
+                Unit
+            }
+            is HumanQrGrantLoginException.UnableToCreateDevice -> {
+                buf.putInt(5)
+                Unit
+            }
+            is HumanQrGrantLoginException.Unknown -> {
+                buf.putInt(6)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
 
 
 sealed class HumanQrLoginException: kotlin.Exception() {
@@ -42866,8 +44038,14 @@ sealed class OtherState {
     object RoomCanonicalAlias : OtherState()
     
     
-    object RoomCreate : OtherState()
-    
+    data class RoomCreate(
+        val `federate`: kotlin.Boolean?) : OtherState()
+        
+    {
+        
+
+        companion object
+    }
     
     object RoomEncryption : OtherState()
     
@@ -42875,8 +44053,14 @@ sealed class OtherState {
     object RoomGuestAccess : OtherState()
     
     
-    object RoomHistoryVisibility : OtherState()
-    
+    data class RoomHistoryVisibility(
+        val `historyVisibility`: HistoryVisibility?) : OtherState()
+        
+    {
+        
+
+        companion object
+    }
     
     object RoomJoinRules : OtherState()
     
@@ -42967,10 +44151,14 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
                 FfiConverterOptionalString.read(buf),
                 )
             6 -> OtherState.RoomCanonicalAlias
-            7 -> OtherState.RoomCreate
+            7 -> OtherState.RoomCreate(
+                FfiConverterOptionalBoolean.read(buf),
+                )
             8 -> OtherState.RoomEncryption
             9 -> OtherState.RoomGuestAccess
-            10 -> OtherState.RoomHistoryVisibility
+            10 -> OtherState.RoomHistoryVisibility(
+                FfiConverterOptionalTypeHistoryVisibility.read(buf),
+                )
             11 -> OtherState.RoomJoinRules
             12 -> OtherState.RoomName(
                 FfiConverterOptionalString.read(buf),
@@ -43041,6 +44229,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterOptionalBoolean.allocationSize(value.`federate`)
             )
         }
         is OtherState.RoomEncryption -> {
@@ -43059,6 +44248,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterOptionalTypeHistoryVisibility.allocationSize(value.`historyVisibility`)
             )
         }
         is OtherState.RoomJoinRules -> {
@@ -43165,6 +44355,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             }
             is OtherState.RoomCreate -> {
                 buf.putInt(7)
+                FfiConverterOptionalBoolean.write(value.`federate`, buf)
                 Unit
             }
             is OtherState.RoomEncryption -> {
@@ -43177,6 +44368,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
             }
             is OtherState.RoomHistoryVisibility -> {
                 buf.putInt(10)
+                FfiConverterOptionalTypeHistoryVisibility.write(value.`historyVisibility`, buf)
                 Unit
             }
             is OtherState.RoomJoinRules -> {
@@ -50516,6 +51708,126 @@ public object FfiConverterTypeGeneratedQrLoginProgressListener: FfiConverterCall
 
 
 
+public interface GrantGeneratedQrLoginProgressListener {
+    
+    fun `onUpdate`(`state`: GrantGeneratedQrLoginProgress)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceGrantGeneratedQrLoginProgressListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceGrantGeneratedQrLoginProgressListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeGrantGeneratedQrLoginProgressListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeGrantGeneratedQrLoginProgress.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeGrantGeneratedQrLoginProgressListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeGrantGeneratedQrLoginProgressListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantgeneratedqrloginprogresslistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeGrantGeneratedQrLoginProgressListener: FfiConverterCallbackInterface<GrantGeneratedQrLoginProgressListener>()
+
+
+
+
+
+public interface GrantQrLoginProgressListener {
+    
+    fun `onUpdate`(`state`: GrantQrLoginProgress)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceGrantQrLoginProgressListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceGrantQrLoginProgressListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeGrantQrLoginProgressListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeGrantQrLoginProgress.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeGrantQrLoginProgressListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeGrantQrLoginProgressListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceGrantQrLoginProgressListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantqrloginprogresslistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeGrantQrLoginProgressListener: FfiConverterCallbackInterface<GrantQrLoginProgressListener>()
+
+
+
+
+
 public interface IdentityStatusChangeListener {
     
     fun `call`(`identityStatusChange`: List<IdentityStatusChange>)
@@ -52133,6 +53445,76 @@ internal object uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener {
  * @suppress
  */
 public object FfiConverterTypeSpaceServiceJoinedSpacesListener: FfiConverterCallbackInterface<SpaceServiceJoinedSpacesListener>()
+
+
+
+
+
+/**
+ * A listener for notifications generated from sync responses.
+ *
+ * This is called during sync for each event that triggers a notification
+ * based on the user's push rules.
+ */
+public interface SyncNotificationListener {
+    
+    /**
+     * Called when a notifying event is received during sync.
+     */
+    fun `onNotification`(`notification`: NotificationItem, `roomId`: kotlin.String)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSyncNotificationListener {
+    internal object `onNotification`: UniffiCallbackInterfaceSyncNotificationListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`notification`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSyncNotificationListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onNotification`(
+                    FfiConverterTypeNotificationItem.lift(`notification`),
+                    FfiConverterString.lift(`roomId`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSyncNotificationListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeSyncNotificationListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSyncNotificationListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onNotification`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncnotificationlistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeSyncNotificationListener: FfiConverterCallbackInterface<SyncNotificationListener>()
 
 
 
@@ -54068,6 +55450,38 @@ public object FfiConverterOptionalTypeEventSendState: FfiConverterRustBuffer<Eve
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeHistoryVisibility: FfiConverterRustBuffer<HistoryVisibility?> {
+    override fun read(buf: ByteBuffer): HistoryVisibility? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeHistoryVisibility.read(buf)
+    }
+
+    override fun allocationSize(value: HistoryVisibility?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeHistoryVisibility.allocationSize(value)
+        }
+    }
+
+    override fun write(value: HistoryVisibility?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeHistoryVisibility.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeInviteAvatars: FfiConverterRustBuffer<InviteAvatars?> {
     override fun read(buf: ByteBuffer): InviteAvatars? {
         if (buf.get().toInt() == 0) {
@@ -54762,6 +56176,38 @@ public object FfiConverterOptionalSequenceTypeRoomMember: FfiConverterRustBuffer
         } else {
             buf.put(1)
             FfiConverterSequenceTypeRoomMember.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalSequenceTypeAction: FfiConverterRustBuffer<List<Action>?> {
+    override fun read(buf: ByteBuffer): List<Action>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeAction.read(buf)
+    }
+
+    override fun allocationSize(value: List<Action>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeAction.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<Action>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeAction.write(value, buf)
         }
     }
 }
