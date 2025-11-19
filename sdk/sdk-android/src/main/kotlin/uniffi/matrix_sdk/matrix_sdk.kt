@@ -1385,6 +1385,11 @@ data class RoomPowerLevelChanges (
      * The level required to change the room's topic.
      */
     var `roomTopic`: kotlin.Long? = null 
+    , 
+    /**
+     * The level required to change the space's children.
+     */
+    var `spaceChild`: kotlin.Long? = null 
     
 ){
     
@@ -1409,6 +1414,7 @@ public object FfiConverterTypeRoomPowerLevelChanges: FfiConverterRustBuffer<Room
             FfiConverterOptionalLong.read(buf),
             FfiConverterOptionalLong.read(buf),
             FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalLong.read(buf),
         )
     }
 
@@ -1422,7 +1428,8 @@ public object FfiConverterTypeRoomPowerLevelChanges: FfiConverterRustBuffer<Room
             FfiConverterOptionalLong.allocationSize(value.`usersDefault`) +
             FfiConverterOptionalLong.allocationSize(value.`roomName`) +
             FfiConverterOptionalLong.allocationSize(value.`roomAvatar`) +
-            FfiConverterOptionalLong.allocationSize(value.`roomTopic`)
+            FfiConverterOptionalLong.allocationSize(value.`roomTopic`) +
+            FfiConverterOptionalLong.allocationSize(value.`spaceChild`)
     )
 
     override fun write(value: RoomPowerLevelChanges, buf: ByteBuffer) {
@@ -1436,6 +1443,7 @@ public object FfiConverterTypeRoomPowerLevelChanges: FfiConverterRustBuffer<Room
             FfiConverterOptionalLong.write(value.`roomName`, buf)
             FfiConverterOptionalLong.write(value.`roomAvatar`, buf)
             FfiConverterOptionalLong.write(value.`roomTopic`, buf)
+            FfiConverterOptionalLong.write(value.`spaceChild`, buf)
     }
 }
 
