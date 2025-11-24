@@ -2771,11 +2771,11 @@ internal object UniffiLib {
         uniffiCallbackInterfaceUnableToDecryptDelegate.register(this)
         uniffiCallbackInterfaceVerificationStateListener.register(this)
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
-        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         uniffi.matrix_sdk.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_base.uniffiEnsureInitialized()
         uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         uniffi.matrix_sdk_common.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_base.uniffiEnsureInitialized()
         
     }
     external fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3068,7 +3068,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_identity(`ptr`: Lo
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,`fallbackToServer`: Byte,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -4609,7 +4609,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() != 20380.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity() != 20644.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity() != 17575.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state() != 29114.toShort()) {
@@ -10456,11 +10456,13 @@ public interface EncryptionInterface {
      * This method always tries to fetch the identity from the store, which we
      * only have if the user is tracked, meaning that we are both members
      * of the same encrypted room. If no user is found locally, a request will
-     * be made to the homeserver.
+     * be made to the homeserver unless `fallback_to_server` is set to `false`.
      *
      * # Arguments
      *
      * * `user_id` - The ID of the user that the identity belongs to.
+     * * `fallback_to_server` - Should we request the user identity from the
+     * homeserver if one isn't found locally.
      *
      * Returns a `UserIdentity` if one is found. Returns an error if there
      * was an issue with the crypto store or with the request to the
@@ -10468,7 +10470,7 @@ public interface EncryptionInterface {
      *
      * This will always return `None` if the client hasn't been logged in.
      */
-    suspend fun `userIdentity`(`userId`: kotlin.String): UserIdentity?
+    suspend fun `userIdentity`(`userId`: kotlin.String, `fallbackToServer`: kotlin.Boolean): UserIdentity?
     
     fun `verificationState`(): VerificationState
     
@@ -10923,11 +10925,13 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
      * This method always tries to fetch the identity from the store, which we
      * only have if the user is tracked, meaning that we are both members
      * of the same encrypted room. If no user is found locally, a request will
-     * be made to the homeserver.
+     * be made to the homeserver unless `fallback_to_server` is set to `false`.
      *
      * # Arguments
      *
      * * `user_id` - The ID of the user that the identity belongs to.
+     * * `fallback_to_server` - Should we request the user identity from the
+     * homeserver if one isn't found locally.
      *
      * Returns a `UserIdentity` if one is found. Returns an error if there
      * was an issue with the crypto store or with the request to the
@@ -10937,12 +10941,12 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `userIdentity`(`userId`: kotlin.String) : UserIdentity? {
+    override suspend fun `userIdentity`(`userId`: kotlin.String, `fallbackToServer`: kotlin.Boolean) : UserIdentity? {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                FfiConverterString.lower(`userId`),FfiConverterBoolean.lower(`fallbackToServer`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -41236,6 +41240,8 @@ sealed class LatestEventValue: Disposable  {
     
     data class Local(
         val `timestamp`: Timestamp, 
+        val `sender`: kotlin.String, 
+        val `profile`: ProfileDetails, 
         val `content`: TimelineItemContent, 
         val `isSending`: kotlin.Boolean) : LatestEventValue()
         
@@ -41267,6 +41273,8 @@ sealed class LatestEventValue: Disposable  {
                 
     Disposable.destroy(
         this.`timestamp`,
+        this.`sender`,
+        this.`profile`,
         this.`content`,
         this.`isSending`
     )
@@ -41294,6 +41302,8 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 )
             3 -> LatestEventValue.Local(
                 FfiConverterTypeTimestamp.read(buf),
+                FfiConverterString.read(buf),
+                FfiConverterTypeProfileDetails.read(buf),
                 FfiConverterTypeTimelineItemContent.read(buf),
                 FfiConverterBoolean.read(buf),
                 )
@@ -41324,6 +41334,8 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
             (
                 4UL
                 + FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+                + FfiConverterString.allocationSize(value.`sender`)
+                + FfiConverterTypeProfileDetails.allocationSize(value.`profile`)
                 + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
                 + FfiConverterBoolean.allocationSize(value.`isSending`)
             )
@@ -41348,6 +41360,8 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
             is LatestEventValue.Local -> {
                 buf.putInt(3)
                 FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
+                FfiConverterString.write(value.`sender`, buf)
+                FfiConverterTypeProfileDetails.write(value.`profile`, buf)
                 FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
                 FfiConverterBoolean.write(value.`isSending`, buf)
                 Unit
