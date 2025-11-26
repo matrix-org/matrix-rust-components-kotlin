@@ -2147,6 +2147,11 @@ sealed class QrCodeLoginException(message: String): kotlin.Exception(message) {
         class SecureChannel(message: String) : QrCodeLoginException(message)
         
     /**
+     * The rendezvous session was not found and might have expired.
+     */
+        class NotFound(message: String) : QrCodeLoginException(message)
+        
+    /**
      * The cross-process refresh lock failed to be initialized.
      */
         class CrossProcessRefreshLock(message: String) : QrCodeLoginException(message)
@@ -2198,12 +2203,13 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
             2 -> QrCodeLoginException.LoginFailure(FfiConverterString.read(buf))
             3 -> QrCodeLoginException.UnexpectedMessage(FfiConverterString.read(buf))
             4 -> QrCodeLoginException.SecureChannel(FfiConverterString.read(buf))
-            5 -> QrCodeLoginException.CrossProcessRefreshLock(FfiConverterString.read(buf))
-            6 -> QrCodeLoginException.UserIdDiscovery(FfiConverterString.read(buf))
-            7 -> QrCodeLoginException.SessionTokens(FfiConverterString.read(buf))
-            8 -> QrCodeLoginException.DeviceKeyUpload(FfiConverterString.read(buf))
-            9 -> QrCodeLoginException.SecretImport(FfiConverterString.read(buf))
-            10 -> QrCodeLoginException.ServerReset(FfiConverterString.read(buf))
+            5 -> QrCodeLoginException.NotFound(FfiConverterString.read(buf))
+            6 -> QrCodeLoginException.CrossProcessRefreshLock(FfiConverterString.read(buf))
+            7 -> QrCodeLoginException.UserIdDiscovery(FfiConverterString.read(buf))
+            8 -> QrCodeLoginException.SessionTokens(FfiConverterString.read(buf))
+            9 -> QrCodeLoginException.DeviceKeyUpload(FfiConverterString.read(buf))
+            10 -> QrCodeLoginException.SecretImport(FfiConverterString.read(buf))
+            11 -> QrCodeLoginException.ServerReset(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -2231,28 +2237,32 @@ public object FfiConverterTypeQRCodeLoginError : FfiConverterRustBuffer<QrCodeLo
                 buf.putInt(4)
                 Unit
             }
-            is QrCodeLoginException.CrossProcessRefreshLock -> {
+            is QrCodeLoginException.NotFound -> {
                 buf.putInt(5)
                 Unit
             }
-            is QrCodeLoginException.UserIdDiscovery -> {
+            is QrCodeLoginException.CrossProcessRefreshLock -> {
                 buf.putInt(6)
                 Unit
             }
-            is QrCodeLoginException.SessionTokens -> {
+            is QrCodeLoginException.UserIdDiscovery -> {
                 buf.putInt(7)
                 Unit
             }
-            is QrCodeLoginException.DeviceKeyUpload -> {
+            is QrCodeLoginException.SessionTokens -> {
                 buf.putInt(8)
                 Unit
             }
-            is QrCodeLoginException.SecretImport -> {
+            is QrCodeLoginException.DeviceKeyUpload -> {
                 buf.putInt(9)
                 Unit
             }
-            is QrCodeLoginException.ServerReset -> {
+            is QrCodeLoginException.SecretImport -> {
                 buf.putInt(10)
+                Unit
+            }
+            is QrCodeLoginException.ServerReset -> {
+                buf.putInt(11)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
