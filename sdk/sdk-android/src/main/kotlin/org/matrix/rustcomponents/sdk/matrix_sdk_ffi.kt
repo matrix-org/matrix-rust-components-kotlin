@@ -74,8 +74,10 @@ import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineReadReceiptTracking
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
@@ -94,6 +96,7 @@ import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineReadReceiptTracking
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -1827,7 +1830,9 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_server_info(
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias(
 ): Short
@@ -2781,11 +2786,11 @@ internal object UniffiLib {
         uniffiCallbackInterfaceUnableToDecryptDelegate.register(this)
         uniffiCallbackInterfaceVerificationStateListener.register(this)
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
-        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_base.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
         uniffi.matrix_sdk.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_base.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         
     }
     external fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -2912,7 +2917,9 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handle
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_remove_avatar(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_server_info(`ptr`: Long,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_supported_versions(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_well_known(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
 ): Long
@@ -4395,7 +4402,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar() != 29033.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_server_info() != 16333.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions() != 32820.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known() != 61934.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() != 3551.toShort()) {
@@ -7039,11 +7049,20 @@ public interface ClientInterface {
     /**
      * Empty the server version and unstable features cache.
      *
-     * Since the SDK caches server info (versions, unstable features,
-     * well-known etc), it's possible to have a stale entry in the cache.
-     * This functions makes it possible to force reset it.
+     * Since the SDK caches the supported versions, it's possible to have a
+     * stale entry in the cache. This functions makes it possible to force
+     * reset it.
      */
-    suspend fun `resetServerInfo`()
+    suspend fun `resetSupportedVersions`()
+    
+    /**
+     * Empty the well-known cache.
+     *
+     * Since the SDK caches the well-known, it's possible to have a stale
+     * entry in the cache. This functions makes it possible to force reset
+     * it.
+     */
+    suspend fun `resetWellKnown`()
     
     /**
      * Resolves the given room alias to a room ID (and a list of servers), if
@@ -8719,16 +8738,45 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Empty the server version and unstable features cache.
      *
-     * Since the SDK caches server info (versions, unstable features,
-     * well-known etc), it's possible to have a stale entry in the cache.
-     * This functions makes it possible to force reset it.
+     * Since the SDK caches the supported versions, it's possible to have a
+     * stale entry in the cache. This functions makes it possible to force
+     * reset it.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `resetServerInfo`() {
+    override suspend fun `resetSupportedVersions`() {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_reset_server_info(
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_reset_supported_versions(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Empty the well-known cache.
+     *
+     * Since the SDK caches the well-known, it's possible to have a stale
+     * entry in the cache. This functions makes it possible to force reset
+     * it.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `resetWellKnown`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_reset_well_known(
                 uniffiHandle,
                 
             )
@@ -32408,6 +32456,8 @@ data class NotificationRoomInfo (
     var `isEncrypted`: kotlin.Boolean?
     , 
     var `isDirect`: kotlin.Boolean
+    , 
+    var `isSpace`: kotlin.Boolean
     
 ){
     
@@ -32430,6 +32480,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterULong.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -32441,7 +32492,8 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isEncrypted`) +
-            FfiConverterBoolean.allocationSize(value.`isDirect`)
+            FfiConverterBoolean.allocationSize(value.`isDirect`) +
+            FfiConverterBoolean.allocationSize(value.`isSpace`)
     )
 
     override fun write(value: NotificationRoomInfo, buf: ByteBuffer) {
@@ -32453,6 +32505,7 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
             FfiConverterOptionalBoolean.write(value.`isEncrypted`, buf)
             FfiConverterBoolean.write(value.`isDirect`, buf)
+            FfiConverterBoolean.write(value.`isSpace`, buf)
     }
 }
 
@@ -34892,12 +34945,12 @@ data class TimelineConfiguration (
     , 
     /**
      * Should the read receipts and read markers be tracked for the timeline
-     * items in this instance?
+     * items in this instance and on which event types?
      *
      * As this has a non negligible performance impact, make sure to enable it
      * only when you need it.
      */
-    var `trackReadReceipts`: kotlin.Boolean
+    var `trackReadReceipts`: TimelineReadReceiptTracking
     , 
     /**
      * Whether this timeline instance should report UTDs through the client's
@@ -34935,7 +34988,7 @@ public object FfiConverterTypeTimelineConfiguration: FfiConverterRustBuffer<Time
             FfiConverterTypeTimelineFilter.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeDateDividerMode.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterTypeTimelineReadReceiptTracking.read(buf),
             FfiConverterBoolean.read(buf),
         )
     }
@@ -34945,7 +34998,7 @@ public object FfiConverterTypeTimelineConfiguration: FfiConverterRustBuffer<Time
             FfiConverterTypeTimelineFilter.allocationSize(value.`filter`) +
             FfiConverterOptionalString.allocationSize(value.`internalIdPrefix`) +
             FfiConverterTypeDateDividerMode.allocationSize(value.`dateDividerMode`) +
-            FfiConverterBoolean.allocationSize(value.`trackReadReceipts`) +
+            FfiConverterTypeTimelineReadReceiptTracking.allocationSize(value.`trackReadReceipts`) +
             FfiConverterBoolean.allocationSize(value.`reportUtds`)
     )
 
@@ -34954,7 +35007,7 @@ public object FfiConverterTypeTimelineConfiguration: FfiConverterRustBuffer<Time
             FfiConverterTypeTimelineFilter.write(value.`filter`, buf)
             FfiConverterOptionalString.write(value.`internalIdPrefix`, buf)
             FfiConverterTypeDateDividerMode.write(value.`dateDividerMode`, buf)
-            FfiConverterBoolean.write(value.`trackReadReceipts`, buf)
+            FfiConverterTypeTimelineReadReceiptTracking.write(value.`trackReadReceipts`, buf)
             FfiConverterBoolean.write(value.`reportUtds`, buf)
     }
 }
@@ -58023,6 +58076,8 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
  */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
 
 
 
