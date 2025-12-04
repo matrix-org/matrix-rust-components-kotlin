@@ -281,8 +281,9 @@ internal inline fun<T> uniffiTraitInterfaceCall(
     try {
         writeReturn(makeCall())
     } catch(e: kotlin.Exception) {
+        val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-        callStatus.error_buf = FfiConverterString.lower(e.toString())
+        callStatus.error_buf = FfiConverterString.lower(err)
     }
 }
 
@@ -299,8 +300,9 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
         } else {
+            val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
             callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-            callStatus.error_buf = FfiConverterString.lower(e.toString())
+            callStatus.error_buf = FfiConverterString.lower(err)
         }
     }
 }
@@ -932,6 +934,8 @@ data class DecryptionSettings (
     
 
     
+
+    
     companion object
 }
 
@@ -1000,6 +1004,10 @@ enum class CollectStrategy {
      * - It is the current own device of the user.
      */
     ONLY_TRUSTED_DEVICES;
+
+    
+
+
     companion object
 }
 
@@ -1056,6 +1064,10 @@ enum class IdentityState {
      * [`UserIdentity::withdraw_verification`] to make it pinned.
      */
     VERIFICATION_VIOLATION;
+
+    
+
+
     companion object
 }
 
@@ -1103,6 +1115,10 @@ enum class LocalTrust {
      * The trust state is unset.
      */
     UNSET;
+
+    
+
+
     companion object
 }
 
@@ -1262,6 +1278,10 @@ enum class SignatureState {
      * signature is trusted.
      */
     VALID_AND_TRUSTED;
+
+    
+
+
     companion object
 }
 
@@ -1307,6 +1327,10 @@ enum class TrustRequirement {
      * Only decrypt events from cross-signed devices.
      */
     CROSS_SIGNED;
+
+    
+
+
     companion object
 }
 
@@ -1420,6 +1444,10 @@ enum class UtdCause {
      * Expected message to user: "You need to verify this device".
      */
     HISTORICAL_MESSAGE_AND_DEVICE_IS_UNVERIFIED;
+
+    
+
+
     companion object
 }
 

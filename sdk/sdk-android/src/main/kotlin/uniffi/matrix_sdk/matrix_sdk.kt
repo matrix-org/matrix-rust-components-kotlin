@@ -282,8 +282,9 @@ internal inline fun<T> uniffiTraitInterfaceCall(
     try {
         writeReturn(makeCall())
     } catch(e: kotlin.Exception) {
+        val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-        callStatus.error_buf = FfiConverterString.lower(e.toString())
+        callStatus.error_buf = FfiConverterString.lower(err)
     }
 }
 
@@ -300,8 +301,9 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
         } else {
+            val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
             callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-            callStatus.error_buf = FfiConverterString.lower(e.toString())
+            callStatus.error_buf = FfiConverterString.lower(err)
         }
     }
 }
@@ -779,7 +781,7 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_matrix_sdk_checksum_method_oauthauthorizationdata_login_url() != 25566.toShort()) {
+    if (lib.uniffi_matrix_sdk_checksum_method_oauthauthorizationdata_login_url() != 47865.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1161,7 +1163,6 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 //
 
 
-//
 /**
  * The data needed to perform authorization using OAuth 2.0.
  */
@@ -1200,11 +1201,11 @@ open class OAuthAuthorizationData: Disposable, AutoCloseable, OAuthAuthorization
     @Suppress("UNUSED_PARAMETER")
     constructor(noHandle: NoHandle) {
         this.handle = 0
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+        this.cleanable = null
     }
 
     protected val handle: Long
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -1215,7 +1216,7 @@ open class OAuthAuthorizationData: Disposable, AutoCloseable, OAuthAuthorization
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -1243,7 +1244,7 @@ open class OAuthAuthorizationData: Disposable, AutoCloseable, OAuthAuthorization
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -1395,6 +1396,8 @@ data class RoomPowerLevelChanges (
     
 
     
+
+    
     companion object
 }
 
@@ -1464,6 +1467,8 @@ data class ServerVendorInfo (
     var `version`: kotlin.String
     
 ){
+    
+
     
 
     
@@ -1574,6 +1579,8 @@ data class VirtualElementCallWidgetConfig (
     var `sendNotificationType`: NotificationType? = null 
     
 ){
+    
+
     
 
     
@@ -1723,6 +1730,8 @@ data class VirtualElementCallWidgetProperties (
     
 
     
+
+    
     companion object
 }
 
@@ -1810,6 +1819,10 @@ enum class BackupDownloadStrategy {
      * This is the default option.
      */
     MANUAL;
+
+    
+
+
     companion object
 }
 
@@ -1874,6 +1887,11 @@ sealed class EncryptionSystem {
     
 
     
+
+    
+    
+
+
     companion object
 }
 
@@ -1955,6 +1973,10 @@ enum class HeaderStyle {
      * No Header (useful for webapps).
      */
     NONE;
+
+    
+
+
     companion object
 }
 
@@ -2005,6 +2027,10 @@ enum class Intent {
      * The user wants to start a call in a "Direct Message" (DM) room.
      */
     START_CALL_DM;
+
+    
+
+
     companion object
 }
 
@@ -2044,6 +2070,10 @@ enum class NotificationType {
      * The receiving client should ring with an audible sound.
      */
     RING;
+
+    
+
+
     companion object
 }
 
@@ -2092,6 +2122,10 @@ enum class PaginatorState {
      * The paginator is… paginating one direction or another.
      */
     PAGINATING;
+
+    
+
+
     companion object
 }
 
@@ -2303,6 +2337,10 @@ enum class RoomMemberRole {
      * The member is a regular user.
      */
     USER;
+
+    
+
+
     companion object
 }
 
@@ -2357,6 +2395,11 @@ sealed class RoomPaginationStatus {
     
 
     
+
+    
+    
+
+
     companion object
 }
 
