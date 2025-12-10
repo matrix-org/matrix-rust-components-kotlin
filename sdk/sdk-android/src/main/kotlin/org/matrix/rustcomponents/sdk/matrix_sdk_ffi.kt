@@ -2116,6 +2116,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_to_bytes(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_accept(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline(
@@ -2227,8 +2229,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_members(
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_members_no_sync(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_new_latest_event(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id(
 ): Short
@@ -3269,6 +3269,8 @@ external fun uniffi_matrix_sdk_ffi_fn_constructor_qrcodedata_from_bytes(`bytes`:
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_server_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_to_bytes(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_clone_knockrequestactions(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_knockrequestactions(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3389,8 +3391,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_members_no_sync(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_new_latest_event(`ptr`: Long,
-): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_room_predecessor_room(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4842,6 +4842,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name() != 52906.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_to_bytes() != 22532.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_accept() != 60529.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -4965,7 +4968,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_latest_encryption_state() != 9465.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_latest_event() != 57709.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_latest_event() != 37006.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() != 3346.toShort()) {
@@ -5008,9 +5011,6 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() != 65038.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_new_latest_event() != 27925.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() != 32346.toShort()) {
@@ -15913,6 +15913,12 @@ public interface QrCodeDataInterface {
      */
     fun `serverName`(): kotlin.String?
     
+    /**
+     * Serialize the [`QrCodeData`] into a byte vector for encoding as a QR
+     * code.
+     */
+    fun `toBytes`(): kotlin.ByteArray
+    
     companion object
 }
 
@@ -16030,6 +16036,23 @@ open class QrCodeData: Disposable, AutoCloseable, QrCodeDataInterface
     callWithHandle {
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_qrcodedata_server_name(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Serialize the [`QrCodeData`] into a byte vector for encoding as a QR
+     * code.
+     */override fun `toBytes`(): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_qrcodedata_to_bytes(
         it,
         _status)
 }
@@ -16386,7 +16409,7 @@ public interface RoomInterface {
     
     suspend fun `latestEncryptionState`(): EncryptionState
     
-    suspend fun `latestEvent`(): EventTimelineItem?
+    suspend fun `latestEvent`(): LatestEventValue
     
     /**
      * Leave this room.
@@ -16457,8 +16480,6 @@ public interface RoomInterface {
      * The room's current membership state.
      */
     fun `membership`(): Membership
-    
-    suspend fun `newLatestEvent`(): LatestEventValue
     
     fun `ownUserId`(): kotlin.String
     
@@ -17643,7 +17664,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
 
     
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `latestEvent`() : EventTimelineItem? {
+    override suspend fun `latestEvent`() : LatestEventValue {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_latest_event(
@@ -17655,7 +17676,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { FfiConverterOptionalTypeEventTimelineItem.lift(it) },
+        { FfiConverterTypeLatestEventValue.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
     )
@@ -17991,26 +18012,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     )
     }
     
-
-    
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `newLatestEvent`() : LatestEventValue {
-        return uniffiRustCallAsync(
-        callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_new_latest_event(
-                uniffiHandle,
-                
-            )
-        },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
-        // lift function
-        { FfiConverterTypeLatestEventValue.lift(it) },
-        // Error FFI converter
-        UniffiNullRustCallStatusErrorHandler,
-    )
-    }
 
     override fun `ownUserId`(): kotlin.String {
             return FfiConverterString.lift(
@@ -51705,7 +51706,11 @@ enum class TraceLogPacks {
     /**
      * Enables all the logs relevant to sync profiling.
      */
-    SYNC_PROFILING;
+    SYNC_PROFILING,
+    /**
+     * Enables all the logs relevant to the latest events.
+     */
+    LATEST_EVENTS;
 
     
 
