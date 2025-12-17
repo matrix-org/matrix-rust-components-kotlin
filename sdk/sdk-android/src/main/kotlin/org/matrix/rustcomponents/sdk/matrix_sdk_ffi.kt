@@ -72,9 +72,11 @@ import uniffi.matrix_sdk_crypto.IdentityState
 import uniffi.matrix_sdk_crypto.UtdCause
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
+import uniffi.matrix_sdk_ui.FfiConverterTypeLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineReadReceiptTracking
+import uniffi.matrix_sdk_ui.LatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
@@ -94,6 +96,7 @@ import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineReadReceiptTracking
@@ -2466,6 +2469,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_add_child_to_spa
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_editable_spaces(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_get_space_room(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parents_of_child(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_spaces(
@@ -3690,6 +3695,8 @@ external fun uniffi_matrix_sdk_ffi_fn_free_spaceservice(`handle`: Long,uniffi_ou
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_add_child_to_space(`ptr`: Long,`childId`: RustBuffer.ByValue,`spaceId`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_editable_spaces(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_get_space_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_parents_of_child(`ptr`: Long,`childId`: RustBuffer.ByValue,
 ): Long
@@ -5365,6 +5372,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_editable_spaces() != 1160.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_get_space_room() != 38097.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parents_of_child() != 40037.toShort()) {
@@ -24592,6 +24602,12 @@ public interface SpaceServiceInterface {
     suspend fun `editableSpaces`(): List<SpaceRoom>
     
     /**
+     * Returns the corresponding `SpaceRoom` for the given room ID, or `None`
+     * if it isn't known.
+     */
+    suspend fun `getSpaceRoom`(`roomId`: kotlin.String): SpaceRoom?
+    
+    /**
      * Returns all known direct-parents of a given space room ID.
      */
     suspend fun `joinedParentsOfChild`(`childId`: kotlin.String): List<SpaceRoom>
@@ -24779,6 +24795,31 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         { FfiConverterSequenceTypeSpaceRoom.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the corresponding `SpaceRoom` for the given room ID, or `None`
+     * if it isn't known.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getSpaceRoom`(`roomId`: kotlin.String) : SpaceRoom? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_get_space_room(
+                uniffiHandle,
+                FfiConverterString.lower(`roomId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeSpaceRoom.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
     )
     }
 
@@ -41979,7 +42020,7 @@ sealed class LatestEventValue: Disposable  {
         val `sender`: kotlin.String, 
         val `profile`: org.matrix.rustcomponents.sdk.ProfileDetails, 
         val `content`: org.matrix.rustcomponents.sdk.TimelineItemContent, 
-        val `isSending`: kotlin.Boolean) : LatestEventValue()
+        val `state`: uniffi.matrix_sdk_ui.LatestEventValueLocalState) : LatestEventValue()
         
     {
         
@@ -42012,7 +42053,7 @@ sealed class LatestEventValue: Disposable  {
         this.`sender`,
         this.`profile`,
         this.`content`,
-        this.`isSending`
+        this.`state`
     )
                 
             }
@@ -42046,7 +42087,7 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 FfiConverterString.read(buf),
                 FfiConverterTypeProfileDetails.read(buf),
                 FfiConverterTypeTimelineItemContent.read(buf),
-                FfiConverterBoolean.read(buf),
+                FfiConverterTypeLatestEventValueLocalState.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -42078,7 +42119,7 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 + FfiConverterString.allocationSize(value.`sender`)
                 + FfiConverterTypeProfileDetails.allocationSize(value.`profile`)
                 + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
-                + FfiConverterBoolean.allocationSize(value.`isSending`)
+                + FfiConverterTypeLatestEventValueLocalState.allocationSize(value.`state`)
             )
         }
     }
@@ -42104,7 +42145,7 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 FfiConverterString.write(value.`sender`, buf)
                 FfiConverterTypeProfileDetails.write(value.`profile`, buf)
                 FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
-                FfiConverterBoolean.write(value.`isSending`, buf)
+                FfiConverterTypeLatestEventValueLocalState.write(value.`state`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -58899,6 +58940,8 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
  */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
 
 
 
