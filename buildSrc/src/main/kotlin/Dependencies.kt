@@ -1,6 +1,6 @@
 object DependenciesVersions {
     const val androidGradlePlugin = "8.11.0"
-    const val kotlin = "1.9.22"
+    const val kotlin = "1.9.25"
     const val jUnit = "4.13.2"
     const val nexusPublishGradlePlugin = "1.3.0"
     const val jna = "5.17.0"
