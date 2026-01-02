@@ -33,13 +33,16 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
 import uniffi.matrix_sdk_common.ShieldStateCode
+import uniffi.matrix_sdk_crypto.CollectStrategy
 import uniffi.matrix_sdk_crypto.DecryptionSettings
+import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
 import uniffi.matrix_sdk_crypto.FfiConverterTypeDecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeLocalTrust
 import uniffi.matrix_sdk_crypto.FfiConverterTypeSignatureState
 import uniffi.matrix_sdk_crypto.LocalTrust
 import uniffi.matrix_sdk_crypto.SignatureState
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferLocalTrust
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSignatureState
@@ -48,6 +51,9 @@ import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSignatureState
 // A rust-owned buffer is represented by its capacity, its current length, and a
 // pointer to the underlying data.
 
+/**
+ * @suppress
+ */
 @Structure.FieldOrder("capacity", "len", "data")
 open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
@@ -68,7 +74,7 @@ open class RustBuffer : Structure() {
     companion object {
         internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
             // Note: need to convert the size to a `Long` value to make this work with JVM.
-            UniffiLib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(size.toLong(), status)
+            UniffiLib.ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(size.toLong(), status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -84,7 +90,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.ffi_matrix_sdk_crypto_ffi_rustbuffer_free(buf, status)
+            UniffiLib.ffi_matrix_sdk_crypto_ffi_rustbuffer_free(buf, status)
         }
     }
 
@@ -95,38 +101,6 @@ open class RustBuffer : Structure() {
         }
 }
 
-/**
- * The equivalent of the `*mut RustBuffer` type.
- * Required for callbacks taking in an out pointer.
- *
- * Size is the sum of all values in the struct.
- */
-class RustBufferByReference : ByReference(16) {
-    /**
-     * Set the pointed-to `RustBuffer` to the given value.
-     */
-    fun setValue(value: RustBuffer.ByValue) {
-        // NOTE: The offsets are as they are in the C-like struct.
-        val pointer = getPointer()
-        pointer.setLong(0, value.capacity)
-        pointer.setLong(8, value.len)
-        pointer.setPointer(16, value.data)
-    }
-
-    /**
-     * Get a `RustBuffer.ByValue` from this reference.
-     */
-    fun getValue(): RustBuffer.ByValue {
-        val pointer = getPointer()
-        val value = RustBuffer.ByValue()
-        value.writeField("capacity", pointer.getLong(0))
-        value.writeField("len", pointer.getLong(8))
-        value.writeField("data", pointer.getLong(16))
-
-        return value
-    }
-}
-
 // This is a helper for safely passing byte references into the rust code.
 // It's not actually used at the moment, because there aren't many things that you
 // can take a direct pointer to in the JVM, and if we're going to copy something
@@ -134,16 +108,20 @@ class RustBufferByReference : ByReference(16) {
 // completeness.
 
 @Structure.FieldOrder("len", "data")
-open class ForeignBytes : Structure() {
+internal open class ForeignBytes : Structure() {
     @JvmField var len: Int = 0
     @JvmField var data: Pointer? = null
 
     class ByValue : ForeignBytes(), Structure.ByValue
 }
-// The FfiConverter interface handles converter types to and from the FFI
-//
-// All implementing objects should be public to support external types.  When a
-// type is external we need to import it's FfiConverter.
+/**
+ * The FfiConverter interface handles converter types to and from the FFI
+ *
+ * All implementing objects should be public to support external types.  When a
+ * type is external we need to import it's FfiConverter.
+ *
+ * @suppress
+ */
 public interface FfiConverter<KotlinType, FfiType> {
     // Convert an FFI type to a Kotlin type
     fun lift(value: FfiType): KotlinType
@@ -206,7 +184,11 @@ public interface FfiConverter<KotlinType, FfiType> {
     }
 }
 
-// FfiConverter that uses `RustBuffer` as the FfiType
+/**
+ * FfiConverter that uses `RustBuffer` as the FfiType
+ *
+ * @suppress
+ */
 public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
     override fun lower(value: KotlinType) = lowerIntoRustBuffer(value)
@@ -249,7 +231,11 @@ internal open class UniffiRustCallStatus : Structure() {
 
 class InternalException(message: String) : kotlin.Exception(message)
 
-// Each top-level error class has a companion object that can lift the error from the call status's rust buffer
+/**
+ * Each top-level error class has a companion object that can lift the error from the call status's rust buffer
+ *
+ * @suppress
+ */
 interface UniffiRustCallStatusErrorHandler<E> {
     fun lift(error_buf: RustBuffer.ByValue): E;
 }
@@ -286,7 +272,11 @@ private fun<E: kotlin.Exception> uniffiCheckCallStatus(errorHandler: UniffiRustC
     }
 }
 
-// UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+/**
+ * UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+ *
+ * @suppress
+ */
 object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
@@ -307,8 +297,9 @@ internal inline fun<T> uniffiTraitInterfaceCall(
     try {
         writeReturn(makeCall())
     } catch(e: kotlin.Exception) {
+        val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
         callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-        callStatus.error_buf = FfiConverterString.lower(e.toString())
+        callStatus.error_buf = FfiConverterString.lower(err)
     }
 }
 
@@ -325,26 +316,39 @@ internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
             callStatus.code = UNIFFI_CALL_ERROR
             callStatus.error_buf = lowerError(e)
         } else {
+            val err = try { e.stackTraceToString() } catch(_: Throwable) { "" }
             callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
-            callStatus.error_buf = FfiConverterString.lower(e.toString())
+            callStatus.error_buf = FfiConverterString.lower(err)
         }
     }
 }
+// Initial value and increment amount for handles. 
+// These ensure that Kotlin-generated handles always have the lowest bit set
+private const val UNIFFI_HANDLEMAP_INITIAL = 1.toLong()
+private const val UNIFFI_HANDLEMAP_DELTA = 2.toLong()
+
 // Map handles to objects
 //
 // This is used pass an opaque 64-bit handle representing a foreign object to the Rust code.
 internal class UniffiHandleMap<T: Any> {
     private val map = ConcurrentHashMap<Long, T>()
-    private val counter = java.util.concurrent.atomic.AtomicLong(0)
+    // Start 
+    private val counter = java.util.concurrent.atomic.AtomicLong(UNIFFI_HANDLEMAP_INITIAL)
 
     val size: Int
         get() = map.size
 
     // Insert a new object into the handle map and get a handle for it
     fun insert(obj: T): Long {
-        val handle = counter.getAndAdd(1)
+        val handle = counter.getAndAdd(UNIFFI_HANDLEMAP_DELTA)
         map.put(handle, obj)
         return handle
+    }
+
+    // Clone a handle, creating a new one
+    fun clone(handle: Long): Long {
+        val obj = map.get(handle) ?: throw InternalException("UniffiHandleMap.clone: Invalid handle")
+        return insert(obj)
     }
 
     // Get an object from the handle map
@@ -369,287 +373,266 @@ private fun findLibraryName(componentName: String): String {
     return "matrix_sdk_crypto_ffi"
 }
 
-private inline fun <reified Lib : Library> loadIndirect(
-    componentName: String
-): Lib {
-    return Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
-}
-
 // Define FFI callback types
 internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
     fun callback(`data`: Long,`pollResult`: Byte,)
 }
-internal interface UniffiForeignFutureFree : com.sun.jna.Callback {
+internal interface UniffiForeignFutureDroppedCallback : com.sun.jna.Callback {
     fun callback(`handle`: Long,)
 }
 internal interface UniffiCallbackInterfaceFree : com.sun.jna.Callback {
     fun callback(`handle`: Long,)
 }
+internal interface UniffiCallbackInterfaceClone : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+    : Long
+}
 @Structure.FieldOrder("handle", "free")
-internal open class UniffiForeignFuture(
+internal open class UniffiForeignFutureDroppedCallbackStruct(
     @JvmField internal var `handle`: Long = 0.toLong(),
-    @JvmField internal var `free`: UniffiForeignFutureFree? = null,
+    @JvmField internal var `free`: UniffiForeignFutureDroppedCallback? = null,
 ) : Structure() {
     class UniffiByValue(
         `handle`: Long = 0.toLong(),
-        `free`: UniffiForeignFutureFree? = null,
-    ): UniffiForeignFuture(`handle`,`free`,), Structure.ByValue
+        `free`: UniffiForeignFutureDroppedCallback? = null,
+    ): UniffiForeignFutureDroppedCallbackStruct(`handle`,`free`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFuture) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureDroppedCallbackStruct) {
         `handle` = other.`handle`
         `free` = other.`free`
     }
 
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructU8(
+internal open class UniffiForeignFutureResultU8(
     @JvmField internal var `returnValue`: Byte = 0.toByte(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Byte = 0.toByte(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructU8(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultU8(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructU8) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultU8) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteU8 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU8.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultU8.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructI8(
+internal open class UniffiForeignFutureResultI8(
     @JvmField internal var `returnValue`: Byte = 0.toByte(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Byte = 0.toByte(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructI8(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultI8(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructI8) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultI8) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteI8 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI8.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultI8.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructU16(
+internal open class UniffiForeignFutureResultU16(
     @JvmField internal var `returnValue`: Short = 0.toShort(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Short = 0.toShort(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructU16(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultU16(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructU16) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultU16) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteU16 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU16.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultU16.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructI16(
+internal open class UniffiForeignFutureResultI16(
     @JvmField internal var `returnValue`: Short = 0.toShort(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Short = 0.toShort(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructI16(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultI16(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructI16) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultI16) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteI16 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI16.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultI16.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructU32(
+internal open class UniffiForeignFutureResultU32(
     @JvmField internal var `returnValue`: Int = 0,
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Int = 0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructU32(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultU32(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructU32) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultU32) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteU32 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU32.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultU32.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructI32(
+internal open class UniffiForeignFutureResultI32(
     @JvmField internal var `returnValue`: Int = 0,
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Int = 0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructI32(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultI32(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructI32) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultI32) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteI32 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI32.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultI32.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructU64(
+internal open class UniffiForeignFutureResultU64(
     @JvmField internal var `returnValue`: Long = 0.toLong(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Long = 0.toLong(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructU64(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultU64(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructU64) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultU64) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteU64 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU64.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultU64.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructI64(
+internal open class UniffiForeignFutureResultI64(
     @JvmField internal var `returnValue`: Long = 0.toLong(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Long = 0.toLong(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructI64(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultI64(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructI64) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultI64) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteI64 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI64.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultI64.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructF32(
+internal open class UniffiForeignFutureResultF32(
     @JvmField internal var `returnValue`: Float = 0.0f,
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Float = 0.0f,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructF32(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultF32(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructF32) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultF32) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteF32 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF32.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultF32.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructF64(
+internal open class UniffiForeignFutureResultF64(
     @JvmField internal var `returnValue`: Double = 0.0,
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: Double = 0.0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructF64(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultF64(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructF64) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultF64) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteF64 : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF64.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultF64.UniffiByValue,)
 }
 @Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructPointer(
-    @JvmField internal var `returnValue`: Pointer = Pointer.NULL,
-    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-) : Structure() {
-    class UniffiByValue(
-        `returnValue`: Pointer = Pointer.NULL,
-        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructPointer(`returnValue`,`callStatus`,), Structure.ByValue
-
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructPointer) {
-        `returnValue` = other.`returnValue`
-        `callStatus` = other.`callStatus`
-    }
-
-}
-internal interface UniffiForeignFutureCompletePointer : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructPointer.UniffiByValue,)
-}
-@Structure.FieldOrder("returnValue", "callStatus")
-internal open class UniffiForeignFutureStructRustBuffer(
+internal open class UniffiForeignFutureResultRustBuffer(
     @JvmField internal var `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructRustBuffer(`returnValue`,`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultRustBuffer(`returnValue`,`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructRustBuffer) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultRustBuffer) {
         `returnValue` = other.`returnValue`
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteRustBuffer : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructRustBuffer.UniffiByValue,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultRustBuffer.UniffiByValue,)
 }
 @Structure.FieldOrder("callStatus")
-internal open class UniffiForeignFutureStructVoid(
+internal open class UniffiForeignFutureResultVoid(
     @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
 ) : Structure() {
     class UniffiByValue(
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ): UniffiForeignFutureStructVoid(`callStatus`,), Structure.ByValue
+    ): UniffiForeignFutureResultVoid(`callStatus`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiForeignFutureStructVoid) {
+   internal fun uniffiSetValue(other: UniffiForeignFutureResultVoid) {
         `callStatus` = other.`callStatus`
     }
 
 }
 internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
-    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructVoid.UniffiByValue,)
-}
-internal interface UniffiCallbackInterfaceLoggerMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`logLine`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureResultVoid.UniffiByValue,)
 }
 internal interface UniffiCallbackInterfaceProgressListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`progress`: Int,`total`: Int,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceLoggerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`logLine`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceQrCodeListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -660,1191 +643,864 @@ internal interface UniffiCallbackInterfaceSasListenerMethod0 : com.sun.jna.Callb
 internal interface UniffiCallbackInterfaceVerificationRequestListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
-@Structure.FieldOrder("log", "uniffiFree")
-internal open class UniffiVTableCallbackInterfaceLogger(
-    @JvmField internal var `log`: UniffiCallbackInterfaceLoggerMethod0? = null,
-    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-) : Structure() {
-    class UniffiByValue(
-        `log`: UniffiCallbackInterfaceLoggerMethod0? = null,
-        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceLogger(`log`,`uniffiFree`,), Structure.ByValue
-
-   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLogger) {
-        `log` = other.`log`
-        `uniffiFree` = other.`uniffiFree`
-    }
-
-}
-@Structure.FieldOrder("onProgress", "uniffiFree")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onProgress")
 internal open class UniffiVTableCallbackInterfaceProgressListener(
-    @JvmField internal var `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0? = null,
 ) : Structure() {
     class UniffiByValue(
-        `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceProgressListener(`onProgress`,`uniffiFree`,), Structure.ByValue
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onProgress`: UniffiCallbackInterfaceProgressListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceProgressListener(`uniffiFree`,`uniffiClone`,`onProgress`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceProgressListener) {
-        `onProgress` = other.`onProgress`
         `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onProgress` = other.`onProgress`
     }
 
 }
-@Structure.FieldOrder("onChange", "uniffiFree")
-internal open class UniffiVTableCallbackInterfaceQrCodeListener(
-    @JvmField internal var `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0? = null,
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "log")
+internal open class UniffiVTableCallbackInterfaceLogger(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `log`: UniffiCallbackInterfaceLoggerMethod0? = null,
 ) : Structure() {
     class UniffiByValue(
-        `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceQrCodeListener(`onChange`,`uniffiFree`,), Structure.ByValue
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `log`: UniffiCallbackInterfaceLoggerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceLogger(`uniffiFree`,`uniffiClone`,`log`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLogger) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `log` = other.`log`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onChange")
+internal open class UniffiVTableCallbackInterfaceQrCodeListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onChange`: UniffiCallbackInterfaceQrCodeListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceQrCodeListener(`uniffiFree`,`uniffiClone`,`onChange`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceQrCodeListener) {
-        `onChange` = other.`onChange`
         `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onChange` = other.`onChange`
     }
 
 }
-@Structure.FieldOrder("onChange", "uniffiFree")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onChange")
 internal open class UniffiVTableCallbackInterfaceSasListener(
-    @JvmField internal var `onChange`: UniffiCallbackInterfaceSasListenerMethod0? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceSasListenerMethod0? = null,
 ) : Structure() {
     class UniffiByValue(
-        `onChange`: UniffiCallbackInterfaceSasListenerMethod0? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceSasListener(`onChange`,`uniffiFree`,), Structure.ByValue
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onChange`: UniffiCallbackInterfaceSasListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceSasListener(`uniffiFree`,`uniffiClone`,`onChange`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSasListener) {
-        `onChange` = other.`onChange`
         `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onChange` = other.`onChange`
     }
 
 }
-@Structure.FieldOrder("onChange", "uniffiFree")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onChange")
 internal open class UniffiVTableCallbackInterfaceVerificationRequestListener(
-    @JvmField internal var `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0? = null,
 ) : Structure() {
     class UniffiByValue(
-        `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceVerificationRequestListener(`onChange`,`uniffiFree`,), Structure.ByValue
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onChange`: UniffiCallbackInterfaceVerificationRequestListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceVerificationRequestListener(`uniffiFree`,`uniffiClone`,`onChange`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceVerificationRequestListener) {
-        `onChange` = other.`onChange`
         `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onChange` = other.`onChange`
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
-internal interface UniffiLib : Library {
-    companion object {
-        internal val INSTANCE: UniffiLib by lazy {
-            loadIndirect<UniffiLib>(componentName = "matrix_sdk_crypto_ffi")
-            .also { lib: UniffiLib ->
-                uniffiCheckContractApiVersion(lib)
-                uniffiCheckApiChecksums(lib)
-                uniffiCallbackInterfaceLogger.register(lib)
-                uniffiCallbackInterfaceProgressListener.register(lib)
-                uniffiCallbackInterfaceQrCodeListener.register(lib)
-                uniffiCallbackInterfaceSasListener.register(lib)
-                uniffiCallbackInterfaceVerificationRequestListener.register(lib)
-                }
-        }
-        
-        // The Cleaner for the whole library
-        internal val CLEANER: UniffiCleaner by lazy {
-            UniffiCleaner.create()
-        }
+// For large crates we prevent `MethodTooLargeException` (see #2340)
+// N.B. the name of the extension is very misleading, since it is
+// rather `InterfaceTooLargeException`, caused by too many methods
+// in the interface for large crates.
+//
+// By splitting the otherwise huge interface into two parts
+// * UniffiLib (this)
+// * IntegrityCheckingUniffiLib
+// And all checksum methods are put into `IntegrityCheckingUniffiLib`
+// we allow for ~2x as many methods in the UniffiLib interface.
+//
+// Note: above all written when we used JNA's `loadIndirect` etc.
+// We now use JNA's "direct mapping" - unclear if same considerations apply exactly.
+internal object IntegrityCheckingUniffiLib {
+    init {
+        Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_crypto_ffi"))
+        uniffiCheckContractApiVersion(this)
+        uniffiCheckApiChecksums(this)
     }
+    external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_version(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_version_info(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_pkencryption_encrypt(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_delete_dehydrated_device_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_get_dehydrated_device_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_save_dehydrated_device_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_rehydrateddevice_receive_events(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_create_encrypted_to_device_request(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_dehydrated_devices(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys_from_backup(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_pkencryption_from_base64(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base58(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base64(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_passphrase(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new_from_passphrase(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_olmmachine_new(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_progresslistener_on_progress(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_logger_log(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcodelistener_on_change(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_saslistener_on_change(
+): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequestlistener_on_change(
+): Short
+external fun ffi_matrix_sdk_crypto_ffi_uniffi_contract_version(
+): Int
 
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_backupkeys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_backuprecoverykey(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(`passphrase`: RustBuffer.ByValue,`salt`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(`ptr`: Pointer,`ephemeralKey`: RustBuffer.ByValue,`mac`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(`ptr`: Pointer,`deviceDisplayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_delete_dehydrated_device_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_get_dehydrated_device_key(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(`ptr`: Pointer,`pickleKey`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`deviceData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_save_dehydrated_device_key(`ptr`: Pointer,`pickleKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_create_encrypted_to_device_request(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`handleVerificationEvents`: Byte,`strictShields`: Byte,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Pointer,`passphrase`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(`ptr`: Pointer,`users`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(`ptr`: Pointer,`export`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys_from_backup(`ptr`: Pointer,`keys`: RustBuffer.ByValue,`backupVersion`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(`ptr`: Pointer,`requestId`: RustBuffer.ByValue,`requestType`: RustBuffer.ByValue,`responseBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(`ptr`: Pointer,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,`nextBatchToken`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(`ptr`: Pointer,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(`ptr`: Pointer,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(`ptr`: Pointer,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`trustState`: RustBufferLocalTrust.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(`ptr`: Pointer,`onlyAllowTrustedDevices`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`algorithm`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`onlyAllowTrustedDevices`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(`ptr`: Pointer,`roomId`: RustBuffer.ByValue,`users`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(`ptr`: Pointer,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(`ptr`: Pointer,`users`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(`ptr`: Pointer,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(`ptr`: Pointer,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(`ptr`: Pointer,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_pkencryption(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_pkencryption(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_pkencryption_from_base64(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_pkencryption_encrypt(`ptr`: Pointer,`plaintext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_qrcode(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_rehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(`ptr`: Pointer,`events`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_sas(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_sas(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(`ptr`: Pointer,`cancelCode`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_clone_verificationrequest(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(`ptr`: Pointer,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(`ptr`: Pointer,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(`ptr`: Pointer,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_logger(`vtable`: UniffiVTableCallbackInterfaceLogger,
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_progresslistener(`vtable`: UniffiVTableCallbackInterfaceProgressListener,
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_qrcodelistener(`vtable`: UniffiVTableCallbackInterfaceQrCodeListener,
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_saslistener(`vtable`: UniffiVTableCallbackInterfaceSasListener,
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_verificationrequestlistener(`vtable`: UniffiVTableCallbackInterfaceVerificationRequestListener,
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(`roomSettings`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(`logger`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version(uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u8(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u8(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i8(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i8(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u16(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u16(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Short
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i16(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i16(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Short
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u32(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u32(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Int
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i32(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i32(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Int
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u64(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u64(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Long
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i64(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i64(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Long
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_f32(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_f32(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Float
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_f64(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_f64(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Double
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_pointer(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_pointer(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Pointer
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_rust_buffer(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_void(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_free_void(`handle`: Long,
-    ): Unit
-    fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_room_settings(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_version(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_version_info(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_delete_dehydrated_device_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_get_dehydrated_device_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_save_dehydrated_device_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_create_encrypted_to_device_request(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_dehydrated_devices(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys_from_backup(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_pkencryption_encrypt(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_rehydrateddevice_receive_events(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base58(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base64(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_passphrase(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new_from_passphrase(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_olmmachine_new(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_constructor_pkencryption_from_base64(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_logger_log(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_progresslistener_on_progress(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcodelistener_on_change(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_saslistener_on_change(
-    ): Short
-    fun uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequestlistener_on_change(
-    ): Short
-    fun ffi_matrix_sdk_crypto_ffi_uniffi_contract_version(
-    ): Int
     
 }
 
-private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
+internal object UniffiLib {
+    
+    // The Cleaner for the whole library
+    internal val CLEANER: UniffiCleaner by lazy {
+        UniffiCleaner.create()
+    }
+    
+
+    init {
+        Native.register(UniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_crypto_ffi"))
+        uniffiCallbackInterfaceLogger.register(this)
+        uniffiCallbackInterfaceProgressListener.register(this)
+        uniffiCallbackInterfaceQrCodeListener.register(this)
+        uniffiCallbackInterfaceSasListener.register(this)
+        uniffiCallbackInterfaceVerificationRequestListener.register(this)
+        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
+        
+    }
+    external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_backupkeys(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_pkencryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_pkencryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_pkencryption_from_base64(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_pkencryption_encrypt(`ptr`: Long,`plaintext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_backuprecoverykey(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(`passphrase`: RustBuffer.ByValue,`salt`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(`ptr`: Long,`ephemeralKey`: RustBuffer.ByValue,`mac`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(`ptr`: Long,`deviceDisplayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevices(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_delete_dehydrated_device_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_get_dehydrated_device_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(`ptr`: Long,`pickleKey`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`deviceData`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_save_dehydrated_device_key(`ptr`: Long,`pickleKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_rehydrateddevice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(`ptr`: Long,`events`: RustBuffer.ByValue,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_create_encrypted_to_device_request(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`shareStrategy`: RustBufferCollectStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(`ptr`: Long,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`handleVerificationEvents`: Byte,`strictShields`: Byte,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(`ptr`: Long,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Long,`passphrase`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(`ptr`: Long,`users`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(`ptr`: Long,`userId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(`ptr`: Long,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(`ptr`: Long,`userId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(`ptr`: Long,`export`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(`ptr`: Long,`keys`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(`ptr`: Long,`keys`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys_from_backup(`ptr`: Long,`keys`: RustBuffer.ByValue,`backupVersion`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(`ptr`: Long,`requestId`: RustBuffer.ByValue,`requestType`: RustBuffer.ByValue,`responseBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(`ptr`: Long,`events`: RustBuffer.ByValue,`deviceChanges`: RustBuffer.ByValue,`keyCounts`: RustBuffer.ByValue,`unusedFallbackKeys`: RustBuffer.ByValue,`nextBatchToken`: RustBuffer.ByValue,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(`ptr`: Long,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(`ptr`: Long,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(`ptr`: Long,`event`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(`ptr`: Long,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(`ptr`: Long,`userId`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(`ptr`: Long,`key`: RustBuffer.ByValue,`version`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`trustState`: RustBufferLocalTrust.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(`ptr`: Long,`onlyAllowTrustedDevices`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(`ptr`: Long,`roomId`: RustBuffer.ByValue,`algorithm`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(`ptr`: Long,`roomId`: RustBuffer.ByValue,`onlyAllowTrustedDevices`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(`ptr`: Long,`roomId`: RustBuffer.ByValue,`users`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(`ptr`: Long,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(`ptr`: Long,`users`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(`ptr`: Long,`userId`: RustBuffer.ByValue,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(`ptr`: Long,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_qrcode(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(`ptr`: Long,`cancelCode`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_sas(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_sas(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(`ptr`: Long,`cancelCode`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_verification(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_verification(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_clone_verificationrequest(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(`ptr`: Long,`methods`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(`ptr`: Long,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_progresslistener(`vtable`: UniffiVTableCallbackInterfaceProgressListener,
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_logger(`vtable`: UniffiVTableCallbackInterfaceLogger,
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_qrcodelistener(`vtable`: UniffiVTableCallbackInterfaceQrCodeListener,
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_saslistener(`vtable`: UniffiVTableCallbackInterfaceSasListener,
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_init_callback_vtable_verificationrequestlistener(`vtable`: UniffiVTableCallbackInterfaceVerificationRequestListener,
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(`roomSettings`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(`data`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_version(uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(`logger`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun ffi_matrix_sdk_crypto_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun ffi_matrix_sdk_crypto_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u8(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u8(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i8(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i8(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u16(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u16(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Short
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i16(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i16(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Short
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u32(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u32(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Int
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i32(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i32(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Int
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_u64(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_u64(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_i64(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_i64(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_f32(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_f32(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Float
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_f64(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_f64(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Double
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_rust_buffer(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_cancel_void(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_free_void(`handle`: Long,
+): Unit
+external fun ffi_matrix_sdk_crypto_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+
+    
+}
+
+private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 26
+    val bindings_contract_version = 30
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_matrix_sdk_crypto_ffi_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
 }
-
 @Suppress("UNUSED_PARAMETER")
-private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate() != 42143.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1852,9 +1508,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_migrate_sessions() != 34886.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger() != 11288.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_version() != 18282.toShort()) {
@@ -1866,399 +1519,412 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_vodozemac_version() != 31430.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_func_set_logger() != 10007.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_backup_version() != 56634.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key() != 59286.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1() != 63819.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key() != 54235.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58() != 15954.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64() != 3854.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload() != 27279.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create() != 20431.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_delete_dehydrated_device_key() != 20976.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_get_dehydrated_device_key() != 52976.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate() != 62661.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_save_dehydrated_device_key() != 54923.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled() != 55573.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys() != 36224.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing() != 16272.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_create_encrypted_to_device_request() != 26155.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status() != 60700.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event() != 51124.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_dehydrated_devices() != 29352.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id() != 8368.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup() != 41418.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key() != 51133.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1() != 32528.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt() != 30553.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys() != 5979.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 20478.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 32402.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device() != 22502.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity() != 54772.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions() != 24314.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices() != 41002.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings() != 11972.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices() != 2357.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification() != 26313.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request() != 52941.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests() != 22986.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys() != 27954.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys() != 52001.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys() != 14158.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys() != 6715.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys_from_backup() != 16588.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified() != 19282.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked() != 38133.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent() != 62014.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests() != 60867.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions() != 33649.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes() != 38842.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event() != 46523.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event() != 40029.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key() != 55933.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification() != 47311.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification() != 38259.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device() != 2015.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts() != 50492.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key() != 43674.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust() != 10978.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices() != 5049.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm() != 47962.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices() != 38231.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key() != 57647.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign() != 11388.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device() != 39343.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users() != 47867.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id() != 28648.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content() != 54088.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup() != 2751.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device() != 57316.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity() != 39267.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backupkeys_recovery_key() != 28028.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_pkencryption_encrypt() != 50717.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel() != 56240.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_decrypt_v1() != 7567.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info() != 797.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_megolm_v1_public_key() != 18467.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm() != 7766.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base58() != 6637.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id() != 38858.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_backuprecoverykey_to_base64() != 9423.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code() != 38303.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevice_keys_for_upload() != 14783.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned() != 34711.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_create() != 54716.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled() != 17076.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_delete_dehydrated_device_key() != 65331.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done() != 64647.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_get_dehydrated_device_key() != 12446.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id() != 18546.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_rehydrate() != 19371.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id() != 32903.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_dehydrateddevices_save_dehydrated_device_key() != 4816.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated() != 29284.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_rehydrateddevice_receive_events() != 16102.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id() != 42325.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_enabled() != 27153.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener() != 42360.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_backup_room_keys() != 10223.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state() != 26065.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_bootstrap_cross_signing() != 25779.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started() != 39359.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_create_encrypted_to_device_request() != 64428.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_rehydrateddevice_receive_events() != 55015.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_cross_signing_status() != 62001.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept() != 23750.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_decrypt_room_event() != 42723.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel() != 32584.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_dehydrated_devices() != 28255.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm() != 2955.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_device_id() != 15884.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id() != 8039.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_disable_backup() != 45495.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals() != 6633.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_discard_room_key() != 41668.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices() != 21471.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_enable_backup_v1() != 7775.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done() != 23641.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_encrypt() != 42729.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id() != 55711.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cross_signing_keys() != 3283.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id() != 5587.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 48778.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id() != 56710.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 30940.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 45460.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device() != 23944.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state() != 5148.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_identity() != 24450.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started() != 20077.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_missing_sessions() != 23643.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr() != 38638.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_only_allow_trusted_devices() != 52019.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas() != 62612.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_room_settings() != 59994.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept() != 41324.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_user_devices() != 37077.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel() != 45120.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification() != 6422.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info() != 58718.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_request() != 21611.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id() != 48899.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_verification_requests() != 31254.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled() != 5406.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_identity_keys() != 50369.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done() != 6301.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_cross_signing_keys() != 11024.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive() != 29071.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_decrypted_room_keys() != 15411.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready() != 46804.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys() != 31893.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id() != 57800.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_import_room_keys_from_backup() != 33961.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id() != 32763.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_identity_verified() != 22557.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods() != 59504.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_is_user_tracked() != 59197.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id() != 15921.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_mark_request_as_sent() != 60687.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code() != 15656.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_outgoing_requests() != 51325.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener() != 44931.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_query_missing_secrets_from_other_sessions() != 14941.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification() != 45448.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_sync_changes() != 41050.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification() != 31406.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_unencrypted_verification_event() != 55038.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state() != 50283.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_receive_verification_event() != 63021.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods() != 50334.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_room_key() != 28844.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started() != 30926.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_self_verification() != 365.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base58() != 42204.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification() != 48347.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base64() != 3338.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_request_verification_with_device() != 17995.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_passphrase() != 31417.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_room_key_counts() != 29645.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new() != 6408.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_save_recovery_key() != 8816.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new_from_passphrase() != 29227.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_local_trust() != 20057.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_olmmachine_new() != 21121.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_only_allow_trusted_devices() != 49359.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_pkencryption_from_base64() != 23335.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_algorithm() != 52729.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_logger_log() != 3112.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_set_room_only_allow_trusted_devices() != 64310.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_share_room_key() != 17577.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_sign() != 57092.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_start_sas_with_device() != 40069.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_update_tracked_users() != 11900.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_user_id() != 29027.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verification_request_content() != 43206.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_backup() != 48404.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_device() != 29020.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_verify_identity() != 29700.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel() != 11515.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_cancel_info() != 60809.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_confirm() != 33189.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_flow_id() != 24149.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_generate_qr_code() != 48487.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_has_been_scanned() != 5654.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_cancelled() != 38268.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_is_done() != 33081.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_device_id() != 37408.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_other_user_id() != 37743.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_reciprocated() != 52211.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_room_id() != 16574.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_set_changes_listener() != 52124.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_state() != 25839.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcode_we_started() != 14081.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_accept() != 27798.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_cancel() != 23940.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_confirm() != 51155.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_flow_id() != 14280.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_decimals() != 18711.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_get_emoji_indices() != 9468.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_is_done() != 47755.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_device_id() != 64592.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_other_user_id() != 33381.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id() != 19270.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 45584.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state() != 23775.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_we_started() != 22917.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_qr() != 52516.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verification_as_sas() != 19800.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_accept() != 61553.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel() != 53946.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_cancel_info() != 15480.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_flow_id() != 26732.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_cancelled() != 3149.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_done() != 9916.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_passive() != 61184.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_is_ready() != 57031.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_device_id() != 52398.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_other_user_id() != 20028.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_our_supported_methods() != 63423.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_room_id() != 20031.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_scan_qr_code() != 50209.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_set_changes_listener() != 56211.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_qr_verification() != 17859.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_start_sas_verification() != 24324.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_state() != 47708.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_their_supported_methods() != 32758.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequest_we_started() != 3786.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_pkencryption_from_base64() != 53753.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base58() != 20584.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_base64() != 33799.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_from_passphrase() != 910.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new() != 8409.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_backuprecoverykey_new_from_passphrase() != 15089.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_constructor_olmmachine_new() != 37664.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_progresslistener_on_progress() != 49805.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcodelistener_on_change() != 48097.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_logger_log() != 58421.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_saslistener_on_change() != 32441.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_qrcodelistener_on_change() != 25151.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequestlistener_on_change() != 9094.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_saslistener_on_change() != 23759.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_verificationrequestlistener_on_change() != 40709.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+}
+
+/**
+ * @suppress
+ */
+public fun uniffiEnsureInitialized() {
+    IntegrityCheckingUniffiLib
+    // UniffiLib() initialized as objects are used, but we still need to explicitly
+    // reference it so initialization across crates works as expected.
+    UniffiLib
 }
 
 // Async support
@@ -2278,12 +1944,40 @@ interface Disposable {
     fun destroy()
     companion object {
         fun destroy(vararg args: Any?) {
-            args.filterIsInstance<Disposable>()
-                .forEach(Disposable::destroy)
+            for (arg in args) {
+                when (arg) {
+                    is Disposable -> arg.destroy()
+                    is ArrayList<*> -> {
+                        for (idx in arg.indices) {
+                            val element = arg[idx]
+                            if (element is Disposable) {
+                                element.destroy()
+                            }
+                        }
+                    }
+                    is Map<*, *> -> {
+                        for (element in arg.values) {
+                            if (element is Disposable) {
+                                element.destroy()
+                            }
+                        }
+                    }
+                    is Iterable<*> -> {
+                        for (element in arg) {
+                            if (element is Disposable) {
+                                element.destroy()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
+/**
+ * @suppress
+ */
 inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
     try {
         block(this)
@@ -2296,9 +1990,122 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-/** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
-object NoPointer
+/** 
+ * Placeholder object used to signal that we're constructing an interface with a FFI handle.
+ *
+ * This is the first argument for interface constructors that input a raw handle. It exists is that
+ * so we can avoid signature conflicts when an interface has a regular constructor than inputs a
+ * Long.
+ *
+ * @suppress
+ * */
+object UniffiWithHandle
 
+/** 
+ * Used to instantiate an interface without an actual pointer, for fakes in tests, mostly.
+ *
+ * @suppress
+ * */
+object NoHandle// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+internal const val IDX_CALLBACK_FREE = 0
+// Callback return codes
+internal const val UNIFFI_CALLBACK_SUCCESS = 0
+internal const val UNIFFI_CALLBACK_ERROR = 1
+internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
+
+/**
+ * @suppress
+ */
+public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: FfiConverter<CallbackInterface, Long> {
+    internal val handleMap = UniffiHandleMap<CallbackInterface>()
+
+    internal fun drop(handle: Long) {
+        handleMap.remove(handle)
+    }
+
+    override fun lift(value: Long): CallbackInterface {
+        return handleMap.get(value)
+    }
+
+    override fun read(buf: ByteBuffer) = lift(buf.getLong())
+
+    override fun lower(value: CallbackInterface) = handleMap.insert(value)
+
+    override fun allocationSize(value: CallbackInterface) = 8UL
+
+    override fun write(value: CallbackInterface, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+/**
+ * The cleaner interface for Object finalization code to run.
+ * This is the entry point to any implementation that we're using.
+ *
+ * The cleaner registers objects and returns cleanables, so now we are
+ * defining a `UniffiCleaner` with a `UniffiClenaer.Cleanable` to abstract the
+ * different implmentations available at compile time.
+ *
+ * @suppress
+ */
+interface UniffiCleaner {
+    interface Cleanable {
+        fun clean()
+    }
+
+    fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable
+
+    companion object
+}
+
+// The fallback Jna cleaner, which is available for both Android, and the JVM.
+private class UniffiJnaCleaner : UniffiCleaner {
+    private val cleaner = com.sun.jna.internal.Cleaner.getCleaner()
+
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
+}
+
+private class UniffiJnaCleanable(
+    private val cleanable: com.sun.jna.internal.Cleaner.Cleanable,
+) : UniffiCleaner.Cleanable {
+    override fun clean() = cleanable.clean()
+}
+
+
+// We decide at uniffi binding generation time whether we were
+// using Android or not.
+// There are further runtime checks to chose the correct implementation
+// of the cleaner.
+private fun UniffiCleaner.Companion.create(): UniffiCleaner =
+    try {
+        // For safety's sake: if the library hasn't been run in android_cleaner = true
+        // mode, but is being run on Android, then we still need to think about
+        // Android API versions.
+        // So we check if java.lang.ref.Cleaner is there, and use that…
+        java.lang.Class.forName("java.lang.ref.Cleaner")
+        JavaLangRefCleaner()
+    } catch (e: ClassNotFoundException) {
+        // … otherwise, fallback to the JNA cleaner.
+        UniffiJnaCleaner()
+    }
+
+private class JavaLangRefCleaner : UniffiCleaner {
+    val cleaner = java.lang.ref.Cleaner.create()
+
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        JavaLangRefCleanable(cleaner.register(value, cleanUpTask))
+}
+
+private class JavaLangRefCleanable(
+    val cleanable: java.lang.ref.Cleaner.Cleanable
+) : UniffiCleaner.Cleanable {
+    override fun clean() = cleanable.clean()
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterUInt: FfiConverter<UInt, Int> {
     override fun lift(value: Int): UInt {
         return value.toUInt()
@@ -2319,6 +2126,9 @@ public object FfiConverterUInt: FfiConverter<UInt, Int> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterInt: FfiConverter<Int, Int> {
     override fun lift(value: Int): Int {
         return value
@@ -2339,6 +2149,9 @@ public object FfiConverterInt: FfiConverter<Int, Int> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterULong: FfiConverter<ULong, Long> {
     override fun lift(value: Long): ULong {
         return value.toULong()
@@ -2359,6 +2172,9 @@ public object FfiConverterULong: FfiConverter<ULong, Long> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterLong: FfiConverter<Long, Long> {
     override fun lift(value: Long): Long {
         return value
@@ -2379,6 +2195,9 @@ public object FfiConverterLong: FfiConverter<Long, Long> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean {
         return value.toInt() != 0
@@ -2399,6 +2218,9 @@ public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -2453,6 +2275,9 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
     override fun read(buf: ByteBuffer): ByteArray {
         val len = buf.getInt()
@@ -2470,21 +2295,18 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -2509,13 +2331,13 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -2568,65 +2390,6 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 //
 
 
-// The cleaner interface for Object finalization code to run.
-// This is the entry point to any implementation that we're using.
-//
-// The cleaner registers objects and returns cleanables, so now we are
-// defining a `UniffiCleaner` with a `UniffiClenaer.Cleanable` to abstract the
-// different implmentations available at compile time.
-interface UniffiCleaner {
-    interface Cleanable {
-        fun clean()
-    }
-
-    fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable
-
-    companion object
-}
-
-// The fallback Jna cleaner, which is available for both Android, and the JVM.
-private class UniffiJnaCleaner : UniffiCleaner {
-    private val cleaner = com.sun.jna.internal.Cleaner.getCleaner()
-
-    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
-        UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
-}
-
-private class UniffiJnaCleanable(
-    private val cleanable: com.sun.jna.internal.Cleaner.Cleanable,
-) : UniffiCleaner.Cleanable {
-    override fun clean() = cleanable.clean()
-}
-
-// We decide at uniffi binding generation time whether we were
-// using Android or not.
-// There are further runtime checks to chose the correct implementation
-// of the cleaner.
-private fun UniffiCleaner.Companion.create(): UniffiCleaner =
-    try {
-        // For safety's sake: if the library hasn't been run in android_cleaner = true
-        // mode, but is being run on Android, then we still need to think about
-        // Android API versions.
-        // So we check if java.lang.ref.Cleaner is there, and use that…
-        java.lang.Class.forName("java.lang.ref.Cleaner")
-        JavaLangRefCleaner()
-    } catch (e: ClassNotFoundException) {
-        // … otherwise, fallback to the JNA cleaner.
-        UniffiJnaCleaner()
-    }
-
-private class JavaLangRefCleaner : UniffiCleaner {
-    val cleaner = java.lang.ref.Cleaner.create()
-
-    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
-        JavaLangRefCleanable(cleaner.register(value, cleanUpTask))
-}
-
-private class JavaLangRefCleanable(
-    val cleanable: java.lang.ref.Cleaner.Cleanable
-) : UniffiCleaner.Cleanable {
-    override fun clean() = cleanable.clean()
-}
 /**
  * Backup keys and information we load from the store.
  */
@@ -2648,26 +2411,33 @@ public interface BackupKeysInterface {
 /**
  * Backup keys and information we load from the store.
  */
-open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
+open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -2678,7 +2448,7 @@ open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -2688,7 +2458,7 @@ open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -2700,32 +2470,40 @@ open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_backupkeys(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_backupkeys(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_backupkeys(handle, status)
         }
     }
 
@@ -2734,10 +2512,11 @@ open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
      * Get the backups version that we're holding on to.
      */override fun `backupVersion`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_backup_version(
+        it,
+        _status)
 }
     }
     )
@@ -2749,10 +2528,11 @@ open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
      * Get the recovery key that we're holding on to.
      */override fun `recoveryKey`(): BackupRecoveryKey {
             return FfiConverterTypeBackupRecoveryKey.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_backupkeys_recovery_key(
+        it,
+        _status)
 }
     }
     )
@@ -2762,52 +2542,54 @@ open class BackupKeys: Disposable, AutoCloseable, BackupKeysInterface {
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeBackupKeys: FfiConverter<BackupKeys, Pointer> {
 
-    override fun lower(value: BackupKeys): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBackupKeys: FfiConverter<BackupKeys, Long> {
+    override fun lower(value: BackupKeys): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): BackupKeys {
-        return BackupKeys(value)
+    override fun lift(value: Long): BackupKeys {
+        return BackupKeys(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): BackupKeys {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: BackupKeys) = 8UL
 
     override fun write(value: BackupKeys, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -2832,13 +2614,13 @@ public object FfiConverterTypeBackupKeys: FfiConverter<BackupKeys, Pointer> {
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -2923,36 +2705,44 @@ public interface BackupRecoveryKeyInterface {
 /**
  * The private part of the backup key, the one used for recovery.
  */
-open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterface {
+open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
     /**
      * Create a new random [`BackupRecoveryKey`].
      */
     constructor() :
-        this(
+        this(UniffiWithHandle, 
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new(
+    
         _status)
 }
     )
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -2963,7 +2753,7 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -2973,7 +2763,7 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -2985,32 +2775,40 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_backuprecoverykey(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_backuprecoverykey(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_backuprecoverykey(handle, status)
         }
     }
 
@@ -3021,10 +2819,11 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
      */
     @Throws(PkDecryptionException::class)override fun `decryptV1`(`ephemeralKey`: kotlin.String, `mac`: kotlin.String, `ciphertext`: kotlin.String): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(PkDecryptionException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(
-        it, FfiConverterString.lower(`ephemeralKey`),FfiConverterString.lower(`mac`),FfiConverterString.lower(`ciphertext`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_decrypt_v1(
+        it,
+        FfiConverterString.lower(`ephemeralKey`),FfiConverterString.lower(`mac`),FfiConverterString.lower(`ciphertext`),_status)
 }
     }
     )
@@ -3036,10 +2835,11 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
      * Get the public part of the backup key.
      */override fun `megolmV1PublicKey`(): MegolmV1BackupKey {
             return FfiConverterTypeMegolmV1BackupKey.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_megolm_v1_public_key(
+        it,
+        _status)
 }
     }
     )
@@ -3051,10 +2851,11 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
      * Convert the recovery key to a base 58 encoded string.
      */override fun `toBase58`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base58(
+        it,
+        _status)
 }
     }
     )
@@ -3066,10 +2867,11 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
      * Convert the recovery key to a base 64 encoded string.
      */override fun `toBase64`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_backuprecoverykey_to_base64(
+        it,
+        _status)
 }
     }
     )
@@ -3077,6 +2879,9 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
     
 
     
+
+    
+
 
     
     companion object {
@@ -3087,7 +2892,8 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
     @Throws(DecodeException::class) fun `fromBase58`(`key`: kotlin.String): BackupRecoveryKey {
             return FfiConverterTypeBackupRecoveryKey.lift(
     uniffiRustCallWithError(DecodeException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base58(
+    
         FfiConverterString.lower(`key`),_status)
 }
     )
@@ -3101,7 +2907,8 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
     @Throws(DecodeException::class) fun `fromBase64`(`key`: kotlin.String): BackupRecoveryKey {
             return FfiConverterTypeBackupRecoveryKey.lift(
     uniffiRustCallWithError(DecodeException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_base64(
+    
         FfiConverterString.lower(`key`),_status)
 }
     )
@@ -3114,7 +2921,8 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
      */ fun `fromPassphrase`(`passphrase`: kotlin.String, `salt`: kotlin.String, `rounds`: kotlin.Int): BackupRecoveryKey {
             return FfiConverterTypeBackupRecoveryKey.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_from_passphrase(
+    
         FfiConverterString.lower(`passphrase`),FfiConverterString.lower(`salt`),FfiConverterInt.lower(`rounds`),_status)
 }
     )
@@ -3127,7 +2935,8 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
      */ fun `newFromPassphrase`(`passphrase`: kotlin.String): BackupRecoveryKey {
             return FfiConverterTypeBackupRecoveryKey.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_backuprecoverykey_new_from_passphrase(
+    
         FfiConverterString.lower(`passphrase`),_status)
 }
     )
@@ -3139,47 +2948,43 @@ open class BackupRecoveryKey: Disposable, AutoCloseable, BackupRecoveryKeyInterf
     
 }
 
-public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey, Pointer> {
 
-    override fun lower(value: BackupRecoveryKey): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey, Long> {
+    override fun lower(value: BackupRecoveryKey): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): BackupRecoveryKey {
-        return BackupRecoveryKey(value)
+    override fun lift(value: Long): BackupRecoveryKey {
+        return BackupRecoveryKey(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): BackupRecoveryKey {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: BackupRecoveryKey) = 8UL
 
     override fun write(value: BackupRecoveryKey, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -3204,13 +3009,13 @@ public object FfiConverterTypeBackupRecoveryKey: FfiConverter<BackupRecoveryKey,
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -3270,26 +3075,33 @@ public interface DehydratedDeviceInterface {
     companion object
 }
 
-open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterface {
+open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -3300,7 +3112,7 @@ open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterfac
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -3310,7 +3122,7 @@ open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterfac
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -3322,42 +3134,51 @@ open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterfac
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevice(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevice(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevice(handle, status)
         }
     }
 
     
     @Throws(DehydrationException::class)override fun `keysForUpload`(`deviceDisplayName`: kotlin.String, `pickleKey`: DehydratedDeviceKey): UploadDehydratedDeviceRequest {
             return FfiConverterTypeUploadDehydratedDeviceRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(DehydrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(
-        it, FfiConverterString.lower(`deviceDisplayName`),FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevice_keys_for_upload(
+        it,
+        FfiConverterString.lower(`deviceDisplayName`),FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),_status)
 }
     }
     )
@@ -3367,52 +3188,54 @@ open class DehydratedDevice: Disposable, AutoCloseable, DehydratedDeviceInterfac
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeDehydratedDevice: FfiConverter<DehydratedDevice, Pointer> {
 
-    override fun lower(value: DehydratedDevice): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDehydratedDevice: FfiConverter<DehydratedDevice, Long> {
+    override fun lower(value: DehydratedDevice): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): DehydratedDevice {
-        return DehydratedDevice(value)
+    override fun lift(value: Long): DehydratedDevice {
+        return DehydratedDevice(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): DehydratedDevice {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: DehydratedDevice) = 8UL
 
     override fun write(value: DehydratedDevice, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -3437,13 +3260,13 @@ public object FfiConverterTypeDehydratedDevice: FfiConverter<DehydratedDevice, P
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -3529,26 +3352,33 @@ public interface DehydratedDevicesInterface {
     companion object
 }
 
-open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterface {
+open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -3559,7 +3389,7 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -3569,7 +3399,7 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -3581,42 +3411,51 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_dehydrateddevices(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevices(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_dehydrateddevices(handle, status)
         }
     }
 
     
     @Throws(DehydrationException::class)override fun `create`(): DehydratedDevice {
             return FfiConverterTypeDehydratedDevice.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(DehydrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_create(
+        it,
+        _status)
 }
     }
     )
@@ -3629,10 +3468,11 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
      */
     @Throws(CryptoStoreException::class)override fun `deleteDehydratedDeviceKey`()
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_delete_dehydrated_device_key(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_delete_dehydrated_device_key(
+        it,
+        _status)
 }
     }
     
@@ -3650,10 +3490,11 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
      */
     @Throws(CryptoStoreException::class)override fun `getDehydratedDeviceKey`(): DehydratedDeviceKey? {
             return FfiConverterOptionalTypeDehydratedDeviceKey.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_get_dehydrated_device_key(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_get_dehydrated_device_key(
+        it,
+        _status)
 }
     }
     )
@@ -3663,10 +3504,11 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
     
     @Throws(DehydrationException::class)override fun `rehydrate`(`pickleKey`: DehydratedDeviceKey, `deviceId`: kotlin.String, `deviceData`: kotlin.String): RehydratedDevice {
             return FfiConverterTypeRehydratedDevice.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(DehydrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(
-        it, FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`deviceData`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_rehydrate(
+        it,
+        FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`deviceData`),_status)
 }
     }
     )
@@ -3682,10 +3524,11 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
      */
     @Throws(CryptoStoreException::class)override fun `saveDehydratedDeviceKey`(`pickleKey`: DehydratedDeviceKey)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_save_dehydrated_device_key(
-        it, FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_dehydrateddevices_save_dehydrated_device_key(
+        it,
+        FfiConverterTypeDehydratedDeviceKey.lower(`pickleKey`),_status)
 }
     }
     
@@ -3694,52 +3537,54 @@ open class DehydratedDevices: Disposable, AutoCloseable, DehydratedDevicesInterf
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeDehydratedDevices: FfiConverter<DehydratedDevices, Pointer> {
 
-    override fun lower(value: DehydratedDevices): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDehydratedDevices: FfiConverter<DehydratedDevices, Long> {
+    override fun lower(value: DehydratedDevices): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): DehydratedDevices {
-        return DehydratedDevices(value)
+    override fun lift(value: Long): DehydratedDevices {
+        return DehydratedDevices(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): DehydratedDevices {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: DehydratedDevices) = 8UL
 
     override fun write(value: DehydratedDevices, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -3764,13 +3609,13 @@ public object FfiConverterTypeDehydratedDevices: FfiConverter<DehydratedDevices,
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -3867,7 +3712,7 @@ public interface OlmMachineInterface {
      * `get_missing_sessions`) with the target device before calling this
      * method.
      */
-    fun `createEncryptedToDeviceRequest`(`userId`: kotlin.String, `deviceId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): Request?
+    fun `createEncryptedToDeviceRequest`(`userId`: kotlin.String, `deviceId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String, `shareStrategy`: CollectStrategy): Request?
     
     /**
      * Get the status of the private cross signing keys.
@@ -3886,9 +3731,18 @@ public interface OlmMachineInterface {
      *
      * * `room_id` - The unique id of the room where the event was sent to.
      *
+     * * `handle_verification_events` - if the supplied event is a verification
+     * event, use it to update the verification state. **Note**: it is
+     * recommended to avoid setting this flag to true and use the explicit
+     * [`OlmMachine::receive_verification_event`] method instead:
+     * verification events sometimes need preparation before we can handle
+     * them: see the documentation for
+     * [`OlmMachine::receive_verification_event`].
+     *
      * * `strict_shields` - If `true`, messages will be decorated with strict
      * warnings (use `false` to match legacy behaviour where unsafe keys have
      * lower severity warnings and unverified identities are not decorated).
+     *
      * * `decryption_settings` - The setting for decrypting messages.
      */
     fun `decryptRoomEvent`(`event`: kotlin.String, `roomId`: kotlin.String, `handleVerificationEvents`: kotlin.Boolean, `strictShields`: kotlin.Boolean, `decryptionSettings`: DecryptionSettings): DecryptedEvent
@@ -4252,7 +4106,7 @@ public interface OlmMachineInterface {
      *
      * * `key_counts` - The map of uploaded one-time key types and counts.
      */
-    fun `receiveSyncChanges`(`events`: kotlin.String, `deviceChanges`: DeviceLists, `keyCounts`: Map<kotlin.String, kotlin.Int>, `unusedFallbackKeys`: List<kotlin.String>?, `nextBatchToken`: kotlin.String): SyncChangesResult
+    fun `receiveSyncChanges`(`events`: kotlin.String, `deviceChanges`: DeviceLists, `keyCounts`: Map<kotlin.String, kotlin.Int>, `unusedFallbackKeys`: List<kotlin.String>?, `nextBatchToken`: kotlin.String, `decryptionSettings`: DecryptionSettings): SyncChangesResult
     
     /**
      * Receive an unencrypted verification event.
@@ -4269,6 +4123,14 @@ public interface OlmMachineInterface {
      *
      * This method can be used to pass verification events that are happening
      * in rooms to the `OlmMachine`. The event should be in the decrypted form.
+     *
+     * **Note**: If the supplied event is an `m.room.message` event with
+     * `msgtype: m.key.verification.request`, then the device information for
+     * the sending user must be up-to-date before calling this method
+     * (otherwise, the request will be ignored). It is hard to guarantee this
+     * is the case, but you can maximize your chances by explicitly making a
+     * request to /keys/query for the user's device info, and processing the
+     * response with [`OlmMachine::mark_request_as_sent`].
      */
     fun `receiveVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
     
@@ -4481,7 +4343,7 @@ public interface OlmMachineInterface {
     fun `verifyBackup`(`backupInfo`: kotlin.String): SignatureVerification
     
     /**
-     * Manually the device of the given user with the given device ID.
+     * Manually verify the device of the given user with the given device ID.
      *
      * This method will attempt to sign the device using our private cross
      * signing key.
@@ -4518,22 +4380,29 @@ public interface OlmMachineInterface {
 /**
  * A high level state machine that handles E2EE for Matrix.
  */
-open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
+open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
     /**
      * Create a new `OlmMachine`
@@ -4551,15 +4420,16 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * the store and all its data will remain unencrypted.
      */
     constructor(`userId`: kotlin.String, `deviceId`: kotlin.String, `path`: kotlin.String, `passphrase`: kotlin.String?) :
-        this(
+        this(UniffiWithHandle, 
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_olmmachine_new(
+    
         FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),_status)
 }
     )
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -4570,7 +4440,7 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -4580,7 +4450,7 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -4592,32 +4462,40 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_olmmachine(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_olmmachine(handle, status)
         }
     }
 
@@ -4629,10 +4507,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * registered with the state machine.
      */override fun `backupEnabled`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_enabled(
+        it,
+        _status)
 }
     }
     )
@@ -4646,10 +4525,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `backupRoomKeys`(): Request? {
             return FfiConverterOptionalTypeRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_backup_room_keys(
+        it,
+        _status)
 }
     }
     )
@@ -4663,10 +4543,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `bootstrapCrossSigning`(): BootstrapCrossSigningResult {
             return FfiConverterTypeBootstrapCrossSigningResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_bootstrap_cross_signing(
+        it,
+        _status)
 }
     }
     )
@@ -4693,12 +4574,13 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * `get_missing_sessions`) with the target device before calling this
      * method.
      */
-    @Throws(CryptoStoreException::class)override fun `createEncryptedToDeviceRequest`(`userId`: kotlin.String, `deviceId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): Request? {
+    @Throws(CryptoStoreException::class)override fun `createEncryptedToDeviceRequest`(`userId`: kotlin.String, `deviceId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String, `shareStrategy`: CollectStrategy): Request? {
             return FfiConverterOptionalTypeRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_create_encrypted_to_device_request(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_create_encrypted_to_device_request(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),FfiConverterTypeCollectStrategy.lower(`shareStrategy`),_status)
 }
     }
     )
@@ -4713,10 +4595,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * stored locally.
      */override fun `crossSigningStatus`(): CrossSigningStatus {
             return FfiConverterTypeCrossSigningStatus.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_cross_signing_status(
+        it,
+        _status)
 }
     }
     )
@@ -4733,17 +4616,27 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      *
      * * `room_id` - The unique id of the room where the event was sent to.
      *
+     * * `handle_verification_events` - if the supplied event is a verification
+     * event, use it to update the verification state. **Note**: it is
+     * recommended to avoid setting this flag to true and use the explicit
+     * [`OlmMachine::receive_verification_event`] method instead:
+     * verification events sometimes need preparation before we can handle
+     * them: see the documentation for
+     * [`OlmMachine::receive_verification_event`].
+     *
      * * `strict_shields` - If `true`, messages will be decorated with strict
      * warnings (use `false` to match legacy behaviour where unsafe keys have
      * lower severity warnings and unverified identities are not decorated).
+     *
      * * `decryption_settings` - The setting for decrypting messages.
      */
     @Throws(DecryptionException::class)override fun `decryptRoomEvent`(`event`: kotlin.String, `roomId`: kotlin.String, `handleVerificationEvents`: kotlin.Boolean, `strictShields`: kotlin.Boolean, `decryptionSettings`: DecryptionSettings): DecryptedEvent {
             return FfiConverterTypeDecryptedEvent.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(DecryptionException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(
-        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`handleVerificationEvents`),FfiConverterBoolean.lower(`strictShields`),FfiConverterTypeDecryptionSettings.lower(`decryptionSettings`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_decrypt_room_event(
+        it,
+        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`handleVerificationEvents`),FfiConverterBoolean.lower(`strictShields`),FfiConverterTypeDecryptionSettings.lower(`decryptionSettings`),_status)
 }
     }
     )
@@ -4755,10 +4648,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * Manage dehydrated devices.
      */override fun `dehydratedDevices`(): DehydratedDevices {
             return FfiConverterTypeDehydratedDevices.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_dehydrated_devices(
+        it,
+        _status)
 }
     }
     )
@@ -4770,10 +4664,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * Get the device ID of the device of this `OlmMachine`.
      */override fun `deviceId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_device_id(
+        it,
+        _status)
 }
     }
     )
@@ -4789,10 +4684,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `disableBackup`()
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_disable_backup(
+        it,
+        _status)
 }
     }
     
@@ -4805,10 +4701,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `discardRoomKey`(`roomId`: kotlin.String)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(
-        it, FfiConverterString.lower(`roomId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_discard_room_key(
+        it,
+        FfiConverterString.lower(`roomId`),_status)
 }
     }
     
@@ -4826,10 +4723,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(DecodeException::class)override fun `enableBackupV1`(`key`: MegolmV1BackupKey, `version`: kotlin.String)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(DecodeException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(
-        it, FfiConverterTypeMegolmV1BackupKey.lower(`key`),FfiConverterString.lower(`version`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_enable_backup_v1(
+        it,
+        FfiConverterTypeMegolmV1BackupKey.lower(`key`),FfiConverterString.lower(`version`),_status)
 }
     }
     
@@ -4873,10 +4771,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `encrypt`(`roomId`: kotlin.String, `eventType`: kotlin.String, `content`: kotlin.String): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(
-        it, FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_encrypt(
+        it,
+        FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),_status)
 }
     }
     )
@@ -4895,10 +4794,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `exportCrossSigningKeys`(): CrossSigningKeyExport? {
             return FfiConverterOptionalTypeCrossSigningKeyExport.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_signing_keys(
+        it,
+        _status)
 }
     }
     )
@@ -4919,10 +4819,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `exportRoomKeys`(`passphrase`: kotlin.String, `rounds`: kotlin.Int): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(
-        it, FfiConverterString.lower(`passphrase`),FfiConverterInt.lower(`rounds`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(
+        it,
+        FfiConverterString.lower(`passphrase`),FfiConverterInt.lower(`rounds`),_status)
 }
     }
     )
@@ -4935,10 +4836,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getBackupKeys`(): BackupKeys? {
             return FfiConverterOptionalTypeBackupKeys.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(
+        it,
+        _status)
 }
     }
     )
@@ -4964,10 +4866,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String, `timeout`: kotlin.UInt): Device? {
             return FfiConverterOptionalTypeDevice.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterUInt.lower(`timeout`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterUInt.lower(`timeout`),_status)
 }
     }
     )
@@ -4991,10 +4894,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getIdentity`(`userId`: kotlin.String, `timeout`: kotlin.UInt): UserIdentity? {
             return FfiConverterOptionalTypeUserIdentity.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(
-        it, FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_identity(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),_status)
 }
     }
     )
@@ -5020,10 +4924,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getMissingSessions`(`users`: List<kotlin.String>): Request? {
             return FfiConverterOptionalTypeRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(
-        it, FfiConverterSequenceString.lower(`users`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_missing_sessions(
+        it,
+        FfiConverterSequenceString.lower(`users`),_status)
 }
     }
     )
@@ -5041,10 +4946,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getOnlyAllowTrustedDevices`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_only_allow_trusted_devices(
+        it,
+        _status)
 }
     }
     )
@@ -5063,10 +4969,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getRoomSettings`(`roomId`: kotlin.String): RoomSettings? {
             return FfiConverterOptionalTypeRoomSettings.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(
-        it, FfiConverterString.lower(`roomId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_room_settings(
+        it,
+        FfiConverterString.lower(`roomId`),_status)
 }
     }
     )
@@ -5090,10 +4997,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `getUserDevices`(`userId`: kotlin.String, `timeout`: kotlin.UInt): List<Device> {
             return FfiConverterSequenceTypeDevice.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(
-        it, FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_user_devices(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterUInt.lower(`timeout`),_status)
 }
     }
     )
@@ -5113,10 +5021,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * * `flow_id` - The ID that uniquely identifies the verification flow.
      */override fun `getVerification`(`userId`: kotlin.String, `flowId`: kotlin.String): Verification? {
             return FfiConverterOptionalTypeVerification.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),_status)
 }
     }
     )
@@ -5136,10 +5045,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * * `flow_id` - The ID that uniquely identifies the verification flow.
      */override fun `getVerificationRequest`(`userId`: kotlin.String, `flowId`: kotlin.String): VerificationRequest? {
             return FfiConverterOptionalTypeVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_request(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`flowId`),_status)
 }
     }
     )
@@ -5156,10 +5066,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * verification requests.
      */override fun `getVerificationRequests`(`userId`: kotlin.String): List<VerificationRequest> {
             return FfiConverterSequenceTypeVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(
-        it, FfiConverterString.lower(`userId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_verification_requests(
+        it,
+        FfiConverterString.lower(`userId`),_status)
 }
     }
     )
@@ -5171,10 +5082,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * Get our own identity keys.
      */override fun `identityKeys`(): Map<kotlin.String, kotlin.String> {
             return FfiConverterMapStringString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_identity_keys(
+        it,
+        _status)
 }
     }
     )
@@ -5190,10 +5102,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(SecretImportException::class)override fun `importCrossSigningKeys`(`export`: CrossSigningKeyExport)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(SecretImportException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(
-        it, FfiConverterTypeCrossSigningKeyExport.lower(`export`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_cross_signing_keys(
+        it,
+        FfiConverterTypeCrossSigningKeyExport.lower(`export`),_status)
 }
     }
     
@@ -5220,10 +5133,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(KeyImportException::class)override fun `importDecryptedRoomKeys`(`keys`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult {
             return FfiConverterTypeKeysImportResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(KeyImportException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(
-        it, FfiConverterString.lower(`keys`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_decrypted_room_keys(
+        it,
+        FfiConverterString.lower(`keys`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
 }
     }
     )
@@ -5245,10 +5159,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(KeyImportException::class)override fun `importRoomKeys`(`keys`: kotlin.String, `passphrase`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult {
             return FfiConverterTypeKeysImportResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(KeyImportException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(
-        it, FfiConverterString.lower(`keys`),FfiConverterString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys(
+        it,
+        FfiConverterString.lower(`keys`),FfiConverterString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
 }
     }
     )
@@ -5276,10 +5191,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(KeyImportException::class)override fun `importRoomKeysFromBackup`(`keys`: kotlin.String, `backupVersion`: kotlin.String, `progressListener`: ProgressListener): KeysImportResult {
             return FfiConverterTypeKeysImportResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(KeyImportException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys_from_backup(
-        it, FfiConverterString.lower(`keys`),FfiConverterString.lower(`backupVersion`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_import_room_keys_from_backup(
+        it,
+        FfiConverterString.lower(`keys`),FfiConverterString.lower(`backupVersion`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
 }
     }
     )
@@ -5292,10 +5208,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `isIdentityVerified`(`userId`: kotlin.String): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(
-        it, FfiConverterString.lower(`userId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_identity_verified(
+        it,
+        FfiConverterString.lower(`userId`),_status)
 }
     }
     )
@@ -5311,10 +5228,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `isUserTracked`(`userId`: kotlin.String): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(
-        it, FfiConverterString.lower(`userId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_is_user_tracked(
+        it,
+        FfiConverterString.lower(`userId`),_status)
 }
     }
     )
@@ -5336,10 +5254,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `markRequestAsSent`(`requestId`: kotlin.String, `requestType`: RequestType, `responseBody`: kotlin.String)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(
-        it, FfiConverterString.lower(`requestId`),FfiConverterTypeRequestType.lower(`requestType`),FfiConverterString.lower(`responseBody`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_mark_request_as_sent(
+        it,
+        FfiConverterString.lower(`requestId`),FfiConverterTypeRequestType.lower(`requestType`),FfiConverterString.lower(`responseBody`),_status)
 }
     }
     
@@ -5358,10 +5277,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `outgoingRequests`(): List<Request> {
             return FfiConverterSequenceTypeRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_outgoing_requests(
+        it,
+        _status)
 }
     }
     )
@@ -5379,10 +5299,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `queryMissingSecretsFromOtherSessions`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_query_missing_secrets_from_other_sessions(
+        it,
+        _status)
 }
     }
     )
@@ -5407,12 +5328,13 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      *
      * * `key_counts` - The map of uploaded one-time key types and counts.
      */
-    @Throws(CryptoStoreException::class)override fun `receiveSyncChanges`(`events`: kotlin.String, `deviceChanges`: DeviceLists, `keyCounts`: Map<kotlin.String, kotlin.Int>, `unusedFallbackKeys`: List<kotlin.String>?, `nextBatchToken`: kotlin.String): SyncChangesResult {
+    @Throws(CryptoStoreException::class)override fun `receiveSyncChanges`(`events`: kotlin.String, `deviceChanges`: DeviceLists, `keyCounts`: Map<kotlin.String, kotlin.Int>, `unusedFallbackKeys`: List<kotlin.String>?, `nextBatchToken`: kotlin.String, `decryptionSettings`: DecryptionSettings): SyncChangesResult {
             return FfiConverterTypeSyncChangesResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(
-        it, FfiConverterString.lower(`events`),FfiConverterTypeDeviceLists.lower(`deviceChanges`),FfiConverterMapStringInt.lower(`keyCounts`),FfiConverterOptionalSequenceString.lower(`unusedFallbackKeys`),FfiConverterString.lower(`nextBatchToken`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_sync_changes(
+        it,
+        FfiConverterString.lower(`events`),FfiConverterTypeDeviceLists.lower(`deviceChanges`),FfiConverterMapStringInt.lower(`keyCounts`),FfiConverterOptionalSequenceString.lower(`unusedFallbackKeys`),FfiConverterString.lower(`nextBatchToken`),FfiConverterTypeDecryptionSettings.lower(`decryptionSettings`),_status)
 }
     }
     )
@@ -5430,10 +5352,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `receiveUnencryptedVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(
-        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_unencrypted_verification_event(
+        it,
+        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
 }
     }
     
@@ -5445,13 +5368,22 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      *
      * This method can be used to pass verification events that are happening
      * in rooms to the `OlmMachine`. The event should be in the decrypted form.
+     *
+     * **Note**: If the supplied event is an `m.room.message` event with
+     * `msgtype: m.key.verification.request`, then the device information for
+     * the sending user must be up-to-date before calling this method
+     * (otherwise, the request will be ignored). It is hard to guarantee this
+     * is the case, but you can maximize your chances by explicitly making a
+     * request to /keys/query for the user's device info, and processing the
+     * response with [`OlmMachine::mark_request_as_sent`].
      */
     @Throws(CryptoStoreException::class)override fun `receiveVerificationEvent`(`event`: kotlin.String, `roomId`: kotlin.String)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(
-        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_receive_verification_event(
+        it,
+        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
 }
     }
     
@@ -5471,10 +5403,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(DecryptionException::class)override fun `requestRoomKey`(`event`: kotlin.String, `roomId`: kotlin.String): KeyRequestPair {
             return FfiConverterTypeKeyRequestPair.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(DecryptionException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(
-        it, FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_room_key(
+        it,
+        FfiConverterString.lower(`event`),FfiConverterString.lower(`roomId`),_status)
 }
     }
     )
@@ -5492,10 +5425,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `requestSelfVerification`(`methods`: List<kotlin.String>): RequestVerificationResult? {
             return FfiConverterOptionalTypeRequestVerificationResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(
-        it, FfiConverterSequenceString.lower(`methods`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_self_verification(
+        it,
+        FfiConverterSequenceString.lower(`methods`),_status)
 }
     }
     )
@@ -5527,10 +5461,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `requestVerification`(`userId`: kotlin.String, `roomId`: kotlin.String, `eventId`: kotlin.String, `methods`: List<kotlin.String>): VerificationRequest? {
             return FfiConverterOptionalTypeVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),FfiConverterSequenceString.lower(`methods`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),FfiConverterSequenceString.lower(`methods`),_status)
 }
     }
     )
@@ -5553,10 +5488,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `requestVerificationWithDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String, `methods`: List<kotlin.String>): RequestVerificationResult? {
             return FfiConverterOptionalTypeRequestVerificationResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterSequenceString.lower(`methods`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_request_verification_with_device(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterSequenceString.lower(`methods`),_status)
 }
     }
     )
@@ -5569,10 +5505,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `roomKeyCounts`(): RoomKeyCounts {
             return FfiConverterTypeRoomKeyCounts.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_room_key_counts(
+        it,
+        _status)
 }
     }
     )
@@ -5588,10 +5525,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `saveRecoveryKey`(`key`: BackupRecoveryKey?, `version`: kotlin.String?)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(
-        it, FfiConverterOptionalTypeBackupRecoveryKey.lower(`key`),FfiConverterOptionalString.lower(`version`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_save_recovery_key(
+        it,
+        FfiConverterOptionalTypeBackupRecoveryKey.lower(`key`),FfiConverterOptionalString.lower(`version`),_status)
 }
     }
     
@@ -5604,10 +5542,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `setLocalTrust`(`userId`: kotlin.String, `deviceId`: kotlin.String, `trustState`: LocalTrust)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterTypeLocalTrust.lower(`trustState`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_local_trust(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),FfiConverterTypeLocalTrust.lower(`trustState`),_status)
 }
     }
     
@@ -5622,10 +5561,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `setOnlyAllowTrustedDevices`(`onlyAllowTrustedDevices`: kotlin.Boolean)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(
-        it, FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_only_allow_trusted_devices(
+        it,
+        FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),_status)
 }
     }
     
@@ -5638,10 +5578,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `setRoomAlgorithm`(`roomId`: kotlin.String, `algorithm`: EventEncryptionAlgorithm)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(
-        it, FfiConverterString.lower(`roomId`),FfiConverterTypeEventEncryptionAlgorithm.lower(`algorithm`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_algorithm(
+        it,
+        FfiConverterString.lower(`roomId`),FfiConverterTypeEventEncryptionAlgorithm.lower(`algorithm`),_status)
 }
     }
     
@@ -5658,10 +5599,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `setRoomOnlyAllowTrustedDevices`(`roomId`: kotlin.String, `onlyAllowTrustedDevices`: kotlin.Boolean)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(
-        it, FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_set_room_only_allow_trusted_devices(
+        it,
+        FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`onlyAllowTrustedDevices`),_status)
 }
     }
     
@@ -5691,10 +5633,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `shareRoomKey`(`roomId`: kotlin.String, `users`: List<kotlin.String>, `settings`: EncryptionSettings): List<Request> {
             return FfiConverterSequenceTypeRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(
-        it, FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`users`),FfiConverterTypeEncryptionSettings.lower(`settings`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_share_room_key(
+        it,
+        FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`users`),FfiConverterTypeEncryptionSettings.lower(`settings`),_status)
 }
     }
     )
@@ -5708,10 +5651,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `sign`(`message`: kotlin.String): Map<kotlin.String, Map<kotlin.String, kotlin.String>> {
             return FfiConverterMapStringMapStringString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(
-        it, FfiConverterString.lower(`message`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_sign(
+        it,
+        FfiConverterString.lower(`message`),_status)
 }
     }
     )
@@ -5737,10 +5681,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `startSasWithDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String): StartSasResult? {
             return FfiConverterOptionalTypeStartSasResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_start_sas_with_device(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),_status)
 }
     }
     )
@@ -5767,10 +5712,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `updateTrackedUsers`(`users`: List<kotlin.String>)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(
-        it, FfiConverterSequenceString.lower(`users`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_update_tracked_users(
+        it,
+        FfiConverterSequenceString.lower(`users`),_status)
 }
     }
     
@@ -5781,10 +5727,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      * Get the user ID of the owner of this `OlmMachine`.
      */override fun `userId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_user_id(
+        it,
+        _status)
 }
     }
     )
@@ -5805,10 +5752,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `verificationRequestContent`(`userId`: kotlin.String, `methods`: List<kotlin.String>): kotlin.String? {
             return FfiConverterOptionalString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(
-        it, FfiConverterString.lower(`userId`),FfiConverterSequenceString.lower(`methods`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verification_request_content(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterSequenceString.lower(`methods`),_status)
 }
     }
     )
@@ -5835,10 +5783,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(CryptoStoreException::class)override fun `verifyBackup`(`backupInfo`: kotlin.String): SignatureVerification {
             return FfiConverterTypeSignatureVerification.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(
-        it, FfiConverterString.lower(`backupInfo`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_backup(
+        it,
+        FfiConverterString.lower(`backupInfo`),_status)
 }
     }
     )
@@ -5847,7 +5796,7 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
 
     
     /**
-     * Manually the device of the given user with the given device ID.
+     * Manually verify the device of the given user with the given device ID.
      *
      * This method will attempt to sign the device using our private cross
      * signing key.
@@ -5863,10 +5812,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(SignatureException::class)override fun `verifyDevice`(`userId`: kotlin.String, `deviceId`: kotlin.String): SignatureUploadRequest {
             return FfiConverterTypeSignatureUploadRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(SignatureException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(
-        it, FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_device(
+        it,
+        FfiConverterString.lower(`userId`),FfiConverterString.lower(`deviceId`),_status)
 }
     }
     )
@@ -5889,10 +5839,11 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
      */
     @Throws(SignatureException::class)override fun `verifyIdentity`(`userId`: kotlin.String): SignatureUploadRequest {
             return FfiConverterTypeSignatureUploadRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(SignatureException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(
-        it, FfiConverterString.lower(`userId`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_verify_identity(
+        it,
+        FfiConverterString.lower(`userId`),_status)
 }
     }
     )
@@ -5902,52 +5853,54 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface {
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeOlmMachine: FfiConverter<OlmMachine, Pointer> {
 
-    override fun lower(value: OlmMachine): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeOlmMachine: FfiConverter<OlmMachine, Long> {
+    override fun lower(value: OlmMachine): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): OlmMachine {
-        return OlmMachine(value)
+    override fun lift(value: Long): OlmMachine {
+        return OlmMachine(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): OlmMachine {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: OlmMachine) = 8UL
 
     override fun write(value: OlmMachine, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -5972,13 +5925,13 @@ public object FfiConverterTypeOlmMachine: FfiConverter<OlmMachine, Pointer> {
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -6055,26 +6008,33 @@ public interface PkEncryptionInterface {
  * a `PkDecryption` object, allowing messages to be encrypted for the
  * associated decryption object.
  */
-open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
+open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -6085,7 +6045,7 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -6095,7 +6055,7 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -6107,32 +6067,40 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_pkencryption(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_pkencryption(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_pkencryption(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_pkencryption(handle, status)
         }
     }
 
@@ -6141,10 +6109,11 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
      * Encrypt a message using this [`PkEncryption`] object.
      */override fun `encrypt`(`plaintext`: kotlin.String): PkMessage {
             return FfiConverterTypePkMessage.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_pkencryption_encrypt(
-        it, FfiConverterString.lower(`plaintext`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_pkencryption_encrypt(
+        it,
+        FfiConverterString.lower(`plaintext`),_status)
 }
     }
     )
@@ -6152,6 +6121,9 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
     
 
     
+
+    
+
 
     
     companion object {
@@ -6167,7 +6139,8 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
     @Throws(DecodeException::class) fun `fromBase64`(`key`: kotlin.String): PkEncryption {
             return FfiConverterTypePkEncryption.lift(
     uniffiRustCallWithError(DecodeException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_constructor_pkencryption_from_base64(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_constructor_pkencryption_from_base64(
+    
         FfiConverterString.lower(`key`),_status)
 }
     )
@@ -6179,47 +6152,43 @@ open class PkEncryption: Disposable, AutoCloseable, PkEncryptionInterface {
     
 }
 
-public object FfiConverterTypePkEncryption: FfiConverter<PkEncryption, Pointer> {
 
-    override fun lower(value: PkEncryption): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypePkEncryption: FfiConverter<PkEncryption, Long> {
+    override fun lower(value: PkEncryption): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): PkEncryption {
-        return PkEncryption(value)
+    override fun lift(value: Long): PkEncryption {
+        return PkEncryption(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): PkEncryption {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: PkEncryption) = 8UL
 
     override fun write(value: PkEncryption, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -6244,13 +6213,13 @@ public object FfiConverterTypePkEncryption: FfiConverter<PkEncryption, Pointer> 
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -6415,26 +6384,33 @@ public interface QrCodeInterface {
  * The `m.qr_code.scan.v1`, `m.qr_code.show.v1`, and `m.reciprocate.v1`
  * verification flow.
  */
-open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
+open class QrCode: Disposable, AutoCloseable, QrCodeInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -6445,7 +6421,7 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -6455,7 +6431,7 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -6467,32 +6443,40 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_qrcode(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_qrcode(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_qrcode(handle, status)
         }
     }
 
@@ -6509,10 +6493,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * [spec]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel
      */override fun `cancel`(`cancelCode`: kotlin.String): OutgoingVerificationRequest? {
             return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(
-        it, FfiConverterString.lower(`cancelCode`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel(
+        it,
+        FfiConverterString.lower(`cancelCode`),_status)
 }
     }
     )
@@ -6526,10 +6511,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Will be `None` if the flow has not been cancelled.
      */override fun `cancelInfo`(): CancelInfo? {
             return FfiConverterOptionalTypeCancelInfo.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_cancel_info(
+        it,
+        _status)
 }
     }
     )
@@ -6544,10 +6530,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * has scanned our QR code.
      */override fun `confirm`(): ConfirmVerificationResult? {
             return FfiConverterOptionalTypeConfirmVerificationResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_confirm(
+        it,
+        _status)
 }
     }
     )
@@ -6559,10 +6546,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Get the unique ID that identifies this QR code verification flow.
      */override fun `flowId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_flow_id(
+        it,
+        _status)
 }
     }
     )
@@ -6579,10 +6567,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * generator.
      */override fun `generateQrCode`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_generate_qr_code(
+        it,
+        _status)
 }
     }
     )
@@ -6597,10 +6586,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * user confirms that the other side has scanned the QR code.
      */override fun `hasBeenScanned`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_has_been_scanned(
+        it,
+        _status)
 }
     }
     )
@@ -6612,10 +6602,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Has the verification flow been cancelled.
      */override fun `isCancelled`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_cancelled(
+        it,
+        _status)
 }
     }
     )
@@ -6627,10 +6618,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Is the QR code verification done.
      */override fun `isDone`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_is_done(
+        it,
+        _status)
 }
     }
     )
@@ -6642,10 +6634,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Get the device ID of the other side.
      */override fun `otherDeviceId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_device_id(
+        it,
+        _status)
 }
     }
     )
@@ -6657,10 +6650,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Get the user id of the other side.
      */override fun `otherUserId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_other_user_id(
+        it,
+        _status)
 }
     }
     )
@@ -6673,10 +6667,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * reciprocation event.
      */override fun `reciprocated`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_reciprocated(
+        it,
+        _status)
 }
     }
     )
@@ -6688,10 +6683,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Get the room id if the verification is happening inside a room.
      */override fun `roomId`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_room_id(
+        it,
+        _status)
 }
     }
     )
@@ -6705,10 +6701,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * The given callback will be called whenever the state changes.
      */override fun `setChangesListener`(`listener`: QrCodeListener)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(
-        it, FfiConverterTypeQrCodeListener.lower(`listener`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_set_changes_listener(
+        it,
+        FfiConverterTypeQrCodeListener.lower(`listener`),_status)
 }
     }
     
@@ -6719,10 +6716,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Get the current state of the QrCode verification process.
      */override fun `state`(): QrCodeState {
             return FfiConverterTypeQrCodeState.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_state(
+        it,
+        _status)
 }
     }
     )
@@ -6734,10 +6732,11 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
      * Did we initiate the verification flow.
      */override fun `weStarted`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_qrcode_we_started(
+        it,
+        _status)
 }
     }
     )
@@ -6747,52 +6746,54 @@ open class QrCode: Disposable, AutoCloseable, QrCodeInterface {
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeQrCode: FfiConverter<QrCode, Pointer> {
 
-    override fun lower(value: QrCode): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeQrCode: FfiConverter<QrCode, Long> {
+    override fun lower(value: QrCode): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): QrCode {
-        return QrCode(value)
+    override fun lift(value: Long): QrCode {
+        return QrCode(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): QrCode {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: QrCode) = 8UL
 
     override fun write(value: QrCode, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -6817,13 +6818,13 @@ public object FfiConverterTypeQrCode: FfiConverter<QrCode, Pointer> {
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -6878,31 +6879,38 @@ public object FfiConverterTypeQrCode: FfiConverter<QrCode, Pointer> {
 
 public interface RehydratedDeviceInterface {
     
-    fun `receiveEvents`(`events`: kotlin.String)
+    fun `receiveEvents`(`events`: kotlin.String, `decryptionSettings`: DecryptionSettings)
     
     companion object
 }
 
-open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterface {
+open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -6913,7 +6921,7 @@ open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterfac
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -6923,7 +6931,7 @@ open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterfac
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -6935,42 +6943,51 @@ open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterfac
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_rehydrateddevice(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_rehydrateddevice(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_rehydrateddevice(handle, status)
         }
     }
 
     
-    @Throws(CryptoStoreException::class)override fun `receiveEvents`(`events`: kotlin.String)
+    @Throws(CryptoStoreException::class)override fun `receiveEvents`(`events`: kotlin.String, `decryptionSettings`: DecryptionSettings)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(
-        it, FfiConverterString.lower(`events`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_rehydrateddevice_receive_events(
+        it,
+        FfiConverterString.lower(`events`),FfiConverterTypeDecryptionSettings.lower(`decryptionSettings`),_status)
 }
     }
     
@@ -6979,52 +6996,54 @@ open class RehydratedDevice: Disposable, AutoCloseable, RehydratedDeviceInterfac
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeRehydratedDevice: FfiConverter<RehydratedDevice, Pointer> {
 
-    override fun lower(value: RehydratedDevice): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRehydratedDevice: FfiConverter<RehydratedDevice, Long> {
+    override fun lower(value: RehydratedDevice): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): RehydratedDevice {
-        return RehydratedDevice(value)
+    override fun lift(value: Long): RehydratedDevice {
+        return RehydratedDevice(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): RehydratedDevice {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: RehydratedDevice) = 8UL
 
     override fun write(value: RehydratedDevice, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -7049,13 +7068,13 @@ public object FfiConverterTypeRehydratedDevice: FfiConverter<RehydratedDevice, P
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -7248,26 +7267,33 @@ public interface SasInterface {
 /**
  * The `m.sas.v1` verification flow.
  */
-open class Sas: Disposable, AutoCloseable, SasInterface {
+open class Sas: Disposable, AutoCloseable, SasInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -7278,7 +7304,7 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -7288,7 +7314,7 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -7300,32 +7326,40 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_sas(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_sas(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_sas(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_sas(handle, status)
         }
     }
 
@@ -7334,10 +7368,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Accept that we're going forward with the short auth string verification.
      */override fun `accept`(): OutgoingVerificationRequest? {
             return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_accept(
+        it,
+        _status)
 }
     }
     )
@@ -7357,10 +7392,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * [spec]: https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel
      */override fun `cancel`(`cancelCode`: kotlin.String): OutgoingVerificationRequest? {
             return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(
-        it, FfiConverterString.lower(`cancelCode`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_cancel(
+        it,
+        FfiConverterString.lower(`cancelCode`),_status)
 }
     }
     )
@@ -7376,10 +7412,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      */
     @Throws(CryptoStoreException::class)override fun `confirm`(): ConfirmVerificationResult? {
             return FfiConverterOptionalTypeConfirmVerificationResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_confirm(
+        it,
+        _status)
 }
     }
     )
@@ -7391,10 +7428,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Get the unique ID that identifies this SAS verification flow.
      */override fun `flowId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_flow_id(
+        it,
+        _status)
 }
     }
     )
@@ -7410,10 +7448,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * `None`.
      */override fun `getDecimals`(): List<kotlin.Int>? {
             return FfiConverterOptionalSequenceInt.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_decimals(
+        it,
+        _status)
 }
     }
     )
@@ -7430,10 +7469,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * `None`.
      */override fun `getEmojiIndices`(): List<kotlin.Int>? {
             return FfiConverterOptionalSequenceInt.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_get_emoji_indices(
+        it,
+        _status)
 }
     }
     )
@@ -7445,10 +7485,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Is the SAS flow done.
      */override fun `isDone`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_is_done(
+        it,
+        _status)
 }
     }
     )
@@ -7460,10 +7501,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Get the device ID of the other side.
      */override fun `otherDeviceId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_device_id(
+        it,
+        _status)
 }
     }
     )
@@ -7475,10 +7517,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Get the user id of the other side.
      */override fun `otherUserId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_other_user_id(
+        it,
+        _status)
 }
     }
     )
@@ -7490,10 +7533,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Get the room id if the verification is happening inside a room.
      */override fun `roomId`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_room_id(
+        it,
+        _status)
 }
     }
     )
@@ -7549,10 +7593,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * ```
      */override fun `setChangesListener`(`listener`: SasListener)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(
-        it, FfiConverterTypeSasListener.lower(`listener`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_set_changes_listener(
+        it,
+        FfiConverterTypeSasListener.lower(`listener`),_status)
 }
     }
     
@@ -7563,10 +7608,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Get the current state of the SAS verification process.
      */override fun `state`(): SasState {
             return FfiConverterTypeSasState.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_state(
+        it,
+        _status)
 }
     }
     )
@@ -7578,10 +7624,11 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
      * Did we initiate the verification flow.
      */override fun `weStarted`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_sas_we_started(
+        it,
+        _status)
 }
     }
     )
@@ -7591,52 +7638,54 @@ open class Sas: Disposable, AutoCloseable, SasInterface {
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeSas: FfiConverter<Sas, Pointer> {
 
-    override fun lower(value: Sas): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSas: FfiConverter<Sas, Long> {
+    override fun lower(value: Sas): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): Sas {
-        return Sas(value)
+    override fun lift(value: Long): Sas {
+        return Sas(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): Sas {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: Sas) = 8UL
 
     override fun write(value: Sas, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -7661,13 +7710,13 @@ public object FfiConverterTypeSas: FfiConverter<Sas, Pointer> {
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -7743,26 +7792,33 @@ public interface VerificationInterface {
 /**
  * Enum representing the different verification flows we support.
  */
-open class Verification: Disposable, AutoCloseable, VerificationInterface {
+open class Verification: Disposable, AutoCloseable, VerificationInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -7773,7 +7829,7 @@ open class Verification: Disposable, AutoCloseable, VerificationInterface {
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -7783,7 +7839,7 @@ open class Verification: Disposable, AutoCloseable, VerificationInterface {
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -7795,32 +7851,40 @@ open class Verification: Disposable, AutoCloseable, VerificationInterface {
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verification(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_verification(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_verification(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_verification(handle, status)
         }
     }
 
@@ -7830,10 +7894,11 @@ open class Verification: Disposable, AutoCloseable, VerificationInterface {
      * returns `None` if the verification is not a `QrCode` verification.
      */override fun `asQr`(): QrCode? {
             return FfiConverterOptionalTypeQrCode.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_qr(
+        it,
+        _status)
 }
     }
     )
@@ -7846,10 +7911,11 @@ open class Verification: Disposable, AutoCloseable, VerificationInterface {
      * returns `None` if the verification is not a `Sas` verification.
      */override fun `asSas`(): Sas? {
             return FfiConverterOptionalTypeSas.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verification_as_sas(
+        it,
+        _status)
 }
     }
     )
@@ -7859,52 +7925,54 @@ open class Verification: Disposable, AutoCloseable, VerificationInterface {
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeVerification: FfiConverter<Verification, Pointer> {
 
-    override fun lower(value: Verification): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeVerification: FfiConverter<Verification, Long> {
+    override fun lower(value: Verification): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): Verification {
-        return Verification(value)
+    override fun lift(value: Long): Verification {
+        return Verification(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): Verification {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: Verification) = 8UL
 
     override fun write(value: Verification, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
+// This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
 //
 // There's some subtlety here, because we have to be careful not to operate on a Rust
 // struct after it has been dropped, and because we must expose a public API for freeing
 // theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
 //
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
 //     the Rust FFI.
 //
-//   * When an instance is no longer needed, its pointer should be passed to a
+//   * When an instance is no longer needed, its handle should be passed to a
 //     special destructor function provided by the Rust FFI, which will drop the
 //     underlying Rust struct.
 //
@@ -7929,13 +7997,13 @@ public object FfiConverterTypeVerification: FfiConverter<Verification, Pointer> 
 //      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
 //         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
 //
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
+// If we try to implement this with mutual exclusion on access to the handle, there is the
 // possibility of a race between a method call and a concurrent call to `destroy`:
 //
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
 //    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
 //      a use-after-free.
 //
 // One possible solution would be to use a `ReadWriteLock`, with each method call taking
@@ -8155,26 +8223,33 @@ public interface VerificationRequestInterface {
  * The verificatoin request object which then can transition into some concrete
  * verification method
  */
-open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestInterface {
+open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestInterface
+{
 
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
     }
 
     /**
+     * @suppress
+     *
      * This constructor can be used to instantiate a fake object. Only used for tests. Any
      * attempt to actually use an object constructed this way will fail as there is no
      * connected Rust object.
      */
     @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
     }
 
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
@@ -8185,7 +8260,7 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
         if (this.wasDestroyed.compareAndSet(false, true)) {
             // This decrement always matches the initial count of 1 given at creation time.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
@@ -8195,7 +8270,7 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
         this.destroy()
     }
 
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
         // Check and increment the call counter, to keep the object alive.
         // This needs a compare-and-set retry loop in case of concurrent updates.
         do {
@@ -8207,32 +8282,40 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
                 throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
             }
         } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
+        // Now we can safely do the method call without the handle being freed concurrently.
         try {
-            return block(this.uniffiClonePointer())
+            return block(this.uniffiCloneHandle())
         } finally {
             // This decrement always matches the increment we performed above.
             if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
+                cleanable?.clean()
             }
         }
     }
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
         override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(ptr, status)
-                }
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_free_verificationrequest(handle, status)
             }
         }
     }
 
-    fun uniffiClonePointer(): Pointer {
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
         return uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_clone_verificationrequest(pointer!!, status)
+            UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_clone_verificationrequest(handle, status)
         }
     }
 
@@ -8254,10 +8337,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * as supported.
      */override fun `accept`(`methods`: List<kotlin.String>): OutgoingVerificationRequest? {
             return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(
-        it, FfiConverterSequenceString.lower(`methods`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_accept(
+        it,
+        FfiConverterSequenceString.lower(`methods`),_status)
 }
     }
     )
@@ -8270,10 +8354,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * the given cancel code.
      */override fun `cancel`(): OutgoingVerificationRequest? {
             return FfiConverterOptionalTypeOutgoingVerificationRequest.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel(
+        it,
+        _status)
 }
     }
     )
@@ -8286,10 +8371,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * cancelled.
      */override fun `cancelInfo`(): CancelInfo? {
             return FfiConverterOptionalTypeCancelInfo.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_cancel_info(
+        it,
+        _status)
 }
     }
     )
@@ -8301,10 +8387,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Get the unique ID of this verification request
      */override fun `flowId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_flow_id(
+        it,
+        _status)
 }
     }
     )
@@ -8316,10 +8403,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Has the verification flow that been cancelled.
      */override fun `isCancelled`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_cancelled(
+        it,
+        _status)
 }
     }
     )
@@ -8331,10 +8419,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Has the verification flow that was started with this request finished.
      */override fun `isDone`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_done(
+        it,
+        _status)
 }
     }
     )
@@ -8346,10 +8435,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Has the verification request been answered by another device.
      */override fun `isPassive`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_passive(
+        it,
+        _status)
 }
     }
     )
@@ -8361,10 +8451,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Is the verification request ready to start a verification flow.
      */override fun `isReady`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_is_ready(
+        it,
+        _status)
 }
     }
     )
@@ -8376,10 +8467,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * The id of the other device that is participating in this verification.
      */override fun `otherDeviceId`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_device_id(
+        it,
+        _status)
 }
     }
     )
@@ -8392,10 +8484,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * request.
      */override fun `otherUserId`(): kotlin.String {
             return FfiConverterString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_other_user_id(
+        it,
+        _status)
 }
     }
     )
@@ -8410,10 +8503,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * ready state.
      */override fun `ourSupportedMethods`(): List<kotlin.String>? {
             return FfiConverterOptionalSequenceString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_our_supported_methods(
+        it,
+        _status)
 }
     }
     )
@@ -8425,10 +8519,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Get the room id if the verification is happening inside a room.
      */override fun `roomId`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_room_id(
+        it,
+        _status)
 }
     }
     )
@@ -8455,10 +8550,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * base64 encoded string, without padding.
      */override fun `scanQrCode`(`data`: kotlin.String): ScanResult? {
             return FfiConverterOptionalTypeScanResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(
-        it, FfiConverterString.lower(`data`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_scan_qr_code(
+        it,
+        FfiConverterString.lower(`data`),_status)
 }
     }
     )
@@ -8472,10 +8568,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * The given callback will be called whenever the state changes.
      */override fun `setChangesListener`(`listener`: VerificationRequestListener)
         = 
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(
-        it, FfiConverterTypeVerificationRequestListener.lower(`listener`),_status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_set_changes_listener(
+        it,
+        FfiConverterTypeVerificationRequestListener.lower(`listener`),_status)
 }
     }
     
@@ -8498,10 +8595,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      */
     @Throws(CryptoStoreException::class)override fun `startQrVerification`(): QrCode? {
             return FfiConverterOptionalTypeQrCode.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_qr_verification(
+        it,
+        _status)
 }
     }
     )
@@ -8523,10 +8621,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      */
     @Throws(CryptoStoreException::class)override fun `startSasVerification`(): StartSasResult? {
             return FfiConverterOptionalTypeStartSasResult.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCallWithError(CryptoStoreException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_start_sas_verification(
+        it,
+        _status)
 }
     }
     )
@@ -8538,10 +8637,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Get the current state of the verification request.
      */override fun `state`(): VerificationRequestState {
             return FfiConverterTypeVerificationRequestState.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_state(
+        it,
+        _status)
 }
     }
     )
@@ -8556,10 +8656,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * we're in the ready state.
      */override fun `theirSupportedMethods`(): List<kotlin.String>? {
             return FfiConverterOptionalSequenceString.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_their_supported_methods(
+        it,
+        _status)
 }
     }
     )
@@ -8571,10 +8672,11 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
      * Did we initiate the verification request
      */override fun `weStarted`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
-    callWithPointer {
+    callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(
-        it, _status)
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_verificationrequest_we_started(
+        it,
+        _status)
 }
     }
     )
@@ -8584,33 +8686,38 @@ open class VerificationRequest: Disposable, AutoCloseable, VerificationRequestIn
     
 
     
+
+
     
+    
+    /**
+     * @suppress
+     */
     companion object
     
 }
 
-public object FfiConverterTypeVerificationRequest: FfiConverter<VerificationRequest, Pointer> {
 
-    override fun lower(value: VerificationRequest): Pointer {
-        return value.uniffiClonePointer()
+/**
+ * @suppress
+ */
+public object FfiConverterTypeVerificationRequest: FfiConverter<VerificationRequest, Long> {
+    override fun lower(value: VerificationRequest): Long {
+        return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Pointer): VerificationRequest {
-        return VerificationRequest(value)
+    override fun lift(value: Long): VerificationRequest {
+        return VerificationRequest(UniffiWithHandle, value)
     }
 
     override fun read(buf: ByteBuffer): VerificationRequest {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
+        return lift(buf.getLong())
     }
 
     override fun allocationSize(value: VerificationRequest) = 8UL
 
     override fun write(value: VerificationRequest, buf: ByteBuffer) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
+        buf.putLong(lower(value))
     }
 }
 
@@ -8622,21 +8729,31 @@ data class BootstrapCrossSigningResult (
      *
      * Must be sent first if present, and marked with `mark_request_as_sent`.
      */
-    var `uploadKeysRequest`: Request?, 
+    var `uploadKeysRequest`: Request?
+    , 
     /**
      * Request to upload the signing keys. Must be sent second.
      */
-    var `uploadSigningKeysRequest`: UploadSigningKeysRequest, 
+    var `uploadSigningKeysRequest`: UploadSigningKeysRequest
+    , 
     /**
      * Request to upload the keys signatures, including for the signing keys
      * and optionally for the device keys. Must be sent last.
      */
     var `uploadSignatureRequest`: SignatureUploadRequest
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeBootstrapCrossSigningResult: FfiConverterRustBuffer<BootstrapCrossSigningResult> {
     override fun read(buf: ByteBuffer): BootstrapCrossSigningResult {
         return BootstrapCrossSigningResult(
@@ -8668,20 +8785,30 @@ data class CancelInfo (
     /**
      * The textual representation of the cancel reason
      */
-    var `reason`: kotlin.String, 
+    var `reason`: kotlin.String
+    , 
     /**
      * The code describing the cancel reason
      */
-    var `cancelCode`: kotlin.String, 
+    var `cancelCode`: kotlin.String
+    , 
     /**
      * Was the verification flow cancelled by us
      */
     var `cancelledByUs`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeCancelInfo: FfiConverterRustBuffer<CancelInfo> {
     override fun read(buf: ByteBuffer): CancelInfo {
         return CancelInfo(
@@ -8714,17 +8841,26 @@ data class ConfirmVerificationResult (
      * The requests that needs to be sent out to notify the other side that we
      * confirmed the verification.
      */
-    var `requests`: List<OutgoingVerificationRequest>, 
+    var `requests`: List<OutgoingVerificationRequest>
+    , 
     /**
      * A request that will upload signatures of the verified device or user, if
      * the verification is completed and we're able to sign devices or users
      */
     var `signatureRequest`: SignatureUploadRequest?
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeConfirmVerificationResult: FfiConverterRustBuffer<ConfirmVerificationResult> {
     override fun read(buf: ByteBuffer): ConfirmVerificationResult {
         return ConfirmVerificationResult(
@@ -8754,20 +8890,30 @@ data class CrossSigningKeyExport (
     /**
      * The seed of the master key encoded as unpadded base64.
      */
-    var `masterKey`: kotlin.String?, 
+    var `masterKey`: kotlin.String?
+    , 
     /**
      * The seed of the self signing key encoded as unpadded base64.
      */
-    var `selfSigningKey`: kotlin.String?, 
+    var `selfSigningKey`: kotlin.String?
+    , 
     /**
      * The seed of the user signing key encoded as unpadded base64.
      */
     var `userSigningKey`: kotlin.String?
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeCrossSigningKeyExport: FfiConverterRustBuffer<CrossSigningKeyExport> {
     override fun read(buf: ByteBuffer): CrossSigningKeyExport {
         return CrossSigningKeyExport(
@@ -8800,22 +8946,32 @@ data class CrossSigningStatus (
     /**
      * Do we have the master key.
      */
-    var `hasMaster`: kotlin.Boolean, 
+    var `hasMaster`: kotlin.Boolean
+    , 
     /**
      * Do we have the self signing key, this one is necessary to sign our own
      * devices.
      */
-    var `hasSelfSigning`: kotlin.Boolean, 
+    var `hasSelfSigning`: kotlin.Boolean
+    , 
     /**
      * Do we have the user signing key, this one is necessary to sign other
      * users.
      */
     var `hasUserSigning`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeCrossSigningStatus: FfiConverterRustBuffer<CrossSigningStatus> {
     override fun read(buf: ByteBuffer): CrossSigningStatus {
         return CrossSigningStatus(
@@ -8847,21 +9003,25 @@ data class DecryptedEvent (
     /**
      * The decrypted version of the event.
      */
-    var `clearEvent`: kotlin.String, 
+    var `clearEvent`: kotlin.String
+    , 
     /**
      * The claimed curve25519 key of the sender.
      */
-    var `senderCurve25519Key`: kotlin.String, 
+    var `senderCurve25519Key`: kotlin.String
+    , 
     /**
      * The claimed ed25519 key of the sender.
      */
-    var `claimedEd25519Key`: kotlin.String?, 
+    var `claimedEd25519Key`: kotlin.String?
+    , 
     /**
      * The curve25519 chain of the senders that forwarded the Megolm decryption
      * key to us. Is empty if the key came directly from the sender of the
      * event.
      */
-    var `forwardingCurve25519Chain`: List<kotlin.String>, 
+    var `forwardingCurve25519Chain`: List<kotlin.String>
+    , 
     /**
      * The shield state (color and message to display to user) for the event,
      * representing the event's authenticity. Computed from the properties of
@@ -8873,11 +9033,19 @@ data class DecryptedEvent (
      * subsequently verified or a device is deleted.
      */
     var `shieldState`: ShieldState
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDecryptedEvent: FfiConverterRustBuffer<DecryptedEvent> {
     override fun read(buf: ByteBuffer): DecryptedEvent {
         return DecryptedEvent(
@@ -8913,11 +9081,19 @@ public object FfiConverterTypeDecryptedEvent: FfiConverterRustBuffer<DecryptedEv
  */
 data class DehydratedDeviceKey (
     var `inner`: kotlin.ByteArray
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDehydratedDeviceKey: FfiConverterRustBuffer<DehydratedDeviceKey> {
     override fun read(buf: ByteBuffer): DehydratedDeviceKey {
         return DehydratedDeviceKey(
@@ -8943,53 +9119,70 @@ data class Device (
     /**
      * The device owner.
      */
-    var `userId`: kotlin.String, 
+    var `userId`: kotlin.String
+    , 
     /**
      * The unique ID of the device.
      */
-    var `deviceId`: kotlin.String, 
+    var `deviceId`: kotlin.String
+    , 
     /**
      * The published public identity keys of the devices
      *
      * A map from the key type (e.g. curve25519) to the base64 encoded key.
      */
-    var `keys`: Map<kotlin.String, kotlin.String>, 
+    var `keys`: Map<kotlin.String, kotlin.String>
+    , 
     /**
      * The supported algorithms of the device.
      */
-    var `algorithms`: List<kotlin.String>, 
+    var `algorithms`: List<kotlin.String>
+    , 
     /**
      * The human readable name of the device.
      */
-    var `displayName`: kotlin.String?, 
+    var `displayName`: kotlin.String?
+    , 
     /**
      * A flag indicating if the device has been blocked, blocked devices don't
      * receive any room keys from us.
      */
-    var `isBlocked`: kotlin.Boolean, 
+    var `isBlocked`: kotlin.Boolean
+    , 
     /**
      * Is the device locally trusted
      */
-    var `locallyTrusted`: kotlin.Boolean, 
+    var `locallyTrusted`: kotlin.Boolean
+    , 
     /**
      * Is our cross signing identity trusted and does the identity trust the
      * device.
      */
-    var `crossSigningTrusted`: kotlin.Boolean, 
+    var `crossSigningTrusted`: kotlin.Boolean
+    , 
     /**
      * The first time this device was seen in local timestamp, milliseconds
      * since epoch.
      */
-    var `firstTimeSeenTs`: kotlin.ULong, 
+    var `firstTimeSeenTs`: kotlin.ULong
+    , 
     /**
      * Whether or not the device is a dehydrated device.
      */
     var `dehydrated`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDevice: FfiConverterRustBuffer<Device> {
     override fun read(buf: ByteBuffer): Device {
         return Device(
@@ -9036,13 +9229,22 @@ public object FfiConverterTypeDevice: FfiConverterRustBuffer<Device> {
 
 
 data class DeviceLists (
-    var `changed`: List<kotlin.String>, 
+    var `changed`: List<kotlin.String>
+    , 
     var `left`: List<kotlin.String>
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDeviceLists: FfiConverterRustBuffer<DeviceLists> {
     override fun read(buf: ByteBuffer): DeviceLists {
         return DeviceLists(
@@ -9075,37 +9277,50 @@ data class EncryptionSettings (
     /**
      * The encryption algorithm that should be used in the room.
      */
-    var `algorithm`: EventEncryptionAlgorithm, 
+    var `algorithm`: EventEncryptionAlgorithm
+    , 
     /**
      * How long can the room key be used before it should be rotated. Time in
      * seconds.
      */
-    var `rotationPeriod`: kotlin.ULong, 
+    var `rotationPeriod`: kotlin.ULong
+    , 
     /**
      * How many messages should be sent before the room key should be rotated.
      */
-    var `rotationPeriodMsgs`: kotlin.ULong, 
+    var `rotationPeriodMsgs`: kotlin.ULong
+    , 
     /**
      * The current history visibility of the room. The visibility will be
      * tracked by the room key and the key will be rotated if the visibility
      * changes.
      */
-    var `historyVisibility`: HistoryVisibility, 
+    var `historyVisibility`: HistoryVisibility
+    , 
     /**
      * Should untrusted devices receive the room key, or should they be
      * excluded from the conversation.
      */
-    var `onlyAllowTrustedDevices`: kotlin.Boolean, 
+    var `onlyAllowTrustedDevices`: kotlin.Boolean
+    , 
     /**
      * Should fail to send when a verified user has unverified devices, or when
      * a previously verified user replaces their identity.
      */
     var `errorOnVerifiedUserProblem`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeEncryptionSettings: FfiConverterRustBuffer<EncryptionSettings> {
     override fun read(buf: ByteBuffer): EncryptionSettings {
         return EncryptionSettings(
@@ -9148,16 +9363,25 @@ data class KeyRequestPair (
      * The optional cancellation, this is None if no previous key request was
      * sent out for this key, thus it doesn't need to be cancelled.
      */
-    var `cancellation`: Request?, 
+    var `cancellation`: Request?
+    , 
     /**
      * The actual key request.
      */
     var `keyRequest`: Request
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeKeyRequestPair: FfiConverterRustBuffer<KeyRequestPair> {
     override fun read(buf: ByteBuffer): KeyRequestPair {
         return KeyRequestPair(
@@ -9183,11 +9407,13 @@ data class KeysImportResult (
     /**
      * The number of room keys that were imported.
      */
-    var `imported`: kotlin.Long, 
+    var `imported`: kotlin.Long
+    , 
     /**
      * The total number of room keys that were found in the export.
      */
-    var `total`: kotlin.Long, 
+    var `total`: kotlin.Long
+    , 
     /**
      * The map of keys that were imported.
      *
@@ -9195,11 +9421,19 @@ data class KeysImportResult (
      * ids.
      */
     var `keys`: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeKeysImportResult: FfiConverterRustBuffer<KeysImportResult> {
     override fun read(buf: ByteBuffer): KeysImportResult {
         return KeysImportResult(
@@ -9231,24 +9465,35 @@ data class MegolmV1BackupKey (
     /**
      * The actual base64 encoded public key.
      */
-    var `publicKey`: kotlin.String, 
+    var `publicKey`: kotlin.String
+    , 
     /**
      * Signatures that have signed our backup key.
      */
-    var `signatures`: Map<kotlin.String, Map<kotlin.String, kotlin.String>>, 
+    var `signatures`: Map<kotlin.String, Map<kotlin.String, kotlin.String>>
+    , 
     /**
      * The passphrase info, if the key was derived from one.
      */
-    var `passphraseInfo`: PassphraseInfo?, 
+    var `passphraseInfo`: PassphraseInfo?
+    , 
     /**
      * Get the full name of the backup algorithm this backup key supports.
      */
     var `backupAlgorithm`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeMegolmV1BackupKey: FfiConverterRustBuffer<MegolmV1BackupKey> {
     override fun read(buf: ByteBuffer): MegolmV1BackupKey {
         return MegolmV1BackupKey(
@@ -9283,41 +9528,57 @@ data class MigrationData (
     /**
      * The pickled version of the Olm Account
      */
-    var `account`: PickledAccount, 
+    var `account`: PickledAccount
+    , 
     /**
      * The list of pickleds Olm Sessions.
      */
-    var `sessions`: List<PickledSession>, 
+    var `sessions`: List<PickledSession>
+    , 
     /**
      * The list of Megolm inbound group sessions.
      */
-    var `inboundGroupSessions`: List<PickledInboundGroupSession>, 
+    var `inboundGroupSessions`: List<PickledInboundGroupSession>
+    , 
     /**
      * The Olm pickle key that was used to pickle all the Olm objects.
      */
-    var `pickleKey`: kotlin.ByteArray, 
+    var `pickleKey`: kotlin.ByteArray
+    , 
     /**
      * The backup version that is currently active.
      */
-    var `backupVersion`: kotlin.String?, 
-    var `backupRecoveryKey`: kotlin.String?, 
+    var `backupVersion`: kotlin.String?
+    , 
+    var `backupRecoveryKey`: kotlin.String?
+    , 
     /**
      * The private cross signing keys.
      */
-    var `crossSigning`: CrossSigningKeyExport, 
+    var `crossSigning`: CrossSigningKeyExport
+    , 
     /**
      * The list of users that the Rust SDK should track.
      */
-    var `trackedUsers`: List<kotlin.String>, 
+    var `trackedUsers`: List<kotlin.String>
+    , 
     /**
      * Map of room settings
      */
     var `roomSettings`: Map<kotlin.String, RoomSettings>
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeMigrationData: FfiConverterRustBuffer<MigrationData> {
     override fun read(buf: ByteBuffer): MigrationData {
         return MigrationData(
@@ -9368,16 +9629,25 @@ data class PassphraseInfo (
     /**
      * The salt that was used during key derivation.
      */
-    var `privateKeySalt`: kotlin.String, 
+    var `privateKeySalt`: kotlin.String
+    , 
     /**
      * The number of PBKDF rounds that were used for key derivation.
      */
     var `privateKeyIterations`: kotlin.Int
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypePassphraseInfo: FfiConverterRustBuffer<PassphraseInfo> {
     override fun read(buf: ByteBuffer): PassphraseInfo {
         return PassphraseInfo(
@@ -9409,28 +9679,40 @@ data class PickledAccount (
     /**
      * The user id of the account owner.
      */
-    var `userId`: kotlin.String, 
+    var `userId`: kotlin.String
+    , 
     /**
      * The device ID of the account owner.
      */
-    var `deviceId`: kotlin.String, 
+    var `deviceId`: kotlin.String
+    , 
     /**
      * The pickled version of the Olm account.
      */
-    var `pickle`: kotlin.String, 
+    var `pickle`: kotlin.String
+    , 
     /**
      * Was the account shared.
      */
-    var `shared`: kotlin.Boolean, 
+    var `shared`: kotlin.Boolean
+    , 
     /**
      * The number of uploaded one-time keys we have on the server.
      */
     var `uploadedSignedKeyCount`: kotlin.Long
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypePickledAccount: FfiConverterRustBuffer<PickledAccount> {
     override fun read(buf: ByteBuffer): PickledAccount {
         return PickledAccount(
@@ -9471,38 +9753,52 @@ data class PickledInboundGroupSession (
     /**
      * The pickle string holding the InboundGroupSession.
      */
-    var `pickle`: kotlin.String, 
+    var `pickle`: kotlin.String
+    , 
     /**
      * The public curve25519 key of the account that sent us the session
      */
-    var `senderKey`: kotlin.String, 
+    var `senderKey`: kotlin.String
+    , 
     /**
      * The public ed25519 key of the account that sent us the session.
      */
-    var `signingKey`: Map<kotlin.String, kotlin.String>, 
+    var `signingKey`: Map<kotlin.String, kotlin.String>
+    , 
     /**
      * The id of the room that the session is used in.
      */
-    var `roomId`: kotlin.String, 
+    var `roomId`: kotlin.String
+    , 
     /**
      * The list of claimed ed25519 that forwarded us this key. Will be empty if
      * we directly received this session.
      */
-    var `forwardingChains`: List<kotlin.String>, 
+    var `forwardingChains`: List<kotlin.String>
+    , 
     /**
      * Flag remembering if the session was directly sent to us by the sender
      * or if it was imported.
      */
-    var `imported`: kotlin.Boolean, 
+    var `imported`: kotlin.Boolean
+    , 
     /**
      * Flag remembering if the session has been backed up.
      */
     var `backedUp`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypePickledInboundGroupSession: FfiConverterRustBuffer<PickledInboundGroupSession> {
     override fun read(buf: ByteBuffer): PickledInboundGroupSession {
         return PickledInboundGroupSession(
@@ -9549,28 +9845,40 @@ data class PickledSession (
     /**
      * The pickle string holding the Olm Session.
      */
-    var `pickle`: kotlin.String, 
+    var `pickle`: kotlin.String
+    , 
     /**
      * The curve25519 key of the other user that we share this session with.
      */
-    var `senderKey`: kotlin.String, 
+    var `senderKey`: kotlin.String
+    , 
     /**
      * Was the session created using a fallback key.
      */
-    var `createdUsingFallbackKey`: kotlin.Boolean, 
+    var `createdUsingFallbackKey`: kotlin.Boolean
+    , 
     /**
      * Unix timestamp (in seconds) when the session was created.
      */
-    var `creationTime`: kotlin.ULong, 
+    var `creationTime`: kotlin.ULong
+    , 
     /**
      * Unix timestamp (in seconds) when the session was last used.
      */
     var `lastUseTime`: kotlin.ULong
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypePickledSession: FfiConverterRustBuffer<PickledSession> {
     override fun read(buf: ByteBuffer): PickledSession {
         return PickledSession(
@@ -9608,23 +9916,33 @@ data class PkMessage (
     /**
      * The ciphertext of the message.
      */
-    var `ciphertext`: kotlin.String, 
+    var `ciphertext`: kotlin.String
+    , 
     /**
      * The message authentication code of the message.
      *
      * *Warning*: This does not authenticate the ciphertext.
      */
-    var `mac`: kotlin.String, 
+    var `mac`: kotlin.String
+    , 
     /**
      * The ephemeral Curve25519 key of the message which was used to derive the
      * individual message key.
      */
     var `ephemeralKey`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypePkMessage: FfiConverterRustBuffer<PkMessage> {
     override fun read(buf: ByteBuffer): PkMessage {
         return PkMessage(
@@ -9656,26 +9974,35 @@ data class RequestVerificationResult (
     /**
      * The verification request object that got created.
      */
-    var `verification`: VerificationRequest, 
+    var `verification`: VerificationRequest
+    , 
     /**
      * The request that needs to be sent out to notify the other side that
      * we're requesting verification to begin.
      */
     var `request`: OutgoingVerificationRequest
-) : Disposable {
+    
+): Disposable{
+    
+
+    
+
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
     override fun destroy() {
         
-        Disposable.destroy(this.`verification`)
-    
-        Disposable.destroy(this.`request`)
-    
+    Disposable.destroy(
+        this.`verification`,
+        this.`request`
+    )
     }
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeRequestVerificationResult: FfiConverterRustBuffer<RequestVerificationResult> {
     override fun read(buf: ByteBuffer): RequestVerificationResult {
         return RequestVerificationResult(
@@ -9704,16 +10031,25 @@ data class RoomKeyCounts (
     /**
      * The total number of room keys.
      */
-    var `total`: kotlin.Long, 
+    var `total`: kotlin.Long
+    , 
     /**
      * The number of backed up room keys.
      */
     var `backedUp`: kotlin.Long
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeRoomKeyCounts: FfiConverterRustBuffer<RoomKeyCounts> {
     override fun read(buf: ByteBuffer): RoomKeyCounts {
         return RoomKeyCounts(
@@ -9745,24 +10081,35 @@ data class RoomKeyInfo (
      *
      * [messaging algorithm]: https://spec.matrix.org/v1.6/client-server-api/#messaging-algorithms
      */
-    var `algorithm`: kotlin.String, 
+    var `algorithm`: kotlin.String
+    , 
     /**
      * The room where the key is used.
      */
-    var `roomId`: kotlin.String, 
+    var `roomId`: kotlin.String
+    , 
     /**
      * The Curve25519 key of the device which initiated the session originally.
      */
-    var `senderKey`: kotlin.String, 
+    var `senderKey`: kotlin.String
+    , 
     /**
      * The ID of the session that the key is for.
      */
     var `sessionId`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeRoomKeyInfo: FfiConverterRustBuffer<RoomKeyInfo> {
     override fun read(buf: ByteBuffer): RoomKeyInfo {
         return RoomKeyInfo(
@@ -9797,17 +10144,26 @@ data class RoomSettings (
     /**
      * The encryption algorithm that should be used in the room.
      */
-    var `algorithm`: EventEncryptionAlgorithm, 
+    var `algorithm`: EventEncryptionAlgorithm
+    , 
     /**
      * Should untrusted devices receive the room key, or should they be
      * excluded from the conversation.
      */
     var `onlyAllowTrustedDevices`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeRoomSettings: FfiConverterRustBuffer<RoomSettings> {
     override fun read(buf: ByteBuffer): RoomSettings {
         return RoomSettings(
@@ -9836,26 +10192,35 @@ data class ScanResult (
     /**
      * The QR code verification object that got created.
      */
-    var `qr`: QrCode, 
+    var `qr`: QrCode
+    , 
     /**
      * The request that needs to be sent out to notify the other side that a
      * QR code verification should start.
      */
     var `request`: OutgoingVerificationRequest
-) : Disposable {
+    
+): Disposable{
+    
+
+    
+
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
     override fun destroy() {
         
-        Disposable.destroy(this.`qr`)
-    
-        Disposable.destroy(this.`request`)
-    
+    Disposable.destroy(
+        this.`qr`,
+        this.`request`
+    )
     }
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeScanResult: FfiConverterRustBuffer<ScanResult> {
     override fun read(buf: ByteBuffer): ScanResult {
         return ScanResult(
@@ -9884,36 +10249,50 @@ data class SessionMigrationData (
     /**
      * The user id that the data belongs to.
      */
-    var `userId`: kotlin.String, 
+    var `userId`: kotlin.String
+    , 
     /**
      * The device id that the data belongs to.
      */
-    var `deviceId`: kotlin.String, 
+    var `deviceId`: kotlin.String
+    , 
     /**
      * The Curve25519 public key of the Account that owns this data.
      */
-    var `curve25519Key`: kotlin.String, 
+    var `curve25519Key`: kotlin.String
+    , 
     /**
      * The Ed25519 public key of the Account that owns this data.
      */
-    var `ed25519Key`: kotlin.String, 
+    var `ed25519Key`: kotlin.String
+    , 
     /**
      * The list of pickleds Olm Sessions.
      */
-    var `sessions`: List<PickledSession>, 
+    var `sessions`: List<PickledSession>
+    , 
     /**
      * The list of pickled Megolm inbound group sessions.
      */
-    var `inboundGroupSessions`: List<PickledInboundGroupSession>, 
+    var `inboundGroupSessions`: List<PickledInboundGroupSession>
+    , 
     /**
      * The Olm pickle key that was used to pickle all the Olm objects.
      */
     var `pickleKey`: kotlin.ByteArray
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSessionMigrationData: FfiConverterRustBuffer<SessionMigrationData> {
     override fun read(buf: ByteBuffer): SessionMigrationData {
         return SessionMigrationData(
@@ -9955,14 +10334,24 @@ public object FfiConverterTypeSessionMigrationData: FfiConverterRustBuffer<Sessi
  * for more info.
  */
 data class ShieldState (
-    var `color`: ShieldColor, 
-    var `code`: ShieldStateCode?, 
+    var `color`: ShieldColor
+    , 
+    var `code`: ShieldStateCode?
+    , 
     var `message`: kotlin.String?
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeShieldState: FfiConverterRustBuffer<ShieldState> {
     override fun read(buf: ByteBuffer): ShieldState {
         return ShieldState(
@@ -9989,11 +10378,19 @@ public object FfiConverterTypeShieldState: FfiConverterRustBuffer<ShieldState> {
 
 data class SignatureUploadRequest (
     var `body`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSignatureUploadRequest: FfiConverterRustBuffer<SignatureUploadRequest> {
     override fun read(buf: ByteBuffer): SignatureUploadRequest {
         return SignatureUploadRequest(
@@ -10020,17 +10417,20 @@ data class SignatureVerification (
      * The result of the signature verification using the public key of our own
      * device.
      */
-    var `deviceSignature`: SignatureState, 
+    var `deviceSignature`: SignatureState
+    , 
     /**
      * The result of the signature verification using the public key of our own
      * user identity.
      */
-    var `userIdentitySignature`: SignatureState, 
+    var `userIdentitySignature`: SignatureState
+    , 
     /**
      * The result of the signature verification using public keys of other
      * devices we own.
      */
-    var `otherDevicesSignatures`: Map<kotlin.String, SignatureState>, 
+    var `otherDevicesSignatures`: Map<kotlin.String, SignatureState>
+    , 
     /**
      * Is the signed JSON object trusted.
      *
@@ -10042,11 +10442,19 @@ data class SignatureVerification (
      * * Any of our own devices, provided the device is trusted as well
      */
     var `trusted`: kotlin.Boolean
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSignatureVerification: FfiConverterRustBuffer<SignatureVerification> {
     override fun read(buf: ByteBuffer): SignatureVerification {
         return SignatureVerification(
@@ -10081,26 +10489,35 @@ data class StartSasResult (
     /**
      * The SAS verification object that got created.
      */
-    var `sas`: Sas, 
+    var `sas`: Sas
+    , 
     /**
      * The request that needs to be sent out to notify the other side that a
      * SAS verification should start.
      */
     var `request`: OutgoingVerificationRequest
-) : Disposable {
+    
+): Disposable{
+    
+
+    
+
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
     override fun destroy() {
         
-        Disposable.destroy(this.`sas`)
-    
-        Disposable.destroy(this.`request`)
-    
+    Disposable.destroy(
+        this.`sas`,
+        this.`request`
+    )
     }
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeStartSasResult: FfiConverterRustBuffer<StartSasResult> {
     override fun read(buf: ByteBuffer): StartSasResult {
         return StartSasResult(
@@ -10133,17 +10550,26 @@ data class SyncChangesResult (
      * The, now possibly decrypted, to-device events the [`OlmMachine`]
      * received, decrypted, and processed.
      */
-    var `toDeviceEvents`: List<kotlin.String>, 
+    var `toDeviceEvents`: List<kotlin.String>
+    , 
     /**
      * Information about the room keys that were extracted out of the to-device
      * events.
      */
     var `roomKeyInfos`: List<RoomKeyInfo>
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSyncChangesResult: FfiConverterRustBuffer<SyncChangesResult> {
     override fun read(buf: ByteBuffer): SyncChangesResult {
         return SyncChangesResult(
@@ -10170,11 +10596,19 @@ data class UploadDehydratedDeviceRequest (
      * The serialized JSON body of the request.
      */
     var `body`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeUploadDehydratedDeviceRequest: FfiConverterRustBuffer<UploadDehydratedDeviceRequest> {
     override fun read(buf: ByteBuffer): UploadDehydratedDeviceRequest {
         return UploadDehydratedDeviceRequest(
@@ -10194,14 +10628,24 @@ public object FfiConverterTypeUploadDehydratedDeviceRequest: FfiConverterRustBuf
 
 
 data class UploadSigningKeysRequest (
-    var `masterKey`: kotlin.String, 
-    var `selfSigningKey`: kotlin.String, 
+    var `masterKey`: kotlin.String
+    , 
+    var `selfSigningKey`: kotlin.String
+    , 
     var `userSigningKey`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeUploadSigningKeysRequest: FfiConverterRustBuffer<UploadSigningKeysRequest> {
     override fun read(buf: ByteBuffer): UploadSigningKeysRequest {
         return UploadSigningKeysRequest(
@@ -10233,25 +10677,36 @@ data class VersionInfo (
     /**
      * The version of the matrix-sdk-crypto crate.
      */
-    var `version`: kotlin.String, 
+    var `version`: kotlin.String
+    , 
     /**
      * The version of the vodozemac crate.
      */
-    var `vodozemacVersion`: kotlin.String, 
+    var `vodozemacVersion`: kotlin.String
+    , 
     /**
      * The Git commit hash of the crate's source tree at build time.
      */
-    var `gitSha`: kotlin.String, 
+    var `gitSha`: kotlin.String
+    , 
     /**
      * The build-time output of the `git describe` command of the source tree
      * of crate.
      */
     var `gitDescription`: kotlin.String
-) {
+    
+){
+    
+
+    
+
     
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeVersionInfo: FfiConverterRustBuffer<VersionInfo> {
     override fun read(buf: ByteBuffer): VersionInfo {
         return VersionInfo(
@@ -10303,6 +10758,9 @@ sealed class CryptoStoreException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeCryptoStoreError : FfiConverterRustBuffer<CryptoStoreException> {
     override fun read(buf: ByteBuffer): CryptoStoreException {
         
@@ -10384,6 +10842,9 @@ sealed class DecodeException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDecodeError : FfiConverterRustBuffer<DecodeException> {
     override fun read(buf: ByteBuffer): DecodeException {
         
@@ -10463,6 +10924,9 @@ sealed class DecryptionException: kotlin.Exception() {
     }
     
 
+    
+
+
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<DecryptionException> {
         override fun lift(error_buf: RustBuffer.ByValue): DecryptionException = FfiConverterTypeDecryptionError.lift(error_buf)
     }
@@ -10470,6 +10934,9 @@ sealed class DecryptionException: kotlin.Exception() {
     
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDecryptionError : FfiConverterRustBuffer<DecryptionException> {
     override fun read(buf: ByteBuffer): DecryptionException {
         
@@ -10585,6 +11052,9 @@ sealed class DehydrationException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDehydrationError : FfiConverterRustBuffer<DehydrationException> {
     override fun read(buf: ByteBuffer): DehydrationException {
         
@@ -10656,10 +11126,17 @@ enum class EventEncryptionAlgorithm {
      * Megolm version 1 using AES-256 and SHA-256.
      */
     MEGOLM_V1_AES_SHA2;
+
+    
+
+
     companion object
 }
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeEventEncryptionAlgorithm: FfiConverterRustBuffer<EventEncryptionAlgorithm> {
     override fun read(buf: ByteBuffer) = try {
         EventEncryptionAlgorithm.values()[buf.getInt() - 1]
@@ -10712,10 +11189,17 @@ enum class HistoryVisibility {
      * have ever joined the room.
      */
     WORLD_READABLE;
+
+    
+
+
     companion object
 }
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeHistoryVisibility: FfiConverterRustBuffer<HistoryVisibility> {
     override fun read(buf: ByteBuffer) = try {
         HistoryVisibility.values()[buf.getInt() - 1]
@@ -10750,6 +11234,9 @@ sealed class KeyImportException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeKeyImportError : FfiConverterRustBuffer<KeyImportException> {
     override fun read(buf: ByteBuffer): KeyImportException {
         
@@ -10809,6 +11296,9 @@ sealed class MigrationException: kotlin.Exception() {
     }
     
 
+    
+
+
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<MigrationException> {
         override fun lift(error_buf: RustBuffer.ByValue): MigrationException = FfiConverterTypeMigrationError.lift(error_buf)
     }
@@ -10816,6 +11306,9 @@ sealed class MigrationException: kotlin.Exception() {
     
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeMigrationError : FfiConverterRustBuffer<MigrationException> {
     override fun read(buf: ByteBuffer): MigrationException {
         
@@ -10857,7 +11350,11 @@ sealed class OutgoingVerificationRequest {
     data class ToDevice(
         val `requestId`: kotlin.String, 
         val `eventType`: kotlin.String, 
-        val `body`: kotlin.String) : OutgoingVerificationRequest() {
+        val `body`: kotlin.String) : OutgoingVerificationRequest()
+        
+    {
+        
+
         companion object
     }
     
@@ -10865,15 +11362,27 @@ sealed class OutgoingVerificationRequest {
         val `requestId`: kotlin.String, 
         val `roomId`: kotlin.String, 
         val `eventType`: kotlin.String, 
-        val `content`: kotlin.String) : OutgoingVerificationRequest() {
+        val `content`: kotlin.String) : OutgoingVerificationRequest()
+        
+    {
+        
+
         companion object
     }
     
 
     
+
+    
+    
+
+
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeOutgoingVerificationRequest : FfiConverterRustBuffer<OutgoingVerificationRequest>{
     override fun read(buf: ByteBuffer): OutgoingVerificationRequest {
         return when(buf.getInt()) {
@@ -10957,6 +11466,9 @@ sealed class PkDecryptionException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypePkDecryptionError : FfiConverterRustBuffer<PkDecryptionException> {
     override fun read(buf: ByteBuffer): PkDecryptionException {
         
@@ -11027,15 +11539,27 @@ sealed class QrCodeState {
         /**
          * Information about the reason of the cancellation.
          */
-        val `cancelInfo`: CancelInfo) : QrCodeState() {
+        val `cancelInfo`: org.matrix.rustcomponents.sdk.crypto.CancelInfo) : QrCodeState()
+        
+    {
+        
+
         companion object
     }
     
 
     
+
+    
+    
+
+
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeQrCodeState : FfiConverterRustBuffer<QrCodeState>{
     override fun read(buf: ByteBuffer): QrCodeState {
         return when(buf.getInt()) {
@@ -11131,32 +11655,52 @@ sealed class Request {
     data class ToDevice(
         val `requestId`: kotlin.String, 
         val `eventType`: kotlin.String, 
-        val `body`: kotlin.String) : Request() {
+        val `body`: kotlin.String) : Request()
+        
+    {
+        
+
         companion object
     }
     
     data class KeysUpload(
         val `requestId`: kotlin.String, 
-        val `body`: kotlin.String) : Request() {
+        val `body`: kotlin.String) : Request()
+        
+    {
+        
+
         companion object
     }
     
     data class KeysQuery(
         val `requestId`: kotlin.String, 
-        val `users`: List<kotlin.String>) : Request() {
+        val `users`: List<kotlin.String>) : Request()
+        
+    {
+        
+
         companion object
     }
     
     data class KeysClaim(
         val `requestId`: kotlin.String, 
-        val `oneTimeKeys`: Map<kotlin.String, Map<kotlin.String, kotlin.String>>) : Request() {
+        val `oneTimeKeys`: Map<kotlin.String, Map<kotlin.String, kotlin.String>>) : Request()
+        
+    {
+        
+
         companion object
     }
     
     data class KeysBackup(
         val `requestId`: kotlin.String, 
         val `version`: kotlin.String, 
-        val `rooms`: kotlin.String) : Request() {
+        val `rooms`: kotlin.String) : Request()
+        
+    {
+        
+
         companion object
     }
     
@@ -11164,21 +11708,37 @@ sealed class Request {
         val `requestId`: kotlin.String, 
         val `roomId`: kotlin.String, 
         val `eventType`: kotlin.String, 
-        val `content`: kotlin.String) : Request() {
+        val `content`: kotlin.String) : Request()
+        
+    {
+        
+
         companion object
     }
     
     data class SignatureUpload(
         val `requestId`: kotlin.String, 
-        val `body`: kotlin.String) : Request() {
+        val `body`: kotlin.String) : Request()
+        
+    {
+        
+
         companion object
     }
     
 
     
+
+    
+    
+
+
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeRequest : FfiConverterRustBuffer<Request>{
     override fun read(buf: ByteBuffer): Request {
         return when(buf.getInt()) {
@@ -11347,10 +11907,17 @@ enum class RequestType {
     SIGNATURE_UPLOAD,
     KEYS_BACKUP,
     ROOM_MESSAGE;
+
+    
+
+
     companion object
 }
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeRequestType: FfiConverterRustBuffer<RequestType> {
     override fun read(buf: ByteBuffer) = try {
         RequestType.values()[buf.getInt() - 1]
@@ -11408,7 +11975,11 @@ sealed class SasState {
         /**
          * The list of decimals that represent the short auth string.
          */
-        val `decimals`: List<kotlin.Int>) : SasState() {
+        val `decimals`: List<kotlin.Int>) : SasState()
+        
+    {
+        
+
         companion object
     }
     
@@ -11432,15 +12003,27 @@ sealed class SasState {
         /**
          * Information about the reason of the cancellation.
          */
-        val `cancelInfo`: CancelInfo) : SasState() {
+        val `cancelInfo`: org.matrix.rustcomponents.sdk.crypto.CancelInfo) : SasState()
+        
+    {
+        
+
         companion object
     }
     
 
     
+
+    
+    
+
+
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSasState : FfiConverterRustBuffer<SasState>{
     override fun read(buf: ByteBuffer): SasState {
         return when(buf.getInt()) {
@@ -11563,6 +12146,9 @@ sealed class SecretImportException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSecretImportError : FfiConverterRustBuffer<SecretImportException> {
     override fun read(buf: ByteBuffer): SecretImportException {
         
@@ -11605,10 +12191,17 @@ enum class ShieldColor {
     RED,
     GREY,
     NONE;
+
+    
+
+
     companion object
 }
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeShieldColor: FfiConverterRustBuffer<ShieldColor> {
     override fun read(buf: ByteBuffer) = try {
         ShieldColor.values()[buf.getInt() - 1]
@@ -11647,6 +12240,9 @@ sealed class SignatureException(message: String): kotlin.Exception(message) {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSignatureError : FfiConverterRustBuffer<SignatureException> {
     override fun read(buf: ByteBuffer): SignatureException {
         
@@ -11727,7 +12323,11 @@ sealed class UserIdentity {
         /**
          * True if this identity was verified at some point but is not anymore.
          */
-        val `hasVerificationViolation`: kotlin.Boolean) : UserIdentity() {
+        val `hasVerificationViolation`: kotlin.Boolean) : UserIdentity()
+        
+    {
+        
+
         companion object
     }
     
@@ -11750,15 +12350,27 @@ sealed class UserIdentity {
         /**
          * True if this identity was verified at some point but is not anymore.
          */
-        val `hasVerificationViolation`: kotlin.Boolean) : UserIdentity() {
+        val `hasVerificationViolation`: kotlin.Boolean) : UserIdentity()
+        
+    {
+        
+
         companion object
     }
     
 
     
+
+    
+    
+
+
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeUserIdentity : FfiConverterRustBuffer<UserIdentity>{
     override fun read(buf: ByteBuffer): UserIdentity {
         return when(buf.getInt()) {
@@ -11855,7 +12467,11 @@ sealed class VerificationRequestState {
         /**
          * The verification methods supported by the us.
          */
-        val `ourMethods`: List<kotlin.String>) : VerificationRequestState() {
+        val `ourMethods`: List<kotlin.String>) : VerificationRequestState()
+        
+    {
+        
+
         companion object
     }
     
@@ -11872,15 +12488,27 @@ sealed class VerificationRequestState {
         /**
          * Information about the reason of the cancellation.
          */
-        val `cancelInfo`: CancelInfo) : VerificationRequestState() {
+        val `cancelInfo`: org.matrix.rustcomponents.sdk.crypto.CancelInfo) : VerificationRequestState()
+        
+    {
+        
+
         companion object
     }
     
 
     
+
+    
+    
+
+
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeVerificationRequestState : FfiConverterRustBuffer<VerificationRequestState>{
     override fun read(buf: ByteBuffer): VerificationRequestState {
         return when(buf.getInt()) {
@@ -11972,35 +12600,7 @@ public interface Logger {
     companion object
 }
 
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-internal const val IDX_CALLBACK_FREE = 0
-// Callback return codes
-internal const val UNIFFI_CALLBACK_SUCCESS = 0
-internal const val UNIFFI_CALLBACK_ERROR = 1
-internal const val UNIFFI_CALLBACK_UNEXPECTED_ERROR = 2
 
-public abstract class FfiConverterCallbackInterface<CallbackInterface: Any>: FfiConverter<CallbackInterface, Long> {
-    internal val handleMap = UniffiHandleMap<CallbackInterface>()
-
-    internal fun drop(handle: Long) {
-        handleMap.remove(handle)
-    }
-
-    override fun lift(value: Long): CallbackInterface {
-        return handleMap.get(value)
-    }
-
-    override fun read(buf: ByteBuffer) = lift(buf.getLong())
-
-    override fun lower(value: CallbackInterface) = handleMap.insert(value)
-
-    override fun allocationSize(value: CallbackInterface) = 8UL
-
-    override fun write(value: CallbackInterface, buf: ByteBuffer) {
-        buf.putLong(lower(value))
-    }
-}
 
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceLogger {
@@ -12023,9 +12623,16 @@ internal object uniffiCallbackInterfaceLogger {
         }
     }
 
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeLogger.handleMap.clone(handle)
+        }
+    }
+
     internal var vtable = UniffiVTableCallbackInterfaceLogger.UniffiByValue(
-        `log`,
         uniffiFree,
+        uniffiClone,
+        `log`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -12035,7 +12642,11 @@ internal object uniffiCallbackInterfaceLogger {
     }
 }
 
-// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
 public object FfiConverterTypeLogger: FfiConverterCallbackInterface<Logger>()
 
 
@@ -12085,9 +12696,16 @@ internal object uniffiCallbackInterfaceProgressListener {
         }
     }
 
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeProgressListener.handleMap.clone(handle)
+        }
+    }
+
     internal var vtable = UniffiVTableCallbackInterfaceProgressListener.UniffiByValue(
-        `onProgress`,
         uniffiFree,
+        uniffiClone,
+        `onProgress`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -12097,7 +12715,11 @@ internal object uniffiCallbackInterfaceProgressListener {
     }
 }
 
-// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
 public object FfiConverterTypeProgressListener: FfiConverterCallbackInterface<ProgressListener>()
 
 
@@ -12145,9 +12767,16 @@ internal object uniffiCallbackInterfaceQrCodeListener {
         }
     }
 
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeQrCodeListener.handleMap.clone(handle)
+        }
+    }
+
     internal var vtable = UniffiVTableCallbackInterfaceQrCodeListener.UniffiByValue(
-        `onChange`,
         uniffiFree,
+        uniffiClone,
+        `onChange`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -12157,7 +12786,11 @@ internal object uniffiCallbackInterfaceQrCodeListener {
     }
 }
 
-// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
 public object FfiConverterTypeQrCodeListener: FfiConverterCallbackInterface<QrCodeListener>()
 
 
@@ -12205,9 +12838,16 @@ internal object uniffiCallbackInterfaceSasListener {
         }
     }
 
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeSasListener.handleMap.clone(handle)
+        }
+    }
+
     internal var vtable = UniffiVTableCallbackInterfaceSasListener.UniffiByValue(
-        `onChange`,
         uniffiFree,
+        uniffiClone,
+        `onChange`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -12217,7 +12857,11 @@ internal object uniffiCallbackInterfaceSasListener {
     }
 }
 
-// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
 public object FfiConverterTypeSasListener: FfiConverterCallbackInterface<SasListener>()
 
 
@@ -12265,9 +12909,16 @@ internal object uniffiCallbackInterfaceVerificationRequestListener {
         }
     }
 
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeVerificationRequestListener.handleMap.clone(handle)
+        }
+    }
+
     internal var vtable = UniffiVTableCallbackInterfaceVerificationRequestListener.UniffiByValue(
-        `onChange`,
         uniffiFree,
+        uniffiClone,
+        `onChange`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -12277,12 +12928,19 @@ internal object uniffiCallbackInterfaceVerificationRequestListener {
     }
 }
 
-// The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
 public object FfiConverterTypeVerificationRequestListener: FfiConverterCallbackInterface<VerificationRequestListener>()
 
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?> {
     override fun read(buf: ByteBuffer): kotlin.String? {
         if (buf.get().toInt() == 0) {
@@ -12312,6 +12970,9 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeBackupKeys: FfiConverterRustBuffer<BackupKeys?> {
     override fun read(buf: ByteBuffer): BackupKeys? {
         if (buf.get().toInt() == 0) {
@@ -12341,6 +13002,9 @@ public object FfiConverterOptionalTypeBackupKeys: FfiConverterRustBuffer<BackupK
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeBackupRecoveryKey: FfiConverterRustBuffer<BackupRecoveryKey?> {
     override fun read(buf: ByteBuffer): BackupRecoveryKey? {
         if (buf.get().toInt() == 0) {
@@ -12370,6 +13034,9 @@ public object FfiConverterOptionalTypeBackupRecoveryKey: FfiConverterRustBuffer<
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeQrCode: FfiConverterRustBuffer<QrCode?> {
     override fun read(buf: ByteBuffer): QrCode? {
         if (buf.get().toInt() == 0) {
@@ -12399,6 +13066,9 @@ public object FfiConverterOptionalTypeQrCode: FfiConverterRustBuffer<QrCode?> {
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeSas: FfiConverterRustBuffer<Sas?> {
     override fun read(buf: ByteBuffer): Sas? {
         if (buf.get().toInt() == 0) {
@@ -12428,6 +13098,9 @@ public object FfiConverterOptionalTypeSas: FfiConverterRustBuffer<Sas?> {
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeVerification: FfiConverterRustBuffer<Verification?> {
     override fun read(buf: ByteBuffer): Verification? {
         if (buf.get().toInt() == 0) {
@@ -12457,6 +13130,9 @@ public object FfiConverterOptionalTypeVerification: FfiConverterRustBuffer<Verif
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeVerificationRequest: FfiConverterRustBuffer<VerificationRequest?> {
     override fun read(buf: ByteBuffer): VerificationRequest? {
         if (buf.get().toInt() == 0) {
@@ -12486,6 +13162,9 @@ public object FfiConverterOptionalTypeVerificationRequest: FfiConverterRustBuffe
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeCancelInfo: FfiConverterRustBuffer<CancelInfo?> {
     override fun read(buf: ByteBuffer): CancelInfo? {
         if (buf.get().toInt() == 0) {
@@ -12515,6 +13194,9 @@ public object FfiConverterOptionalTypeCancelInfo: FfiConverterRustBuffer<CancelI
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeConfirmVerificationResult: FfiConverterRustBuffer<ConfirmVerificationResult?> {
     override fun read(buf: ByteBuffer): ConfirmVerificationResult? {
         if (buf.get().toInt() == 0) {
@@ -12544,6 +13226,9 @@ public object FfiConverterOptionalTypeConfirmVerificationResult: FfiConverterRus
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeCrossSigningKeyExport: FfiConverterRustBuffer<CrossSigningKeyExport?> {
     override fun read(buf: ByteBuffer): CrossSigningKeyExport? {
         if (buf.get().toInt() == 0) {
@@ -12573,6 +13258,9 @@ public object FfiConverterOptionalTypeCrossSigningKeyExport: FfiConverterRustBuf
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeDehydratedDeviceKey: FfiConverterRustBuffer<DehydratedDeviceKey?> {
     override fun read(buf: ByteBuffer): DehydratedDeviceKey? {
         if (buf.get().toInt() == 0) {
@@ -12602,6 +13290,9 @@ public object FfiConverterOptionalTypeDehydratedDeviceKey: FfiConverterRustBuffe
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeDevice: FfiConverterRustBuffer<Device?> {
     override fun read(buf: ByteBuffer): Device? {
         if (buf.get().toInt() == 0) {
@@ -12631,6 +13322,9 @@ public object FfiConverterOptionalTypeDevice: FfiConverterRustBuffer<Device?> {
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypePassphraseInfo: FfiConverterRustBuffer<PassphraseInfo?> {
     override fun read(buf: ByteBuffer): PassphraseInfo? {
         if (buf.get().toInt() == 0) {
@@ -12660,6 +13354,9 @@ public object FfiConverterOptionalTypePassphraseInfo: FfiConverterRustBuffer<Pas
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeRequestVerificationResult: FfiConverterRustBuffer<RequestVerificationResult?> {
     override fun read(buf: ByteBuffer): RequestVerificationResult? {
         if (buf.get().toInt() == 0) {
@@ -12689,6 +13386,9 @@ public object FfiConverterOptionalTypeRequestVerificationResult: FfiConverterRus
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeRoomSettings: FfiConverterRustBuffer<RoomSettings?> {
     override fun read(buf: ByteBuffer): RoomSettings? {
         if (buf.get().toInt() == 0) {
@@ -12718,6 +13418,9 @@ public object FfiConverterOptionalTypeRoomSettings: FfiConverterRustBuffer<RoomS
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeScanResult: FfiConverterRustBuffer<ScanResult?> {
     override fun read(buf: ByteBuffer): ScanResult? {
         if (buf.get().toInt() == 0) {
@@ -12747,6 +13450,9 @@ public object FfiConverterOptionalTypeScanResult: FfiConverterRustBuffer<ScanRes
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeSignatureUploadRequest: FfiConverterRustBuffer<SignatureUploadRequest?> {
     override fun read(buf: ByteBuffer): SignatureUploadRequest? {
         if (buf.get().toInt() == 0) {
@@ -12776,6 +13482,9 @@ public object FfiConverterOptionalTypeSignatureUploadRequest: FfiConverterRustBu
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeStartSasResult: FfiConverterRustBuffer<StartSasResult?> {
     override fun read(buf: ByteBuffer): StartSasResult? {
         if (buf.get().toInt() == 0) {
@@ -12805,151 +13514,9 @@ public object FfiConverterOptionalTypeStartSasResult: FfiConverterRustBuffer<Sta
 
 
 
-public object FfiConverterOptionalTypeOutgoingVerificationRequest: FfiConverterRustBuffer<OutgoingVerificationRequest?> {
-    override fun read(buf: ByteBuffer): OutgoingVerificationRequest? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeOutgoingVerificationRequest.read(buf)
-    }
-
-    override fun allocationSize(value: OutgoingVerificationRequest?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeOutgoingVerificationRequest.allocationSize(value)
-        }
-    }
-
-    override fun write(value: OutgoingVerificationRequest?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeOutgoingVerificationRequest.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeRequest: FfiConverterRustBuffer<Request?> {
-    override fun read(buf: ByteBuffer): Request? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeRequest.read(buf)
-    }
-
-    override fun allocationSize(value: Request?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeRequest.allocationSize(value)
-        }
-    }
-
-    override fun write(value: Request?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeRequest.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserIdentity?> {
-    override fun read(buf: ByteBuffer): UserIdentity? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeUserIdentity.read(buf)
-    }
-
-    override fun allocationSize(value: UserIdentity?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeUserIdentity.allocationSize(value)
-        }
-    }
-
-    override fun write(value: UserIdentity?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeUserIdentity.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalSequenceInt: FfiConverterRustBuffer<List<kotlin.Int>?> {
-    override fun read(buf: ByteBuffer): List<kotlin.Int>? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterSequenceInt.read(buf)
-    }
-
-    override fun allocationSize(value: List<kotlin.Int>?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterSequenceInt.allocationSize(value)
-        }
-    }
-
-    override fun write(value: List<kotlin.Int>?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterSequenceInt.write(value, buf)
-        }
-    }
-}
-
-
-
-
-public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<kotlin.String>?> {
-    override fun read(buf: ByteBuffer): List<kotlin.String>? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterSequenceString.read(buf)
-    }
-
-    override fun allocationSize(value: List<kotlin.String>?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterSequenceString.allocationSize(value)
-        }
-    }
-
-    override fun write(value: List<kotlin.String>?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterSequenceString.write(value, buf)
-        }
-    }
-}
-
-
-
-
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeShieldStateCode: FfiConverterRustBuffer<ShieldStateCode?> {
     override fun read(buf: ByteBuffer): ShieldStateCode? {
         if (buf.get().toInt() == 0) {
@@ -12979,6 +13546,169 @@ public object FfiConverterOptionalTypeShieldStateCode: FfiConverterRustBuffer<Sh
 
 
 
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeOutgoingVerificationRequest: FfiConverterRustBuffer<OutgoingVerificationRequest?> {
+    override fun read(buf: ByteBuffer): OutgoingVerificationRequest? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeOutgoingVerificationRequest.read(buf)
+    }
+
+    override fun allocationSize(value: OutgoingVerificationRequest?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeOutgoingVerificationRequest.allocationSize(value)
+        }
+    }
+
+    override fun write(value: OutgoingVerificationRequest?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeOutgoingVerificationRequest.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeRequest: FfiConverterRustBuffer<Request?> {
+    override fun read(buf: ByteBuffer): Request? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRequest.read(buf)
+    }
+
+    override fun allocationSize(value: Request?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRequest.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Request?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRequest.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserIdentity?> {
+    override fun read(buf: ByteBuffer): UserIdentity? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeUserIdentity.read(buf)
+    }
+
+    override fun allocationSize(value: UserIdentity?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeUserIdentity.allocationSize(value)
+        }
+    }
+
+    override fun write(value: UserIdentity?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeUserIdentity.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalSequenceInt: FfiConverterRustBuffer<List<kotlin.Int>?> {
+    override fun read(buf: ByteBuffer): List<kotlin.Int>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceInt.read(buf)
+    }
+
+    override fun allocationSize(value: List<kotlin.Int>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceInt.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<kotlin.Int>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceInt.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<kotlin.String>?> {
+    override fun read(buf: ByteBuffer): List<kotlin.String>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceString.read(buf)
+    }
+
+    override fun allocationSize(value: List<kotlin.String>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceString.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<kotlin.String>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceInt: FfiConverterRustBuffer<List<kotlin.Int>> {
     override fun read(buf: ByteBuffer): List<kotlin.Int> {
         val len = buf.getInt()
@@ -13004,6 +13734,9 @@ public object FfiConverterSequenceInt: FfiConverterRustBuffer<List<kotlin.Int>> 
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
     override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
@@ -13029,6 +13762,9 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeVerificationRequest: FfiConverterRustBuffer<List<VerificationRequest>> {
     override fun read(buf: ByteBuffer): List<VerificationRequest> {
         val len = buf.getInt()
@@ -13054,6 +13790,9 @@ public object FfiConverterSequenceTypeVerificationRequest: FfiConverterRustBuffe
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeDevice: FfiConverterRustBuffer<List<Device>> {
     override fun read(buf: ByteBuffer): List<Device> {
         val len = buf.getInt()
@@ -13079,6 +13818,9 @@ public object FfiConverterSequenceTypeDevice: FfiConverterRustBuffer<List<Device
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypePickledInboundGroupSession: FfiConverterRustBuffer<List<PickledInboundGroupSession>> {
     override fun read(buf: ByteBuffer): List<PickledInboundGroupSession> {
         val len = buf.getInt()
@@ -13104,6 +13846,9 @@ public object FfiConverterSequenceTypePickledInboundGroupSession: FfiConverterRu
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypePickledSession: FfiConverterRustBuffer<List<PickledSession>> {
     override fun read(buf: ByteBuffer): List<PickledSession> {
         val len = buf.getInt()
@@ -13129,6 +13874,9 @@ public object FfiConverterSequenceTypePickledSession: FfiConverterRustBuffer<Lis
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeRoomKeyInfo: FfiConverterRustBuffer<List<RoomKeyInfo>> {
     override fun read(buf: ByteBuffer): List<RoomKeyInfo> {
         val len = buf.getInt()
@@ -13154,6 +13902,9 @@ public object FfiConverterSequenceTypeRoomKeyInfo: FfiConverterRustBuffer<List<R
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeOutgoingVerificationRequest: FfiConverterRustBuffer<List<OutgoingVerificationRequest>> {
     override fun read(buf: ByteBuffer): List<OutgoingVerificationRequest> {
         val len = buf.getInt()
@@ -13179,6 +13930,9 @@ public object FfiConverterSequenceTypeOutgoingVerificationRequest: FfiConverterR
 
 
 
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeRequest: FfiConverterRustBuffer<List<Request>> {
     override fun read(buf: ByteBuffer): List<Request> {
         val len = buf.getInt()
@@ -13203,6 +13957,10 @@ public object FfiConverterSequenceTypeRequest: FfiConverterRustBuffer<List<Reque
 
 
 
+
+/**
+ * @suppress
+ */
 public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<kotlin.String, kotlin.Int>> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.Int> {
         val len = buf.getInt()
@@ -13238,6 +13996,10 @@ public object FfiConverterMapStringInt: FfiConverterRustBuffer<Map<kotlin.String
 
 
 
+
+/**
+ * @suppress
+ */
 public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.String, kotlin.String>> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.String> {
         val len = buf.getInt()
@@ -13273,6 +14035,10 @@ public object FfiConverterMapStringString: FfiConverterRustBuffer<Map<kotlin.Str
 
 
 
+
+/**
+ * @suppress
+ */
 public object FfiConverterMapStringTypeRoomSettings: FfiConverterRustBuffer<Map<kotlin.String, RoomSettings>> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, RoomSettings> {
         val len = buf.getInt()
@@ -13308,111 +14074,10 @@ public object FfiConverterMapStringTypeRoomSettings: FfiConverterRustBuffer<Map<
 
 
 
-public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, List<kotlin.String>>> {
-    override fun read(buf: ByteBuffer): Map<kotlin.String, List<kotlin.String>> {
-        val len = buf.getInt()
-        return buildMap<kotlin.String, List<kotlin.String>>(len) {
-            repeat(len) {
-                val k = FfiConverterString.read(buf)
-                val v = FfiConverterSequenceString.read(buf)
-                this[k] = v
-            }
-        }
-    }
 
-    override fun allocationSize(value: Map<kotlin.String, List<kotlin.String>>): ULong {
-        val spaceForMapSize = 4UL
-        val spaceForChildren = value.map { (k, v) ->
-            FfiConverterString.allocationSize(k) +
-            FfiConverterSequenceString.allocationSize(v)
-        }.sum()
-        return spaceForMapSize + spaceForChildren
-    }
-
-    override fun write(value: Map<kotlin.String, List<kotlin.String>>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterString.write(k, buf)
-            FfiConverterSequenceString.write(v, buf)
-        }
-    }
-}
-
-
-
-public object FfiConverterMapStringMapStringString: FfiConverterRustBuffer<Map<kotlin.String, Map<kotlin.String, kotlin.String>>> {
-    override fun read(buf: ByteBuffer): Map<kotlin.String, Map<kotlin.String, kotlin.String>> {
-        val len = buf.getInt()
-        return buildMap<kotlin.String, Map<kotlin.String, kotlin.String>>(len) {
-            repeat(len) {
-                val k = FfiConverterString.read(buf)
-                val v = FfiConverterMapStringString.read(buf)
-                this[k] = v
-            }
-        }
-    }
-
-    override fun allocationSize(value: Map<kotlin.String, Map<kotlin.String, kotlin.String>>): ULong {
-        val spaceForMapSize = 4UL
-        val spaceForChildren = value.map { (k, v) ->
-            FfiConverterString.allocationSize(k) +
-            FfiConverterMapStringString.allocationSize(v)
-        }.sum()
-        return spaceForMapSize + spaceForChildren
-    }
-
-    override fun write(value: Map<kotlin.String, Map<kotlin.String, kotlin.String>>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterString.write(k, buf)
-            FfiConverterMapStringString.write(v, buf)
-        }
-    }
-}
-
-
-
-public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>> {
-    override fun read(buf: ByteBuffer): Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>> {
-        val len = buf.getInt()
-        return buildMap<kotlin.String, Map<kotlin.String, List<kotlin.String>>>(len) {
-            repeat(len) {
-                val k = FfiConverterString.read(buf)
-                val v = FfiConverterMapStringSequenceString.read(buf)
-                this[k] = v
-            }
-        }
-    }
-
-    override fun allocationSize(value: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>): ULong {
-        val spaceForMapSize = 4UL
-        val spaceForChildren = value.map { (k, v) ->
-            FfiConverterString.allocationSize(k) +
-            FfiConverterMapStringSequenceString.allocationSize(v)
-        }.sum()
-        return spaceForMapSize + spaceForChildren
-    }
-
-    override fun write(value: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>, buf: ByteBuffer) {
-        buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterString.write(k, buf)
-            FfiConverterMapStringSequenceString.write(v, buf)
-        }
-    }
-}
-
-
-
+/**
+ * @suppress
+ */
 public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Map<kotlin.String, SignatureState>> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, SignatureState> {
         val len = buf.getInt()
@@ -13449,8 +14114,119 @@ public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Ma
 
 
 
+/**
+ * @suppress
+ */
+public object FfiConverterMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, List<kotlin.String>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, List<kotlin.String>> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, List<kotlin.String>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterSequenceString.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, List<kotlin.String>>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterSequenceString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, List<kotlin.String>>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterSequenceString.write(v, buf)
+        }
+    }
+}
 
 
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterMapStringMapStringString: FfiConverterRustBuffer<Map<kotlin.String, Map<kotlin.String, kotlin.String>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, Map<kotlin.String, kotlin.String>> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, Map<kotlin.String, kotlin.String>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterMapStringString.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, Map<kotlin.String, kotlin.String>>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterMapStringString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, Map<kotlin.String, kotlin.String>>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterMapStringString.write(v, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuffer<Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>> {
+    override fun read(buf: ByteBuffer): Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>> {
+        val len = buf.getInt()
+        return buildMap<kotlin.String, Map<kotlin.String, List<kotlin.String>>>(len) {
+            repeat(len) {
+                val k = FfiConverterString.read(buf)
+                val v = FfiConverterMapStringSequenceString.read(buf)
+                this[k] = v
+            }
+        }
+    }
+
+    override fun allocationSize(value: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>): ULong {
+        val spaceForMapSize = 4UL
+        val spaceForChildren = value.map { (k, v) ->
+            FfiConverterString.allocationSize(k) +
+            FfiConverterMapStringSequenceString.allocationSize(v)
+        }.sum()
+        return spaceForMapSize + spaceForChildren
+    }
+
+    override fun write(value: Map<kotlin.String, Map<kotlin.String, List<kotlin.String>>>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        // The parens on `(k, v)` here ensure we're calling the right method,
+        // which is important for compatibility with older android devices.
+        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
+        value.forEach { (k, v) ->
+            FfiConverterString.write(k, buf)
+            FfiConverterMapStringSequenceString.write(v, buf)
+        }
+    }
+}
 
 
 
@@ -13481,7 +14257,8 @@ public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Ma
     @Throws(MigrationException::class) fun `migrate`(`data`: MigrationData, `path`: kotlin.String, `passphrase`: kotlin.String?, `progressListener`: ProgressListener)
         = 
     uniffiRustCallWithError(MigrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate(
+    
         FfiConverterTypeMigrationData.lower(`data`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
 }
     
@@ -13509,7 +14286,8 @@ public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Ma
     @Throws(MigrationException::class) fun `migrateRoomSettings`(`roomSettings`: Map<kotlin.String, RoomSettings>, `path`: kotlin.String, `passphrase`: kotlin.String?)
         = 
     uniffiRustCallWithError(MigrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_room_settings(
+    
         FfiConverterMapStringTypeRoomSettings.lower(`roomSettings`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),_status)
 }
     
@@ -13538,26 +14316,17 @@ public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Ma
     @Throws(MigrationException::class) fun `migrateSessions`(`data`: SessionMigrationData, `path`: kotlin.String, `passphrase`: kotlin.String?, `progressListener`: ProgressListener)
         = 
     uniffiRustCallWithError(MigrationException) { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_migrate_sessions(
+    
         FfiConverterTypeSessionMigrationData.lower(`data`),FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeProgressListener.lower(`progressListener`),_status)
-}
-    
-    
-
-        /**
-         * Set the logger that should be used to forward Rust logs over FFI.
-         */ fun `setLogger`(`logger`: Logger)
-        = 
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(
-        FfiConverterTypeLogger.lower(`logger`),_status)
 }
     
     
  fun `version`(): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_version(
+    
         _status)
 }
     )
@@ -13566,7 +14335,8 @@ public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Ma
  fun `versionInfo`(): VersionInfo {
             return FfiConverterTypeVersionInfo.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_version_info(
+    
         _status)
 }
     )
@@ -13575,11 +14345,24 @@ public object FfiConverterMapStringTypeSignatureState: FfiConverterRustBuffer<Ma
  fun `vodozemacVersion`(): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_vodozemac_version(
+    
         _status)
 }
     )
     }
+    
+
+        /**
+         * Set the logger that should be used to forward Rust logs over FFI.
+         */ fun `setLogger`(`logger`: Logger)
+        = 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_func_set_logger(
+    
+        FfiConverterTypeLogger.lower(`logger`),_status)
+}
+    
     
 
 
