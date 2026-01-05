@@ -194,7 +194,7 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v6
         with:
-          name: sdk-android-release
+          name: crypto-android-release
           if-no-files-found: error
-          path: ./sdk/sdk-android/build/**/*.aar
+          path: ./crypto/crypto-android/build/**/*.aar
           retention-days: 7
