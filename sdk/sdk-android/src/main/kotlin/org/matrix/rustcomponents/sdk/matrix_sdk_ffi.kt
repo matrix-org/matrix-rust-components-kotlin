@@ -60,8 +60,6 @@ import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
 import uniffi.matrix_sdk_base.MediaRetentionPolicy
-import uniffi.matrix_sdk_common.FfiConverterTypeShieldStateCode
-import uniffi.matrix_sdk_common.ShieldStateCode
 import uniffi.matrix_sdk_crypto.CollectStrategy
 import uniffi.matrix_sdk_crypto.DecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
@@ -75,10 +73,12 @@ import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineReadReceiptTracking
 import uniffi.matrix_sdk_ui.LatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.TimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
@@ -90,7 +90,6 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetConfig
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
-import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
@@ -99,6 +98,7 @@ import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineReadReceiptTracking
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
@@ -2803,7 +2803,6 @@ internal object UniffiLib {
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
         uniffi.matrix_sdk.uniffiEnsureInitialized()
         uniffi.matrix_sdk_base.uniffiEnsureInitialized()
-        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
         uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
         uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         
@@ -5459,7 +5458,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_send_handle() != 279.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields() != 46064.toShort()) {
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields() != 41889.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() != 5666.toShort()) {
@@ -13094,7 +13093,7 @@ public interface LazyTimelineItemProviderInterface {
     /**
      * Returns the shields for this event timeline item.
      */
-    fun `getShields`(`strict`: kotlin.Boolean): ShieldState?
+    fun `getShields`(`strict`: kotlin.Boolean): ShieldState
     
     companion object
 }
@@ -13247,8 +13246,8 @@ open class LazyTimelineItemProvider: Disposable, AutoCloseable, LazyTimelineItem
     
     /**
      * Returns the shields for this event timeline item.
-     */override fun `getShields`(`strict`: kotlin.Boolean): ShieldState? {
-            return FfiConverterOptionalTypeShieldState.lift(
+     */override fun `getShields`(`strict`: kotlin.Boolean): ShieldState {
+            return FfiConverterTypeShieldState.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_shields(
@@ -31123,6 +31122,10 @@ data class EventTimelineItem (
     , 
     var `senderProfile`: ProfileDetails
     , 
+    var `forwarder`: kotlin.String?
+    , 
+    var `forwarderProfile`: ProfileDetails?
+    , 
     var `isOwn`: kotlin.Boolean
     , 
     var `isEditable`: kotlin.Boolean
@@ -31157,6 +31160,8 @@ data class EventTimelineItem (
         this.`eventOrTransactionId`,
         this.`sender`,
         this.`senderProfile`,
+        this.`forwarder`,
+        this.`forwarderProfile`,
         this.`isOwn`,
         this.`isEditable`,
         this.`content`,
@@ -31183,6 +31188,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterTypeEventOrTransactionId.read(buf),
             FfiConverterString.read(buf),
             FfiConverterTypeProfileDetails.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeProfileDetails.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterTypeTimelineItemContent.read(buf),
@@ -31201,6 +31208,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterTypeEventOrTransactionId.allocationSize(value.`eventOrTransactionId`) +
             FfiConverterString.allocationSize(value.`sender`) +
             FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`) +
+            FfiConverterOptionalString.allocationSize(value.`forwarder`) +
+            FfiConverterOptionalTypeProfileDetails.allocationSize(value.`forwarderProfile`) +
             FfiConverterBoolean.allocationSize(value.`isOwn`) +
             FfiConverterBoolean.allocationSize(value.`isEditable`) +
             FfiConverterTypeTimelineItemContent.allocationSize(value.`content`) +
@@ -31218,6 +31227,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterTypeEventOrTransactionId.write(value.`eventOrTransactionId`, buf)
             FfiConverterString.write(value.`sender`, buf)
             FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
+            FfiConverterOptionalString.write(value.`forwarder`, buf)
+            FfiConverterOptionalTypeProfileDetails.write(value.`forwarderProfile`, buf)
             FfiConverterBoolean.write(value.`isOwn`, buf)
             FfiConverterBoolean.write(value.`isEditable`, buf)
             FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
@@ -49792,12 +49803,11 @@ public object FfiConverterTypeSessionVerificationData : FfiConverterRustBuffer<S
 sealed class ShieldState {
     
     /**
-     * A red shield with a tooltip containing the associated message should be
-     * presented.
+     * A red shield with a tooltip containing a message appropriate to the
+     * associated code should be presented.
      */
     data class Red(
-        val `code`: uniffi.matrix_sdk_common.ShieldStateCode, 
-        val `message`: kotlin.String) : ShieldState()
+        val `code`: uniffi.matrix_sdk_ui.TimelineEventShieldStateCode) : ShieldState()
         
     {
         
@@ -49806,12 +49816,11 @@ sealed class ShieldState {
     }
     
     /**
-     * A grey shield with a tooltip containing the associated message should be
-     * presented.
+     * A grey shield with a tooltip containing a message appropriate to the
+     * associated code should be presented.
      */
     data class Grey(
-        val `code`: uniffi.matrix_sdk_common.ShieldStateCode, 
-        val `message`: kotlin.String) : ShieldState()
+        val `code`: uniffi.matrix_sdk_ui.TimelineEventShieldStateCode) : ShieldState()
         
     {
         
@@ -49842,12 +49851,10 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
     override fun read(buf: ByteBuffer): ShieldState {
         return when(buf.getInt()) {
             1 -> ShieldState.Red(
-                FfiConverterTypeShieldStateCode.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeTimelineEventShieldStateCode.read(buf),
                 )
             2 -> ShieldState.Grey(
-                FfiConverterTypeShieldStateCode.read(buf),
-                FfiConverterString.read(buf),
+                FfiConverterTypeTimelineEventShieldStateCode.read(buf),
                 )
             3 -> ShieldState.None
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -49859,16 +49866,14 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeShieldStateCode.allocationSize(value.`code`)
-                + FfiConverterString.allocationSize(value.`message`)
+                + FfiConverterTypeTimelineEventShieldStateCode.allocationSize(value.`code`)
             )
         }
         is ShieldState.Grey -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeShieldStateCode.allocationSize(value.`code`)
-                + FfiConverterString.allocationSize(value.`message`)
+                + FfiConverterTypeTimelineEventShieldStateCode.allocationSize(value.`code`)
             )
         }
         is ShieldState.None -> {
@@ -49883,14 +49888,12 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
         when(value) {
             is ShieldState.Red -> {
                 buf.putInt(1)
-                FfiConverterTypeShieldStateCode.write(value.`code`, buf)
-                FfiConverterString.write(value.`message`, buf)
+                FfiConverterTypeTimelineEventShieldStateCode.write(value.`code`, buf)
                 Unit
             }
             is ShieldState.Grey -> {
                 buf.putInt(2)
-                FfiConverterTypeShieldStateCode.write(value.`code`, buf)
-                FfiConverterString.write(value.`message`, buf)
+                FfiConverterTypeTimelineEventShieldStateCode.write(value.`code`, buf)
                 Unit
             }
             is ShieldState.None -> {
@@ -57528,6 +57531,38 @@ public object FfiConverterOptionalTypeOidcPrompt: FfiConverterRustBuffer<OidcPro
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeProfileDetails: FfiConverterRustBuffer<ProfileDetails?> {
+    override fun read(buf: ByteBuffer): ProfileDetails? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeProfileDetails.read(buf)
+    }
+
+    override fun allocationSize(value: ProfileDetails?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeProfileDetails.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ProfileDetails?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeProfileDetails.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypePublicRoomJoinRule: FfiConverterRustBuffer<PublicRoomJoinRule?> {
     override fun read(buf: ByteBuffer): PublicRoomJoinRule? {
         if (buf.get().toInt() == 0) {
@@ -57646,38 +57681,6 @@ public object FfiConverterOptionalTypeRoomNotificationMode: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeRoomNotificationMode.write(value, buf)
-        }
-    }
-}
-
-
-
-
-/**
- * @suppress
- */
-public object FfiConverterOptionalTypeShieldState: FfiConverterRustBuffer<ShieldState?> {
-    override fun read(buf: ByteBuffer): ShieldState? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterTypeShieldState.read(buf)
-    }
-
-    override fun allocationSize(value: ShieldState?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterTypeShieldState.allocationSize(value)
-        }
-    }
-
-    override fun write(value: ShieldState?, buf: ByteBuffer) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterTypeShieldState.write(value, buf)
         }
     }
 }

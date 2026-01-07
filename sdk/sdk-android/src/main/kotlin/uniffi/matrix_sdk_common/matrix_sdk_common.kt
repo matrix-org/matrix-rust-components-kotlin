@@ -942,10 +942,6 @@ enum class ShieldStateCode {
      */
     UNVERIFIED_IDENTITY,
     /**
-     * An unencrypted event in an encrypted room.
-     */
-    SENT_IN_CLEAR,
-    /**
      * The sender was previously verified but changed their identity.
      */
     VERIFICATION_VIOLATION,

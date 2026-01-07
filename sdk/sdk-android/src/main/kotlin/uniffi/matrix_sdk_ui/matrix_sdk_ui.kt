@@ -1149,6 +1149,70 @@ public object FfiConverterTypeSpaceRoomListPaginationState : FfiConverterRustBuf
 
 
 /**
+ * Extends [`ShieldStateCode`] to allow for a `SentInClear` code.
+ */
+
+enum class TimelineEventShieldStateCode {
+    
+    /**
+     * Not enough information available to check the authenticity.
+     */
+    AUTHENTICITY_NOT_GUARANTEED,
+    /**
+     * The sending device isn't yet known by the Client.
+     */
+    UNKNOWN_DEVICE,
+    /**
+     * The sending device hasn't been verified by the sender.
+     */
+    UNSIGNED_DEVICE,
+    /**
+     * The sender hasn't been verified by the Client's user.
+     */
+    UNVERIFIED_IDENTITY,
+    /**
+     * The sender was previously verified but changed their identity.
+     */
+    VERIFICATION_VIOLATION,
+    /**
+     * The `sender` field on the event does not match the owner of the device
+     * that established the Megolm session.
+     */
+    MISMATCHED_SENDER,
+    /**
+     * An unencrypted event in an encrypted room.
+     */
+    SENT_IN_CLEAR;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTimelineEventShieldStateCode: FfiConverterRustBuffer<TimelineEventShieldStateCode> {
+    override fun read(buf: ByteBuffer) = try {
+        TimelineEventShieldStateCode.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: TimelineEventShieldStateCode) = 4UL
+
+    override fun write(value: TimelineEventShieldStateCode, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The level of read receipt tracking for the timeline.
  */
 
