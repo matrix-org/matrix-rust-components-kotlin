@@ -2026,7 +2026,16 @@ enum class Intent {
     /**
      * The user wants to start a call in a "Direct Message" (DM) room.
      */
-    START_CALL_DM;
+    START_CALL_DM,
+    /**
+     * The user wants to start a voice call in a "Direct Message" (DM) room.
+     */
+    START_CALL_DM_VOICE,
+    /**
+     * The user wants to join an existing  voice call that is a "Direct
+     * Message" (DM) room.
+     */
+    JOIN_EXISTING_DM_VOICE;
 
     
 

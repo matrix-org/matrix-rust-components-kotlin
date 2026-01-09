@@ -31008,6 +31008,8 @@ data class CreateRoomParameters (
     var `historyVisibilityOverride`: RoomHistoryVisibility? = null 
     , 
     var `canonicalAlias`: kotlin.String? = null 
+    , 
+    var `isSpace`: kotlin.Boolean = false 
     
 ){
     
@@ -31036,6 +31038,7 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterOptionalTypeRoomHistoryVisibility.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -31051,7 +31054,8 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
             FfiConverterOptionalTypePowerLevels.allocationSize(value.`powerLevelContentOverride`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRuleOverride`) +
             FfiConverterOptionalTypeRoomHistoryVisibility.allocationSize(value.`historyVisibilityOverride`) +
-            FfiConverterOptionalString.allocationSize(value.`canonicalAlias`)
+            FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
+            FfiConverterBoolean.allocationSize(value.`isSpace`)
     )
 
     override fun write(value: CreateRoomParameters, buf: ByteBuffer) {
@@ -31067,6 +31071,7 @@ public object FfiConverterTypeCreateRoomParameters: FfiConverterRustBuffer<Creat
             FfiConverterOptionalTypeJoinRule.write(value.`joinRuleOverride`, buf)
             FfiConverterOptionalTypeRoomHistoryVisibility.write(value.`historyVisibilityOverride`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
+            FfiConverterBoolean.write(value.`isSpace`, buf)
     }
 }
 
