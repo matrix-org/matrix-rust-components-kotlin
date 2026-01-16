@@ -2271,6 +2271,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_own_member_display_name(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
@@ -3434,6 +3436,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Long,`
 external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Long,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_set_name(`ptr`: Long,`name`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_set_own_member_display_name(`ptr`: Long,`displayName`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_set_thread_subscription(`ptr`: Long,`threadRootEventId`: RustBuffer.ByValue,`subscribed`: Byte,
 ): Long
@@ -5078,6 +5082,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() != 33828.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_own_member_display_name() != 40370.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() != 55986.toShort()) {
@@ -16639,6 +16646,8 @@ public interface RoomInterface {
      */
     suspend fun `setName`(`name`: kotlin.String)
     
+    suspend fun `setOwnMemberDisplayName`(`displayName`: kotlin.String?)
+    
     /**
      * Set a MSC4306 subscription to a thread in this room, based on the thread
      * root event id.
@@ -18505,6 +18514,28 @@ open class Room: Disposable, AutoCloseable, RoomInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_name(
                 uniffiHandle,
                 FfiConverterString.lower(`name`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setOwnMemberDisplayName`(`displayName`: kotlin.String?) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_own_member_display_name(
+                uniffiHandle,
+                FfiConverterOptionalString.lower(`displayName`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -47680,6 +47711,9 @@ sealed class RoomListEntriesDynamicFilterKind {
     object NonLowPriority : RoomListEntriesDynamicFilterKind()
     
     
+    object NonFavorite : RoomListEntriesDynamicFilterKind()
+    
+    
     object Invite : RoomListEntriesDynamicFilterKind()
     
     
@@ -47746,18 +47780,19 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             8 -> RoomListEntriesDynamicFilterKind.Favourite
             9 -> RoomListEntriesDynamicFilterKind.LowPriority
             10 -> RoomListEntriesDynamicFilterKind.NonLowPriority
-            11 -> RoomListEntriesDynamicFilterKind.Invite
-            12 -> RoomListEntriesDynamicFilterKind.Category(
+            11 -> RoomListEntriesDynamicFilterKind.NonFavorite
+            12 -> RoomListEntriesDynamicFilterKind.Invite
+            13 -> RoomListEntriesDynamicFilterKind.Category(
                 FfiConverterTypeRoomListFilterCategory.read(buf),
                 )
-            13 -> RoomListEntriesDynamicFilterKind.None
-            14 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
+            14 -> RoomListEntriesDynamicFilterKind.None
+            15 -> RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            15 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
+            16 -> RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName(
                 FfiConverterString.read(buf),
                 )
-            16 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
+            17 -> RoomListEntriesDynamicFilterKind.DeduplicateVersions
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -47820,6 +47855,12 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             )
         }
         is RoomListEntriesDynamicFilterKind.NonLowPriority -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is RoomListEntriesDynamicFilterKind.NonFavorite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -47910,31 +47951,35 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(10)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Invite -> {
+            is RoomListEntriesDynamicFilterKind.NonFavorite -> {
                 buf.putInt(11)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Category -> {
+            is RoomListEntriesDynamicFilterKind.Invite -> {
                 buf.putInt(12)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.Category -> {
+                buf.putInt(13)
                 FfiConverterTypeRoomListFilterCategory.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.None -> {
-                buf.putInt(13)
+                buf.putInt(14)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.NormalizedMatchRoomName -> {
-                buf.putInt(14)
-                FfiConverterString.write(value.`pattern`, buf)
-                Unit
-            }
-            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
                 buf.putInt(15)
                 FfiConverterString.write(value.`pattern`, buf)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
+            is RoomListEntriesDynamicFilterKind.FuzzyMatchRoomName -> {
                 buf.putInt(16)
+                FfiConverterString.write(value.`pattern`, buf)
+                Unit
+            }
+            is RoomListEntriesDynamicFilterKind.DeduplicateVersions -> {
+                buf.putInt(17)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
