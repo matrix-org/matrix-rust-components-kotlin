@@ -38,13 +38,16 @@ import uniffi.matrix_sdk_crypto.DecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
 import uniffi.matrix_sdk_crypto.FfiConverterTypeDecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeLocalTrust
+import uniffi.matrix_sdk_crypto.FfiConverterTypeSecretsBundle
 import uniffi.matrix_sdk_crypto.FfiConverterTypeSignatureState
 import uniffi.matrix_sdk_crypto.LocalTrust
+import uniffi.matrix_sdk_crypto.SecretsBundle
 import uniffi.matrix_sdk_crypto.SignatureState
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferLocalTrust
+import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSecretsBundle
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSignatureState
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
@@ -831,6 +834,8 @@ external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_cros
 ): Short
 external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys(
 ): Short
+external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_secrets_bundle(
+): Short
 external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys(
 ): Short
 external fun uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_device(
@@ -1160,6 +1165,8 @@ external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_sign
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Long,`passphrase`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_secrets_bundle(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
@@ -1604,6 +1611,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 48778.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_secrets_bundle() != 55212.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 30940.toShort()) {
@@ -3844,6 +3854,21 @@ public interface OlmMachineInterface {
     fun `exportRoomKeys`(`passphrase`: kotlin.String, `rounds`: kotlin.Int): kotlin.String
     
     /**
+     * Export all the secrets we have in the store into a [`SecretsBundle`].
+     *
+     * This method will export all the private cross-signing keys and, if
+     * available, the private part of a backup key and its accompanying
+     * version.
+     *
+     * The method will fail if we don't have all three private cross-signing
+     * keys available.
+     *
+     * **Warning**: Only export this and share it with a trusted recipient,
+     * i.e. if an existing device is sharing this with a new device.
+     */
+    fun `exportSecretsBundle`(): SecretsBundle
+    
+    /**
      * Get the backup keys we have saved in our crypto store.
      */
     fun `getBackupKeys`(): BackupKeys?
@@ -4824,6 +4849,33 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface
     UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(
         it,
         FfiConverterString.lower(`passphrase`),FfiConverterInt.lower(`rounds`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Export all the secrets we have in the store into a [`SecretsBundle`].
+     *
+     * This method will export all the private cross-signing keys and, if
+     * available, the private part of a backup key and its accompanying
+     * version.
+     *
+     * The method will fail if we don't have all three private cross-signing
+     * keys available.
+     *
+     * **Warning**: Only export this and share it with a trusted recipient,
+     * i.e. if an existing device is sharing this with a new device.
+     */
+    @Throws(SecretsBundleExportException::class)override fun `exportSecretsBundle`(): SecretsBundle {
+            return FfiConverterTypeSecretsBundle.lift(
+    callWithHandle {
+    uniffiRustCallWithError(SecretsBundleExportException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_secrets_bundle(
+        it,
+        _status)
 }
     }
     )
@@ -12181,6 +12233,114 @@ public object FfiConverterTypeSecretImportError : FfiConverterRustBuffer<SecretI
 
 
 
+
+
+/**
+ * Error describing what went wrong when exporting a [`SecretsBundle`].
+ *
+ * The [`SecretsBundle`] can only be exported if we have all cross-signing
+ * private keys in the store.
+ */
+sealed class SecretsBundleExportException: kotlin.Exception() {
+    
+    /**
+     * The store itself had an error.
+     */
+    class CryptoStore(
+        
+        val v1: CryptoStoreException
+        ) : SecretsBundleExportException() {
+        override val message
+            get() = "v1=${ v1 }"
+    }
+    
+    /**
+     * We're missing one or more cross-signing keys.
+     */
+    class MissingCrossSigningKeys(
+        ) : SecretsBundleExportException() {
+        override val message
+            get() = ""
+    }
+    
+    /**
+     * We have a backup key stored, but we don't know the version of the
+     * backup.
+     */
+    class MissingBackupVersion(
+        ) : SecretsBundleExportException() {
+        override val message
+            get() = ""
+    }
+    
+
+    
+
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<SecretsBundleExportException> {
+        override fun lift(error_buf: RustBuffer.ByValue): SecretsBundleExportException = FfiConverterTypeSecretsBundleExportError.lift(error_buf)
+    }
+
+    
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSecretsBundleExportError : FfiConverterRustBuffer<SecretsBundleExportException> {
+    override fun read(buf: ByteBuffer): SecretsBundleExportException {
+        
+
+        return when(buf.getInt()) {
+            1 -> SecretsBundleExportException.CryptoStore(
+                FfiConverterTypeCryptoStoreError.read(buf),
+                )
+            2 -> SecretsBundleExportException.MissingCrossSigningKeys()
+            3 -> SecretsBundleExportException.MissingBackupVersion()
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SecretsBundleExportException): ULong {
+        return when(value) {
+            is SecretsBundleExportException.CryptoStore -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterTypeCryptoStoreError.allocationSize(value.v1)
+            )
+            is SecretsBundleExportException.MissingCrossSigningKeys -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is SecretsBundleExportException.MissingBackupVersion -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: SecretsBundleExportException, buf: ByteBuffer) {
+        when(value) {
+            is SecretsBundleExportException.CryptoStore -> {
+                buf.putInt(1)
+                FfiConverterTypeCryptoStoreError.write(value.v1, buf)
+                Unit
+            }
+            is SecretsBundleExportException.MissingCrossSigningKeys -> {
+                buf.putInt(2)
+                Unit
+            }
+            is SecretsBundleExportException.MissingBackupVersion -> {
+                buf.putInt(3)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
 /**
  * Take a look at [`matrix_sdk_common::deserialized_responses::ShieldState`]
  * for more info.
@@ -14227,6 +14387,8 @@ public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuff
         }
     }
 }
+
+
 
 
 
