@@ -38,16 +38,13 @@ import uniffi.matrix_sdk_crypto.DecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
 import uniffi.matrix_sdk_crypto.FfiConverterTypeDecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeLocalTrust
-import uniffi.matrix_sdk_crypto.FfiConverterTypeSecretsBundle
 import uniffi.matrix_sdk_crypto.FfiConverterTypeSignatureState
 import uniffi.matrix_sdk_crypto.LocalTrust
-import uniffi.matrix_sdk_crypto.SecretsBundle
 import uniffi.matrix_sdk_crypto.SignatureState
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferShieldStateCode
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferLocalTrust
-import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSecretsBundle
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferSignatureState
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
@@ -99,7 +96,7 @@ open class RustBuffer : Structure() {
 
     @Suppress("TooGenericExceptionThrown")
     fun asByteBuffer() =
-        this.data?.getByteBuffer(0, this.len.toLong())?.also {
+        this.data?.getByteBuffer(0, this.len)?.also {
             it.order(ByteOrder.BIG_ENDIAN)
         }
 }
@@ -1166,7 +1163,7 @@ external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_cross_sign
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_room_keys(`ptr`: Long,`passphrase`: RustBuffer.ByValue,`rounds`: Int,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_secrets_bundle(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
+): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_backup_keys(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_get_device(`ptr`: Long,`userId`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`timeout`: Int,uniffi_out_err: UniffiRustCallStatus, 
@@ -1613,7 +1610,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_room_keys() != 48778.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_secrets_bundle() != 55212.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_export_secrets_bundle() != 61345.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_olmmachine_get_backup_keys() != 30940.toShort()) {
@@ -1817,7 +1814,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_room_id() != 19270.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 45584.toShort()) {
+    if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_set_changes_listener() != 53319.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_matrix_sdk_crypto_ffi_checksum_method_sas_state() != 23775.toShort()) {
@@ -3854,7 +3851,8 @@ public interface OlmMachineInterface {
     fun `exportRoomKeys`(`passphrase`: kotlin.String, `rounds`: kotlin.Int): kotlin.String
     
     /**
-     * Export all the secrets we have in the store into a [`SecretsBundle`].
+     * Export all the secrets we have in the store into a serialized
+     * SecretsBundle.
      *
      * This method will export all the private cross-signing keys and, if
      * available, the private part of a backup key and its accompanying
@@ -3866,7 +3864,7 @@ public interface OlmMachineInterface {
      * **Warning**: Only export this and share it with a trusted recipient,
      * i.e. if an existing device is sharing this with a new device.
      */
-    fun `exportSecretsBundle`(): SecretsBundle
+    fun `exportSecretsBundle`(): kotlin.String
     
     /**
      * Get the backup keys we have saved in our crypto store.
@@ -4857,7 +4855,8 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface
 
     
     /**
-     * Export all the secrets we have in the store into a [`SecretsBundle`].
+     * Export all the secrets we have in the store into a serialized
+     * SecretsBundle.
      *
      * This method will export all the private cross-signing keys and, if
      * available, the private part of a backup key and its accompanying
@@ -4869,8 +4868,8 @@ open class OlmMachine: Disposable, AutoCloseable, OlmMachineInterface
      * **Warning**: Only export this and share it with a trusted recipient,
      * i.e. if an existing device is sharing this with a new device.
      */
-    @Throws(SecretsBundleExportException::class)override fun `exportSecretsBundle`(): SecretsBundle {
-            return FfiConverterTypeSecretsBundle.lift(
+    @Throws(SecretsBundleExportException::class)override fun `exportSecretsBundle`(): kotlin.String {
+            return FfiConverterString.lift(
     callWithHandle {
     uniffiRustCallWithError(SecretsBundleExportException) { _status ->
     UniffiLib.uniffi_matrix_sdk_crypto_ffi_fn_method_olmmachine_export_secrets_bundle(
@@ -7268,7 +7267,7 @@ public interface SasInterface {
      *
      * # Flowchart
      *
-     * The flow of the verification process is pictured bellow. Please note
+     * The flow of the verification process is pictured below. Please note
      * that the process can be cancelled at each step of the process.
      * Either side can cancel the process.
      *
@@ -7611,7 +7610,7 @@ open class Sas: Disposable, AutoCloseable, SasInterface
      *
      * # Flowchart
      *
-     * The flow of the verification process is pictured bellow. Please note
+     * The flow of the verification process is pictured below. Please note
      * that the process can be cancelled at each step of the process.
      * Either side can cancel the process.
      *
@@ -12273,6 +12272,14 @@ sealed class SecretsBundleExportException: kotlin.Exception() {
             get() = ""
     }
     
+    class Serialization(
+        
+        val `error`: kotlin.String
+        ) : SecretsBundleExportException() {
+        override val message
+            get() = "error=${ `error` }"
+    }
+    
 
     
 
@@ -12297,6 +12304,9 @@ public object FfiConverterTypeSecretsBundleExportError : FfiConverterRustBuffer<
                 )
             2 -> SecretsBundleExportException.MissingCrossSigningKeys()
             3 -> SecretsBundleExportException.MissingBackupVersion()
+            4 -> SecretsBundleExportException.Serialization(
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -12316,6 +12326,11 @@ public object FfiConverterTypeSecretsBundleExportError : FfiConverterRustBuffer<
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
+            is SecretsBundleExportException.Serialization -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`error`)
+            )
         }
     }
 
@@ -12332,6 +12347,11 @@ public object FfiConverterTypeSecretsBundleExportError : FfiConverterRustBuffer<
             }
             is SecretsBundleExportException.MissingBackupVersion -> {
                 buf.putInt(3)
+                Unit
+            }
+            is SecretsBundleExportException.Serialization -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`error`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -14387,8 +14407,6 @@ public object FfiConverterMapStringMapStringSequenceString: FfiConverterRustBuff
         }
     }
 }
-
-
 
 
 
