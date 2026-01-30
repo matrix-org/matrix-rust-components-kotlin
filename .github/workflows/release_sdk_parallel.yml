@@ -121,7 +121,7 @@ jobs:
           echo "Created libmatrix_sdk_ffi.so.debug file"
           echo "Stripping debug symbols from libmatrix_sdk_ffi.so"
           ls -lh libmatrix_sdk_ffi.so
-          ${{ env.LLVM_OBJCOPY }} --strip-debug libmatrix_sdk_ffi.so
+          ${{ env.LLVM_OBJCOPY }} --strip-all libmatrix_sdk_ffi.so
           echo "Done stripping debug symbols"
           ls -lh libmatrix_sdk_ffi.so
           popd
