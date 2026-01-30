@@ -115,9 +115,10 @@ jobs:
           pushd ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release
           echo "Extracting debug symbols"
           objcopy --compress-debug-sections --compress-debug-sections libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
+          ls -l libmatrix_sdk_ffi.so.debug
           echo "Created libmatrix_sdk_ffi.so.debug file"
           objcopy --strip-debug libmatrix_sdk_ffi.so
-          echo "Stripped debug symbols from libmatrix_sdk_ffi.so.debug"
+          echo "Stripped debug symbols from libmatrix_sdk_ffi.so"
           popd
 
       - name: Set linkable git ref
@@ -134,7 +135,7 @@ jobs:
 
       - name: Upload sentry debug symbols
         run: |
-          sentry-cli debug-files upload ${{ env.RUST_SDK_PATH }}/target/*/release/libmatrix_sdk_ffi.so.debug
+          sentry-cli debug-files upload ${{ env.RUST_SDK_PATH }}/target/*/release/libmatrix_sdk_ffi.so*
 
       - name: Upload target artifacts
         if: success() || failure()
