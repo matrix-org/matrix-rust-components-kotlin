@@ -19,7 +19,7 @@ jobs:
     name: "Build Rust target: ${{ matrix.target }}"
     runs-on: ubuntu-24.04
     env:
-      NDK_VERSION: 28.2.13676358
+      NDK_VERSION: 29.0.14206865
     outputs:
       linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
