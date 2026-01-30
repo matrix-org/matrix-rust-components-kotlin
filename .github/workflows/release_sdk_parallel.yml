@@ -116,6 +116,9 @@ jobs:
           echo "Using commit hash $COMMIT_HASH"
           popd
 
+      - name: Print git diff
+        run: git diff .
+
       - name: Upload sentry debug symbols
         run: |
           sentry-cli debug-files upload ${{ env.RUST_SDK_PATH }}/target/*/release/libmatrix_sdk_ffi.*
