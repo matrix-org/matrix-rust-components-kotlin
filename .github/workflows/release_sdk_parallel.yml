@@ -37,7 +37,9 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Install objcopy
-        run: sudo apt install -y objcopy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y objcopy
           
       - name: Setup Sentry CLI
         uses: matbour/setup-sentry-cli@v1
