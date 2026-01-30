@@ -35,9 +35,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-
-      - name: Check objcopy
-        run: which objcopy
           
       - name: Setup Sentry CLI
         uses: matbour/setup-sentry-cli@v1
@@ -72,6 +69,11 @@ jobs:
             echo "NDK_PATH not found, abort."
             exit 1
           fi
+
+      - name: Check objcopy
+        run: |
+          ls ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+          echo LLVM_OBJCOPY=${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy >> $GITHUB_ENV
 
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
@@ -114,10 +116,10 @@ jobs:
         run: |
           pushd ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release
           echo "Extracting debug symbols"
-          objcopy --compress-debug-sections --compress-debug-sections libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
+          ${{ env.LLVM_OBJCOPY }} --compress-debug-sections --compress-debug-sections libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
           ls -l libmatrix_sdk_ffi.so.debug
           echo "Created libmatrix_sdk_ffi.so.debug file"
-          objcopy --strip-debug libmatrix_sdk_ffi.so
+          ${{ env.LLVM_OBJCOPY }} --strip-debug libmatrix_sdk_ffi.so
           echo "Stripped debug symbols from libmatrix_sdk_ffi.so"
           popd
 
