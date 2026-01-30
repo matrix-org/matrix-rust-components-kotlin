@@ -117,10 +117,13 @@ jobs:
           pushd ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release
           echo "Extracting debug symbols"
           ${{ env.LLVM_OBJCOPY }} --compress-debug-sections --compress-debug-sections libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
-          ls -l libmatrix_sdk_ffi.so.debug
+          ls -lh libmatrix_sdk_ffi.so.debug
           echo "Created libmatrix_sdk_ffi.so.debug file"
+          echo "Stripping debug symbols from libmatrix_sdk_ffi.so"
+          ls -lh libmatrix_sdk_ffi.so
           ${{ env.LLVM_OBJCOPY }} --strip-debug libmatrix_sdk_ffi.so
-          echo "Stripped debug symbols from libmatrix_sdk_ffi.so"
+          echo "Done stripping debug symbols"
+          ls -lh libmatrix_sdk_ffi.so
           popd
 
       - name: Set linkable git ref
