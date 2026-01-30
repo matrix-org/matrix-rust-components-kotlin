@@ -35,6 +35,15 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+          
+      - name: Setup Sentry CLI
+        uses: matbour/setup-sentry-cli@v1
+        with:
+          version: latest # optional if 'latest'
+          url: https://sentry.tools.element.io
+          token: ${{ SECRETS.SENTRY_TOKEN }} # from GitHub secrets
+          organization: element
+          project: 63 # the matrix sdk project
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -106,6 +115,10 @@ jobs:
           echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
           echo "Using commit hash $COMMIT_HASH"
           popd
+
+      - name: Upload sentry debug symbols
+        run: |
+          sentry-cli debug-files upload target/*/release/libmatrix_sdk_ffi.*
 
       - name: Upload target artifacts
         if: success() || failure()
