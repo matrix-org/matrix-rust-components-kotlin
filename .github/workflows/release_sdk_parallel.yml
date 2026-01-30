@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload sentry debug symbols
         run: |
-          sentry-cli debug-files upload target/*/release/libmatrix_sdk_ffi.*
+          sentry-cli debug-files upload ${{ env.RUST_SDK_PATH }}/target/*/release/libmatrix_sdk_ffi.*
 
       - name: Upload target artifacts
         if: success() || failure()
