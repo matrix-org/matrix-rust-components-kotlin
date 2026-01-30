@@ -71,11 +71,6 @@ echo "src-dir = $src_dir"
 
 pushd "$sdk_path" || exit 1
 
-if [ "$profile" = "release" ]; then
-  echo "First build with debug symbols to generate the bindings"
-  cargo xtask kotlin build-android-library --profile "release-bindings" "${target_command[@]}" --src-dir "$src_dir" --package "$package"
-  echo "Now build the actual release binary without debug symbols"
-fi
 cargo xtask kotlin build-android-library --profile "$profile" "${target_command[@]}" --src-dir "$src_dir" --package "$package"
 
 pushd "$scripts_dir/.." || exit 1
