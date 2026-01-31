@@ -126,8 +126,9 @@ jobs:
           ls -lh libmatrix_sdk_ffi.so
           popd
           echo "Replacing built file with stripped one"
-          cp ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release/libmatrix_sdk_ffi.so sdk/sdk-android/src/main/jniLibs/${{ matrix.target }}/libmatrix_sdk_ffi.so
-          ls -lh sdk/sdk-android/src/main/jniLibs/${{ matrix.target }}/libmatrix_sdk_ffi.so
+          EXISTING_FILE=$(find sdk/sdk-android/src/main/jniLibs/ -name libmatrix_sdk_ffi.so)
+          cp ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release/libmatrix_sdk_ffi.so $EXISTING_FILE
+          ls -lh $EXISTING_FILE
 
       - name: Set linkable git ref
         id: set_linkable_ref
@@ -142,6 +143,7 @@ jobs:
         run: git diff .
 
       - name: Upload sentry debug symbols
+        if: success()
         run: |
           sentry-cli debug-files upload ${{ env.RUST_SDK_PATH }}/target/*/release/libmatrix_sdk_ffi.so*
 
