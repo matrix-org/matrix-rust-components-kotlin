@@ -46,6 +46,12 @@ afterEvaluate {
     }
 }
 
+nexusPublishing {
+    useStaging.convention(project.provider {
+        !PUBLISH_VERSION.endsWith("-SNAPSHOT")
+    })
+}
+
 signing {
     useInMemoryPgpKeys(
             rootProject.ext["signing.keyId"],
@@ -53,4 +59,5 @@ signing {
             rootProject.ext["signing.password"],
     )
     sign publishing.publications
+    required { !PUBLISH_VERSION.endsWith("-SNAPSHOT") }
 }
