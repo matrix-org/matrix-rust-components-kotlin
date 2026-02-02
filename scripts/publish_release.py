@@ -25,11 +25,11 @@ def override_version_in_build_version_file(file_path: str, new_version: str):
     with open(file_path, 'r') as file:
         content = file.read()
 
-    new_major, new_minor, new_patch = map(int, new_version.split('.'))
+    new_major, new_minor, new_patch = new_version.split('.')
 
-    content = re.sub(r"(majorVersion\s*=\s*)(\d+)", rf"\g<1>{new_major}", content)
-    content = re.sub(r"(minorVersion\s*=\s*)(\d+)", rf"\g<1>{new_minor}", content)
-    content = re.sub(r"(patchVersion\s*=\s*)(\d+)", rf"\g<1>{new_patch}", content)
+    content = re.sub(r'(majorVersion\s*=\s*)"(.+)"', rf'\g<1>"{new_major}"', content)
+    content = re.sub(r'(minorVersion\s*=\s*)"(.+)"', rf'\g<1>"{new_minor}"', content)
+    content = re.sub(r'(patchVersion\s*=\s*)"(.+)"', rf'\g<1>"{new_patch}"', content)
 
     with open(file_path, 'w') as file:
         file.write(content)
@@ -214,24 +214,25 @@ def main(args: argparse.Namespace):
         get_publish_task(args.module),
     )
 
-    # Success, commit and push changes, then create github release
-    commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
-    print(f"Commit message: {commit_message}")
-    commit_and_push_changes(project_root, commit_message)
+    if not args.version.endswith("-SNAPSHOT"):
+        # Success, commit and push changes, then create github release
+        commit_message = f"Bump {args.module.name} version to {args.version} (matrix-rust-sdk to {args.linkable_ref})"
+        print(f"Commit message: {commit_message}")
+        commit_and_push_changes(project_root, commit_message)
 
-    release_name = f"{args.module.name.lower()}-v{args.version}"
-    release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
-    asset_path = get_asset_path(project_root, args.module)
-    asset_name = get_asset_name(args.module)
-    create_github_release(
-        github_token,
-        "https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
-        release_name,
-        release_name,
-        release_notes,
-        asset_path,
-        asset_name,
-    )
+        release_name = f"{args.module.name.lower()}-v{args.version}"
+        release_notes = f"https://github.com/matrix-org/matrix-rust-sdk/tree/{args.linkable_ref}"
+        asset_path = get_asset_path(project_root, args.module)
+        asset_name = get_asset_name(args.module)
+        create_github_release(
+          github_token,
+          "https://api.github.com/repos/matrix-org/matrix-rust-components-kotlin",
+          release_name,
+          release_name,
+          release_notes,
+          asset_path,
+          asset_name,
+        )
 
 
 parser = argparse.ArgumentParser()
