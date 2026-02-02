@@ -11,6 +11,10 @@ on:
         description: 'The new version for the sdk library.'
         required: true
 
+env:
+  # This is a workaround needed to link .so libraries with stripped debug symbols to the extracted debug symbols
+  RUSTFLAGS: "-Clink-args=-Wl,--build-id"
+
 jobs:
   build_targets:
     strategy:
@@ -61,6 +65,11 @@ jobs:
             exit 1
           fi
 
+      - name: Check objcopy is present
+        run: |
+          ls ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+          echo LLVM_OBJCOPY=${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy >> $GITHUB_ENV
+
       - name: Install android sdk
         uses: malinskiy/action-android/install-sdk@release/0.1.4
 
@@ -98,6 +107,28 @@ jobs:
         run: |
           python3 ./scripts/build-rust-for-target.py --module SDK --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --target ${{ matrix.target }}
 
+      - name: Extract debug symbols
+        run: |
+          pushd ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release
+          echo "Original library with debug info:"
+          ls -lh libmatrix_sdk_ffi.so 
+          echo "Extracting debug symbols"
+          ${{ env.LLVM_OBJCOPY }} --only-keep-debug libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
+          ls -lh libmatrix_sdk_ffi.so.debug
+          echo "Stripping debug symbols from libmatrix_sdk_ffi.so"
+          ${{ env.LLVM_OBJCOPY }} --strip-debug --strip-unneeded libmatrix_sdk_ffi.so
+          echo "Done stripping debug symbols"
+          ls -lh libmatrix_sdk_ffi.so
+          echo "Link debug symbols to stripped binary"
+          ${{ env.LLVM_OBJCOPY }} --add-gnu-debuglink=libmatrix_sdk_ffi.so.debug libmatrix_sdk_ffi.so
+          popd
+          echo "Replacing built file with stripped one"
+          EXISTING_FILE=$(find sdk/sdk-android/src/main/jniLibs/ -name libmatrix_sdk_ffi.so)
+          cp ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release/libmatrix_sdk_ffi.so $EXISTING_FILE
+          ls -lh $EXISTING_FILE
+          mkdir -p debuginfo/${{ matrix.target }}
+          cp ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release/libmatrix_sdk_ffi.so.debug debuginfo/${{ matrix.target }}/
+
       - name: Set linkable git ref
         id: set_linkable_ref
         run: |
@@ -115,6 +146,15 @@ jobs:
           if-no-files-found: error
           path: ./sdk/sdk-android/src/main/jniLibs/*/libmatrix_sdk_ffi.so
           retention-days: 7
+
+      - name: Upload debug info
+        if: success() || failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: debuginfo-${{ matrix.target }}
+          if-no-files-found: error
+          path: debuginfo/
+          retention-days: 1
 
       - name: Upload FFI bindings
         # The FFI bindings will be identical for the 4 architectures, so upload as artifact
@@ -198,3 +238,23 @@ jobs:
           if-no-files-found: error
           path: ./sdk/sdk-android/build/**/*.aar
           retention-days: 7
+
+      - name: Download debug info
+        uses: actions/download-artifact@v7
+        with:
+          pattern: debuginfo-*
+          merge-multiple: true
+          path: ./debuginfo
+
+      - name: Setup Sentry CLI
+        uses: matbour/setup-sentry-cli@v1
+        with:
+          version: latest # optional if 'latest'
+          url: https://sentry.tools.element.io
+          token: ${{ SECRETS.SENTRY_TOKEN }} # from GitHub secrets
+          organization: element
+          project: 63 # the matrix sdk project
+
+      - name: Upload debuginfo to sentry
+        run: sentry-cli debug-files upload debuginfo
+
