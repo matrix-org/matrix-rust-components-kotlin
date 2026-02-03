@@ -11,10 +11,6 @@ on:
         description: 'The new version for the sdk library.'
         required: true
 
-env:
-  # This is a workaround needed to link .so libraries with stripped debug symbols to the extracted debug symbols
-  RUSTFLAGS: "-Clink-args=-Wl,--build-id"
-
 jobs:
   build_targets:
     strategy:
@@ -24,6 +20,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       NDK_VERSION: 29.0.14206865
+      # This is a workaround needed to link .so libraries with stripped debug symbols to the extracted debug symbols
+      RUSTFLAGS: "-Clink-args=-Wl,--build-id"
     outputs:
       linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
 
