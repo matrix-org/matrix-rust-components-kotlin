@@ -47,7 +47,8 @@ android {
         jvmTarget = '1.8'
     }
 
-    ndkVersion = '29.0.14206865'
+    // Use provided NDK version from the env vars or use a default one
+    ndkVersion = System.getenv("NDK_VERSION") ?: '29.0.14206865'
 }
 
 dependencies {
