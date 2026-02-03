@@ -113,17 +113,9 @@ jobs:
           echo "Extracting debug symbols"
           ${{ env.LLVM_OBJCOPY }} --only-keep-debug libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
           ls -lh libmatrix_sdk_ffi.so.debug
-          echo "Stripping debug symbols from libmatrix_sdk_ffi.so"
-          ${{ env.LLVM_OBJCOPY }} --strip-debug --strip-unneeded libmatrix_sdk_ffi.so
-          echo "Done stripping debug symbols"
-          ls -lh libmatrix_sdk_ffi.so
-          echo "Link debug symbols to stripped binary"
+          echo "Link debug symbols to original binary"
           ${{ env.LLVM_OBJCOPY }} --add-gnu-debuglink=libmatrix_sdk_ffi.so.debug libmatrix_sdk_ffi.so
           popd
-          echo "Replacing built file with stripped one"
-          EXISTING_FILE=$(find sdk/sdk-android/src/main/jniLibs/ -name libmatrix_sdk_ffi.so)
-          cp ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release/libmatrix_sdk_ffi.so $EXISTING_FILE
-          ls -lh $EXISTING_FILE
           mkdir -p debuginfo/${{ matrix.target }}
           cp ${{ env.RUST_SDK_PATH }}/target/${{ matrix.target }}/release/libmatrix_sdk_ffi.so.debug debuginfo/${{ matrix.target }}/
 
