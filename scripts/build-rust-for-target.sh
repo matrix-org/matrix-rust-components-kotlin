@@ -58,9 +58,9 @@ else
 fi
 
 if ${is_release}; then
-  profile="release"
+  profile="dist"
 else
-  profile="reldbg"
+  profile="reldev"
 fi
 
 echo "Launching build script with following params:"
