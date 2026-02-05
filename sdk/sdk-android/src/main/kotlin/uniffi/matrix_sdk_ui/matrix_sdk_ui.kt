@@ -633,7 +633,6 @@ internal object IntegrityCheckingUniffiLib {
     init {
         Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_ui"))
         uniffiCheckContractApiVersion(this)
-        uniffiCheckApiChecksums(this)
     }
     external fun ffi_matrix_sdk_ui_uniffi_contract_version(
     ): Int
@@ -764,9 +763,6 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
-}
-@Suppress("UNUSED_PARAMETER")
-private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
 }
 
 /**
@@ -1138,6 +1134,103 @@ public object FfiConverterTypeSpaceRoomListPaginationState : FfiConverterRustBuf
             }
             is SpaceRoomListPaginationState.Loading -> {
                 buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * Options for controlling the behaviour of [`TimelineFocus::Event`]
+ * for threaded events.
+ */
+sealed class TimelineEventFocusThreadMode {
+    
+    /**
+     * Force the timeline into threaded mode. When the focused event is part of
+     * a thread, the timeline will be focused on that thread's root. Otherwise,
+     * the timeline will treat the target event itself as the thread root.
+     * Threaded events will never be hidden.
+     */
+    object ForceThread : TimelineEventFocusThreadMode()
+    
+    
+    /**
+     * Automatically determine if the target event is
+     * part of a thread or not. If the event is part of a thread, the timeline
+     * will be filtered to on-thread events.
+     */
+    data class Automatic(
+        /**
+         * When the target event is not part of a thread, whether to
+         * hide in-thread replies from the live timeline. Has no effect
+         * when the target event is part of a thread.
+         *
+         * This should be set to true when the client can create
+         * [`TimelineFocus::Thread`]-focused timelines from the thread roots
+         * themselves and doesn't use the [`Self::ForceThread`] mode.
+         */
+        val `hideThreadedEvents`: kotlin.Boolean) : TimelineEventFocusThreadMode()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTimelineEventFocusThreadMode : FfiConverterRustBuffer<TimelineEventFocusThreadMode>{
+    override fun read(buf: ByteBuffer): TimelineEventFocusThreadMode {
+        return when(buf.getInt()) {
+            1 -> TimelineEventFocusThreadMode.ForceThread
+            2 -> TimelineEventFocusThreadMode.Automatic(
+                FfiConverterBoolean.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: TimelineEventFocusThreadMode) = when(value) {
+        is TimelineEventFocusThreadMode.ForceThread -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineEventFocusThreadMode.Automatic -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`hideThreadedEvents`)
+            )
+        }
+    }
+
+    override fun write(value: TimelineEventFocusThreadMode, buf: ByteBuffer) {
+        when(value) {
+            is TimelineEventFocusThreadMode.ForceThread -> {
+                buf.putInt(1)
+                Unit
+            }
+            is TimelineEventFocusThreadMode.Automatic -> {
+                buf.putInt(2)
+                FfiConverterBoolean.write(value.`hideThreadedEvents`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }

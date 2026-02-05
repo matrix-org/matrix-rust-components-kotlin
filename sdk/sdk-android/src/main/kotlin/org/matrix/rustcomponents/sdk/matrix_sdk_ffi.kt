@@ -60,6 +60,8 @@ import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
 import uniffi.matrix_sdk_base.MediaRetentionPolicy
+import uniffi.matrix_sdk_common.BackgroundTaskFailureReason
+import uniffi.matrix_sdk_common.FfiConverterTypeBackgroundTaskFailureReason
 import uniffi.matrix_sdk_crypto.CollectStrategy
 import uniffi.matrix_sdk_crypto.DecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
@@ -73,11 +75,13 @@ import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineEventFocusThreadMode
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineReadReceiptTracking
 import uniffi.matrix_sdk_ui.LatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.TimelineEventFocusThreadMode
 import uniffi.matrix_sdk_ui.TimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
@@ -90,6 +94,7 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetConfig
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
+import uniffi.matrix_sdk_common.RustBuffer as RustBufferBackgroundTaskFailureReason
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
@@ -98,6 +103,7 @@ import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineEventFocusThreadMode
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineReadReceiptTracking
 
@@ -688,6 +694,9 @@ internal interface UniffiCallbackInterfaceAccountDataListenerMethod0 : com.sun.j
 internal interface UniffiCallbackInterfaceClientDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`isSoftLogout`: Byte,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceClientDelegateMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`taskName`: RustBuffer.ByValue,`error`: RustBufferBackgroundTaskFailureReason.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceClientSessionDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`userId`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -851,22 +860,25 @@ internal open class UniffiVTableCallbackInterfaceAccountDataListener(
     }
 
 }
-@Structure.FieldOrder("uniffiFree", "uniffiClone", "didReceiveAuthError")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "didReceiveAuthError", "onBackgroundTaskErrorReport")
 internal open class UniffiVTableCallbackInterfaceClientDelegate(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
     @JvmField internal var `didReceiveAuthError`: UniffiCallbackInterfaceClientDelegateMethod0? = null,
+    @JvmField internal var `onBackgroundTaskErrorReport`: UniffiCallbackInterfaceClientDelegateMethod1? = null,
 ) : Structure() {
     class UniffiByValue(
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
         `uniffiClone`: UniffiCallbackInterfaceClone? = null,
         `didReceiveAuthError`: UniffiCallbackInterfaceClientDelegateMethod0? = null,
-    ): UniffiVTableCallbackInterfaceClientDelegate(`uniffiFree`,`uniffiClone`,`didReceiveAuthError`,), Structure.ByValue
+        `onBackgroundTaskErrorReport`: UniffiCallbackInterfaceClientDelegateMethod1? = null,
+    ): UniffiVTableCallbackInterfaceClientDelegate(`uniffiFree`,`uniffiClone`,`didReceiveAuthError`,`onBackgroundTaskErrorReport`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceClientDelegate) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `didReceiveAuthError` = other.`didReceiveAuthError`
+        `onBackgroundTaskErrorReport` = other.`onBackgroundTaskErrorReport`
     }
 
 }
@@ -2668,11 +2680,11 @@ external fun uniffi_matrix_sdk_ffi_checksum_constructor_sqlitestorebuilder_new(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventfilter_exclude(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventfilter_exclude_event_types(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventfilter_include(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventtypefilter_exclude(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventtypefilter_include(
+external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventfilter_include_event_types(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_current(
 ): Short
@@ -2683,6 +2695,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_new_bridge_span(
 external fun uniffi_matrix_sdk_ffi_checksum_method_accountdatalistener_on_change(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_on_background_task_error_report(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_retrieve_session_from_keychain(
 ): Short
@@ -2841,6 +2855,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceWidgetCapabilitiesProvider.register(this)
         uniffi.matrix_sdk.uniffiEnsureInitialized()
         uniffi.matrix_sdk_base.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_common.uniffiEnsureInitialized()
         uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
         uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         
@@ -3925,15 +3940,11 @@ external fun uniffi_matrix_sdk_ffi_fn_free_timelineeventfilter(`handle`: Long,un
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_exclude(`conditions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_exclude_event_types(`eventTypes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_include(`conditions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_timelineeventtypefilter(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_timelineeventtypefilter(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_timelineeventtypefilter_exclude(`eventTypes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_timelineeventtypefilter_include(`eventTypes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_include_event_types(`eventTypes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_sendgalleryjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -5651,7 +5662,7 @@ public interface ClientInterface {
     suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String)
     
     /**
-     * Sets the [UnableToDecryptDelegate] which will inform about UTDs.
+     * Sets the [`UnableToDecryptDelegate`] which will inform about UTDs.
      * Returns an error if the delegate was already set.
      */
     suspend fun `setUtdDelegate`(`utdDelegate`: UnableToDecryptDelegate)
@@ -7708,7 +7719,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Sets the [UnableToDecryptDelegate] which will inform about UTDs.
+     * Sets the [`UnableToDecryptDelegate`] which will inform about UTDs.
      * Returns an error if the delegate was already set.
      */
     @Throws(ClientException::class)
@@ -14381,7 +14392,7 @@ public interface QrCodeDataInterface {
     /**
      * The server name contained within the scanned QR code data.
      *
-     * Note: This value is only present when scanning a QR code the belongs to
+     * Note: This value is only present when scanning a QR code that belongs to
      * a logged in client. The mode where the new client shows the QR code
      * will return `None`.
      */
@@ -14502,7 +14513,7 @@ open class QrCodeData: Disposable, AutoCloseable, QrCodeDataInterface
     /**
      * The server name contained within the scanned QR code data.
      *
-     * Note: This value is only present when scanning a QR code the belongs to
+     * Note: This value is only present when scanning a QR code that belongs to
      * a logged in client. The mode where the new client shows the QR code
      * will return `None`.
      */override fun `serverName`(): kotlin.String? {
@@ -27802,12 +27813,34 @@ open class TimelineEventFilter: Disposable, AutoCloseable, TimelineEventFilterIn
     }
     
 
+         fun `excludeEventTypes`(`eventTypes`: List<FilterTimelineEventType>): TimelineEventFilter {
+            return FfiConverterTypeTimelineEventFilter.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_exclude_event_types(
+    
+        FfiConverterSequenceTypeFilterTimelineEventType.lower(`eventTypes`),_status)
+}
+    )
+    }
+    
+
          fun `include`(`conditions`: List<FilterTimelineEventCondition>): TimelineEventFilter {
             return FfiConverterTypeTimelineEventFilter.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_include(
     
         FfiConverterSequenceTypeFilterTimelineEventCondition.lower(`conditions`),_status)
+}
+    )
+    }
+    
+
+         fun `includeEventTypes`(`eventTypes`: List<FilterTimelineEventType>): TimelineEventFilter {
+            return FfiConverterTypeTimelineEventFilter.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_timelineeventfilter_include_event_types(
+    
+        FfiConverterSequenceTypeFilterTimelineEventType.lower(`eventTypes`),_status)
 }
     )
     }
@@ -27838,261 +27871,6 @@ public object FfiConverterTypeTimelineEventFilter: FfiConverter<TimelineEventFil
     override fun allocationSize(value: TimelineEventFilter) = 8UL
 
     override fun write(value: TimelineEventFilter, buf: ByteBuffer) {
-        buf.putLong(lower(value))
-    }
-}
-
-
-// This template implements a class for working with a Rust struct via a handle
-// to the live Rust struct on the other side of the FFI.
-//
-// There's some subtlety here, because we have to be careful not to operate on a Rust
-// struct after it has been dropped, and because we must expose a public API for freeing
-// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
-//
-//   * Each instance holds an opaque handle to the underlying Rust struct.
-//     Method calls need to read this handle from the object's state and pass it in to
-//     the Rust FFI.
-//
-//   * When an instance is no longer needed, its handle should be passed to a
-//     special destructor function provided by the Rust FFI, which will drop the
-//     underlying Rust struct.
-//
-//   * Given an instance, calling code is expected to call the special
-//     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so risks
-//     leaking the underlying Rust struct.
-//
-//   * We can't assume that calling code will do the right thing, and must be prepared
-//     to handle Kotlin method calls executing concurrently with or even after a call to
-//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
-//
-//   * We must never allow Rust code to operate on the underlying Rust struct after
-//     the destructor has been called, and must never call the destructor more than once.
-//     Doing so may trigger memory unsafety.
-//
-//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
-//     is implemented to call the destructor when the Kotlin object becomes unreachable.
-//     This is done in a background thread. This is not a panacea, and client code should be aware that
-//      1. the thread may starve if some there are objects that have poorly performing
-//     `drop` methods or do significant work in their `drop` methods.
-//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
-//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
-//
-// If we try to implement this with mutual exclusion on access to the handle, there is the
-// possibility of a race between a method call and a concurrent call to `destroy`:
-//
-//    * Thread A starts a method call, reads the value of the handle, but is interrupted
-//      before it can pass the handle over the FFI to Rust.
-//    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read handle value to Rust and triggering
-//      a use-after-free.
-//
-// One possible solution would be to use a `ReadWriteLock`, with each method call taking
-// a read lock (and thus allowed to run concurrently) and the special `destroy` method
-// taking a write lock (and thus blocking on live method calls). However, we aim not to
-// generate methods with any hidden blocking semantics, and a `destroy` method that might
-// block if called incorrectly seems to meet that bar.
-//
-// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
-// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
-// has been called. These are updated according to the following rules:
-//
-//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
-//      The initial value for the flag is false.
-//
-//    * At the start of each method call, we atomically check the counter.
-//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
-//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
-//
-//    * At the end of each method call, we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-//    * When `destroy` is called, we atomically flip the flag from false to true.
-//      If the flag was already true we silently fail.
-//      Otherwise we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
-// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
-//
-// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
-// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
-// of the underlying Rust code.
-//
-// This makes a cleaner a better alternative to _not_ calling `destroy()` as
-// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
-// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
-// thread may be starved, and the app will leak memory.
-//
-// In this case, `destroy`ing manually may be a better solution.
-//
-// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
-// with Rust peers are reclaimed:
-//
-// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
-// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
-// 3. The memory is reclaimed when the process terminates.
-//
-// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
-//
-
-
-public interface TimelineEventTypeFilterInterface {
-    
-    companion object
-}
-
-open class TimelineEventTypeFilter: Disposable, AutoCloseable, TimelineEventTypeFilterInterface
-{
-
-    @Suppress("UNUSED_PARAMETER")
-    /**
-     * @suppress
-     */
-    constructor(withHandle: UniffiWithHandle, handle: Long) {
-        this.handle = handle
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
-    }
-
-    /**
-     * @suppress
-     *
-     * This constructor can be used to instantiate a fake object. Only used for tests. Any
-     * attempt to actually use an object constructed this way will fail as there is no
-     * connected Rust object.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noHandle: NoHandle) {
-        this.handle = 0
-        this.cleanable = null
-    }
-
-    protected val handle: Long
-    protected val cleanable: UniffiCleaner.Cleanable?
-
-    private val wasDestroyed = AtomicBoolean(false)
-    private val callCounter = AtomicLong(1)
-
-    override fun destroy() {
-        // Only allow a single call to this method.
-        // TODO: maybe we should log a warning if called more than once?
-        if (this.wasDestroyed.compareAndSet(false, true)) {
-            // This decrement always matches the initial count of 1 given at creation time.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable?.clean()
-            }
-        }
-    }
-
-    @Synchronized
-    override fun close() {
-        this.destroy()
-    }
-
-    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
-        // Check and increment the call counter, to keep the object alive.
-        // This needs a compare-and-set retry loop in case of concurrent updates.
-        do {
-            val c = this.callCounter.get()
-            if (c == 0L) {
-                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
-            }
-            if (c == Long.MAX_VALUE) {
-                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
-            }
-        } while (! this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the handle being freed concurrently.
-        try {
-            return block(this.uniffiCloneHandle())
-        } finally {
-            // This decrement always matches the increment we performed above.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable?.clean()
-            }
-        }
-    }
-
-    // Use a static inner class instead of a closure so as not to accidentally
-    // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(private val handle: Long) : Runnable {
-        override fun run() {
-            if (handle == 0.toLong()) {
-                // Fake object created with `NoHandle`, don't try to free.
-                return;
-            }
-            uniffiRustCall { status ->
-                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_timelineeventtypefilter(handle, status)
-            }
-        }
-    }
-
-    /**
-     * @suppress
-     */
-    fun uniffiCloneHandle(): Long {
-        if (handle == 0.toLong()) {
-            throw InternalException("uniffiCloneHandle() called on NoHandle object");
-        }
-        return uniffiRustCall() { status ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_timelineeventtypefilter(handle, status)
-        }
-    }
-
-    
-
-    
-
-
-    
-    companion object {
-         fun `exclude`(`eventTypes`: List<FilterTimelineEventType>): TimelineEventTypeFilter {
-            return FfiConverterTypeTimelineEventTypeFilter.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_timelineeventtypefilter_exclude(
-    
-        FfiConverterSequenceTypeFilterTimelineEventType.lower(`eventTypes`),_status)
-}
-    )
-    }
-    
-
-         fun `include`(`eventTypes`: List<FilterTimelineEventType>): TimelineEventTypeFilter {
-            return FfiConverterTypeTimelineEventTypeFilter.lift(
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_timelineeventtypefilter_include(
-    
-        FfiConverterSequenceTypeFilterTimelineEventType.lower(`eventTypes`),_status)
-}
-    )
-    }
-    
-
-        
-    }
-    
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeTimelineEventTypeFilter: FfiConverter<TimelineEventTypeFilter, Long> {
-    override fun lower(value: TimelineEventTypeFilter): Long {
-        return value.uniffiCloneHandle()
-    }
-
-    override fun lift(value: Long): TimelineEventTypeFilter {
-        return TimelineEventTypeFilter(UniffiWithHandle, value)
-    }
-
-    override fun read(buf: ByteBuffer): TimelineEventTypeFilter {
-        return lift(buf.getLong())
-    }
-
-    override fun allocationSize(value: TimelineEventTypeFilter) = 8UL
-
-    override fun write(value: TimelineEventTypeFilter, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -41544,6 +41322,17 @@ sealed class LatestEventValue: Disposable  {
         companion object
     }
     
+    data class RemoteInvite(
+        val `timestamp`: org.matrix.rustcomponents.sdk.Timestamp, 
+        val `inviter`: kotlin.String?, 
+        val `inviterProfile`: org.matrix.rustcomponents.sdk.ProfileDetails) : LatestEventValue()
+        
+    {
+        
+
+        companion object
+    }
+    
     data class Local(
         val `timestamp`: org.matrix.rustcomponents.sdk.Timestamp, 
         val `sender`: kotlin.String, 
@@ -41572,6 +41361,15 @@ sealed class LatestEventValue: Disposable  {
         this.`isOwn`,
         this.`profile`,
         this.`content`
+    )
+                
+            }
+            is LatestEventValue.RemoteInvite -> {
+                
+    Disposable.destroy(
+        this.`timestamp`,
+        this.`inviter`,
+        this.`inviterProfile`
     )
                 
             }
@@ -41611,7 +41409,12 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 FfiConverterTypeProfileDetails.read(buf),
                 FfiConverterTypeTimelineItemContent.read(buf),
                 )
-            3 -> LatestEventValue.Local(
+            3 -> LatestEventValue.RemoteInvite(
+                FfiConverterTypeTimestamp.read(buf),
+                FfiConverterOptionalString.read(buf),
+                FfiConverterTypeProfileDetails.read(buf),
+                )
+            4 -> LatestEventValue.Local(
                 FfiConverterTypeTimestamp.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterTypeProfileDetails.read(buf),
@@ -41638,6 +41441,15 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 + FfiConverterBoolean.allocationSize(value.`isOwn`)
                 + FfiConverterTypeProfileDetails.allocationSize(value.`profile`)
                 + FfiConverterTypeTimelineItemContent.allocationSize(value.`content`)
+            )
+        }
+        is LatestEventValue.RemoteInvite -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+                + FfiConverterOptionalString.allocationSize(value.`inviter`)
+                + FfiConverterTypeProfileDetails.allocationSize(value.`inviterProfile`)
             )
         }
         is LatestEventValue.Local -> {
@@ -41668,8 +41480,15 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
                 FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
                 Unit
             }
-            is LatestEventValue.Local -> {
+            is LatestEventValue.RemoteInvite -> {
                 buf.putInt(3)
+                FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
+                FfiConverterOptionalString.write(value.`inviter`, buf)
+                FfiConverterTypeProfileDetails.write(value.`inviterProfile`, buf)
+                Unit
+            }
+            is LatestEventValue.Local -> {
+                buf.putInt(4)
                 FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
                 FfiConverterString.write(value.`sender`, buf)
                 FfiConverterTypeProfileDetails.write(value.`profile`, buf)
@@ -51684,18 +51503,6 @@ sealed class TimelineFilter: Disposable  {
     }
     
     /**
-     * Show only events which match this filter.
-     */
-    data class EventTypeFilter(
-        val `filter`: org.matrix.rustcomponents.sdk.TimelineEventTypeFilter) : TimelineFilter()
-        
-    {
-        
-
-        companion object
-    }
-    
-    /**
      * Show only events which match this event filter.
      */
     data class EventFilter(
@@ -51718,13 +51525,6 @@ sealed class TimelineFilter: Disposable  {
                 
     Disposable.destroy(
         this.`types`
-    )
-                
-            }
-            is TimelineFilter.EventTypeFilter -> {
-                
-    Disposable.destroy(
-        this.`filter`
     )
                 
             }
@@ -51756,10 +51556,7 @@ public object FfiConverterTypeTimelineFilter : FfiConverterRustBuffer<TimelineFi
             2 -> TimelineFilter.OnlyMessage(
                 FfiConverterSequenceTypeRoomMessageEventMessageType.read(buf),
                 )
-            3 -> TimelineFilter.EventTypeFilter(
-                FfiConverterTypeTimelineEventTypeFilter.read(buf),
-                )
-            4 -> TimelineFilter.EventFilter(
+            3 -> TimelineFilter.EventFilter(
                 FfiConverterTypeTimelineEventFilter.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -51778,13 +51575,6 @@ public object FfiConverterTypeTimelineFilter : FfiConverterRustBuffer<TimelineFi
             (
                 4UL
                 + FfiConverterSequenceTypeRoomMessageEventMessageType.allocationSize(value.`types`)
-            )
-        }
-        is TimelineFilter.EventTypeFilter -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterTypeTimelineEventTypeFilter.allocationSize(value.`filter`)
             )
         }
         is TimelineFilter.EventFilter -> {
@@ -51807,13 +51597,8 @@ public object FfiConverterTypeTimelineFilter : FfiConverterRustBuffer<TimelineFi
                 FfiConverterSequenceTypeRoomMessageEventMessageType.write(value.`types`, buf)
                 Unit
             }
-            is TimelineFilter.EventTypeFilter -> {
-                buf.putInt(3)
-                FfiConverterTypeTimelineEventTypeFilter.write(value.`filter`, buf)
-                Unit
-            }
             is TimelineFilter.EventFilter -> {
-                buf.putInt(4)
+                buf.putInt(3)
                 FfiConverterTypeTimelineEventFilter.write(value.`filter`, buf)
                 Unit
             }
@@ -51850,9 +51635,9 @@ sealed class TimelineFocus {
          */
         val `numContextEvents`: kotlin.UShort, 
         /**
-         * Whether to hide in-thread replies from the live timeline.
+         * How to handle threaded events.
          */
-        val `hideThreadedEvents`: kotlin.Boolean) : TimelineFocus()
+        val `threadMode`: uniffi.matrix_sdk_ui.TimelineEventFocusThreadMode) : TimelineFocus()
         
     {
         
@@ -51904,7 +51689,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             2 -> TimelineFocus.Event(
                 FfiConverterString.read(buf),
                 FfiConverterUShort.read(buf),
-                FfiConverterBoolean.read(buf),
+                FfiConverterTypeTimelineEventFocusThreadMode.read(buf),
                 )
             3 -> TimelineFocus.Thread(
                 FfiConverterString.read(buf),
@@ -51931,7 +51716,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 4UL
                 + FfiConverterString.allocationSize(value.`eventId`)
                 + FfiConverterUShort.allocationSize(value.`numContextEvents`)
-                + FfiConverterBoolean.allocationSize(value.`hideThreadedEvents`)
+                + FfiConverterTypeTimelineEventFocusThreadMode.allocationSize(value.`threadMode`)
             )
         }
         is TimelineFocus.Thread -> {
@@ -51962,7 +51747,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
                 buf.putInt(2)
                 FfiConverterString.write(value.`eventId`, buf)
                 FfiConverterUShort.write(value.`numContextEvents`, buf)
-                FfiConverterBoolean.write(value.`hideThreadedEvents`, buf)
+                FfiConverterTypeTimelineEventFocusThreadMode.write(value.`threadMode`, buf)
                 Unit
             }
             is TimelineFocus.Thread -> {
@@ -53161,7 +52946,19 @@ public object FfiConverterTypeCallDeclineListener: FfiConverterCallbackInterface
 
 public interface ClientDelegate {
     
+    /**
+     * A callback invoked whenever the SDK runs into an unknown token error.
+     */
     fun `didReceiveAuthError`(`isSoftLogout`: kotlin.Boolean)
+    
+    /**
+     * A callback invoked when a background task registered with the client's
+     * task monitor encounters an error.
+     *
+     * Can default to an empty implementation, if the embedder doesn't care
+     * about handling background jobs errors.
+     */
+    fun `onBackgroundTaskErrorReport`(`taskName`: kotlin.String, `error`: BackgroundTaskFailureReason)
     
     companion object
 }
@@ -53176,6 +52973,19 @@ internal object uniffiCallbackInterfaceClientDelegate {
             val makeCall = { ->
                 uniffiObj.`didReceiveAuthError`(
                     FfiConverterBoolean.lift(`isSoftLogout`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+    internal object `onBackgroundTaskErrorReport`: UniffiCallbackInterfaceClientDelegateMethod1 {
+        override fun callback(`uniffiHandle`: Long,`taskName`: RustBuffer.ByValue,`error`: RustBufferBackgroundTaskFailureReason.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeClientDelegate.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onBackgroundTaskErrorReport`(
+                    FfiConverterString.lift(`taskName`),
+                    FfiConverterTypeBackgroundTaskFailureReason.lift(`error`),
                 )
             }
             val writeReturn = { _: Unit -> Unit }
@@ -53199,6 +53009,7 @@ internal object uniffiCallbackInterfaceClientDelegate {
         uniffiFree,
         uniffiClone,
         `didReceiveAuthError`,
+        `onBackgroundTaskErrorReport`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -59759,6 +59570,10 @@ public object FfiConverterMapTypeTimelineEventTypeLong: FfiConverterRustBuffer<M
  */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
+
+
 
 
 

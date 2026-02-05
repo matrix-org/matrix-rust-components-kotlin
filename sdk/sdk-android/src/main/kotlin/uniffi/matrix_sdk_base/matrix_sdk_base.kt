@@ -633,7 +633,6 @@ internal object IntegrityCheckingUniffiLib {
     init {
         Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_base"))
         uniffiCheckContractApiVersion(this)
-        uniffiCheckApiChecksums(this)
     }
     external fun ffi_matrix_sdk_base_uniffi_contract_version(
     ): Int
@@ -764,9 +763,6 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
-}
-@Suppress("UNUSED_PARAMETER")
-private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
 }
 
 /**
