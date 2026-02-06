@@ -31509,6 +31509,11 @@ public object FfiConverterTypeNoticeMessageContent: FfiConverterRustBuffer<Notic
 data class NotificationItem (
     var `event`: NotificationEvent
     , 
+    /**
+     * The raw JSON of the underlying event.
+     */
+    var `rawEvent`: kotlin.String
+    , 
     var `senderInfo`: NotificationSenderInfo
     , 
     var `roomInfo`: NotificationRoomInfo
@@ -31540,6 +31545,7 @@ data class NotificationItem (
         
     Disposable.destroy(
         this.`event`,
+        this.`rawEvent`,
         this.`senderInfo`,
         this.`roomInfo`,
         this.`isNoisy`,
@@ -31559,6 +31565,7 @@ public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<Notificat
     override fun read(buf: ByteBuffer): NotificationItem {
         return NotificationItem(
             FfiConverterTypeNotificationEvent.read(buf),
+            FfiConverterString.read(buf),
             FfiConverterTypeNotificationSenderInfo.read(buf),
             FfiConverterTypeNotificationRoomInfo.read(buf),
             FfiConverterOptionalBoolean.read(buf),
@@ -31570,6 +31577,7 @@ public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<Notificat
 
     override fun allocationSize(value: NotificationItem) = (
             FfiConverterTypeNotificationEvent.allocationSize(value.`event`) +
+            FfiConverterString.allocationSize(value.`rawEvent`) +
             FfiConverterTypeNotificationSenderInfo.allocationSize(value.`senderInfo`) +
             FfiConverterTypeNotificationRoomInfo.allocationSize(value.`roomInfo`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isNoisy`) +
@@ -31580,6 +31588,7 @@ public object FfiConverterTypeNotificationItem: FfiConverterRustBuffer<Notificat
 
     override fun write(value: NotificationItem, buf: ByteBuffer) {
             FfiConverterTypeNotificationEvent.write(value.`event`, buf)
+            FfiConverterString.write(value.`rawEvent`, buf)
             FfiConverterTypeNotificationSenderInfo.write(value.`senderInfo`, buf)
             FfiConverterTypeNotificationRoomInfo.write(value.`roomInfo`, buf)
             FfiConverterOptionalBoolean.write(value.`isNoisy`, buf)
@@ -51657,15 +51666,8 @@ sealed class TimelineFocus {
         companion object
     }
     
-    data class PinnedEvents(
-        val `maxEventsToLoad`: kotlin.UShort, 
-        val `maxConcurrentRequests`: kotlin.UShort) : TimelineFocus()
-        
-    {
-        
-
-        companion object
-    }
+    object PinnedEvents : TimelineFocus()
+    
     
 
     
@@ -51694,10 +51696,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             3 -> TimelineFocus.Thread(
                 FfiConverterString.read(buf),
                 )
-            4 -> TimelineFocus.PinnedEvents(
-                FfiConverterUShort.read(buf),
-                FfiConverterUShort.read(buf),
-                )
+            4 -> TimelineFocus.PinnedEvents
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -51730,8 +51729,6 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterUShort.allocationSize(value.`maxEventsToLoad`)
-                + FfiConverterUShort.allocationSize(value.`maxConcurrentRequests`)
             )
         }
     }
@@ -51757,8 +51754,6 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
             }
             is TimelineFocus.PinnedEvents -> {
                 buf.putInt(4)
-                FfiConverterUShort.write(value.`maxEventsToLoad`, buf)
-                FfiConverterUShort.write(value.`maxConcurrentRequests`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
