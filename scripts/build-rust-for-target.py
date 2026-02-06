@@ -112,7 +112,7 @@ build_version_file_path = get_build_version_file_path(args.module, project_root)
 major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
 if args.version.endswith("-SNAPSHOT"):
     print(f"Version {args.version} is a SNAPSHOT version, skipping version check")
-elif is_provided_version_higher(major, minor, patch, args.version):
+elif is_provided_version_higher(major, minor, int(patch), args.version):
     print(
         f"The provided version ({args.version}) is higher than the previous version ({major}.{minor}.{patch}) so we can start the release process")
 else:
