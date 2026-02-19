@@ -2000,7 +2000,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_store_locks_holder_name(
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_lock_config(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_decryption_settings(
 ): Short
@@ -2580,8 +2580,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_cross_process_lock(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_share_pos(
@@ -3139,7 +3137,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_backup_download_strat
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_store_locks_holder_name(`ptr`: Long,`holderName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_lock_config(`ptr`: Long,`crossProcessLockConfig`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_decryption_settings(`ptr`: Long,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3860,8 +3858,6 @@ external fun uniffi_matrix_sdk_ffi_fn_clone_syncservicebuilder(`handle`: Long,un
 external fun uniffi_matrix_sdk_ffi_fn_free_syncservicebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -8368,7 +8364,7 @@ public interface ClientBuilderInterface {
     
     suspend fun `build`(): Client
     
-    fun `crossProcessStoreLocksHolderName`(`holderName`: kotlin.String): ClientBuilder
+    fun `crossProcessLockConfig`(`crossProcessLockConfig`: CrossProcessLockConfig): ClientBuilder
     
     /**
      * Set the trust requirement to be used when decrypting events.
@@ -8649,13 +8645,13 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     )
     }
 
-    override fun `crossProcessStoreLocksHolderName`(`holderName`: kotlin.String): ClientBuilder {
+    override fun `crossProcessLockConfig`(`crossProcessLockConfig`: CrossProcessLockConfig): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_store_locks_holder_name(
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_lock_config(
         it,
-        FfiConverterString.lower(`holderName`),_status)
+        FfiConverterTypeCrossProcessLockConfig.lower(`crossProcessLockConfig`),_status)
 }
     }
     )
@@ -25228,8 +25224,6 @@ public interface SyncServiceBuilderInterface {
     
     suspend fun `finish`(): SyncService
     
-    fun `withCrossProcessLock`(): SyncServiceBuilder
-    
     /**
      * Enable the "offline" mode for the [`SyncService`].
      */
@@ -25356,19 +25350,6 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
         ClientException.ErrorHandler,
     )
     }
-
-    override fun `withCrossProcessLock`(): SyncServiceBuilder {
-            return FfiConverterTypeSyncServiceBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_cross_process_lock(
-        it,
-        _status)
-}
-    }
-    )
-    }
-    
 
     
     /**
@@ -32905,6 +32886,8 @@ data class RoomInfo (
     , 
     var `isFavourite`: kotlin.Boolean
     , 
+    var `isLowPriority`: kotlin.Boolean
+    , 
     var `canonicalAlias`: kotlin.String?
     , 
     var `alternativeAliases`: List<kotlin.String>
@@ -33018,6 +33001,7 @@ data class RoomInfo (
         this.`isSpace`,
         this.`successorRoom`,
         this.`isFavourite`,
+        this.`isLowPriority`,
         this.`canonicalAlias`,
         this.`alternativeAliases`,
         this.`membership`,
@@ -33066,6 +33050,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.read(buf),
             FfiConverterOptionalTypeSuccessorRoom.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterTypeMembership.read(buf),
@@ -33106,6 +33091,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.allocationSize(value.`isSpace`) +
             FfiConverterOptionalTypeSuccessorRoom.allocationSize(value.`successorRoom`) +
             FfiConverterBoolean.allocationSize(value.`isFavourite`) +
+            FfiConverterBoolean.allocationSize(value.`isLowPriority`) +
             FfiConverterOptionalString.allocationSize(value.`canonicalAlias`) +
             FfiConverterSequenceString.allocationSize(value.`alternativeAliases`) +
             FfiConverterTypeMembership.allocationSize(value.`membership`) +
@@ -33145,6 +33131,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterBoolean.write(value.`isSpace`, buf)
             FfiConverterOptionalTypeSuccessorRoom.write(value.`successorRoom`, buf)
             FfiConverterBoolean.write(value.`isFavourite`, buf)
+            FfiConverterBoolean.write(value.`isLowPriority`, buf)
             FfiConverterOptionalString.write(value.`canonicalAlias`, buf)
             FfiConverterSequenceString.write(value.`alternativeAliases`, buf)
             FfiConverterTypeMembership.write(value.`membership`, buf)
@@ -36970,6 +36957,92 @@ public object FfiConverterTypeComposerDraftType : FfiConverterRustBuffer<Compose
             is ComposerDraftType.Edit -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`eventId`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * The cross-process lock config to use.
+ */
+sealed class CrossProcessLockConfig {
+    
+    /**
+     * The client will run using multiple processes.
+     */
+    data class MultiProcess(
+        /**
+         * The holder name to use for the lock.
+         */
+        val `holderName`: kotlin.String) : CrossProcessLockConfig()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The client will run in a single process, there is no need for a
+     * cross-process lock.
+     */
+    object SingleProcess : CrossProcessLockConfig()
+    
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeCrossProcessLockConfig : FfiConverterRustBuffer<CrossProcessLockConfig>{
+    override fun read(buf: ByteBuffer): CrossProcessLockConfig {
+        return when(buf.getInt()) {
+            1 -> CrossProcessLockConfig.MultiProcess(
+                FfiConverterString.read(buf),
+                )
+            2 -> CrossProcessLockConfig.SingleProcess
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: CrossProcessLockConfig) = when(value) {
+        is CrossProcessLockConfig.MultiProcess -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`holderName`)
+            )
+        }
+        is CrossProcessLockConfig.SingleProcess -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: CrossProcessLockConfig, buf: ByteBuffer) {
+        when(value) {
+            is CrossProcessLockConfig.MultiProcess -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`holderName`, buf)
+                Unit
+            }
+            is CrossProcessLockConfig.SingleProcess -> {
+                buf.putInt(2)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
