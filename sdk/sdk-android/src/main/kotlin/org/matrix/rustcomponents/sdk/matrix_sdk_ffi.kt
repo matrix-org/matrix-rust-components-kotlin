@@ -43,15 +43,15 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import uniffi.matrix_sdk.BackupDownloadStrategy
 import uniffi.matrix_sdk.FfiConverterTypeBackupDownloadStrategy
 import uniffi.matrix_sdk.FfiConverterTypeOAuthAuthorizationData
+import uniffi.matrix_sdk.FfiConverterTypePaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
-import uniffi.matrix_sdk.FfiConverterTypeRoomPaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.FfiConverterTypeServerVendorInfo
 import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetConfig
 import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk.OAuthAuthorizationData
+import uniffi.matrix_sdk.PaginationStatus
 import uniffi.matrix_sdk.RoomMemberRole
-import uniffi.matrix_sdk.RoomPaginationStatus
 import uniffi.matrix_sdk.RoomPowerLevelChanges
 import uniffi.matrix_sdk.ServerVendorInfo
 import uniffi.matrix_sdk.VirtualElementCallWidgetConfig
@@ -86,8 +86,8 @@ import uniffi.matrix_sdk_ui.TimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
 import uniffi.matrix_sdk.RustBuffer as RustBufferBackupDownloadStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
+import uniffi.matrix_sdk.RustBuffer as RustBufferPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
-import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
 import uniffi.matrix_sdk.RustBuffer as RustBufferServerVendorInfo
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetConfig
@@ -833,7 +833,7 @@ internal interface UniffiCallbackInterfaceSyncServiceStateObserverMethod0 : com.
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfacePaginationStatusListenerMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`status`: RustBufferRoomPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceTimelineListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`diff`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -2010,8 +2010,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_i
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_oidc_refresh_lock(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_history_on_invite(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url(
@@ -3146,8 +3144,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_tok
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_oidc_refresh_lock(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_on_invite(`ptr`: Long,`enableShareHistoryOnInvite`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -8382,8 +8378,6 @@ public interface ClientBuilderInterface {
     
     fun `disableSslVerification`(): ClientBuilder
     
-    fun `enableOidcRefreshLock`(): ClientBuilder
-    
     /**
      * Set whether to enable the experimental support for sending and receiving
      * encrypted room history on invite, per [MSC4268].
@@ -8710,19 +8704,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     callWithHandle {
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(
-        it,
-        _status)
-}
-    }
-    )
-    }
-    
-
-    override fun `enableOidcRefreshLock`(): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_oidc_refresh_lock(
         it,
         _status)
 }
@@ -40753,14 +40734,35 @@ sealed class HumanQrGrantLoginException(message: String): kotlin.Exception(messa
         class NotFound(message: String) : HumanQrGrantLoginException(message)
         
     /**
-     * The device could not be created.
-     */
-        class UnableToCreateDevice(message: String) : HumanQrGrantLoginException(message)
-        
-    /**
      * An unknown error has happened.
      */
         class Unknown(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The requested device was not returned by the homeserver.
+     */
+        class DeviceNotFound(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The other device is already signed in and so does not need to sign in.
+     */
+        class OtherDeviceAlreadySignedIn(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The sign in was cancelled.
+     */
+        class Cancelled(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * The sign in was not completed in the required time.
+     */
+        class Expired(message: String) : HumanQrGrantLoginException(message)
+        
+    /**
+     * A secure connection could not have been established between the two
+     * devices.
+     */
+        class ConnectionInsecure(message: String) : HumanQrGrantLoginException(message)
         
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<HumanQrGrantLoginException> {
@@ -40780,8 +40782,12 @@ public object FfiConverterTypeHumanQrGrantLoginError : FfiConverterRustBuffer<Hu
             3 -> HumanQrGrantLoginException.UnsupportedProtocol(FfiConverterString.read(buf))
             4 -> HumanQrGrantLoginException.MissingSecretsBackup(FfiConverterString.read(buf))
             5 -> HumanQrGrantLoginException.NotFound(FfiConverterString.read(buf))
-            6 -> HumanQrGrantLoginException.UnableToCreateDevice(FfiConverterString.read(buf))
-            7 -> HumanQrGrantLoginException.Unknown(FfiConverterString.read(buf))
+            6 -> HumanQrGrantLoginException.Unknown(FfiConverterString.read(buf))
+            7 -> HumanQrGrantLoginException.DeviceNotFound(FfiConverterString.read(buf))
+            8 -> HumanQrGrantLoginException.OtherDeviceAlreadySignedIn(FfiConverterString.read(buf))
+            9 -> HumanQrGrantLoginException.Cancelled(FfiConverterString.read(buf))
+            10 -> HumanQrGrantLoginException.Expired(FfiConverterString.read(buf))
+            11 -> HumanQrGrantLoginException.ConnectionInsecure(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -40813,12 +40819,28 @@ public object FfiConverterTypeHumanQrGrantLoginError : FfiConverterRustBuffer<Hu
                 buf.putInt(5)
                 Unit
             }
-            is HumanQrGrantLoginException.UnableToCreateDevice -> {
+            is HumanQrGrantLoginException.Unknown -> {
                 buf.putInt(6)
                 Unit
             }
-            is HumanQrGrantLoginException.Unknown -> {
+            is HumanQrGrantLoginException.DeviceNotFound -> {
                 buf.putInt(7)
+                Unit
+            }
+            is HumanQrGrantLoginException.OtherDeviceAlreadySignedIn -> {
+                buf.putInt(8)
+                Unit
+            }
+            is HumanQrGrantLoginException.Cancelled -> {
+                buf.putInt(9)
+                Unit
+            }
+            is HumanQrGrantLoginException.Expired -> {
+                buf.putInt(10)
+                Unit
+            }
+            is HumanQrGrantLoginException.ConnectionInsecure -> {
+                buf.putInt(11)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -44399,6 +44421,12 @@ sealed class NotificationStatus: Disposable  {
     object EventFilteredOut : NotificationStatus()
     
     
+    /**
+     * The event has been redacted.
+     */
+    object EventRedacted : NotificationStatus()
+    
+    
 
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -44414,6 +44442,8 @@ sealed class NotificationStatus: Disposable  {
             is NotificationStatus.EventNotFound -> {// Nothing to destroy
             }
             is NotificationStatus.EventFilteredOut -> {// Nothing to destroy
+            }
+            is NotificationStatus.EventRedacted -> {// Nothing to destroy
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
@@ -44437,6 +44467,7 @@ public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<Notifi
                 )
             2 -> NotificationStatus.EventNotFound
             3 -> NotificationStatus.EventFilteredOut
+            4 -> NotificationStatus.EventRedacted
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
@@ -44461,6 +44492,12 @@ public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<Notifi
                 4UL
             )
         }
+        is NotificationStatus.EventRedacted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
     }
 
     override fun write(value: NotificationStatus, buf: ByteBuffer) {
@@ -44476,6 +44513,10 @@ public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<Notifi
             }
             is NotificationStatus.EventFilteredOut -> {
                 buf.putInt(3)
+                Unit
+            }
+            is NotificationStatus.EventRedacted -> {
+                buf.putInt(4)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -53985,7 +54026,7 @@ public object FfiConverterTypeNotificationSettingsDelegate: FfiConverterCallback
 
 public interface PaginationStatusListener {
     
-    fun `onUpdate`(`status`: RoomPaginationStatus)
+    fun `onUpdate`(`status`: PaginationStatus)
     
     companion object
 }
@@ -53995,11 +54036,11 @@ public interface PaginationStatusListener {
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfacePaginationStatusListener {
     internal object `onUpdate`: UniffiCallbackInterfacePaginationStatusListenerMethod0 {
-        override fun callback(`uniffiHandle`: Long,`status`: RustBufferRoomPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypePaginationStatusListener.handleMap.get(uniffiHandle)
             val makeCall = { ->
                 uniffiObj.`onUpdate`(
-                    FfiConverterTypeRoomPaginationStatus.lift(`status`),
+                    FfiConverterTypePaginationStatus.lift(`status`),
                 )
             }
             val writeReturn = { _: Unit -> Unit }

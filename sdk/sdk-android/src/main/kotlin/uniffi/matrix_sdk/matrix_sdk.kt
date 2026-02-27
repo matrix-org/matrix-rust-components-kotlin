@@ -2104,6 +2104,92 @@ public object FfiConverterTypeNotificationType: FfiConverterRustBuffer<Notificat
 
 
 /**
+ * Status for the pagination on a cache.
+ */
+sealed class PaginationStatus {
+    
+    /**
+     * No pagination is happening right now.
+     */
+    data class Idle(
+        /**
+         * Have we hit the start of the timeline, i.e. paginating wouldn't
+         * have any effect?
+         */
+        val `hitTimelineStart`: kotlin.Boolean) : PaginationStatus()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * Pagination is already running in the background.
+     */
+    object Paginating : PaginationStatus()
+    
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypePaginationStatus : FfiConverterRustBuffer<PaginationStatus>{
+    override fun read(buf: ByteBuffer): PaginationStatus {
+        return when(buf.getInt()) {
+            1 -> PaginationStatus.Idle(
+                FfiConverterBoolean.read(buf),
+                )
+            2 -> PaginationStatus.Paginating
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: PaginationStatus) = when(value) {
+        is PaginationStatus.Idle -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`hitTimelineStart`)
+            )
+        }
+        is PaginationStatus.Paginating -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: PaginationStatus, buf: ByteBuffer) {
+        when(value) {
+            is PaginationStatus.Idle -> {
+                buf.putInt(1)
+                FfiConverterBoolean.write(value.`hitTimelineStart`, buf)
+                Unit
+            }
+            is PaginationStatus.Paginating -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
  * Current state of a [`Paginator`].
  */
 
@@ -2363,92 +2449,6 @@ public object FfiConverterTypeRoomMemberRole: FfiConverterRustBuffer<RoomMemberR
 
     override fun write(value: RoomMemberRole, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-/**
- * Status for the back-pagination on a room event cache.
- */
-sealed class RoomPaginationStatus {
-    
-    /**
-     * No back-pagination is happening right now.
-     */
-    data class Idle(
-        /**
-         * Have we hit the start of the timeline, i.e. back-paginating wouldn't
-         * have any effect?
-         */
-        val `hitTimelineStart`: kotlin.Boolean) : RoomPaginationStatus()
-        
-    {
-        
-
-        companion object
-    }
-    
-    /**
-     * Back-pagination is already running in the background.
-     */
-    object Paginating : RoomPaginationStatus()
-    
-    
-
-    
-
-    
-    
-
-
-    companion object
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeRoomPaginationStatus : FfiConverterRustBuffer<RoomPaginationStatus>{
-    override fun read(buf: ByteBuffer): RoomPaginationStatus {
-        return when(buf.getInt()) {
-            1 -> RoomPaginationStatus.Idle(
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> RoomPaginationStatus.Paginating
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: RoomPaginationStatus) = when(value) {
-        is RoomPaginationStatus.Idle -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`hitTimelineStart`)
-            )
-        }
-        is RoomPaginationStatus.Paginating -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: RoomPaginationStatus, buf: ByteBuffer) {
-        when(value) {
-            is RoomPaginationStatus.Idle -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`hitTimelineStart`, buf)
-                Unit
-            }
-            is RoomPaginationStatus.Paginating -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
