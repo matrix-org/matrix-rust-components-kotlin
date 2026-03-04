@@ -35918,10 +35918,10 @@ sealed class AccountManagementAction {
     object Profile : AccountManagementAction()
     
     
-    object SessionsList : AccountManagementAction()
+    object DevicesList : AccountManagementAction()
     
     
-    data class SessionView(
+    data class DeviceView(
         val `deviceId`: kotlin.String) : AccountManagementAction()
         
     {
@@ -35930,7 +35930,7 @@ sealed class AccountManagementAction {
         companion object
     }
     
-    data class SessionEnd(
+    data class DeviceDelete(
         val `deviceId`: kotlin.String) : AccountManagementAction()
         
     {
@@ -35962,11 +35962,11 @@ public object FfiConverterTypeAccountManagementAction : FfiConverterRustBuffer<A
     override fun read(buf: ByteBuffer): AccountManagementAction {
         return when(buf.getInt()) {
             1 -> AccountManagementAction.Profile
-            2 -> AccountManagementAction.SessionsList
-            3 -> AccountManagementAction.SessionView(
+            2 -> AccountManagementAction.DevicesList
+            3 -> AccountManagementAction.DeviceView(
                 FfiConverterString.read(buf),
                 )
-            4 -> AccountManagementAction.SessionEnd(
+            4 -> AccountManagementAction.DeviceDelete(
                 FfiConverterString.read(buf),
                 )
             5 -> AccountManagementAction.AccountDeactivate
@@ -35982,20 +35982,20 @@ public object FfiConverterTypeAccountManagementAction : FfiConverterRustBuffer<A
                 4UL
             )
         }
-        is AccountManagementAction.SessionsList -> {
+        is AccountManagementAction.DevicesList -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is AccountManagementAction.SessionView -> {
+        is AccountManagementAction.DeviceView -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
                 + FfiConverterString.allocationSize(value.`deviceId`)
             )
         }
-        is AccountManagementAction.SessionEnd -> {
+        is AccountManagementAction.DeviceDelete -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -36022,16 +36022,16 @@ public object FfiConverterTypeAccountManagementAction : FfiConverterRustBuffer<A
                 buf.putInt(1)
                 Unit
             }
-            is AccountManagementAction.SessionsList -> {
+            is AccountManagementAction.DevicesList -> {
                 buf.putInt(2)
                 Unit
             }
-            is AccountManagementAction.SessionView -> {
+            is AccountManagementAction.DeviceView -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`deviceId`, buf)
                 Unit
             }
-            is AccountManagementAction.SessionEnd -> {
+            is AccountManagementAction.DeviceDelete -> {
                 buf.putInt(4)
                 FfiConverterString.write(value.`deviceId`, buf)
                 Unit
@@ -38413,7 +38413,7 @@ sealed class ErrorKind {
         /**
          * The currently active backup version.
          */
-        val `currentVersion`: kotlin.String?) : ErrorKind()
+        val `currentVersion`: kotlin.String) : ErrorKind()
         
     {
         
@@ -38507,7 +38507,7 @@ public object FfiConverterTypeErrorKind : FfiConverterRustBuffer<ErrorKind>{
             45 -> ErrorKind.UserSuspended
             46 -> ErrorKind.WeakPassword
             47 -> ErrorKind.WrongRoomKeysVersion(
-                FfiConverterOptionalString.read(buf),
+                FfiConverterString.read(buf),
                 )
             48 -> ErrorKind.Custom(
                 FfiConverterString.read(buf),
@@ -38803,7 +38803,7 @@ public object FfiConverterTypeErrorKind : FfiConverterRustBuffer<ErrorKind>{
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterOptionalString.allocationSize(value.`currentVersion`)
+                + FfiConverterString.allocationSize(value.`currentVersion`)
             )
         }
         is ErrorKind.Custom -> {
@@ -39009,7 +39009,7 @@ public object FfiConverterTypeErrorKind : FfiConverterRustBuffer<ErrorKind>{
             }
             is ErrorKind.WrongRoomKeysVersion -> {
                 buf.putInt(47)
-                FfiConverterOptionalString.write(value.`currentVersion`, buf)
+                FfiConverterString.write(value.`currentVersion`, buf)
                 Unit
             }
             is ErrorKind.Custom -> {
@@ -42356,7 +42356,11 @@ sealed class MessageLikeEventContent: Disposable  {
         /**
          * The timestamp at which this notification is considered invalid.
          */
-        val `expirationTs`: org.matrix.rustcomponents.sdk.Timestamp) : MessageLikeEventContent()
+        val `expirationTs`: org.matrix.rustcomponents.sdk.Timestamp, 
+        /**
+         * Soft indication of whether it is an audio or video call.
+         */
+        val `callIntent`: org.matrix.rustcomponents.sdk.RtcCallIntent?) : MessageLikeEventContent()
         
     {
         
@@ -42448,7 +42452,8 @@ sealed class MessageLikeEventContent: Disposable  {
                 
     Disposable.destroy(
         this.`notificationType`,
-        this.`expirationTs`
+        this.`expirationTs`,
+        this.`callIntent`
     )
                 
             }
@@ -42526,6 +42531,7 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
             3 -> MessageLikeEventContent.RtcNotification(
                 FfiConverterTypeRtcNotificationType.read(buf),
                 FfiConverterTypeTimestamp.read(buf),
+                FfiConverterOptionalTypeRtcCallIntent.read(buf),
                 )
             4 -> MessageLikeEventContent.CallHangup
             5 -> MessageLikeEventContent.CallCandidates
@@ -42575,6 +42581,7 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 4UL
                 + FfiConverterTypeRtcNotificationType.allocationSize(value.`notificationType`)
                 + FfiConverterTypeTimestamp.allocationSize(value.`expirationTs`)
+                + FfiConverterOptionalTypeRtcCallIntent.allocationSize(value.`callIntent`)
             )
         }
         is MessageLikeEventContent.CallHangup -> {
@@ -42689,6 +42696,7 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
                 buf.putInt(3)
                 FfiConverterTypeRtcNotificationType.write(value.`notificationType`, buf)
                 FfiConverterTypeTimestamp.write(value.`expirationTs`, buf)
+                FfiConverterOptionalTypeRtcCallIntent.write(value.`callIntent`, buf)
                 Unit
             }
             is MessageLikeEventContent.CallHangup -> {
@@ -49050,6 +49058,40 @@ public object FfiConverterTypeRoomVisibility : FfiConverterRustBuffer<RoomVisibi
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class RtcCallIntent {
+    
+    VIDEO,
+    AUDIO;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRtcCallIntent: FfiConverterRustBuffer<RtcCallIntent> {
+    override fun read(buf: ByteBuffer) = try {
+        RtcCallIntent.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RtcCallIntent) = 4UL
+
+    override fun write(value: RtcCallIntent, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
     }
 }
 
@@ -57776,6 +57818,38 @@ public object FfiConverterOptionalTypeRoomNotificationMode: FfiConverterRustBuff
         } else {
             buf.put(1)
             FfiConverterTypeRoomNotificationMode.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeRtcCallIntent: FfiConverterRustBuffer<RtcCallIntent?> {
+    override fun read(buf: ByteBuffer): RtcCallIntent? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRtcCallIntent.read(buf)
+    }
+
+    override fun allocationSize(value: RtcCallIntent?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRtcCallIntent.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RtcCallIntent?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRtcCallIntent.write(value, buf)
         }
     }
 }
