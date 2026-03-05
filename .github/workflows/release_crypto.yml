@@ -11,6 +11,8 @@ on:
         description: 'The new version for the crypto library.'
         required: true
 
+permissions: {}
+
 jobs:
   build_targets:
     strategy:
@@ -29,20 +31,22 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Configure git user
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
           cache-on-failure: true
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin' # See 'Supported distributions' for available options
@@ -62,13 +66,13 @@ jobs:
           fi
 
       - name: Install android sdk
-        uses: malinskiy/action-android/install-sdk@release/0.1.4
+        uses: malinskiy/action-android/install-sdk@fa103ef30331e95f266418a6a97e98f61f626887 # v0.1.7
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v1
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -84,7 +88,7 @@ jobs:
         run: cargo install cargo-ndk
 
       - name: Set up Python 3
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.x'
 
@@ -96,20 +100,25 @@ jobs:
 
       - name: Run build script
         run: |
-          python3 ./scripts/build-rust-for-target.py --module CRYPTO --version ${{ github.event.inputs.sdk-version }} --ref ${{ github.event.inputs.rust-checkout-ref }} --target ${{ matrix.target }}
+          python3 ./scripts/build-rust-for-target.py --module CRYPTO --version ${GITHUB_EVENT_INPUTS_SDK_VERSION} --ref ${GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF} --target ${{ matrix.target }}
+        env:
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ github.event.inputs.sdk-version }}
+          GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF: ${{ github.event.inputs.rust-checkout-ref }}
 
       - name: Set linkable git ref
         id: set_linkable_ref
         run: |
-          pushd ${{ env.RUST_SDK_PATH }}
-          COMMIT_HASH=$(git rev-parse --verify ${{ github.event.inputs.rust-checkout-ref }})
+          pushd ${RUST_SDK_PATH}
+          COMMIT_HASH=$(git rev-parse --verify ${GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF})
           echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
           echo "Using commit hash $COMMIT_HASH"
           popd
+        env:
+          GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF: ${{ github.event.inputs.rust-checkout-ref }}
 
       - name: Upload target artifacts
         if: success() || failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: targets-${{ matrix.target }}
           if-no-files-found: error
@@ -120,7 +129,7 @@ jobs:
         # The FFI bindings will be identical for the 4 architectures, so upload as artifact
         # only once.
         if: (success() || failure()) && matrix.target == 'x86_64-linux-android'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ffi-bindings
           if-no-files-found: error
@@ -138,7 +147,9 @@ jobs:
 
     steps:
       - name: Checkout this repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Configure git user
         run: |
@@ -146,29 +157,29 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Download target artifacts to their right folders
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0@v7
         with:
           pattern: targets-*
           merge-multiple: true
           path: crypto/crypto-android/src/main/jniLibs/
 
       - name: Download FFI bindings to their package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0@v7
         with:
           name: ffi-bindings
           path: crypto/crypto-android/src/main/kotlin/
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin' # See 'Supported distributions' for available options
 
       - name: Install android sdk
-        uses: malinskiy/action-android/install-sdk@release/0.1.4
+        uses: malinskiy/action-android/install-sdk@fa103ef30331e95f266418a6a97e98f61f626887 # v0.1.7
 
       - name: Set up Python 3
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.x'
 
@@ -187,12 +198,14 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ github.event.inputs.sdk-version }}
+          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
         run: |
-          python3 ./scripts/publish_release.py --module CRYPTO --version ${{ github.event.inputs.sdk-version }} --linkable-ref ${{ needs.build_targets.outputs.linkable_ref }}
+          python3 ./scripts/publish_release.py --module CRYPTO --version ${GITHUB_EVENT_INPUTS_SDK_VERSION} --linkable-ref ${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF}
 
       - name: Upload AAR results
         if: success() || failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: sdk-android-release
           if-no-files-found: error
