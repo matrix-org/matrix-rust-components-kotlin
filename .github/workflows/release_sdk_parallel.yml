@@ -138,7 +138,7 @@ jobs:
 
       - name: Upload target artifacts
         if: success() || failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: targets-${{ matrix.target }}
           if-no-files-found: error
@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload debug info
         if: success() || failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: debuginfo-${{ matrix.target }}
           if-no-files-found: error
@@ -158,7 +158,7 @@ jobs:
         # The FFI bindings will be identical for the 4 architectures, so upload as artifact
         # only once.
         if: (success() || failure()) && matrix.target == 'x86_64-linux-android'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ffi-bindings
           if-no-files-found: error
@@ -184,14 +184,14 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Download target artifacts to their right folders
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: targets-*
           merge-multiple: true
           path: sdk/sdk-android/src/main/jniLibs/
 
       - name: Download FFI bindings to their package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ffi-bindings
           path: sdk/sdk-android/src/main/kotlin/
@@ -230,7 +230,7 @@ jobs:
 
       - name: Upload AAR results
         if: success() || failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sdk-android-release
           if-no-files-found: error
@@ -238,7 +238,7 @@ jobs:
           retention-days: 7
 
       - name: Download debug info
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: debuginfo-*
           merge-multiple: true
