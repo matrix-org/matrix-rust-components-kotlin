@@ -131,7 +131,7 @@ jobs:
         id: set_linkable_ref
         run: |
           pushd ${{ env.RUST_SDK_PATH }}
-          COMMIT_HASH=$(git rev-parse --verify ${{ github.event.inputs.rust-checkout-ref }})
+          COMMIT_HASH=$(git rev-parse --verify ${{ github.event.inputs.rust-checkout-ref }}^{})
           echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
           echo "Using commit hash $COMMIT_HASH"
           popd
