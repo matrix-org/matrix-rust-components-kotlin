@@ -29710,6 +29710,62 @@ public object FfiConverterTypeAuthDataPasswordDetails: FfiConverterRustBuffer<Au
 
 
 
+/**
+ * FFI representation of a single location update from a beacon event.
+ */
+data class BeaconInfo (
+    /**
+     * The geo URI carrying the user's coordinates
+     * (e.g. `"geo:51.5008,0.1247;u=35"`).
+     */
+    var `geoUri`: kotlin.String
+    , 
+    /**
+     * Timestamp (ms since Unix Epoch) of this location update.
+     */
+    var `ts`: Timestamp
+    , 
+    /**
+     * An optional human-readable description of the location.
+     */
+    var `description`: kotlin.String?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBeaconInfo: FfiConverterRustBuffer<BeaconInfo> {
+    override fun read(buf: ByteBuffer): BeaconInfo {
+        return BeaconInfo(
+            FfiConverterString.read(buf),
+            FfiConverterTypeTimestamp.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: BeaconInfo) = (
+            FfiConverterString.allocationSize(value.`geoUri`) +
+            FfiConverterTypeTimestamp.allocationSize(value.`ts`) +
+            FfiConverterOptionalString.allocationSize(value.`description`)
+    )
+
+    override fun write(value: BeaconInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`geoUri`, buf)
+            FfiConverterTypeTimestamp.write(value.`ts`, buf)
+            FfiConverterOptionalString.write(value.`description`, buf)
+    }
+}
+
+
+
 data class ClientProperties (
     /**
      * The client_id provides the widget with the option to behave differently
@@ -31100,6 +31156,81 @@ public object FfiConverterTypeListThreadsOptions: FfiConverterRustBuffer<ListThr
             FfiConverterTypeIncludeThreads.write(value.`includeThreads`, buf)
             FfiConverterOptionalString.write(value.`from`, buf)
             FfiConverterOptionalULong.write(value.`limit`, buf)
+    }
+}
+
+
+
+/**
+ * FFI representation of a live location sharing session (MSC3489).
+ *
+ * Corresponds to a `org.matrix.msc3672.beacon_info` state event in the
+ * timeline. Location updates are aggregated here as they arrive.
+ */
+data class LiveLocationContent (
+    /**
+     * Whether this sharing session is currently active.
+     */
+    var `isLive`: kotlin.Boolean
+    , 
+    /**
+     * An optional human-readable label for this sharing session.
+     */
+    var `description`: kotlin.String?
+    , 
+    /**
+     * Duration of the session in milliseconds.
+     */
+    var `timeoutMs`: kotlin.ULong
+    , 
+    /**
+     * The asset type of the beacon (e.g. `Sender` for the user's own
+     * location, `Pin` for a fixed point of interest).
+     */
+    var `assetType`: AssetType
+    , 
+    /**
+     * All location updates received so far, sorted oldest-first.
+     */
+    var `locations`: List<BeaconInfo>
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLiveLocationContent: FfiConverterRustBuffer<LiveLocationContent> {
+    override fun read(buf: ByteBuffer): LiveLocationContent {
+        return LiveLocationContent(
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterTypeAssetType.read(buf),
+            FfiConverterSequenceTypeBeaconInfo.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: LiveLocationContent) = (
+            FfiConverterBoolean.allocationSize(value.`isLive`) +
+            FfiConverterOptionalString.allocationSize(value.`description`) +
+            FfiConverterULong.allocationSize(value.`timeoutMs`) +
+            FfiConverterTypeAssetType.allocationSize(value.`assetType`) +
+            FfiConverterSequenceTypeBeaconInfo.allocationSize(value.`locations`)
+    )
+
+    override fun write(value: LiveLocationContent, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`isLive`, buf)
+            FfiConverterOptionalString.write(value.`description`, buf)
+            FfiConverterULong.write(value.`timeoutMs`, buf)
+            FfiConverterTypeAssetType.write(value.`assetType`, buf)
+            FfiConverterSequenceTypeBeaconInfo.write(value.`locations`, buf)
     }
 }
 
@@ -36232,7 +36363,8 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
 enum class AssetType {
     
     SENDER,
-    PIN;
+    PIN,
+    UNKNOWN;
 
     
 
@@ -52122,6 +52254,21 @@ sealed class TimelineItemContent: Disposable  {
         companion object
     }
     
+    /**
+     * A live location sharing session (MSC3489).
+     *
+     * Represents a `org.matrix.msc3672.beacon_info` state event with all
+     * aggregated location updates from `org.matrix.msc3672.beacon` events.
+     */
+    data class LiveLocation(
+        val `content`: org.matrix.rustcomponents.sdk.LiveLocationContent) : TimelineItemContent()
+        
+    {
+        
+
+        companion object
+    }
+    
 
     
     @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
@@ -52183,6 +52330,13 @@ sealed class TimelineItemContent: Disposable  {
     )
                 
             }
+            is TimelineItemContent.LiveLocation -> {
+                
+    Disposable.destroy(
+        this.`content`
+    )
+                
+            }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
     
@@ -52229,6 +52383,9 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
                 FfiConverterString.read(buf),
+                )
+            9 -> TimelineItemContent.LiveLocation(
+                FfiConverterTypeLiveLocationContent.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -52299,6 +52456,13 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 + FfiConverterString.allocationSize(value.`error`)
             )
         }
+        is TimelineItemContent.LiveLocation -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeLiveLocationContent.allocationSize(value.`content`)
+            )
+        }
     }
 
     override fun write(value: TimelineItemContent, buf: ByteBuffer) {
@@ -52349,6 +52513,11 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
                 FfiConverterString.write(value.`eventType`, buf)
                 FfiConverterString.write(value.`stateKey`, buf)
                 FfiConverterString.write(value.`error`, buf)
+                Unit
+            }
+            is TimelineItemContent.LiveLocation -> {
+                buf.putInt(9)
+                FfiConverterTypeLiveLocationContent.write(value.`content`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -58526,6 +58695,34 @@ public object FfiConverterSequenceTypeTimelineItem: FfiConverterRustBuffer<List<
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeTimelineItem.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeBeaconInfo: FfiConverterRustBuffer<List<BeaconInfo>> {
+    override fun read(buf: ByteBuffer): List<BeaconInfo> {
+        val len = buf.getInt()
+        return List<BeaconInfo>(len) {
+            FfiConverterTypeBeaconInfo.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<BeaconInfo>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeBeaconInfo.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<BeaconInfo>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeBeaconInfo.write(it, buf)
         }
     }
 }
