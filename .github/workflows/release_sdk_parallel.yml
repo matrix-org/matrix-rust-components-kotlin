@@ -11,9 +11,7 @@ on:
         description: 'The new version for the sdk library.'
         required: true
 
-permissions: {
-  contents: 'write', # Needed for creating a release
-}
+permissions: {}
 
 jobs:
   build_targets:
@@ -180,6 +178,9 @@ jobs:
     name: "Release SDK Library"
     needs: build_targets
     runs-on: ubuntu-24.04
+    permissions: {
+      contents: 'write', # Needed for creating a release
+    }
 
     concurrency:
       group: ${{ github.ref }}-${{ github.job }}
