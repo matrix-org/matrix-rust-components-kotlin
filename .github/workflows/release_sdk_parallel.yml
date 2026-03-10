@@ -11,7 +11,9 @@ on:
         description: 'The new version for the sdk library.'
         required: true
 
-permissions: {}
+permissions: {
+  contents: 'write', # Needed for creating a release
+}
 
 jobs:
   build_targets:
@@ -187,7 +189,7 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          persist-credentials: false
+          persist-credentials: true # Needed to push the commit with the updated library
 
       - name: Configure git user
         run: |
