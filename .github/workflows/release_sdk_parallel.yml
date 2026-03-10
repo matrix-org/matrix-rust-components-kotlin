@@ -178,6 +178,9 @@ jobs:
     name: "Release SDK Library"
     needs: build_targets
     runs-on: ubuntu-24.04
+    permissions: {
+      contents: 'write', # Needed for creating a release
+    }
 
     concurrency:
       group: ${{ github.ref }}-${{ github.job }}
@@ -187,7 +190,7 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          persist-credentials: false
+          persist-credentials: true # Needed to push the commit with the updated library
 
       - name: Configure git user
         run: |
