@@ -2064,6 +2064,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_fix_backup(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state(
@@ -3203,6 +3205,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Lo
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_fix_backup(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_reset(`ptr`: Long,`oldRecoveryKey`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3507,7 +3511,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_remove_avatar(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_remove_room_alias_from_room_directory(`ptr`: Long,`alias`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_report_content(`ptr`: Long,`eventId`: RustBuffer.ByValue,`score`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+external fun uniffi_matrix_sdk_ffi_fn_method_room_report_content(`ptr`: Long,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_report_room(`ptr`: Long,`reason`: RustBuffer.ByValue,
 ): Long
@@ -9142,7 +9146,23 @@ public interface EncryptionInterface {
     
     suspend fun `isLastDevice`(): kotlin.Boolean
     
+    /**
+     * Download identity and key backup information from Recovery
+     */
     suspend fun `recover`(`recoveryKey`: kotlin.String)
+    
+    /**
+     * Download identity and key backup information from Recovery, and, if the
+     * key backup information is inconsistent, create a new key backup.
+     *
+     * This will create a new key backup if:
+     *
+     * * Key backup is enabled and the backup decryption key is missing from
+     * Recovery, or
+     * * Key backup is enabled and the backup decryption key does not match the
+     * public key
+     */
+    suspend fun `recoverAndFixBackup`(`recoveryKey`: kotlin.String)
     
     suspend fun `recoverAndReset`(`oldRecoveryKey`: kotlin.String): kotlin.String
     
@@ -9512,12 +9532,48 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     }
 
     
+    /**
+     * Download identity and key backup information from Recovery
+     */
     @Throws(RecoveryException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `recover`(`recoveryKey`: kotlin.String) {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_recover(
+                uniffiHandle,
+                FfiConverterString.lower(`recoveryKey`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        RecoveryException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Download identity and key backup information from Recovery, and, if the
+     * key backup information is inconsistent, create a new key backup.
+     *
+     * This will create a new key backup if:
+     *
+     * * Key backup is enabled and the backup decryption key is missing from
+     * Recovery, or
+     * * Key backup is enabled and the backup decryption key does not match the
+     * public key
+     */
+    @Throws(RecoveryException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `recoverAndFixBackup`(`recoveryKey`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_fix_backup(
                 uniffiHandle,
                 FfiConverterString.lower(`recoveryKey`),
             )
@@ -15086,7 +15142,7 @@ public interface RoomInterface {
      * * `score` - The score to rate this content as where -100 is most
      * offensive and 0 is inoffensive (optional).
      */
-    suspend fun `reportContent`(`eventId`: kotlin.String, `score`: kotlin.Int?, `reason`: kotlin.String?)
+    suspend fun `reportContent`(`eventId`: kotlin.String, `reason`: kotlin.String?)
     
     /**
      * Reports a room as inappropriate to the server.
@@ -16783,12 +16839,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `reportContent`(`eventId`: kotlin.String, `score`: kotlin.Int?, `reason`: kotlin.String?) {
+    override suspend fun `reportContent`(`eventId`: kotlin.String, `reason`: kotlin.String?) {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_report_content(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),FfiConverterOptionalInt.lower(`score`),FfiConverterOptionalString.lower(`reason`),
+                FfiConverterString.lower(`eventId`),FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
