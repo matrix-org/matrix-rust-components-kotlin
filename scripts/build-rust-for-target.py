@@ -112,10 +112,10 @@ build_version_file_path = get_build_version_file_path(args.module, project_root)
 major, minor, patch = read_version_numbers_from_kotlin_file(build_version_file_path)
 if args.version.endswith("-SNAPSHOT"):
     print(f"Version {args.version} is a SNAPSHOT version, skipping version check")
-elif re.search(r"\d+(-|\+).+", patch):
+elif re.search(r"\d+\-.+", patch):
     print(
         f"The previous version ({major}.{minor}.{patch}) was a hotfix one, skipping version check")
-elif re.search(r"\d+\.\d+\.\d+(-|\+).+", args.version):
+elif re.search(r"\d+\.\d+\.\d+\-.+", args.version):
     print(
         f"The new version ({args.version}) is a hotfix one, skipping version check")
 elif is_provided_version_higher(major, minor, int(patch), args.version):
