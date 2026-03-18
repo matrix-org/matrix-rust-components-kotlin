@@ -2060,6 +2060,57 @@ public object FfiConverterTypeLoginQrCodeDecodeError : FfiConverterRustBuffer<Lo
 
 
 /**
+ * The intent of the device that generated/displayed the QR code.
+ *
+ * The QR code login mechanism supports both, the new device, as well as the
+ * existing device to display the QR code.
+ *
+ * The different intents have an explicit one-byte identifier which gets added
+ * to the QR code data.
+ */
+
+enum class QrCodeIntent {
+    
+    /**
+     * Enum variant for the case where the new device is displaying the QR
+     * code.
+     */
+    LOGIN,
+    /**
+     * Enum variant for the case where the existing device is displaying the QR
+     * code.
+     */
+    RECIPROCATE;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeQrCodeIntent: FfiConverterRustBuffer<QrCodeIntent> {
+    override fun read(buf: ByteBuffer) = try {
+        QrCodeIntent.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: QrCodeIntent) = 4UL
+
+    override fun write(value: QrCodeIntent, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The result of a signature check.
  */
 
