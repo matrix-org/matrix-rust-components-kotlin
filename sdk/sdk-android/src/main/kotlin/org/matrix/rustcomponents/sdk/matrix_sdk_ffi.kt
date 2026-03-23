@@ -31027,6 +31027,16 @@ data class LiveLocationContent (
     var `isLive`: kotlin.Boolean
     , 
     /**
+     * The timestamp when this live location sharing session started
+     * (from the `org.matrix.msc3488.ts` field of the originating
+     * `beacon_info` state event).
+     *
+     * This marks the *beginning* of the session. The session expires at
+     * `ts + timeout_ms`.
+     */
+    var `ts`: Timestamp
+    , 
+    /**
      * An optional human-readable label for this sharing session.
      */
     var `description`: kotlin.String?
@@ -31063,6 +31073,7 @@ public object FfiConverterTypeLiveLocationContent: FfiConverterRustBuffer<LiveLo
     override fun read(buf: ByteBuffer): LiveLocationContent {
         return LiveLocationContent(
             FfiConverterBoolean.read(buf),
+            FfiConverterTypeTimestamp.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterTypeAssetType.read(buf),
@@ -31072,6 +31083,7 @@ public object FfiConverterTypeLiveLocationContent: FfiConverterRustBuffer<LiveLo
 
     override fun allocationSize(value: LiveLocationContent) = (
             FfiConverterBoolean.allocationSize(value.`isLive`) +
+            FfiConverterTypeTimestamp.allocationSize(value.`ts`) +
             FfiConverterOptionalString.allocationSize(value.`description`) +
             FfiConverterULong.allocationSize(value.`timeoutMs`) +
             FfiConverterTypeAssetType.allocationSize(value.`assetType`) +
@@ -31080,6 +31092,7 @@ public object FfiConverterTypeLiveLocationContent: FfiConverterRustBuffer<LiveLo
 
     override fun write(value: LiveLocationContent, buf: ByteBuffer) {
             FfiConverterBoolean.write(value.`isLive`, buf)
+            FfiConverterTypeTimestamp.write(value.`ts`, buf)
             FfiConverterOptionalString.write(value.`description`, buf)
             FfiConverterULong.write(value.`timeoutMs`, buf)
             FfiConverterTypeAssetType.write(value.`assetType`, buf)
@@ -32888,6 +32901,8 @@ data class RoomInfo (
     , 
     var `activeRoomCallParticipants`: List<kotlin.String>
     , 
+    var `activeRoomCallConsensusIntent`: RtcCallIntentConsensus
+    , 
     /**
      * Whether this room has been explicitly marked as unread
      */
@@ -32981,6 +32996,7 @@ data class RoomInfo (
         this.`cachedUserDefinedNotificationMode`,
         this.`hasRoomCall`,
         this.`activeRoomCallParticipants`,
+        this.`activeRoomCallConsensusIntent`,
         this.`isMarkedUnread`,
         this.`numUnreadMessages`,
         this.`numUnreadNotifications`,
@@ -33030,6 +33046,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeRoomNotificationMode.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterSequenceString.read(buf),
+            FfiConverterTypeRtcCallIntentConsensus.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
@@ -33071,6 +33088,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeRoomNotificationMode.allocationSize(value.`cachedUserDefinedNotificationMode`) +
             FfiConverterBoolean.allocationSize(value.`hasRoomCall`) +
             FfiConverterSequenceString.allocationSize(value.`activeRoomCallParticipants`) +
+            FfiConverterTypeRtcCallIntentConsensus.allocationSize(value.`activeRoomCallConsensusIntent`) +
             FfiConverterBoolean.allocationSize(value.`isMarkedUnread`) +
             FfiConverterULong.allocationSize(value.`numUnreadMessages`) +
             FfiConverterULong.allocationSize(value.`numUnreadNotifications`) +
@@ -33111,6 +33129,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterOptionalTypeRoomNotificationMode.write(value.`cachedUserDefinedNotificationMode`, buf)
             FfiConverterBoolean.write(value.`hasRoomCall`, buf)
             FfiConverterSequenceString.write(value.`activeRoomCallParticipants`, buf)
+            FfiConverterTypeRtcCallIntentConsensus.write(value.`activeRoomCallConsensusIntent`, buf)
             FfiConverterBoolean.write(value.`isMarkedUnread`, buf)
             FfiConverterULong.write(value.`numUnreadMessages`, buf)
             FfiConverterULong.write(value.`numUnreadNotifications`, buf)
@@ -49314,6 +49333,111 @@ public object FfiConverterTypeRtcCallIntent: FfiConverterRustBuffer<RtcCallInten
 
     override fun write(value: RtcCallIntent, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+sealed class RtcCallIntentConsensus {
+    
+    data class Full(
+        val v1: org.matrix.rustcomponents.sdk.RtcCallIntent) : RtcCallIntentConsensus()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Partial(
+        val `intent`: org.matrix.rustcomponents.sdk.RtcCallIntent, 
+        val `agreeingCount`: kotlin.ULong, 
+        val `totalCount`: kotlin.ULong) : RtcCallIntentConsensus()
+        
+    {
+        
+
+        companion object
+    }
+    
+    object None : RtcCallIntentConsensus()
+    
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRtcCallIntentConsensus : FfiConverterRustBuffer<RtcCallIntentConsensus>{
+    override fun read(buf: ByteBuffer): RtcCallIntentConsensus {
+        return when(buf.getInt()) {
+            1 -> RtcCallIntentConsensus.Full(
+                FfiConverterTypeRtcCallIntent.read(buf),
+                )
+            2 -> RtcCallIntentConsensus.Partial(
+                FfiConverterTypeRtcCallIntent.read(buf),
+                FfiConverterULong.read(buf),
+                FfiConverterULong.read(buf),
+                )
+            3 -> RtcCallIntentConsensus.None
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: RtcCallIntentConsensus) = when(value) {
+        is RtcCallIntentConsensus.Full -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeRtcCallIntent.allocationSize(value.v1)
+            )
+        }
+        is RtcCallIntentConsensus.Partial -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeRtcCallIntent.allocationSize(value.`intent`)
+                + FfiConverterULong.allocationSize(value.`agreeingCount`)
+                + FfiConverterULong.allocationSize(value.`totalCount`)
+            )
+        }
+        is RtcCallIntentConsensus.None -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: RtcCallIntentConsensus, buf: ByteBuffer) {
+        when(value) {
+            is RtcCallIntentConsensus.Full -> {
+                buf.putInt(1)
+                FfiConverterTypeRtcCallIntent.write(value.v1, buf)
+                Unit
+            }
+            is RtcCallIntentConsensus.Partial -> {
+                buf.putInt(2)
+                FfiConverterTypeRtcCallIntent.write(value.`intent`, buf)
+                FfiConverterULong.write(value.`agreeingCount`, buf)
+                FfiConverterULong.write(value.`totalCount`, buf)
+                Unit
+            }
+            is RtcCallIntentConsensus.None -> {
+                buf.putInt(3)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
