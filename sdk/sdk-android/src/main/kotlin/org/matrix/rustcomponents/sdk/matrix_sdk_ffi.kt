@@ -77,12 +77,14 @@ import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.FfiConverterTypeThreadListPaginationState
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineEventFocusThreadMode
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineReadReceiptTracking
 import uniffi.matrix_sdk_ui.LatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.ThreadListPaginationState
 import uniffi.matrix_sdk_ui.TimelineEventFocusThreadMode
 import uniffi.matrix_sdk_ui.TimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
@@ -106,6 +108,7 @@ import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferThreadListPaginationState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineEventFocusThreadMode
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferTimelineReadReceiptTracking
@@ -835,11 +838,20 @@ internal interface UniffiCallbackInterfaceSpaceServiceSpaceFiltersListenerMethod
 internal interface UniffiCallbackInterfaceSyncServiceStateObserverMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`state`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceSyncListenerV2Method0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`response`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfacePaginationStatusListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBufferPaginationStatus.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceTimelineListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`diff`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceThreadListEntriesListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`diff`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceThreadListPaginationStateListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`state`: RustBufferThreadListPaginationState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceUnableToDecryptDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`info`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -1632,6 +1644,25 @@ internal open class UniffiVTableCallbackInterfaceSyncServiceStateObserver(
 
 }
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceSyncListenerV2(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceSyncListenerV2Method0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceSyncListenerV2Method0? = null,
+    ): UniffiVTableCallbackInterfaceSyncListenerV2(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceSyncListenerV2) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
 internal open class UniffiVTableCallbackInterfacePaginationStatusListener(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
@@ -1663,6 +1694,44 @@ internal open class UniffiVTableCallbackInterfaceTimelineListener(
     ): UniffiVTableCallbackInterfaceTimelineListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceTimelineListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceThreadListEntriesListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceThreadListEntriesListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceThreadListEntriesListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceThreadListEntriesListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceThreadListEntriesListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceThreadListPaginationStateListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceThreadListPaginationStateListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceThreadListPaginationStateListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceThreadListPaginationStateListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceThreadListPaginationStateListener) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `onUpdate` = other.`onUpdate`
@@ -1969,7 +2038,11 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queu
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_once_v2(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
 ): Short
@@ -2281,8 +2354,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_thread_list(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
@@ -2337,6 +2408,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_raw(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
@@ -2372,6 +2445,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_noti
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_successor_room(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_suggested_role_for_user(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_thread_list_service(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline(
 ): Short
@@ -2689,6 +2764,18 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event_id(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_items(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_paginate(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_pagination_state(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_reset(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_items_updates(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_pagination_state_updates(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv(
@@ -2815,9 +2902,15 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicespacefiltersliste
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_synclistenerv2_on_update(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistentrieslistener_on_update(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistpaginationstatelistener_on_update(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_unabletodecryptdelegate_on_utd(
 ): Short
@@ -2876,8 +2969,11 @@ internal object UniffiLib {
         uniffiCallbackInterfaceSpaceRoomListSpaceListener.register(this)
         uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener.register(this)
         uniffiCallbackInterfaceSpaceServiceSpaceFiltersListener.register(this)
+        uniffiCallbackInterfaceSyncListenerV2.register(this)
         uniffiCallbackInterfaceSyncNotificationListener.register(this)
         uniffiCallbackInterfaceSyncServiceStateObserver.register(this)
+        uniffiCallbackInterfaceThreadListEntriesListener.register(this)
+        uniffiCallbackInterfaceThreadListPaginationStateListener.register(this)
         uniffiCallbackInterfaceTimelineListener.register(this)
         uniffiCallbackInterfaceTypingNotificationsListener.register(this)
         uniffiCallbackInterfaceUnableToDecryptDelegate.register(this)
@@ -3098,7 +3194,11 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_stat
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_updates(`ptr`: Long,`listener`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_once_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Long,`room`: RustBuffer.ByValue,
 ): Long
@@ -3480,8 +3580,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Lon
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_load_thread_list(`ptr`: Long,`opts`: RustBuffer.ByValue,
-): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_fully_read_unchecked(`ptr`: Long,`eventId`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Long,`receiptType`: RustBuffer.ByValue,
@@ -3536,6 +3634,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(`ptr`: Long
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`stateKey`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Long,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Long,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
@@ -3571,6 +3671,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notificati
 external fun uniffi_matrix_sdk_ffi_fn_method_room_successor_room(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_room_suggested_role_for_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_thread_list_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_timeline(`ptr`: Long,
 ): Long
@@ -4014,6 +4116,22 @@ external fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event(`ptr`: Long,
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_clone_threadlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_threadlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_items(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_paginate(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBufferThreadListPaginationState.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_reset(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_items_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_widgetdriver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4108,9 +4226,15 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicespacefilt
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncservicestateobserver(`vtable`: UniffiVTableCallbackInterfaceSyncServiceStateObserver,
 ): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_synclistenerv2(`vtable`: UniffiVTableCallbackInterfaceSyncListenerV2,
+): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_paginationstatuslistener(`vtable`: UniffiVTableCallbackInterfacePaginationStatusListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_timelinelistener(`vtable`: UniffiVTableCallbackInterfaceTimelineListener,
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceThreadListEntriesListener,
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceThreadListPaginationStateListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_unabletodecryptdelegate(`vtable`: UniffiVTableCallbackInterfaceUnableToDecryptDelegate,
 ): Unit
@@ -5755,7 +5879,27 @@ public interface ClientInterface {
      */
     suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueRoomUpdateListener): TaskHandle
     
+    /**
+     * Perform a single sync v2 call.
+     *
+     * This is useful for performing an initial sync or a one-shot sync
+     * without entering a continuous loop.
+     */
+    suspend fun `syncOnceV2`(`settings`: SyncSettingsV2): SyncResponseV2
+    
     fun `syncService`(): SyncServiceBuilder
+    
+    /**
+     * Start a sync v2 loop.
+     *
+     * This is an alternative to [`Client::sync_service`] (which uses Sliding
+     * Sync / MSC4186). It works with any homeserver, including older
+     * Synapse versions that do not support Sliding Sync.
+     *
+     * Returns a `TaskHandle` that can be used to cancel the sync loop.
+     * The listener is called after each successful sync response.
+     */
+    fun `syncV2`(`settings`: SyncSettingsV2, `listener`: SyncListenerV2): TaskHandle
     
     suspend fun `trackRecentlyVisitedRoom`(`room`: kotlin.String)
     
@@ -7975,6 +8119,33 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     )
     }
 
+    
+    /**
+     * Perform a single sync v2 call.
+     *
+     * This is useful for performing an initial sync or a one-shot sync
+     * without entering a continuous loop.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `syncOnceV2`(`settings`: SyncSettingsV2) : SyncResponseV2 {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_sync_once_v2(
+                uniffiHandle,
+                FfiConverterTypeSyncSettingsV2.lower(`settings`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeSyncResponseV2.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
     override fun `syncService`(): SyncServiceBuilder {
             return FfiConverterTypeSyncServiceBuilder.lift(
     callWithHandle {
@@ -7982,6 +8153,29 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_sync_service(
         it,
         _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Start a sync v2 loop.
+     *
+     * This is an alternative to [`Client::sync_service`] (which uses Sliding
+     * Sync / MSC4186). It works with any homeserver, including older
+     * Synapse versions that do not support Sliding Sync.
+     *
+     * Returns a `TaskHandle` that can be used to cancel the sync loop.
+     * The listener is called after each successful sync response.
+     */override fun `syncV2`(`settings`: SyncSettingsV2, `listener`: SyncListenerV2): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(
+        it,
+        FfiConverterTypeSyncSettingsV2.lower(`settings`),FfiConverterTypeSyncListenerV2.lower(`listener`),_status)
 }
     }
     )
@@ -15061,17 +15255,6 @@ public interface RoomInterface {
     suspend fun `loadOrFetchEvent`(`eventId`: kotlin.String): TimelineEvent
     
     /**
-     * Retrieve a list of all the threads for the current room.
-     *
-     * Since this client-server API is paginated, the return type may include a
-     * token used to resuming back-pagination into the list of results, in
-     * [`ThreadList::prev_batch_token`]. This token can be passed to the next
-     * call to this function, through the `from` field of
-     * [`ListThreadsOptions`].
-     */
-    suspend fun `loadThreadList`(`opts`: ListThreadsOptions): ThreadList
-    
-    /**
      * Mark a room as fully read, by attaching a read receipt to the provided
      * `event_id`.
      *
@@ -15249,6 +15432,23 @@ public interface RoomInterface {
      */
     suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String)
     
+    /**
+     * Send a raw state event to the room.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state event to send (e.g.
+     * `"m.room.name"` or a custom type).
+     *
+     * * `state_key` - A unique key which defines the overwriting semantics for
+     * this piece of room state. This is often an empty string.
+     *
+     * * `content` - The content of the state event encoded as a JSON string.
+     *
+     * Returns the event ID of the newly created state event.
+     */
+    suspend fun `sendStateEventRaw`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String): kotlin.String
+    
     suspend fun `setIsFavourite`(`isFavourite`: kotlin.Boolean, `tagOrder`: kotlin.Double?)
     
     suspend fun `setIsLowPriority`(`isLowPriority`: kotlin.Boolean, `tagOrder`: kotlin.Double?)
@@ -15351,6 +15551,17 @@ public interface RoomInterface {
     fun `successorRoom`(): SuccessorRoom?
     
     suspend fun `suggestedRoleForUser`(`userId`: kotlin.String): RoomMemberRole
+    
+    /**
+     * Creates a new [`ThreadListService`] for this room.
+     *
+     * The returned service provides a reactive, paginated list of thread roots
+     * for the room. Use [`ThreadListService::paginate`] to load pages and
+     * [`ThreadListService::subscribe_to_items_updates`] /
+     * [`ThreadListService::subscribe_to_pagination_state_updates`] to observe
+     * changes.
+     */
+    fun `threadListService`(): ThreadListService
     
     /**
      * Create a timeline with a default configuration, i.e. a live timeline
@@ -16404,36 +16615,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface
 
     
     /**
-     * Retrieve a list of all the threads for the current room.
-     *
-     * Since this client-server API is paginated, the return type may include a
-     * token used to resuming back-pagination into the list of results, in
-     * [`ThreadList::prev_batch_token`]. This token can be passed to the next
-     * call to this function, through the `from` field of
-     * [`ListThreadsOptions`].
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `loadThreadList`(`opts`: ListThreadsOptions) : ThreadList {
-        return uniffiRustCallAsync(
-        callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_load_thread_list(
-                uniffiHandle,
-                FfiConverterTypeListThreadsOptions.lower(`opts`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
-        // lift function
-        { FfiConverterTypeThreadList.lift(it) },
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
      * Mark a room as fully read, by attaching a read receipt to the provided
      * `event_id`.
      *
@@ -17101,6 +17282,42 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     }
 
     
+    /**
+     * Send a raw state event to the room.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state event to send (e.g.
+     * `"m.room.name"` or a custom type).
+     *
+     * * `state_key` - A unique key which defines the overwriting semantics for
+     * this piece of room state. This is often an empty string.
+     *
+     * * `content` - The content of the state event encoded as a JSON string.
+     *
+     * Returns the event ID of the newly created state event.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendStateEventRaw`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(
+                uniffiHandle,
+                FfiConverterString.lower(`eventType`),FfiConverterString.lower(`stateKey`),FfiConverterString.lower(`content`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `setIsFavourite`(`isFavourite`: kotlin.Boolean, `tagOrder`: kotlin.Double?) {
@@ -17514,6 +17731,28 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Creates a new [`ThreadListService`] for this room.
+     *
+     * The returned service provides a reactive, paginated list of thread roots
+     * for the room. Use [`ThreadListService::paginate`] to load pages and
+     * [`ThreadListService::subscribe_to_items_updates`] /
+     * [`ThreadListService::subscribe_to_pagination_state_updates`] to observe
+     * changes.
+     */override fun `threadListService`(): ThreadListService {
+            return FfiConverterTypeThreadListService.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_thread_list_service(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
 
     
     /**
@@ -25777,6 +26016,432 @@ public object FfiConverterTypeTaskHandle: FfiConverter<TaskHandle, Long> {
     override fun allocationSize(value: TaskHandle) = 8UL
 
     override fun write(value: TaskHandle, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * A high-level, reactive, paginated list of threads for a room.
+ *
+ * `ThreadListService` is the FFI-facing wrapper around
+ * [`matrix_sdk_ui::timeline::thread_list_service::ThreadListService`]. It
+ * maintains an observable list of [`ThreadListItem`]s and exposes a
+ * pagination state publisher, making it straightforward to build reactive UIs
+ * on top of the thread list.
+ *
+ * Obtain an instance via [`Room::thread_list_service`].
+ */
+public interface ThreadListServiceInterface {
+    
+    /**
+     * Returns a snapshot of the current thread list items.
+     */
+    fun `items`(): List<ThreadListItem>
+    
+    /**
+     * Fetches the next page of threads and appends the results to the list.
+     *
+     * This is a no-op when the list is already loading or the end has been
+     * reached.
+     */
+    suspend fun `paginate`()
+    
+    /**
+     * Returns a snapshot of the current pagination state.
+     */
+    fun `paginationState`(): ThreadListPaginationState
+    
+    /**
+     * Resets the service back to its initial, empty state.
+     *
+     * Clears all loaded items, discards the pagination token, and sets the
+     * state to `Idle { end_reached: false }`. The next call to
+     * [`Self::paginate`] will restart from the beginning of the thread list.
+     */
+    suspend fun `reset`()
+    
+    /**
+     * Subscribes to changes in the thread list.
+     *
+     * The `listener` receives an initial `Reset` diff containing all currently
+     * loaded items, followed by subsequent diffs as the list changes.
+     */
+    fun `subscribeToItemsUpdates`(`listener`: ThreadListEntriesListener): TaskHandle
+    
+    /**
+     * Subscribes to changes in the pagination state.
+     *
+     * The `listener` is called once for every state transition. The returned
+     * [`TaskHandle`] keeps the subscription alive
+     */
+    fun `subscribeToPaginationStateUpdates`(`listener`: ThreadListPaginationStateListener): TaskHandle
+    
+    companion object
+}
+
+/**
+ * A high-level, reactive, paginated list of threads for a room.
+ *
+ * `ThreadListService` is the FFI-facing wrapper around
+ * [`matrix_sdk_ui::timeline::thread_list_service::ThreadListService`]. It
+ * maintains an observable list of [`ThreadListItem`]s and exposes a
+ * pagination state publisher, making it straightforward to build reactive UIs
+ * on top of the thread list.
+ *
+ * Obtain an instance via [`Room::thread_list_service`].
+ */
+open class ThreadListService: Disposable, AutoCloseable, ThreadListServiceInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_threadlistservice(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_threadlistservice(handle, status)
+        }
+    }
+
+    
+    /**
+     * Returns a snapshot of the current thread list items.
+     */override fun `items`(): List<ThreadListItem> {
+            return FfiConverterSequenceTypeThreadListItem.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_items(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Fetches the next page of threads and appends the results to the list.
+     *
+     * This is a no-op when the list is already loading or the end has been
+     * reached.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `paginate`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_paginate(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns a snapshot of the current pagination state.
+     */override fun `paginationState`(): ThreadListPaginationState {
+            return FfiConverterTypeThreadListPaginationState.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_pagination_state(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Resets the service back to its initial, empty state.
+     *
+     * Clears all loaded items, discards the pagination token, and sets the
+     * state to `Idle { end_reached: false }`. The next call to
+     * [`Self::paginate`] will restart from the beginning of the thread list.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `reset`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_reset(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Subscribes to changes in the thread list.
+     *
+     * The `listener` receives an initial `Reset` diff containing all currently
+     * loaded items, followed by subsequent diffs as the list changes.
+     */override fun `subscribeToItemsUpdates`(`listener`: ThreadListEntriesListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_items_updates(
+        it,
+        FfiConverterTypeThreadListEntriesListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Subscribes to changes in the pagination state.
+     *
+     * The `listener` is called once for every state transition. The returned
+     * [`TaskHandle`] keeps the subscription alive
+     */override fun `subscribeToPaginationStateUpdates`(`listener`: ThreadListPaginationStateListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_pagination_state_updates(
+        it,
+        FfiConverterTypeThreadListPaginationStateListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeThreadListService: FfiConverter<ThreadListService, Long> {
+    override fun lower(value: ThreadListService): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): ThreadListService {
+        return ThreadListService(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): ThreadListService {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: ThreadListService) = 8UL
+
+    override fun write(value: ThreadListService, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -34372,6 +35037,165 @@ public object FfiConverterTypeSuccessorRoom: FfiConverterRustBuffer<SuccessorRoo
 
 
 /**
+ * Room updates from a sync v2 response.
+ */
+data class SyncResponseRoomsV2 (
+    /**
+     * Room IDs of rooms the user has been invited to.
+     */
+    var `invited`: List<kotlin.String>
+    , 
+    /**
+     * Room IDs of joined rooms that had updates.
+     */
+    var `joined`: List<kotlin.String>
+    , 
+    /**
+     * Room IDs of rooms the user has left.
+     */
+    var `left`: List<kotlin.String>
+    , 
+    /**
+     * Room IDs of rooms the user has knocked on.
+     */
+    var `knocked`: List<kotlin.String>
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSyncResponseRoomsV2: FfiConverterRustBuffer<SyncResponseRoomsV2> {
+    override fun read(buf: ByteBuffer): SyncResponseRoomsV2 {
+        return SyncResponseRoomsV2(
+            FfiConverterSequenceString.read(buf),
+            FfiConverterSequenceString.read(buf),
+            FfiConverterSequenceString.read(buf),
+            FfiConverterSequenceString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SyncResponseRoomsV2) = (
+            FfiConverterSequenceString.allocationSize(value.`invited`) +
+            FfiConverterSequenceString.allocationSize(value.`joined`) +
+            FfiConverterSequenceString.allocationSize(value.`left`) +
+            FfiConverterSequenceString.allocationSize(value.`knocked`)
+    )
+
+    override fun write(value: SyncResponseRoomsV2, buf: ByteBuffer) {
+            FfiConverterSequenceString.write(value.`invited`, buf)
+            FfiConverterSequenceString.write(value.`joined`, buf)
+            FfiConverterSequenceString.write(value.`left`, buf)
+            FfiConverterSequenceString.write(value.`knocked`, buf)
+    }
+}
+
+
+
+/**
+ * The response from a sync v2 call.
+ */
+data class SyncResponseV2 (
+    /**
+     * The batch token to supply in the `since` param of the next `/sync`
+     * request.
+     */
+    var `nextBatch`: kotlin.String
+    , 
+    /**
+     * Updates to rooms.
+     */
+    var `rooms`: SyncResponseRoomsV2
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSyncResponseV2: FfiConverterRustBuffer<SyncResponseV2> {
+    override fun read(buf: ByteBuffer): SyncResponseV2 {
+        return SyncResponseV2(
+            FfiConverterString.read(buf),
+            FfiConverterTypeSyncResponseRoomsV2.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SyncResponseV2) = (
+            FfiConverterString.allocationSize(value.`nextBatch`) +
+            FfiConverterTypeSyncResponseRoomsV2.allocationSize(value.`rooms`)
+    )
+
+    override fun write(value: SyncResponseV2, buf: ByteBuffer) {
+            FfiConverterString.write(value.`nextBatch`, buf)
+            FfiConverterTypeSyncResponseRoomsV2.write(value.`rooms`, buf)
+    }
+}
+
+
+
+/**
+ * Settings for a sync v2 call.
+ */
+data class SyncSettingsV2 (
+    /**
+     * Timeout in milliseconds for the server long-poll.
+     * If not set, defaults to 30 seconds.
+     */
+    var `timeoutMs`: kotlin.ULong? = null 
+    , 
+    /**
+     * Whether to request full state on the first sync.
+     */
+    var `fullState`: kotlin.Boolean = false 
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSyncSettingsV2: FfiConverterRustBuffer<SyncSettingsV2> {
+    override fun read(buf: ByteBuffer): SyncSettingsV2 {
+        return SyncSettingsV2(
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SyncSettingsV2) = (
+            FfiConverterOptionalULong.allocationSize(value.`timeoutMs`) +
+            FfiConverterBoolean.allocationSize(value.`fullState`)
+    )
+
+    override fun write(value: SyncSettingsV2, buf: ByteBuffer) {
+            FfiConverterOptionalULong.write(value.`timeoutMs`, buf)
+            FfiConverterBoolean.write(value.`fullState`, buf)
+    }
+}
+
+
+
+/**
  * Information about a tag.
  */
 data class TagInfo (
@@ -34449,20 +35273,42 @@ public object FfiConverterTypeTextMessageContent: FfiConverterRustBuffer<TextMes
 
 
 /**
- * A structure wrapping a Thread List endpoint response i.e.
- * [`ThreadListItem`]s and the current pagination token.
+ * Each `ThreadListItem` represents one thread root event in the room. The
+ * fields are pre-resolved from the raw homeserver response: the sender's
+ * profile is fetched eagerly and the event content is parsed into a
+ * `TimelineItemContent` so that consumers can render the item without any
+ * additional work.
+ *
+ * `ThreadListItem`s are produced page by page via `Room::load_thread_list()`
+ * and are accumulated inside the `ThreadListService` as pages are fetched
+ * through `ThreadListService::paginate()`.
  */
-data class ThreadList (
+data class ThreadListItem (
     /**
-     * The events that are thread roots in the current batch.
+     * The thread root event.
+     *
+     * Contains the event ID, timestamp, sender, sender profile, and parsed
+     * content of the thread's root message. Use `root_event.event_id` to open
+     * a per-thread `Timeline` or to navigate the user to the thread view.
      */
-    var `items`: List<ThreadListItem>
+    var `rootEvent`: ThreadListItemEvent
     , 
     /**
-     * Token to paginate backwards in a subsequent query to
-     * [`Room::list_threads`].
+     * The latest event in the thread (i.e. the most recent reply), if
+     * available.
+     *
+     * Initially populated from the server's bundled thread summary and
+     * updated in real time as new events arrive via sync or back-pagination.
      */
-    var `prevBatchToken`: kotlin.String?
+    var `latestEvent`: ThreadListItemEvent?
+    , 
+    /**
+     * The number of replies in this thread (excluding the root event).
+     *
+     * Initially populated from the server's bundled thread summary and
+     * updated in real time as new events arrive via sync.
+     */
+    var `numReplies`: kotlin.UInt
     
 ): Disposable{
     
@@ -34474,8 +35320,9 @@ data class ThreadList (
     override fun destroy() {
         
     Disposable.destroy(
-        this.`items`,
-        this.`prevBatchToken`
+        this.`rootEvent`,
+        this.`latestEvent`,
+        this.`numReplies`
     )
     }
     
@@ -34485,41 +35332,63 @@ data class ThreadList (
 /**
  * @suppress
  */
-public object FfiConverterTypeThreadList: FfiConverterRustBuffer<ThreadList> {
-    override fun read(buf: ByteBuffer): ThreadList {
-        return ThreadList(
-            FfiConverterSequenceTypeThreadListItem.read(buf),
-            FfiConverterOptionalString.read(buf),
+public object FfiConverterTypeThreadListItem: FfiConverterRustBuffer<ThreadListItem> {
+    override fun read(buf: ByteBuffer): ThreadListItem {
+        return ThreadListItem(
+            FfiConverterTypeThreadListItemEvent.read(buf),
+            FfiConverterOptionalTypeThreadListItemEvent.read(buf),
+            FfiConverterUInt.read(buf),
         )
     }
 
-    override fun allocationSize(value: ThreadList) = (
-            FfiConverterSequenceTypeThreadListItem.allocationSize(value.`items`) +
-            FfiConverterOptionalString.allocationSize(value.`prevBatchToken`)
+    override fun allocationSize(value: ThreadListItem) = (
+            FfiConverterTypeThreadListItemEvent.allocationSize(value.`rootEvent`) +
+            FfiConverterOptionalTypeThreadListItemEvent.allocationSize(value.`latestEvent`) +
+            FfiConverterUInt.allocationSize(value.`numReplies`)
     )
 
-    override fun write(value: ThreadList, buf: ByteBuffer) {
-            FfiConverterSequenceTypeThreadListItem.write(value.`items`, buf)
-            FfiConverterOptionalString.write(value.`prevBatchToken`, buf)
+    override fun write(value: ThreadListItem, buf: ByteBuffer) {
+            FfiConverterTypeThreadListItemEvent.write(value.`rootEvent`, buf)
+            FfiConverterOptionalTypeThreadListItemEvent.write(value.`latestEvent`, buf)
+            FfiConverterUInt.write(value.`numReplies`, buf)
     }
 }
 
 
 
 /**
- * An individual Thread as retrieved from through Thread List API.
+ * Information about an event in a thread (either the root or the latest
+ * reply).
  */
-data class ThreadListItem (
-    var `rootEventId`: kotlin.String
+data class ThreadListItemEvent (
+    /**
+     * The event ID.
+     */
+    var `eventId`: kotlin.String
     , 
+    /**
+     * The timestamp of the event.
+     */
     var `timestamp`: Timestamp
     , 
+    /**
+     * The sender of the event.
+     */
     var `sender`: kotlin.String
     , 
+    /**
+     * The sender's profile details.
+     */
     var `senderProfile`: ProfileDetails
     , 
+    /**
+     * Whether the event was sent by the current user.
+     */
     var `isOwn`: kotlin.Boolean
     , 
+    /**
+     * The content of the event, if available.
+     */
     var `content`: TimelineItemContent?
     
 ): Disposable{
@@ -34532,7 +35401,7 @@ data class ThreadListItem (
     override fun destroy() {
         
     Disposable.destroy(
-        this.`rootEventId`,
+        this.`eventId`,
         this.`timestamp`,
         this.`sender`,
         this.`senderProfile`,
@@ -34547,9 +35416,9 @@ data class ThreadListItem (
 /**
  * @suppress
  */
-public object FfiConverterTypeThreadListItem: FfiConverterRustBuffer<ThreadListItem> {
-    override fun read(buf: ByteBuffer): ThreadListItem {
-        return ThreadListItem(
+public object FfiConverterTypeThreadListItemEvent: FfiConverterRustBuffer<ThreadListItemEvent> {
+    override fun read(buf: ByteBuffer): ThreadListItemEvent {
+        return ThreadListItemEvent(
             FfiConverterString.read(buf),
             FfiConverterTypeTimestamp.read(buf),
             FfiConverterString.read(buf),
@@ -34559,8 +35428,8 @@ public object FfiConverterTypeThreadListItem: FfiConverterRustBuffer<ThreadListI
         )
     }
 
-    override fun allocationSize(value: ThreadListItem) = (
-            FfiConverterString.allocationSize(value.`rootEventId`) +
+    override fun allocationSize(value: ThreadListItemEvent) = (
+            FfiConverterString.allocationSize(value.`eventId`) +
             FfiConverterTypeTimestamp.allocationSize(value.`timestamp`) +
             FfiConverterString.allocationSize(value.`sender`) +
             FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`) +
@@ -34568,8 +35437,8 @@ public object FfiConverterTypeThreadListItem: FfiConverterRustBuffer<ThreadListI
             FfiConverterOptionalTypeTimelineItemContent.allocationSize(value.`content`)
     )
 
-    override fun write(value: ThreadListItem, buf: ByteBuffer) {
-            FfiConverterString.write(value.`rootEventId`, buf)
+    override fun write(value: ThreadListItemEvent, buf: ByteBuffer) {
+            FfiConverterString.write(value.`eventId`, buf)
             FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
             FfiConverterString.write(value.`sender`, buf)
             FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
@@ -51576,6 +52445,391 @@ public object FfiConverterTypeTagName : FfiConverterRustBuffer<TagName>{
 
 
 
+/**
+ * A diff applied to the observable thread list.
+ *
+ * Mirrors [`eyeball_im::VectorDiff`] for [`ThreadListItem`].
+ */
+sealed class ThreadListUpdate: Disposable  {
+    
+    /**
+     * New items were appended at the back.
+     */
+    data class Append(
+        val `values`: List<org.matrix.rustcomponents.sdk.ThreadListItem>) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The list was cleared.
+     */
+    object Clear : ThreadListUpdate()
+    
+    
+    /**
+     * A new item was prepended at the front.
+     */
+    data class PushFront(
+        val `value`: org.matrix.rustcomponents.sdk.ThreadListItem) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * A new item was appended at the back.
+     */
+    data class PushBack(
+        val `value`: org.matrix.rustcomponents.sdk.ThreadListItem) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The first item was removed.
+     */
+    object PopFront : ThreadListUpdate()
+    
+    
+    /**
+     * The last item was removed.
+     */
+    object PopBack : ThreadListUpdate()
+    
+    
+    /**
+     * An item was inserted at the given position.
+     */
+    data class Insert(
+        val `index`: kotlin.UInt, 
+        val `value`: org.matrix.rustcomponents.sdk.ThreadListItem) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The item at the given position was replaced.
+     */
+    data class Set(
+        val `index`: kotlin.UInt, 
+        val `value`: org.matrix.rustcomponents.sdk.ThreadListItem) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The item at the given position was removed.
+     */
+    data class Remove(
+        val `index`: kotlin.UInt) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The list was truncated to the given length.
+     */
+    data class Truncate(
+        val `length`: kotlin.UInt) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The whole list was replaced with new items.
+     */
+    data class Reset(
+        val `values`: List<org.matrix.rustcomponents.sdk.ThreadListItem>) : ThreadListUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is ThreadListUpdate.Append -> {
+                
+    Disposable.destroy(
+        this.`values`
+    )
+                
+            }
+            is ThreadListUpdate.Clear -> {// Nothing to destroy
+            }
+            is ThreadListUpdate.PushFront -> {
+                
+    Disposable.destroy(
+        this.`value`
+    )
+                
+            }
+            is ThreadListUpdate.PushBack -> {
+                
+    Disposable.destroy(
+        this.`value`
+    )
+                
+            }
+            is ThreadListUpdate.PopFront -> {// Nothing to destroy
+            }
+            is ThreadListUpdate.PopBack -> {// Nothing to destroy
+            }
+            is ThreadListUpdate.Insert -> {
+                
+    Disposable.destroy(
+        this.`index`,
+        this.`value`
+    )
+                
+            }
+            is ThreadListUpdate.Set -> {
+                
+    Disposable.destroy(
+        this.`index`,
+        this.`value`
+    )
+                
+            }
+            is ThreadListUpdate.Remove -> {
+                
+    Disposable.destroy(
+        this.`index`
+    )
+                
+            }
+            is ThreadListUpdate.Truncate -> {
+                
+    Disposable.destroy(
+        this.`length`
+    )
+                
+            }
+            is ThreadListUpdate.Reset -> {
+                
+    Disposable.destroy(
+        this.`values`
+    )
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeThreadListUpdate : FfiConverterRustBuffer<ThreadListUpdate>{
+    override fun read(buf: ByteBuffer): ThreadListUpdate {
+        return when(buf.getInt()) {
+            1 -> ThreadListUpdate.Append(
+                FfiConverterSequenceTypeThreadListItem.read(buf),
+                )
+            2 -> ThreadListUpdate.Clear
+            3 -> ThreadListUpdate.PushFront(
+                FfiConverterTypeThreadListItem.read(buf),
+                )
+            4 -> ThreadListUpdate.PushBack(
+                FfiConverterTypeThreadListItem.read(buf),
+                )
+            5 -> ThreadListUpdate.PopFront
+            6 -> ThreadListUpdate.PopBack
+            7 -> ThreadListUpdate.Insert(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeThreadListItem.read(buf),
+                )
+            8 -> ThreadListUpdate.Set(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeThreadListItem.read(buf),
+                )
+            9 -> ThreadListUpdate.Remove(
+                FfiConverterUInt.read(buf),
+                )
+            10 -> ThreadListUpdate.Truncate(
+                FfiConverterUInt.read(buf),
+                )
+            11 -> ThreadListUpdate.Reset(
+                FfiConverterSequenceTypeThreadListItem.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ThreadListUpdate) = when(value) {
+        is ThreadListUpdate.Append -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeThreadListItem.allocationSize(value.`values`)
+            )
+        }
+        is ThreadListUpdate.Clear -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ThreadListUpdate.PushFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeThreadListItem.allocationSize(value.`value`)
+            )
+        }
+        is ThreadListUpdate.PushBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeThreadListItem.allocationSize(value.`value`)
+            )
+        }
+        is ThreadListUpdate.PopFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ThreadListUpdate.PopBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ThreadListUpdate.Insert -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeThreadListItem.allocationSize(value.`value`)
+            )
+        }
+        is ThreadListUpdate.Set -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeThreadListItem.allocationSize(value.`value`)
+            )
+        }
+        is ThreadListUpdate.Remove -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+            )
+        }
+        is ThreadListUpdate.Truncate -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`length`)
+            )
+        }
+        is ThreadListUpdate.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeThreadListItem.allocationSize(value.`values`)
+            )
+        }
+    }
+
+    override fun write(value: ThreadListUpdate, buf: ByteBuffer) {
+        when(value) {
+            is ThreadListUpdate.Append -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeThreadListItem.write(value.`values`, buf)
+                Unit
+            }
+            is ThreadListUpdate.Clear -> {
+                buf.putInt(2)
+                Unit
+            }
+            is ThreadListUpdate.PushFront -> {
+                buf.putInt(3)
+                FfiConverterTypeThreadListItem.write(value.`value`, buf)
+                Unit
+            }
+            is ThreadListUpdate.PushBack -> {
+                buf.putInt(4)
+                FfiConverterTypeThreadListItem.write(value.`value`, buf)
+                Unit
+            }
+            is ThreadListUpdate.PopFront -> {
+                buf.putInt(5)
+                Unit
+            }
+            is ThreadListUpdate.PopBack -> {
+                buf.putInt(6)
+                Unit
+            }
+            is ThreadListUpdate.Insert -> {
+                buf.putInt(7)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeThreadListItem.write(value.`value`, buf)
+                Unit
+            }
+            is ThreadListUpdate.Set -> {
+                buf.putInt(8)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeThreadListItem.write(value.`value`, buf)
+                Unit
+            }
+            is ThreadListUpdate.Remove -> {
+                buf.putInt(9)
+                FfiConverterUInt.write(value.`index`, buf)
+                Unit
+            }
+            is ThreadListUpdate.Truncate -> {
+                buf.putInt(10)
+                FfiConverterUInt.write(value.`length`, buf)
+                Unit
+            }
+            is ThreadListUpdate.Reset -> {
+                buf.putInt(11)
+                FfiConverterSequenceTypeThreadListItem.write(value.`values`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class TimelineDiff: Disposable  {
     
     data class Append(
@@ -55727,6 +56981,75 @@ public object FfiConverterTypeSpaceServiceSpaceFiltersListener: FfiConverterCall
 
 
 /**
+ * A listener for the sync loop.
+ *
+ * Called after each successful sync response when using
+ * [`Client::sync_v2`](crate::client::Client::sync_v2).
+ */
+public interface SyncListenerV2 {
+    
+    /**
+     * Called after each successful sync response.
+     */
+    fun `onUpdate`(`response`: SyncResponseV2)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceSyncListenerV2 {
+    internal object `onUpdate`: UniffiCallbackInterfaceSyncListenerV2Method0 {
+        override fun callback(`uniffiHandle`: Long,`response`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeSyncListenerV2.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeSyncResponseV2.lift(`response`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeSyncListenerV2.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeSyncListenerV2.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceSyncListenerV2.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_synclistenerv2(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeSyncListenerV2: FfiConverterCallbackInterface<SyncListenerV2>()
+
+
+
+
+
+/**
  * A listener for notifications generated from sync responses.
  *
  * This is called during sync for each event that triggers a notification
@@ -55851,6 +57174,132 @@ internal object uniffiCallbackInterfaceSyncServiceStateObserver {
  * @suppress
  */
 public object FfiConverterTypeSyncServiceStateObserver: FfiConverterCallbackInterface<SyncServiceStateObserver>()
+
+
+
+
+
+/**
+ * Listener for changes to the [`ThreadListService`] item list.
+ */
+public interface ThreadListEntriesListener {
+    
+    fun `onUpdate`(`diff`: List<ThreadListUpdate>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceThreadListEntriesListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceThreadListEntriesListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`diff`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeThreadListEntriesListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterSequenceTypeThreadListUpdate.lift(`diff`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeThreadListEntriesListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeThreadListEntriesListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceThreadListEntriesListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistentrieslistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeThreadListEntriesListener: FfiConverterCallbackInterface<ThreadListEntriesListener>()
+
+
+
+
+
+/**
+ * Listener for changes to the [`ThreadListService`] pagination state.
+ */
+public interface ThreadListPaginationStateListener {
+    
+    fun `onUpdate`(`state`: ThreadListPaginationState)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceThreadListPaginationStateListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceThreadListPaginationStateListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`state`: RustBufferThreadListPaginationState.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeThreadListPaginationStateListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeThreadListPaginationState.lift(`state`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeThreadListPaginationStateListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeThreadListPaginationStateListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceThreadListPaginationStateListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistpaginationstatelistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeThreadListPaginationStateListener: FfiConverterCallbackInterface<ThreadListPaginationStateListener>()
 
 
 
@@ -57492,6 +58941,38 @@ public object FfiConverterOptionalTypeSuccessorRoom: FfiConverterRustBuffer<Succ
         } else {
             buf.put(1)
             FfiConverterTypeSuccessorRoom.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeThreadListItemEvent: FfiConverterRustBuffer<ThreadListItemEvent?> {
+    override fun read(buf: ByteBuffer): ThreadListItemEvent? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeThreadListItemEvent.read(buf)
+    }
+
+    override fun allocationSize(value: ThreadListItemEvent?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeThreadListItemEvent.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ThreadListItemEvent?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeThreadListItemEvent.write(value, buf)
         }
     }
 }
@@ -59978,6 +61459,34 @@ public object FfiConverterSequenceTypeSpaceListUpdate: FfiConverterRustBuffer<Li
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeThreadListUpdate: FfiConverterRustBuffer<List<ThreadListUpdate>> {
+    override fun read(buf: ByteBuffer): List<ThreadListUpdate> {
+        val len = buf.getInt()
+        return List<ThreadListUpdate>(len) {
+            FfiConverterTypeThreadListUpdate.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<ThreadListUpdate>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeThreadListUpdate.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<ThreadListUpdate>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeThreadListUpdate.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeTimelineDiff: FfiConverterRustBuffer<List<TimelineDiff>> {
     override fun read(buf: ByteBuffer): List<TimelineDiff> {
         val len = buf.getInt()
@@ -60416,6 +61925,8 @@ public object FfiConverterMapTypeTimelineEventTypeLong: FfiConverterRustBuffer<M
  */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
 
 
 

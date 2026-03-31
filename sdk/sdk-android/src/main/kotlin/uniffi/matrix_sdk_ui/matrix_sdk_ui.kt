@@ -1145,6 +1145,92 @@ public object FfiConverterTypeSpaceRoomListPaginationState : FfiConverterRustBuf
 
 
 /**
+ * The pagination state of a [`ThreadListService`].
+ */
+sealed class ThreadListPaginationState {
+    
+    /**
+     * The list is idle (not currently loading).
+     */
+    data class Idle(
+        /**
+         * Whether the end of the thread list has been reached (no more pages
+         * to load).
+         */
+        val `endReached`: kotlin.Boolean) : ThreadListPaginationState()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The list is currently loading the next page.
+     */
+    object Loading : ThreadListPaginationState()
+    
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeThreadListPaginationState : FfiConverterRustBuffer<ThreadListPaginationState>{
+    override fun read(buf: ByteBuffer): ThreadListPaginationState {
+        return when(buf.getInt()) {
+            1 -> ThreadListPaginationState.Idle(
+                FfiConverterBoolean.read(buf),
+                )
+            2 -> ThreadListPaginationState.Loading
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ThreadListPaginationState) = when(value) {
+        is ThreadListPaginationState.Idle -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`endReached`)
+            )
+        }
+        is ThreadListPaginationState.Loading -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: ThreadListPaginationState, buf: ByteBuffer) {
+        when(value) {
+            is ThreadListPaginationState.Idle -> {
+                buf.putInt(1)
+                FfiConverterBoolean.write(value.`endReached`, buf)
+                Unit
+            }
+            is ThreadListPaginationState.Loading -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
  * Options for controlling the behaviour of [`TimelineFocus::Event`]
  * for threaded events.
  */
