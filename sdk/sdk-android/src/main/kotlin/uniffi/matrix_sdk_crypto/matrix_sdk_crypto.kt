@@ -1576,7 +1576,7 @@ public object FfiConverterTypeCrossSigningSecrets: FfiConverter<CrossSigningSecr
 
 
 /**
- * Struct containing the bundle of secrets to fully activate a new devices for
+ * Struct containing the bundle of secrets to fully activate a new device for
  * end-to-end encryption.
  */
 public interface SecretsBundleInterface {
@@ -1585,7 +1585,7 @@ public interface SecretsBundleInterface {
 }
 
 /**
- * Struct containing the bundle of secrets to fully activate a new devices for
+ * Struct containing the bundle of secrets to fully activate a new device for
  * end-to-end encryption.
  */
 open class SecretsBundle: Disposable, AutoCloseable, SecretsBundleInterface
