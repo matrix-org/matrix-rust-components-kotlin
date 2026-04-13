@@ -748,6 +748,9 @@ internal interface UniffiCallbackInterfaceRecoveryStateListenerMethod0 : com.sun
 internal interface UniffiCallbackInterfaceVerificationStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceLiveLocationShareListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`updates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceNotificationSettingsDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -771,9 +774,6 @@ internal interface UniffiCallbackInterfaceIdentityStatusChangeListenerMethod0 : 
 }
 internal interface UniffiCallbackInterfaceKnockRequestsListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`joinRequests`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
-}
-internal interface UniffiCallbackInterfaceLiveLocationShareListenerMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`liveLocationShares`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceRoomInfoListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomInfo`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -1169,6 +1169,25 @@ internal open class UniffiVTableCallbackInterfaceVerificationStateListener(
     }
 
 }
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceLiveLocationShareListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceLiveLocationShareListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLiveLocationShareListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "settingsDidChange")
 internal open class UniffiVTableCallbackInterfaceNotificationSettingsDelegate(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
@@ -1315,25 +1334,6 @@ internal open class UniffiVTableCallbackInterfaceKnockRequestsListener(
     ): UniffiVTableCallbackInterfaceKnockRequestsListener(`uniffiFree`,`uniffiClone`,`call`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceKnockRequestsListener) {
-        `uniffiFree` = other.`uniffiFree`
-        `uniffiClone` = other.`uniffiClone`
-        `call` = other.`call`
-    }
-
-}
-@Structure.FieldOrder("uniffiFree", "uniffiClone", "call")
-internal open class UniffiVTableCallbackInterfaceLiveLocationShareListener(
-    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-    @JvmField internal var `call`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
-) : Structure() {
-    class UniffiByValue(
-        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-        `call`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
-    ): UniffiVTableCallbackInterfaceLiveLocationShareListener(`uniffiFree`,`uniffiClone`,`call`,), Structure.ByValue
-
-   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLiveLocationShareListener) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `call` = other.`call`
@@ -2218,6 +2218,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_eve
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationshares_subscribe(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notifications(
@@ -2378,6 +2380,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_event(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_live_location_shares(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
@@ -2461,8 +2465,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_declin
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_live_location_shares(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
 ): Short
@@ -2704,7 +2706,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_latest_content_raw(
+external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_latest_json(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel(
 ): Short
@@ -2876,6 +2878,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_upda
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_on_update(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update(
@@ -2891,8 +2895,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_calldeclinelistener_call(
 external fun uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestslistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_call(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call(
 ): Short
@@ -3442,6 +3444,12 @@ external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_thread_root_event_id(
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_timestamp(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_clone_livelocationshares(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_livelocationshares(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_livelocationshares_subscribe(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3646,6 +3654,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_latest_event(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_live_location_shares(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
@@ -3729,8 +3739,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_call_decline_even
 external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(`ptr`: Long,`listener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_knock_requests(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_live_location_shares(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -4058,7 +4066,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_send_h
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_shields(`ptr`: Long,`strict`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_latest_content_raw(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_latest_json(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_clone_sendattachmentjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -4250,6 +4258,8 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_recoverystatelistener
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(`vtable`: UniffiVTableCallbackInterfaceVerificationStateListener,
 ): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationShareListener,
+): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_generatedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener,
@@ -4265,8 +4275,6 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_calldeclinelistener(`
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(`vtable`: UniffiVTableCallbackInterfaceIdentityStatusChangeListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_knockrequestslistener(`vtable`: UniffiVTableCallbackInterfaceKnockRequestsListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationShareListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roominfolistener(`vtable`: UniffiVTableCallbackInterfaceRoomInfoListener,
 ): Unit
@@ -4312,6 +4320,18 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_unabletodecryptdelega
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_widgetcapabilitiesprovider(`vtable`: UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider,
 ): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Byte
+external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(uniffi_out_err: UniffiRustCallStatus, 
@@ -12433,11 +12453,11 @@ public interface LazyTimelineItemProviderInterface {
     fun `getShields`(`strict`: kotlin.Boolean): ShieldState
     
     /**
-     * Returns the JSON string of the event's `content` field from the latest
-     * version (including edits). Returns `None` for local echoes that haven't
-     * been echoed back by the server yet.
+     * Returns the full raw JSON string of the latest version of the event
+     * (including edits). Returns `None` for local echoes that haven't been
+     * echoed back by the server yet.
      */
-    fun `latestContentRaw`(): kotlin.String?
+    fun `latestJson`(): kotlin.String?
     
     companion object
 }
@@ -12605,14 +12625,14 @@ open class LazyTimelineItemProvider: Disposable, AutoCloseable, LazyTimelineItem
 
     
     /**
-     * Returns the JSON string of the event's `content` field from the latest
-     * version (including edits). Returns `None` for local echoes that haven't
-     * been echoed back by the server yet.
-     */override fun `latestContentRaw`(): kotlin.String? {
+     * Returns the full raw JSON string of the latest version of the event
+     * (including edits). Returns `None` for local echoes that haven't been
+     * echoed back by the server yet.
+     */override fun `latestJson`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_latest_content_raw(
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_latest_json(
         it,
         _status)
 }
@@ -12959,6 +12979,292 @@ public object FfiConverterTypeLeaveSpaceHandle: FfiConverter<LeaveSpaceHandle, L
     override fun allocationSize(value: LeaveSpaceHandle) = 8UL
 
     override fun write(value: LeaveSpaceHandle, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+/**
+ * Tracks active live location shares in a room.
+ *
+ * Holds the SDK [`SdkLiveLocationShares`] which keeps the beacon and
+ * beacon_info event handlers registered for as long as this object is alive.
+ * Call [`LiveLocationShares::subscribe`] to start receiving updates.
+ */
+public interface LiveLocationSharesInterface {
+    
+    /**
+     * Subscribe to changes in the list of active live location shares.
+     *
+     * Immediately calls `listener` with a `Reset` update containing the
+     * current snapshot (if non-empty), then calls it again for every
+     * subsequent change that arrives from sync.
+     *
+     * Returns a [`TaskHandle`] that, when dropped, stops the listener.
+     * The event handlers remain registered for as long as this
+     * [`LiveLocationShares`] object is alive.
+     */
+    fun `subscribe`(`listener`: LiveLocationShareListener): TaskHandle
+    
+    companion object
+}
+
+/**
+ * Tracks active live location shares in a room.
+ *
+ * Holds the SDK [`SdkLiveLocationShares`] which keeps the beacon and
+ * beacon_info event handlers registered for as long as this object is alive.
+ * Call [`LiveLocationShares::subscribe`] to start receiving updates.
+ */
+open class LiveLocationShares: Disposable, AutoCloseable, LiveLocationSharesInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_livelocationshares(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_livelocationshares(handle, status)
+        }
+    }
+
+    
+    /**
+     * Subscribe to changes in the list of active live location shares.
+     *
+     * Immediately calls `listener` with a `Reset` update containing the
+     * current snapshot (if non-empty), then calls it again for every
+     * subsequent change that arrives from sync.
+     *
+     * Returns a [`TaskHandle`] that, when dropped, stops the listener.
+     * The event handlers remain registered for as long as this
+     * [`LiveLocationShares`] object is alive.
+     */override fun `subscribe`(`listener`: LiveLocationShareListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_livelocationshares_subscribe(
+        it,
+        FfiConverterTypeLiveLocationShareListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLiveLocationShares: FfiConverter<LiveLocationShares, Long> {
+    override fun lower(value: LiveLocationShares): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): LiveLocationShares {
+        return LiveLocationShares(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): LiveLocationShares {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: LiveLocationShares) = 8UL
+
+    override fun write(value: LiveLocationShares, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -15860,6 +16166,17 @@ public interface RoomInterface {
     suspend fun `leave`()
     
     /**
+     * Returns the active live location shares for this room.
+     *
+     * The returned [`LiveLocationShares`] object tracks which users are
+     * currently sharing their live location. It keeps the underlying event
+     * handlers registered — and therefore the share list up-to-date — for as
+     * long as it is alive. Call [`LiveLocationShares::subscribe`] on it to
+     * receive an initial snapshot and a stream of incremental updates.
+     */
+    suspend fun `liveLocationShares`(): LiveLocationShares
+    
+    /**
      * Retrieve the `ComposerDraft` stored in the state store for this room.
      */
     suspend fun `loadComposerDraft`(`threadRoot`: kotlin.String?): ComposerDraft?
@@ -16132,15 +16449,6 @@ public interface RoomInterface {
      * subscription.
      */
     suspend fun `subscribeToKnockRequests`(`listener`: KnockRequestsListener): TaskHandle
-    
-    /**
-     * Subscribes to live location shares in this room, using a `listener` to
-     * be notified of the changes.
-     *
-     * The current live location shares will be emitted immediately when
-     * subscribing, along with a [`TaskHandle`] to cancel the subscription.
-     */
-    fun `subscribeToLiveLocationShares`(`listener`: LiveLocationShareListener): TaskHandle
     
     fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle
     
@@ -17177,6 +17485,35 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         
         // Error FFI converter
         ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the active live location shares for this room.
+     *
+     * The returned [`LiveLocationShares`] object tracks which users are
+     * currently sharing their live location. It keeps the underlying event
+     * handlers registered — and therefore the share list up-to-date — for as
+     * long as it is alive. Call [`LiveLocationShares::subscribe`] on it to
+     * receive an initial snapshot and a stream of incremental updates.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `liveLocationShares`() : LiveLocationShares {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_live_location_shares(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeLiveLocationShares.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -18230,26 +18567,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         ClientException.ErrorHandler,
     )
     }
-
-    
-    /**
-     * Subscribes to live location shares in this room, using a `listener` to
-     * be notified of the changes.
-     *
-     * The current live location shares will be emitted immediately when
-     * subscribing, along with a [`TaskHandle`] to cancel the subscription.
-     */override fun `subscribeToLiveLocationShares`(`listener`: LiveLocationShareListener): TaskHandle {
-            return FfiConverterTypeTaskHandle.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_live_location_shares(
-        it,
-        FfiConverterTypeLiveLocationShareListener.lower(`listener`),_status)
-}
-    }
-    )
-    }
-    
 
     override fun `subscribeToRoomInfoUpdates`(`listener`: RoomInfoListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -32495,15 +32812,17 @@ public object FfiConverterTypeKnockRequest: FfiConverterRustBuffer<KnockRequest>
 
 
 
+/**
+ * Details of the last known location beacon.
+ */
 data class LastLocation (
     /**
-     * The most recent location content of the user.
+     * The most recent location content shared for this asset.
      */
     var `location`: LocationContent
     , 
     /**
-     * A timestamp in milliseconds since Unix Epoch on that day in local
-     * time.
+     * The timestamp of when the location was updated.
      */
     var `ts`: kotlin.ULong
     
@@ -32749,23 +33068,29 @@ public object FfiConverterTypeLiveLocationContent: FfiConverterRustBuffer<LiveLo
 
 
 /**
- * Details of a users live location share.
+ * Details of a user's live location share.
  */
 data class LiveLocationShare (
     /**
-     * The user's last known location.
+     * The asset's last known location.
      */
-    var `lastLocation`: LastLocation
-    , 
-    /**
-     * The live status of the live location share.
-     */
-    var `isLive`: kotlin.Boolean
+    var `lastLocation`: LastLocation?
     , 
     /**
      * The user ID of the person sharing their live location.
      */
     var `userId`: kotlin.String
+    , 
+    /**
+     * The time when location sharing started.
+     */
+    var `startTs`: kotlin.ULong
+    , 
+    /**
+     * The duration that the location sharing will be live.
+     * Meaning that the location will stop being shared at ts + timeout.
+     */
+    var `timeout`: kotlin.ULong
     
 ){
     
@@ -32782,22 +33107,25 @@ data class LiveLocationShare (
 public object FfiConverterTypeLiveLocationShare: FfiConverterRustBuffer<LiveLocationShare> {
     override fun read(buf: ByteBuffer): LiveLocationShare {
         return LiveLocationShare(
-            FfiConverterTypeLastLocation.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypeLastLocation.read(buf),
             FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
         )
     }
 
     override fun allocationSize(value: LiveLocationShare) = (
-            FfiConverterTypeLastLocation.allocationSize(value.`lastLocation`) +
-            FfiConverterBoolean.allocationSize(value.`isLive`) +
-            FfiConverterString.allocationSize(value.`userId`)
+            FfiConverterOptionalTypeLastLocation.allocationSize(value.`lastLocation`) +
+            FfiConverterString.allocationSize(value.`userId`) +
+            FfiConverterULong.allocationSize(value.`startTs`) +
+            FfiConverterULong.allocationSize(value.`timeout`)
     )
 
     override fun write(value: LiveLocationShare, buf: ByteBuffer) {
-            FfiConverterTypeLastLocation.write(value.`lastLocation`, buf)
-            FfiConverterBoolean.write(value.`isLive`, buf)
+            FfiConverterOptionalTypeLastLocation.write(value.`lastLocation`, buf)
             FfiConverterString.write(value.`userId`, buf)
+            FfiConverterULong.write(value.`startTs`, buf)
+            FfiConverterULong.write(value.`timeout`, buf)
     }
 }
 
@@ -44033,6 +44361,290 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
 
 
 
+/**
+ * An update to the list of active live location shares.
+ *
+ * Corresponds to a [`VectorDiff`] on the underlying [`ObservableVector`].
+ *
+ * [`ObservableVector`]: eyeball_im::ObservableVector
+ */
+sealed class LiveLocationShareUpdate {
+    
+    data class Append(
+        val `values`: List<org.matrix.rustcomponents.sdk.LiveLocationShare>) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    object Clear : LiveLocationShareUpdate()
+    
+    
+    data class PushFront(
+        val `value`: org.matrix.rustcomponents.sdk.LiveLocationShare) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class PushBack(
+        val `value`: org.matrix.rustcomponents.sdk.LiveLocationShare) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    object PopFront : LiveLocationShareUpdate()
+    
+    
+    object PopBack : LiveLocationShareUpdate()
+    
+    
+    data class Insert(
+        val `index`: kotlin.UInt, 
+        val `value`: org.matrix.rustcomponents.sdk.LiveLocationShare) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Set(
+        val `index`: kotlin.UInt, 
+        val `value`: org.matrix.rustcomponents.sdk.LiveLocationShare) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Remove(
+        val `index`: kotlin.UInt) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Truncate(
+        val `length`: kotlin.UInt) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Reset(
+        val `values`: List<org.matrix.rustcomponents.sdk.LiveLocationShare>) : LiveLocationShareUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLiveLocationShareUpdate : FfiConverterRustBuffer<LiveLocationShareUpdate>{
+    override fun read(buf: ByteBuffer): LiveLocationShareUpdate {
+        return when(buf.getInt()) {
+            1 -> LiveLocationShareUpdate.Append(
+                FfiConverterSequenceTypeLiveLocationShare.read(buf),
+                )
+            2 -> LiveLocationShareUpdate.Clear
+            3 -> LiveLocationShareUpdate.PushFront(
+                FfiConverterTypeLiveLocationShare.read(buf),
+                )
+            4 -> LiveLocationShareUpdate.PushBack(
+                FfiConverterTypeLiveLocationShare.read(buf),
+                )
+            5 -> LiveLocationShareUpdate.PopFront
+            6 -> LiveLocationShareUpdate.PopBack
+            7 -> LiveLocationShareUpdate.Insert(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeLiveLocationShare.read(buf),
+                )
+            8 -> LiveLocationShareUpdate.Set(
+                FfiConverterUInt.read(buf),
+                FfiConverterTypeLiveLocationShare.read(buf),
+                )
+            9 -> LiveLocationShareUpdate.Remove(
+                FfiConverterUInt.read(buf),
+                )
+            10 -> LiveLocationShareUpdate.Truncate(
+                FfiConverterUInt.read(buf),
+                )
+            11 -> LiveLocationShareUpdate.Reset(
+                FfiConverterSequenceTypeLiveLocationShare.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: LiveLocationShareUpdate) = when(value) {
+        is LiveLocationShareUpdate.Append -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeLiveLocationShare.allocationSize(value.`values`)
+            )
+        }
+        is LiveLocationShareUpdate.Clear -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is LiveLocationShareUpdate.PushFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeLiveLocationShare.allocationSize(value.`value`)
+            )
+        }
+        is LiveLocationShareUpdate.PushBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeLiveLocationShare.allocationSize(value.`value`)
+            )
+        }
+        is LiveLocationShareUpdate.PopFront -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is LiveLocationShareUpdate.PopBack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is LiveLocationShareUpdate.Insert -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeLiveLocationShare.allocationSize(value.`value`)
+            )
+        }
+        is LiveLocationShareUpdate.Set -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+                + FfiConverterTypeLiveLocationShare.allocationSize(value.`value`)
+            )
+        }
+        is LiveLocationShareUpdate.Remove -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`index`)
+            )
+        }
+        is LiveLocationShareUpdate.Truncate -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterUInt.allocationSize(value.`length`)
+            )
+        }
+        is LiveLocationShareUpdate.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeLiveLocationShare.allocationSize(value.`values`)
+            )
+        }
+    }
+
+    override fun write(value: LiveLocationShareUpdate, buf: ByteBuffer) {
+        when(value) {
+            is LiveLocationShareUpdate.Append -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeLiveLocationShare.write(value.`values`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.Clear -> {
+                buf.putInt(2)
+                Unit
+            }
+            is LiveLocationShareUpdate.PushFront -> {
+                buf.putInt(3)
+                FfiConverterTypeLiveLocationShare.write(value.`value`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.PushBack -> {
+                buf.putInt(4)
+                FfiConverterTypeLiveLocationShare.write(value.`value`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.PopFront -> {
+                buf.putInt(5)
+                Unit
+            }
+            is LiveLocationShareUpdate.PopBack -> {
+                buf.putInt(6)
+                Unit
+            }
+            is LiveLocationShareUpdate.Insert -> {
+                buf.putInt(7)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeLiveLocationShare.write(value.`value`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.Set -> {
+                buf.putInt(8)
+                FfiConverterUInt.write(value.`index`, buf)
+                FfiConverterTypeLiveLocationShare.write(value.`value`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.Remove -> {
+                buf.putInt(9)
+                FfiConverterUInt.write(value.`index`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.Truncate -> {
+                buf.putInt(10)
+                FfiConverterUInt.write(value.`length`, buf)
+                Unit
+            }
+            is LiveLocationShareUpdate.Reset -> {
+                buf.putInt(11)
+                FfiConverterSequenceTypeLiveLocationShare.write(value.`values`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 enum class LogLevel {
     
@@ -53541,6 +54153,25 @@ sealed class TagName {
     {
         
 
+    // The local Rust `Eq` implementation - only `eq` is used.
+    override fun equals(other: Any?): Boolean {
+        if (other !is TagName) return false
+        return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(FfiConverterTypeTagName.lower(this),
+        FfiConverterTypeTagName.lower(`other`),_status)
+}
+    )
+    }
+    // The local Rust `Hash` implementation
+    override fun hashCode(): Int {
+        return FfiConverterULong.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_hash(FfiConverterTypeTagName.lower(this),
+        _status)
+}
+    ).toInt()
+    }
         companion object
     }
     
@@ -53550,6 +54181,25 @@ sealed class TagName {
     
     
 
+    // The local Rust `Eq` implementation - only `eq` is used.
+    override fun equals(other: Any?): Boolean {
+        if (other !is TagName) return false
+        return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(FfiConverterTypeTagName.lower(this),
+        FfiConverterTypeTagName.lower(`other`),_status)
+}
+    )
+    }
+    // The local Rust `Hash` implementation
+    override fun hashCode(): Int {
+        return FfiConverterULong.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_hash(FfiConverterTypeTagName.lower(this),
+        _status)
+}
+    ).toInt()
+    }
 
     companion object
 }
@@ -54474,6 +55124,25 @@ sealed class TimelineEventType {
     {
         
 
+    // The local Rust `Eq` implementation - only `eq` is used.
+    override fun equals(other: Any?): Boolean {
+        if (other !is TimelineEventType) return false
+        return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeTimelineEventType.lower(this),
+        FfiConverterTypeTimelineEventType.lower(`other`),_status)
+}
+    )
+    }
+    // The local Rust `Hash` implementation
+    override fun hashCode(): Int {
+        return FfiConverterULong.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_hash(FfiConverterTypeTimelineEventType.lower(this),
+        _status)
+}
+    ).toInt()
+    }
         companion object
     }
     
@@ -54487,6 +55156,25 @@ sealed class TimelineEventType {
     {
         
 
+    // The local Rust `Eq` implementation - only `eq` is used.
+    override fun equals(other: Any?): Boolean {
+        if (other !is TimelineEventType) return false
+        return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeTimelineEventType.lower(this),
+        FfiConverterTypeTimelineEventType.lower(`other`),_status)
+}
+    )
+    }
+    // The local Rust `Hash` implementation
+    override fun hashCode(): Int {
+        return FfiConverterULong.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_hash(FfiConverterTypeTimelineEventType.lower(this),
+        _status)
+}
+    ).toInt()
+    }
         companion object
     }
     
@@ -54496,6 +55184,25 @@ sealed class TimelineEventType {
     
     
 
+    // The local Rust `Eq` implementation - only `eq` is used.
+    override fun equals(other: Any?): Boolean {
+        if (other !is TimelineEventType) return false
+        return FfiConverterBoolean.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeTimelineEventType.lower(this),
+        FfiConverterTypeTimelineEventType.lower(`other`),_status)
+}
+    )
+    }
+    // The local Rust `Hash` implementation
+    override fun hashCode(): Int {
+        return FfiConverterULong.lift(
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timelineeventtype_uniffi_trait_hash(FfiConverterTypeTimelineEventType.lower(this),
+        _status)
+}
+    ).toInt()
+    }
 
     companion object
 }
@@ -56677,11 +57384,15 @@ public object FfiConverterTypeKnockRequestsListener: FfiConverterCallbackInterfa
 
 
 /**
- * A listener for receiving new live location shares in a room.
+ * Listener for live location share updates.
  */
 public interface LiveLocationShareListener {
     
-    fun `call`(`liveLocationShares`: List<LiveLocationShare>)
+    /**
+     * Called with a batch of [`LiveLocationShareUpdate`]s whenever the list
+     * of active shares changes.
+     */
+    fun `onUpdate`(`updates`: List<LiveLocationShareUpdate>)
     
     companion object
 }
@@ -56690,12 +57401,12 @@ public interface LiveLocationShareListener {
 
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceLiveLocationShareListener {
-    internal object `call`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0 {
-        override fun callback(`uniffiHandle`: Long,`liveLocationShares`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+    internal object `onUpdate`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`updates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeLiveLocationShareListener.handleMap.get(uniffiHandle)
             val makeCall = { ->
-                uniffiObj.`call`(
-                    FfiConverterSequenceTypeLiveLocationShare.lift(`liveLocationShares`),
+                uniffiObj.`onUpdate`(
+                    FfiConverterSequenceTypeLiveLocationShareUpdate.lift(`updates`),
                 )
             }
             val writeReturn = { _: Unit -> Unit }
@@ -56718,7 +57429,7 @@ internal object uniffiCallbackInterfaceLiveLocationShareListener {
     internal var vtable = UniffiVTableCallbackInterfaceLiveLocationShareListener.UniffiByValue(
         uniffiFree,
         uniffiClone,
-        `call`,
+        `onUpdate`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -59666,6 +60377,38 @@ public object FfiConverterOptionalTypeImageInfo: FfiConverterRustBuffer<ImageInf
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeLastLocation: FfiConverterRustBuffer<LastLocation?> {
+    override fun read(buf: ByteBuffer): LastLocation? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeLastLocation.read(buf)
+    }
+
+    override fun allocationSize(value: LastLocation?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeLastLocation.allocationSize(value)
+        }
+    }
+
+    override fun write(value: LastLocation?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeLastLocation.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeMatrixEntity: FfiConverterRustBuffer<MatrixEntity?> {
     override fun read(buf: ByteBuffer): MatrixEntity? {
         if (buf.get().toInt() == 0) {
@@ -62364,6 +63107,34 @@ public object FfiConverterSequenceTypeGalleryItemType: FfiConverterRustBuffer<Li
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeGalleryItemType.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeLiveLocationShareUpdate: FfiConverterRustBuffer<List<LiveLocationShareUpdate>> {
+    override fun read(buf: ByteBuffer): List<LiveLocationShareUpdate> {
+        val len = buf.getInt()
+        return List<LiveLocationShareUpdate>(len) {
+            FfiConverterTypeLiveLocationShareUpdate.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<LiveLocationShareUpdate>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeLiveLocationShareUpdate.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<LiveLocationShareUpdate>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeLiveLocationShareUpdate.write(it, buf)
         }
     }
 }
