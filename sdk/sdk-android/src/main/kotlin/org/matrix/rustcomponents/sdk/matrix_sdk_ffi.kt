@@ -2014,6 +2014,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_session(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_account_data(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_avatar_url(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_delegate(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
@@ -2692,6 +2694,10 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_timeline_limit(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_share_pos(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
@@ -3201,6 +3207,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_server_vendor_info(`ptr`: Lo
 external fun uniffi_matrix_sdk_ffi_fn_method_client_session(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(`ptr`: Long,`url`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -4043,6 +4051,10 @@ external fun uniffi_matrix_sdk_ffi_fn_free_syncservicebuilder(`handle`: Long,uni
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_connection_id(`ptr`: Long,`connectionId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_timeline_limit(`ptr`: Long,`limit`: Int,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_share_pos(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -5893,6 +5905,11 @@ public interface ClientInterface {
      * It should be supplied as a JSON string.
      */
     suspend fun `setAccountData`(`eventType`: kotlin.String, `content`: kotlin.String)
+    
+    /**
+     * Updates the user's avatar using the provided MXC url.
+     */
+    suspend fun `setAvatarUrl`(`url`: kotlin.String)
     
     /**
      * Sets the [ClientDelegate] which will inform about authentication errors.
@@ -7883,6 +7900,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(
                 uniffiHandle,
                 FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Updates the user's avatar using the provided MXC url.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setAvatarUrl`(`url`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(
+                uniffiHandle,
+                FfiConverterString.lower(`url`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -26794,6 +26836,24 @@ public interface SyncServiceBuilderInterface {
      */
     fun `withOfflineMode`(): SyncServiceBuilder
     
+    /**
+     * Set a custom Sliding Sync connection ID for the room list service.
+     *
+     * By default [`matrix_sdk_ui::room_list_service::DEFAULT_CONNECTION_ID`]
+     * is used. Set a different value for secondary processes such as iOS
+     * Share Extensions that are not meant to reuse the main app's
+     * connection.
+     */
+    fun `withRoomListConnectionId`(`connectionId`: kotlin.String): SyncServiceBuilder
+    
+    /**
+     * Set a custom timeline limit for the room list service.
+     *
+     * When set, overrides the default timeline limit of
+     * [`matrix_sdk_ui::room_list_service::DEFAULT_LIST_TIMELINE_LIMIT`].
+     */
+    fun `withRoomListTimelineLimit`(`limit`: kotlin.UInt): SyncServiceBuilder
+    
     fun `withSharePos`(`enable`: kotlin.Boolean): SyncServiceBuilder
     
     companion object
@@ -26926,6 +26986,46 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(
         it,
         _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set a custom Sliding Sync connection ID for the room list service.
+     *
+     * By default [`matrix_sdk_ui::room_list_service::DEFAULT_CONNECTION_ID`]
+     * is used. Set a different value for secondary processes such as iOS
+     * Share Extensions that are not meant to reuse the main app's
+     * connection.
+     */override fun `withRoomListConnectionId`(`connectionId`: kotlin.String): SyncServiceBuilder {
+            return FfiConverterTypeSyncServiceBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_connection_id(
+        it,
+        FfiConverterString.lower(`connectionId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set a custom timeline limit for the room list service.
+     *
+     * When set, overrides the default timeline limit of
+     * [`matrix_sdk_ui::room_list_service::DEFAULT_LIST_TIMELINE_LIMIT`].
+     */override fun `withRoomListTimelineLimit`(`limit`: kotlin.UInt): SyncServiceBuilder {
+            return FfiConverterTypeSyncServiceBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_timeline_limit(
+        it,
+        FfiConverterUInt.lower(`limit`),_status)
 }
     }
     )
