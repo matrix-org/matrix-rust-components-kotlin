@@ -1988,6 +1988,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_request_openid_token(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known(
@@ -2072,6 +2074,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_add_recent_emoji(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_messages(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_avatar(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_displayname(
@@ -2143,6 +2147,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_search_index_store(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server(
 ): Short
@@ -2504,6 +2510,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_search_messages(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
@@ -2605,6 +2613,10 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_de
 external fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_url(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_globalsearchiterator_next_events(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_roomsearchiterator_next_events(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request(
 ): Short
@@ -3182,6 +3194,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handle
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_remove_avatar(`ptr`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_request_openid_token(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_supported_versions(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_well_known(`ptr`: Long,
@@ -3265,6 +3279,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_user_id_server_name(`ptr`: L
 external fun uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(`ptr`: Long,`emoji`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_get_recent_emojis(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_search_messages(`ptr`: Long,`query`: RustBuffer.ByValue,`filter`: RustBuffer.ByValue,`numResultsPerBatch`: Int,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_homeservercapabilities(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3351,6 +3367,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Long,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(`ptr`: Long,`username`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_search_index_store(`ptr`: Long,`path`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_encryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3784,6 +3802,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Long,`mim
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Long,`userIds`: RustBuffer.ByValue,`sendHandle`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_search_messages(`ptr`: Long,`query`: RustBuffer.ByValue,`numResultsPerBatch`: Int,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3930,6 +3950,18 @@ external fun uniffi_matrix_sdk_ffi_fn_method_mediasource_to_json(`ptr`: Long,uni
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_mediasource_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_clone_globalsearchiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_globalsearchiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_globalsearchiterator_next_events(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_clone_roomsearchiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_roomsearchiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_roomsearchiterator_next_events(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_sessionverificationcontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -5575,6 +5607,9 @@ public interface ClientInterface {
      *
      * This is an experimental feature, and might cause performance issues on
      * large accounts. Use with caution.
+     *
+     * This must be called after creating a client, but before subscribing to
+     * the event cache (so, before spawning a sync service or a timeline).
      */
     fun `enableAutomaticBackpagination`()
     
@@ -5821,6 +5856,8 @@ public interface ClientInterface {
     suspend fun `registerNotificationHandler`(`listener`: SyncNotificationListener)
     
     suspend fun `removeAvatar`()
+    
+    suspend fun `requestOpenidToken`(): OpenIdToken
     
     /**
      * Empty the server version and unstable features cache.
@@ -6087,6 +6124,12 @@ public interface ClientInterface {
      * `io.element.recent_emoji` global account data.
      */
     suspend fun `getRecentEmojis`(): List<RecentEmoji>
+    
+    /**
+     * Search across all all rooms for the given query, returning an iterator
+     * over the results.
+     */
+    suspend fun `searchMessages`(`query`: kotlin.String, `filter`: SearchRoomFilter, `numResultsPerBatch`: kotlin.UInt): GlobalSearchIterator
     
     companion object
 }
@@ -6608,6 +6651,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * This is an experimental feature, and might cause performance issues on
      * large accounts. Use with caution.
+     *
+     * This must be called after creating a client, but before subscribing to
+     * the event cache (so, before spawning a sync service or a timeline).
      */override fun `enableAutomaticBackpagination`()
         = 
     callWithHandle {
@@ -7609,6 +7655,27 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     }
 
     
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `requestOpenidToken`() : OpenIdToken {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_request_openid_token(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeOpenIdToken.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
     /**
      * Empty the server version and unstable features cache.
      *
@@ -8588,6 +8655,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     }
 
     
+    /**
+     * Search across all all rooms for the given query, returning an iterator
+     * over the results.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `searchMessages`(`query`: kotlin.String, `filter`: SearchRoomFilter, `numResultsPerBatch`: kotlin.UInt) : GlobalSearchIterator {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_search_messages(
+                uniffiHandle,
+                FfiConverterString.lower(`query`),FfiConverterTypeSearchRoomFilter.lower(`filter`),FfiConverterUInt.lower(`numResultsPerBatch`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeGlobalSearchIterator.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
 
     
 
@@ -8831,6 +8923,21 @@ public interface ClientBuilderInterface {
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
     
     fun `username`(`username`: kotlin.String): ClientBuilder
+    
+    /**
+     * Set up the search index store for this client, which is used to store
+     * the message search index locally.
+     *
+     * As soon as this is enabled, messages will start to be indexed, and can
+     * be later queried for search.
+     *
+     * `path` is the directory where the search index will be stored. It must
+     * be unique per session.
+     *
+     * `password` is an optional password to encrypt the search index at rest.
+     * If `None`, the search index will be stored unencrypted.
+     */
+    fun `withSearchIndexStore`(`path`: kotlin.String, `password`: kotlin.String?): ClientBuilder
     
     companion object
 }
@@ -9336,6 +9443,32 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(
         it,
         FfiConverterString.lower(`username`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set up the search index store for this client, which is used to store
+     * the message search index locally.
+     *
+     * As soon as this is enabled, messages will start to be indexed, and can
+     * be later queried for search.
+     *
+     * `path` is the directory where the search index will be stored. It must
+     * be unique per session.
+     *
+     * `password` is an optional password to encrypt the search index at rest.
+     * If `None`, the search index will be stored unencrypted.
+     */override fun `withSearchIndexStore`(`path`: kotlin.String, `password`: kotlin.String?): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_search_index_store(
+        it,
+        FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`password`),_status)
 }
     }
     )
@@ -10260,6 +10393,272 @@ public object FfiConverterTypeEncryption: FfiConverter<Encryption, Long> {
     override fun allocationSize(value: Encryption) = 8UL
 
     override fun write(value: Encryption, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface GlobalSearchIteratorInterface {
+    
+    /**
+     * Return a list of events for the next batch of search results, or `None`
+     * if there are no more results.
+     */
+    suspend fun `nextEvents`(): List<GlobalSearchResult>?
+    
+    companion object
+}
+
+open class GlobalSearchIterator: Disposable, AutoCloseable, GlobalSearchIteratorInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_globalsearchiterator(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_globalsearchiterator(handle, status)
+        }
+    }
+
+    
+    /**
+     * Return a list of events for the next batch of search results, or `None`
+     * if there are no more results.
+     */
+    @Throws(SearchException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `nextEvents`() : List<GlobalSearchResult>? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_globalsearchiterator_next_events(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalSequenceTypeGlobalSearchResult.lift(it) },
+        // Error FFI converter
+        SearchException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGlobalSearchIterator: FfiConverter<GlobalSearchIterator, Long> {
+    override fun lower(value: GlobalSearchIterator): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): GlobalSearchIterator {
+        return GlobalSearchIterator(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): GlobalSearchIterator {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: GlobalSearchIterator) = 8UL
+
+    override fun write(value: GlobalSearchIterator, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -16601,6 +17000,13 @@ public interface RoomInterface {
      */
     suspend fun `withdrawVerificationAndResend`(`userIds`: List<kotlin.String>, `sendHandle`: SendHandle)
     
+    /**
+     * Search for messages in this room matching the given query, returning an
+     * iterator over the results that yields `num_results_per_batch` results at
+     * a time.
+     */
+    fun `searchMessages`(`query`: kotlin.String, `numResultsPerBatch`: kotlin.UInt): RoomSearchIterator
+    
     companion object
 }
 
@@ -19029,6 +19435,24 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Search for messages in this room matching the given query, returning an
+     * iterator over the results that yields `num_results_per_batch` results at
+     * a time.
+     */override fun `searchMessages`(`query`: kotlin.String, `numResultsPerBatch`: kotlin.UInt): RoomSearchIterator {
+            return FfiConverterTypeRoomSearchIterator.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_search_messages(
+        it,
+        FfiConverterString.lower(`query`),FfiConverterUInt.lower(`numResultsPerBatch`),_status)
+}
+    }
+    )
+    }
+    
 
     
 
@@ -22282,6 +22706,272 @@ public object FfiConverterTypeRoomPreview: FfiConverter<RoomPreview, Long> {
     override fun allocationSize(value: RoomPreview) = 8UL
 
     override fun write(value: RoomPreview, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface RoomSearchIteratorInterface {
+    
+    /**
+     * Return a list of events for the next batch of search results, or `None`
+     * if there are no more results.
+     */
+    suspend fun `nextEvents`(): List<RoomSearchResult>?
+    
+    companion object
+}
+
+open class RoomSearchIterator: Disposable, AutoCloseable, RoomSearchIteratorInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_roomsearchiterator(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_roomsearchiterator(handle, status)
+        }
+    }
+
+    
+    /**
+     * Return a list of events for the next batch of search results, or `None`
+     * if there are no more results.
+     */
+    @Throws(SearchException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `nextEvents`() : List<RoomSearchResult>? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomsearchiterator_next_events(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalSequenceTypeRoomSearchResult.lift(it) },
+        // Error FFI converter
+        SearchException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRoomSearchIterator: FfiConverter<RoomSearchIterator, Long> {
+    override fun lower(value: RoomSearchIterator): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): RoomSearchIterator {
+        return RoomSearchIterator(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): RoomSearchIterator {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: RoomSearchIterator) = 8UL
+
+    override fun write(value: RoomSearchIterator, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -32521,6 +33211,53 @@ public object FfiConverterTypeGalleryUploadParameters: FfiConverterRustBuffer<Ga
 
 
 
+data class GlobalSearchResult (
+    var `roomId`: kotlin.String
+    , 
+    var `result`: RoomSearchResult
+    
+): Disposable{
+    
+
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`roomId`,
+        this.`result`
+    )
+    }
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeGlobalSearchResult: FfiConverterRustBuffer<GlobalSearchResult> {
+    override fun read(buf: ByteBuffer): GlobalSearchResult {
+        return GlobalSearchResult(
+            FfiConverterString.read(buf),
+            FfiConverterTypeRoomSearchResult.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: GlobalSearchResult) = (
+            FfiConverterString.allocationSize(value.`roomId`) +
+            FfiConverterTypeRoomSearchResult.allocationSize(value.`result`)
+    )
+
+    override fun write(value: GlobalSearchResult, buf: ByteBuffer) {
+            FfiConverterString.write(value.`roomId`, buf)
+            FfiConverterTypeRoomSearchResult.write(value.`result`, buf)
+    }
+}
+
+
+
 data class HttpPusherData (
     var `url`: kotlin.String
     , 
@@ -34048,6 +34785,54 @@ public object FfiConverterTypeOidcCrossSigningResetInfo: FfiConverterRustBuffer<
 
     override fun write(value: OidcCrossSigningResetInfo, buf: ByteBuffer) {
             FfiConverterString.write(value.`approvalUrl`, buf)
+    }
+}
+
+
+
+data class OpenIdToken (
+    var `accessToken`: kotlin.String
+    , 
+    var `tokenType`: kotlin.String
+    , 
+    var `matrixServerName`: kotlin.String
+    , 
+    var `expiresInSeconds`: kotlin.ULong
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeOpenIdToken: FfiConverterRustBuffer<OpenIdToken> {
+    override fun read(buf: ByteBuffer): OpenIdToken {
+        return OpenIdToken(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: OpenIdToken) = (
+            FfiConverterString.allocationSize(value.`accessToken`) +
+            FfiConverterString.allocationSize(value.`tokenType`) +
+            FfiConverterString.allocationSize(value.`matrixServerName`) +
+            FfiConverterULong.allocationSize(value.`expiresInSeconds`)
+    )
+
+    override fun write(value: OpenIdToken, buf: ByteBuffer) {
+            FfiConverterString.write(value.`accessToken`, buf)
+            FfiConverterString.write(value.`tokenType`, buf)
+            FfiConverterString.write(value.`matrixServerName`, buf)
+            FfiConverterULong.write(value.`expiresInSeconds`, buf)
     }
 }
 
@@ -35685,6 +36470,71 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterOptionalBoolean.write(value.`isDirect`, buf)
             FfiConverterOptionalSequenceTypeRoomHero.write(value.`heroes`, buf)
+    }
+}
+
+
+
+data class RoomSearchResult (
+    var `eventId`: kotlin.String
+    , 
+    var `sender`: kotlin.String
+    , 
+    var `senderProfile`: ProfileDetails
+    , 
+    var `content`: TimelineItemContent
+    , 
+    var `timestamp`: Timestamp
+    
+): Disposable{
+    
+
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`eventId`,
+        this.`sender`,
+        this.`senderProfile`,
+        this.`content`,
+        this.`timestamp`
+    )
+    }
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRoomSearchResult: FfiConverterRustBuffer<RoomSearchResult> {
+    override fun read(buf: ByteBuffer): RoomSearchResult {
+        return RoomSearchResult(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeProfileDetails.read(buf),
+            FfiConverterTypeTimelineItemContent.read(buf),
+            FfiConverterTypeTimestamp.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomSearchResult) = (
+            FfiConverterString.allocationSize(value.`eventId`) +
+            FfiConverterString.allocationSize(value.`sender`) +
+            FfiConverterTypeProfileDetails.allocationSize(value.`senderProfile`) +
+            FfiConverterTypeTimelineItemContent.allocationSize(value.`content`) +
+            FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+    )
+
+    override fun write(value: RoomSearchResult, buf: ByteBuffer) {
+            FfiConverterString.write(value.`eventId`, buf)
+            FfiConverterString.write(value.`sender`, buf)
+            FfiConverterTypeProfileDetails.write(value.`senderProfile`, buf)
+            FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+            FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
     }
 }
 
@@ -52412,6 +53262,133 @@ public object FfiConverterTypeRuleKind : FfiConverterRustBuffer<RuleKind>{
 
 
 
+
+
+sealed class SearchException: kotlin.Exception() {
+    
+    class IndexException(
+        
+        val v1: kotlin.String
+        ) : SearchException() {
+        override val message
+            get() = "v1=${ v1 }"
+    }
+    
+    class EventLoadException(
+        
+        val v1: kotlin.String
+        ) : SearchException() {
+        override val message
+            get() = "v1=${ v1 }"
+    }
+    
+
+    
+
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<SearchException> {
+        override fun lift(error_buf: RustBuffer.ByValue): SearchException = FfiConverterTypeSearchError.lift(error_buf)
+    }
+
+    
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSearchError : FfiConverterRustBuffer<SearchException> {
+    override fun read(buf: ByteBuffer): SearchException {
+        
+
+        return when(buf.getInt()) {
+            1 -> SearchException.IndexException(
+                FfiConverterString.read(buf),
+                )
+            2 -> SearchException.EventLoadException(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SearchException): ULong {
+        return when(value) {
+            is SearchException.IndexException -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+            is SearchException.EventLoadException -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.v1)
+            )
+        }
+    }
+
+    override fun write(value: SearchException, buf: ByteBuffer) {
+        when(value) {
+            is SearchException.IndexException -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+            is SearchException.EventLoadException -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
+enum class SearchRoomFilter {
+    
+    /**
+     * All the joined rooms (= DMs + non-DMs).
+     */
+    ROOMS,
+    /**
+     * Only joined DM rooms.
+     */
+    DMS,
+    /**
+     * Only joined non-DM (group) rooms.
+     */
+    NON_DMS;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSearchRoomFilter: FfiConverterRustBuffer<SearchRoomFilter> {
+    override fun read(buf: ByteBuffer) = try {
+        SearchRoomFilter.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: SearchRoomFilter) = 4UL
+
+    override fun write(value: SearchRoomFilter, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
 /**
  * An algorithm and its properties, used to encrypt a secret.
  */
@@ -62045,6 +63022,38 @@ public object FfiConverterOptionalSequenceString: FfiConverterRustBuffer<List<ko
 /**
  * @suppress
  */
+public object FfiConverterOptionalSequenceTypeGlobalSearchResult: FfiConverterRustBuffer<List<GlobalSearchResult>?> {
+    override fun read(buf: ByteBuffer): List<GlobalSearchResult>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeGlobalSearchResult.read(buf)
+    }
+
+    override fun allocationSize(value: List<GlobalSearchResult>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeGlobalSearchResult.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<GlobalSearchResult>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeGlobalSearchResult.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalSequenceTypeRoomHero: FfiConverterRustBuffer<List<RoomHero>?> {
     override fun read(buf: ByteBuffer): List<RoomHero>? {
         if (buf.get().toInt() == 0) {
@@ -62099,6 +63108,38 @@ public object FfiConverterOptionalSequenceTypeRoomMember: FfiConverterRustBuffer
         } else {
             buf.put(1)
             FfiConverterSequenceTypeRoomMember.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalSequenceTypeRoomSearchResult: FfiConverterRustBuffer<List<RoomSearchResult>?> {
+    override fun read(buf: ByteBuffer): List<RoomSearchResult>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeRoomSearchResult.read(buf)
+    }
+
+    override fun allocationSize(value: List<RoomSearchResult>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeRoomSearchResult.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<RoomSearchResult>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeRoomSearchResult.write(value, buf)
         }
     }
 }
@@ -62489,6 +63530,34 @@ public object FfiConverterSequenceTypeConditionalPushRule: FfiConverterRustBuffe
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeGlobalSearchResult: FfiConverterRustBuffer<List<GlobalSearchResult>> {
+    override fun read(buf: ByteBuffer): List<GlobalSearchResult> {
+        val len = buf.getInt()
+        return List<GlobalSearchResult>(len) {
+            FfiConverterTypeGlobalSearchResult.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<GlobalSearchResult>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeGlobalSearchResult.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<GlobalSearchResult>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeGlobalSearchResult.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeIdentityStatusChange: FfiConverterRustBuffer<List<IdentityStatusChange>> {
     override fun read(buf: ByteBuffer): List<IdentityStatusChange> {
         val len = buf.getInt()
@@ -62843,6 +63912,34 @@ public object FfiConverterSequenceTypeRoomMember: FfiConverterRustBuffer<List<Ro
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomMember.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeRoomSearchResult: FfiConverterRustBuffer<List<RoomSearchResult>> {
+    override fun read(buf: ByteBuffer): List<RoomSearchResult> {
+        val len = buf.getInt()
+        return List<RoomSearchResult>(len) {
+            FfiConverterTypeRoomSearchResult.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomSearchResult>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomSearchResult.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomSearchResult>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomSearchResult.write(it, buf)
         }
     }
 }
