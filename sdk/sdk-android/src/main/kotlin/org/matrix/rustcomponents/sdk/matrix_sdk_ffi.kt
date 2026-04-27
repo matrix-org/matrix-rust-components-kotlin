@@ -697,6 +697,9 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 internal interface UniffiCallbackInterfaceAccountDataListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`event`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceBeaconInfoListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceClientDelegateMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`isSoftLogout`: Byte,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -748,7 +751,7 @@ internal interface UniffiCallbackInterfaceRecoveryStateListenerMethod0 : com.sun
 internal interface UniffiCallbackInterfaceVerificationStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
-internal interface UniffiCallbackInterfaceLiveLocationShareListenerMethod0 : com.sun.jna.Callback {
+internal interface UniffiCallbackInterfaceLiveLocationsListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`updates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceNotificationSettingsDelegateMethod0 : com.sun.jna.Callback {
@@ -875,6 +878,25 @@ internal open class UniffiVTableCallbackInterfaceAccountDataListener(
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `onChange` = other.`onChange`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceBeaconInfoListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceBeaconInfoListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceBeaconInfoListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceBeaconInfoListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceBeaconInfoListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
     }
 
 }
@@ -1170,18 +1192,18 @@ internal open class UniffiVTableCallbackInterfaceVerificationStateListener(
 
 }
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
-internal open class UniffiVTableCallbackInterfaceLiveLocationShareListener(
+internal open class UniffiVTableCallbackInterfaceLiveLocationsListener(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceLiveLocationsListenerMethod0? = null,
 ) : Structure() {
     class UniffiByValue(
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
         `uniffiClone`: UniffiCallbackInterfaceClone? = null,
-        `onUpdate`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0? = null,
-    ): UniffiVTableCallbackInterfaceLiveLocationShareListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+        `onUpdate`: UniffiCallbackInterfaceLiveLocationsListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceLiveLocationsListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
 
-   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLiveLocationShareListener) {
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceLiveLocationsListener) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `onUpdate` = other.`onUpdate`
@@ -1854,9 +1876,9 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithou
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oidc_prompts(
+external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oauth_prompts(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oidc_login(
+external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oauth_login(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login(
 ): Short
@@ -1868,7 +1890,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_abort_oidc_auth(
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_abort_oauth_auth(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_account_data(
 ): Short
@@ -1909,6 +1931,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_encryption(
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_fetch_media_preview_config(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_room(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_rooms(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_invite_avatars_display_policy(
 ): Short
@@ -1968,7 +1992,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oidc_callback(
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oauth_callback(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
 ): Short
@@ -2044,6 +2068,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_u
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_media_preview_config(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_beacon_info_updates(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_room_info(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status(
@@ -2064,7 +2090,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_media(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oidc(
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oauth(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id(
 ): Short
@@ -2226,7 +2252,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_eve
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationshares_subscribe(
+external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsobserver_subscribe(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
 ): Short
@@ -2388,7 +2414,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_event(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_live_location_shares(
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_live_locations_observer(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
 ): Short
@@ -2862,6 +2888,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_constructor_timelineeventfilter_incl
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_accountdatalistener_on_change(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_beaconinfolistener_on_update(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_on_background_task_error_report(
@@ -2896,7 +2924,7 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_upda
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsharelistener_on_update(
+external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationslistener_on_update(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
 ): Short
@@ -2989,6 +3017,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceAccountDataListener.register(this)
         uniffiCallbackInterfaceBackupStateListener.register(this)
         uniffiCallbackInterfaceBackupSteadyStateListener.register(this)
+        uniffiCallbackInterfaceBeaconInfoListener.register(this)
         uniffiCallbackInterfaceCallDeclineListener.register(this)
         uniffiCallbackInterfaceClientDelegate.register(this)
         uniffiCallbackInterfaceClientSessionDelegate.register(this)
@@ -3000,7 +3029,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceIdentityStatusChangeListener.register(this)
         uniffiCallbackInterfaceIgnoredUsersListener.register(this)
         uniffiCallbackInterfaceKnockRequestsListener.register(this)
-        uniffiCallbackInterfaceLiveLocationShareListener.register(this)
+        uniffiCallbackInterfaceLiveLocationsListener.register(this)
         uniffiCallbackInterfaceMediaPreviewConfigListener.register(this)
         uniffiCallbackInterfaceNotificationSettingsDelegate.register(this)
         uniffiCallbackInterfacePaginationStatusListener.register(this)
@@ -3052,9 +3081,9 @@ external fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`handle`: Long
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oidc_prompts(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oauth_prompts(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oauth_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Byte
 external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_password_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Byte
@@ -3074,7 +3103,7 @@ external fun uniffi_matrix_sdk_ffi_fn_clone_client(`handle`: Long,uniffi_out_err
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_client(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_client_abort_oidc_auth(`ptr`: Long,`authorizationData`: Long,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_abort_oauth_auth(`ptr`: Long,`authorizationData`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,
 ): Long
@@ -3115,6 +3144,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_encryption(`ptr`: Long,uniff
 external fun uniffi_matrix_sdk_ffi_fn_method_client_fetch_media_preview_config(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_room(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_rooms(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_client_get_invite_avatars_display_policy(`ptr`: Long,
 ): Long
@@ -3174,13 +3205,13 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Long,`username`
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(`ptr`: Long,`email`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oauth_callback(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_new_grant_login_with_qr_code_handler(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(`ptr`: Long,`oidcConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Long,`processSetup`: RustBuffer.ByValue,
 ): Long
@@ -3250,6 +3281,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_media_preview_config(`ptr`: Long,`listener`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_beacon_info_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_room_info(`ptr`: Long,`roomId`: RustBuffer.ByValue,`listener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_status(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3270,7 +3303,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Long,`m
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_media(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(`ptr`: Long,`oidcConfiguration`: RustBuffer.ByValue,`prompt`: RustBuffer.ByValue,`loginHint`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`additionalScopes`: RustBuffer.ByValue,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_url_for_oauth(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,`prompt`: RustBuffer.ByValue,`loginHint`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`additionalScopes`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -3470,11 +3503,11 @@ external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_thread_root_event_id(
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_timestamp(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_livelocationshares(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_clone_livelocationsobserver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_livelocationshares(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_free_livelocationsobserver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_livelocationshares_subscribe(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_livelocationsobserver_subscribe(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3680,7 +3713,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_latest_event(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_live_location_shares(`ptr`: Long,
+external fun uniffi_matrix_sdk_ffi_fn_method_room_live_locations_observer(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
 ): Long
@@ -4272,6 +4305,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(`ptr`: Long
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_accountdatalistener(`vtable`: UniffiVTableCallbackInterfaceAccountDataListener,
 ): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_beaconinfolistener(`vtable`: UniffiVTableCallbackInterfaceBeaconInfoListener,
+): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientdelegate(`vtable`: UniffiVTableCallbackInterfaceClientDelegate,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientsessiondelegate(`vtable`: UniffiVTableCallbackInterfaceClientSessionDelegate,
@@ -4302,7 +4337,7 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_recoverystatelistener
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(`vtable`: UniffiVTableCallbackInterfaceVerificationStateListener,
 ): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationShareListener,
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationslistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationsListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
 ): Unit
@@ -5480,10 +5515,10 @@ public object FfiConverterTypeCheckCodeSender: FfiConverter<CheckCodeSender, Lon
 public interface ClientInterface {
     
     /**
-     * Aborts an existing OIDC login operation that might have been cancelled,
+     * Aborts an existing OAuth login operation that might have been cancelled,
      * failed etc.
      */
-    suspend fun `abortOidcAuth`(`authorizationData`: OAuthAuthorizationData)
+    suspend fun `abortOauthAuth`(`authorizationData`: OAuthAuthorizationData)
     
     /**
      * Get the content of the event of the given type out of the account data
@@ -5626,7 +5661,15 @@ public interface ClientInterface {
      */
     suspend fun `fetchMediaPreviewConfig`(): MediaPreviewConfig?
     
+    /**
+     * Get the first existing DM room with the given user, if any.
+     */
     fun `getDmRoom`(`userId`: kotlin.String): Room?
+    
+    /**
+     * Get an iterator with the existing DM rooms for the given user.
+     */
+    fun `getDmRooms`(`userId`: kotlin.String): List<Room>
     
     /**
      * Get the invite request avatars display policy
@@ -5788,9 +5831,9 @@ public interface ClientInterface {
     suspend fun `loginWithEmail`(`email`: kotlin.String, `password`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
     
     /**
-     * Completes the OIDC login process.
+     * Completes the OAuth login process.
      */
-    suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String)
+    suspend fun `loginWithOauthCallback`(`callbackUrl`: kotlin.String)
     
     /**
      * Log the current user out.
@@ -5809,10 +5852,10 @@ public interface ClientInterface {
      *
      * # Arguments
      *
-     * * `oidc_configuration` - The data to restore or register the client with
-     * the server.
+     * * `oauth_configuration` - The data to restore or register the client
+     * with the server.
      */
-    fun `newLoginWithQrCodeHandler`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler
+    fun `newLoginWithQrCodeHandler`(`oauthConfiguration`: OAuthConfiguration): LoginWithQrCodeHandler
     
     suspend fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClient
     
@@ -6008,6 +6051,14 @@ public interface ClientInterface {
     suspend fun `subscribeToMediaPreviewConfig`(`listener`: MediaPreviewConfigListener): TaskHandle
     
     /**
+     * Subscribe to beacon_info updates for the current user across all rooms.
+     *
+     * The listener is only called for new matching updates; there is no
+     * initial replay.
+     */
+    fun `subscribeToOwnBeaconInfoUpdates`(`listener`: BeaconInfoListener): TaskHandle
+    
+    /**
      * Subscribe to [`RoomInfo`] updates given a provided [`RoomId`].
      *
      * This works even for rooms we haven't received yet, so we can subscribe
@@ -6071,14 +6122,14 @@ public interface ClientInterface {
     suspend fun `uploadMedia`(`mimeType`: kotlin.String, `data`: kotlin.ByteArray, `progressWatcher`: ProgressWatcher?): kotlin.String
     
     /**
-     * Requests the URL needed for opening a web view using OIDC. Once the web
-     * view has succeeded, call `login_with_oidc_callback` with the callback it
-     * returns. If a failure occurs and a callback isn't available, make sure
-     * to call `abort_oidc_auth` to inform the client of this.
+     * Requests the URL needed for opening a web view using OAuth. Once the web
+     * view has succeeded, call `login_with_oauth_callback` with the callback
+     * it returns. If a failure occurs and a callback isn't available, make
+     * sure to call `abort_oauth_auth` to inform the client of this.
      *
      * # Arguments
      *
-     * * `oidc_configuration` - The configuration used to load the credentials
+     * * `oauth_configuration` - The configuration used to load the credentials
      * of the client if it is already registered with the authorization
      * server, or register the client and store its credentials if it isn't.
      *
@@ -6104,7 +6155,7 @@ public interface ClientInterface {
      * [specification](https://spec.matrix.org/v1.15/client-server-api/#allocated-scope-tokens)
      * are always requested.
      */
-    suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?, `loginHint`: kotlin.String?, `deviceId`: kotlin.String?, `additionalScopes`: List<kotlin.String>?): OAuthAuthorizationData
+    suspend fun `urlForOauth`(`oauthConfiguration`: OAuthConfiguration, `prompt`: OAuthPrompt?, `loginHint`: kotlin.String?, `deviceId`: kotlin.String?, `additionalScopes`: List<kotlin.String>?): OAuthAuthorizationData
     
     fun `userId`(): kotlin.String
     
@@ -6232,14 +6283,14 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Aborts an existing OIDC login operation that might have been cancelled,
+     * Aborts an existing OAuth login operation that might have been cancelled,
      * failed etc.
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `abortOidcAuth`(`authorizationData`: OAuthAuthorizationData) {
+    override suspend fun `abortOauthAuth`(`authorizationData`: OAuthAuthorizationData) {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_abort_oidc_auth(
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_abort_oauth_auth(
                 uniffiHandle,
                 FfiConverterTypeOAuthAuthorizationData.lower(`authorizationData`),
             )
@@ -6720,11 +6771,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     }
 
     
+    /**
+     * Get the first existing DM room with the given user, if any.
+     */
     @Throws(ClientException::class)override fun `getDmRoom`(`userId`: kotlin.String): Room? {
             return FfiConverterOptionalTypeRoom.lift(
     callWithHandle {
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_dm_room(
+        it,
+        FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Get an iterator with the existing DM rooms for the given user.
+     */
+    @Throws(ClientException::class)override fun `getDmRooms`(`userId`: kotlin.String): List<Room> {
+            return FfiConverterSequenceTypeRoom.lift(
+    callWithHandle {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_dm_rooms(
         it,
         FfiConverterString.lower(`userId`),_status)
 }
@@ -7423,14 +7494,14 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Completes the OIDC login process.
+     * Completes the OAuth login process.
      */
-    @Throws(OidcException::class)
+    @Throws(OAuthException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `loginWithOidcCallback`(`callbackUrl`: kotlin.String) {
+    override suspend fun `loginWithOauthCallback`(`callbackUrl`: kotlin.String) {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_login_with_oidc_callback(
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_login_with_oauth_callback(
                 uniffiHandle,
                 FfiConverterString.lower(`callbackUrl`),
             )
@@ -7442,7 +7513,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         { Unit },
         
         // Error FFI converter
-        OidcException.ErrorHandler,
+        OAuthException.ErrorHandler,
     )
     }
 
@@ -7495,15 +7566,15 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * # Arguments
      *
-     * * `oidc_configuration` - The data to restore or register the client with
-     * the server.
-     */override fun `newLoginWithQrCodeHandler`(`oidcConfiguration`: OidcConfiguration): LoginWithQrCodeHandler {
+     * * `oauth_configuration` - The data to restore or register the client
+     * with the server.
+     */override fun `newLoginWithQrCodeHandler`(`oauthConfiguration`: OAuthConfiguration): LoginWithQrCodeHandler {
             return FfiConverterTypeLoginWithQrCodeHandler.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(
         it,
-        FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),_status)
+        FfiConverterTypeOAuthConfiguration.lower(`oauthConfiguration`),_status)
 }
     }
     )
@@ -8287,6 +8358,26 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
+     * Subscribe to beacon_info updates for the current user across all rooms.
+     *
+     * The listener is only called for new matching updates; there is no
+     * initial replay.
+     */
+    @Throws(ClientException::class)override fun `subscribeToOwnBeaconInfoUpdates`(`listener`: BeaconInfoListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_beacon_info_updates(
+        it,
+        FfiConverterTypeBeaconInfoListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Subscribe to [`RoomInfo`] updates given a provided [`RoomId`].
      *
      * This works even for rooms we haven't received yet, so we can subscribe
@@ -8519,14 +8610,14 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Requests the URL needed for opening a web view using OIDC. Once the web
-     * view has succeeded, call `login_with_oidc_callback` with the callback it
-     * returns. If a failure occurs and a callback isn't available, make sure
-     * to call `abort_oidc_auth` to inform the client of this.
+     * Requests the URL needed for opening a web view using OAuth. Once the web
+     * view has succeeded, call `login_with_oauth_callback` with the callback
+     * it returns. If a failure occurs and a callback isn't available, make
+     * sure to call `abort_oauth_auth` to inform the client of this.
      *
      * # Arguments
      *
-     * * `oidc_configuration` - The configuration used to load the credentials
+     * * `oauth_configuration` - The configuration used to load the credentials
      * of the client if it is already registered with the authorization
      * server, or register the client and store its credentials if it isn't.
      *
@@ -8552,14 +8643,14 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * [specification](https://spec.matrix.org/v1.15/client-server-api/#allocated-scope-tokens)
      * are always requested.
      */
-    @Throws(OidcException::class)
+    @Throws(OAuthException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `urlForOidc`(`oidcConfiguration`: OidcConfiguration, `prompt`: OidcPrompt?, `loginHint`: kotlin.String?, `deviceId`: kotlin.String?, `additionalScopes`: List<kotlin.String>?) : OAuthAuthorizationData {
+    override suspend fun `urlForOauth`(`oauthConfiguration`: OAuthConfiguration, `prompt`: OAuthPrompt?, `loginHint`: kotlin.String?, `deviceId`: kotlin.String?, `additionalScopes`: List<kotlin.String>?) : OAuthAuthorizationData {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_url_for_oidc(
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_url_for_oauth(
                 uniffiHandle,
-                FfiConverterTypeOidcConfiguration.lower(`oidcConfiguration`),FfiConverterOptionalTypeOidcPrompt.lower(`prompt`),FfiConverterOptionalString.lower(`loginHint`),FfiConverterOptionalString.lower(`deviceId`),FfiConverterOptionalSequenceString.lower(`additionalScopes`),
+                FfiConverterTypeOAuthConfiguration.lower(`oauthConfiguration`),FfiConverterOptionalTypeOAuthPrompt.lower(`prompt`),FfiConverterOptionalString.lower(`loginHint`),FfiConverterOptionalString.lower(`deviceId`),FfiConverterOptionalSequenceString.lower(`additionalScopes`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -8568,7 +8659,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         // lift function
         { FfiConverterTypeOAuthAuthorizationData.lift(it) },
         // Error FFI converter
-        OidcException.ErrorHandler,
+        OAuthException.ErrorHandler,
     )
     }
 
@@ -11559,12 +11650,12 @@ public interface HomeserverLoginDetailsInterface {
      * The prompts advertised by the authentication issuer for use in the login
      * URL.
      */
-    fun `supportedOidcPrompts`(): List<OidcPrompt>
+    fun `supportedOauthPrompts`(): List<OAuthPrompt>
     
     /**
-     * Whether the current homeserver supports login using OIDC.
+     * Whether the current homeserver supports login using OAuth.
      */
-    fun `supportsOidcLogin`(): kotlin.Boolean
+    fun `supportsOauthLogin`(): kotlin.Boolean
     
     /**
      * Whether the current homeserver supports the password login flow.
@@ -11700,11 +11791,11 @@ open class HomeserverLoginDetails: Disposable, AutoCloseable, HomeserverLoginDet
     /**
      * The prompts advertised by the authentication issuer for use in the login
      * URL.
-     */override fun `supportedOidcPrompts`(): List<OidcPrompt> {
-            return FfiConverterSequenceTypeOidcPrompt.lift(
+     */override fun `supportedOauthPrompts`(): List<OAuthPrompt> {
+            return FfiConverterSequenceTypeOAuthPrompt.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oidc_prompts(
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oauth_prompts(
         it,
         _status)
 }
@@ -11715,12 +11806,12 @@ open class HomeserverLoginDetails: Disposable, AutoCloseable, HomeserverLoginDet
 
     
     /**
-     * Whether the current homeserver supports login using OIDC.
-     */override fun `supportsOidcLogin`(): kotlin.Boolean {
+     * Whether the current homeserver supports login using OAuth.
+     */override fun `supportsOauthLogin`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oidc_login(
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oauth_login(
         it,
         _status)
 }
@@ -13523,11 +13614,11 @@ public object FfiConverterTypeLeaveSpaceHandle: FfiConverter<LeaveSpaceHandle, L
 /**
  * Tracks active live location shares in a room.
  *
- * Holds the SDK [`SdkLiveLocationShares`] which keeps the beacon and
+ * Holds the SDK [`SdkLiveLocationsObserver`] which keeps the beacon and
  * beacon_info event handlers registered for as long as this object is alive.
- * Call [`LiveLocationShares::subscribe`] to start receiving updates.
+ * Call [`LiveLocationsObserver::subscribe`] to start receiving updates.
  */
-public interface LiveLocationSharesInterface {
+public interface LiveLocationsObserverInterface {
     
     /**
      * Subscribe to changes in the list of active live location shares.
@@ -13538,9 +13629,9 @@ public interface LiveLocationSharesInterface {
      *
      * Returns a [`TaskHandle`] that, when dropped, stops the listener.
      * The event handlers remain registered for as long as this
-     * [`LiveLocationShares`] object is alive.
+     * [`LiveLocationsObserver`] object is alive.
      */
-    fun `subscribe`(`listener`: LiveLocationShareListener): TaskHandle
+    fun `subscribe`(`listener`: LiveLocationsListener): TaskHandle
     
     companion object
 }
@@ -13548,11 +13639,11 @@ public interface LiveLocationSharesInterface {
 /**
  * Tracks active live location shares in a room.
  *
- * Holds the SDK [`SdkLiveLocationShares`] which keeps the beacon and
+ * Holds the SDK [`SdkLiveLocationsObserver`] which keeps the beacon and
  * beacon_info event handlers registered for as long as this object is alive.
- * Call [`LiveLocationShares::subscribe`] to start receiving updates.
+ * Call [`LiveLocationsObserver::subscribe`] to start receiving updates.
  */
-open class LiveLocationShares: Disposable, AutoCloseable, LiveLocationSharesInterface
+open class LiveLocationsObserver: Disposable, AutoCloseable, LiveLocationsObserverInterface
 {
 
     @Suppress("UNUSED_PARAMETER")
@@ -13631,7 +13722,7 @@ open class LiveLocationShares: Disposable, AutoCloseable, LiveLocationSharesInte
                 return;
             }
             uniffiRustCall { status ->
-                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_livelocationshares(handle, status)
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_livelocationsobserver(handle, status)
             }
         }
     }
@@ -13644,7 +13735,7 @@ open class LiveLocationShares: Disposable, AutoCloseable, LiveLocationSharesInte
             throw InternalException("uniffiCloneHandle() called on NoHandle object");
         }
         return uniffiRustCall() { status ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_livelocationshares(handle, status)
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_livelocationsobserver(handle, status)
         }
     }
 
@@ -13658,14 +13749,14 @@ open class LiveLocationShares: Disposable, AutoCloseable, LiveLocationSharesInte
      *
      * Returns a [`TaskHandle`] that, when dropped, stops the listener.
      * The event handlers remain registered for as long as this
-     * [`LiveLocationShares`] object is alive.
-     */override fun `subscribe`(`listener`: LiveLocationShareListener): TaskHandle {
+     * [`LiveLocationsObserver`] object is alive.
+     */override fun `subscribe`(`listener`: LiveLocationsListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_livelocationshares_subscribe(
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_livelocationsobserver_subscribe(
         it,
-        FfiConverterTypeLiveLocationShareListener.lower(`listener`),_status)
+        FfiConverterTypeLiveLocationsListener.lower(`listener`),_status)
 }
     }
     )
@@ -13690,22 +13781,22 @@ open class LiveLocationShares: Disposable, AutoCloseable, LiveLocationSharesInte
 /**
  * @suppress
  */
-public object FfiConverterTypeLiveLocationShares: FfiConverter<LiveLocationShares, Long> {
-    override fun lower(value: LiveLocationShares): Long {
+public object FfiConverterTypeLiveLocationsObserver: FfiConverter<LiveLocationsObserver, Long> {
+    override fun lower(value: LiveLocationsObserver): Long {
         return value.uniffiCloneHandle()
     }
 
-    override fun lift(value: Long): LiveLocationShares {
-        return LiveLocationShares(UniffiWithHandle, value)
+    override fun lift(value: Long): LiveLocationsObserver {
+        return LiveLocationsObserver(UniffiWithHandle, value)
     }
 
-    override fun read(buf: ByteBuffer): LiveLocationShares {
+    override fun read(buf: ByteBuffer): LiveLocationsObserver {
         return lift(buf.getLong())
     }
 
-    override fun allocationSize(value: LiveLocationShares) = 8UL
+    override fun allocationSize(value: LiveLocationsObserver) = 8UL
 
-    override fun write(value: LiveLocationShares, buf: ByteBuffer) {
+    override fun write(value: LiveLocationsObserver, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -16609,13 +16700,13 @@ public interface RoomInterface {
     /**
      * Returns the active live location shares for this room.
      *
-     * The returned [`LiveLocationShares`] object tracks which users are
+     * The returned [`LiveLocationsObserver`] object tracks which users are
      * currently sharing their live location. It keeps the underlying event
      * handlers registered — and therefore the share list up-to-date — for as
-     * long as it is alive. Call [`LiveLocationShares::subscribe`] on it to
+     * long as it is alive. Call [`LiveLocationsObserver::subscribe`] on it to
      * receive an initial snapshot and a stream of incremental updates.
      */
-    suspend fun `liveLocationShares`(): LiveLocationShares
+    suspend fun `liveLocationsObserver`(): LiveLocationsObserver
     
     /**
      * Retrieve the `ComposerDraft` stored in the state store for this room.
@@ -16863,7 +16954,7 @@ public interface RoomInterface {
     /**
      * Start the current users live location share in the room.
      */
-    suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong)
+    suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong): kotlin.String
     
     /**
      * Stop the current users live location share in the room.
@@ -17940,17 +18031,17 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     /**
      * Returns the active live location shares for this room.
      *
-     * The returned [`LiveLocationShares`] object tracks which users are
+     * The returned [`LiveLocationsObserver`] object tracks which users are
      * currently sharing their live location. It keeps the underlying event
      * handlers registered — and therefore the share list up-to-date — for as
-     * long as it is alive. Call [`LiveLocationShares::subscribe`] on it to
+     * long as it is alive. Call [`LiveLocationsObserver::subscribe`] on it to
      * receive an initial snapshot and a stream of incremental updates.
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `liveLocationShares`() : LiveLocationShares {
+    override suspend fun `liveLocationsObserver`() : LiveLocationsObserver {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_live_location_shares(
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_live_locations_observer(
                 uniffiHandle,
                 
             )
@@ -17959,7 +18050,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
         // lift function
-        { FfiConverterTypeLiveLocationShares.lift(it) },
+        { FfiConverterTypeLiveLocationsObserver.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
     )
@@ -18630,7 +18721,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     /**
      * Send the current users live location beacon in the room.
      */
-    @Throws(ClientException::class)
+    @Throws(LiveLocationException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `sendLiveLocation`(`geoUri`: kotlin.String) {
         return uniffiRustCallAsync(
@@ -18647,7 +18738,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         { Unit },
         
         // Error FFI converter
-        ClientException.ErrorHandler,
+        LiveLocationException.ErrorHandler,
     )
     }
 
@@ -18901,7 +18992,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong) {
+    override suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong) : kotlin.String {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_start_live_location_share(
@@ -18909,12 +19000,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface
                 FfiConverterULong.lower(`durationMillis`),
             )
         },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { Unit },
-        
+        { FfiConverterString.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -18924,7 +19014,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     /**
      * Stop the current users live location share in the room.
      */
-    @Throws(ClientException::class)
+    @Throws(LiveLocationException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `stopLiveLocationShare`() {
         return uniffiRustCallAsync(
@@ -18941,7 +19031,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         { Unit },
         
         // Error FFI converter
-        ClientException.ErrorHandler,
+        LiveLocationException.ErrorHandler,
     )
     }
 
@@ -32319,6 +32409,61 @@ public object FfiConverterTypeBeaconInfo: FfiConverterRustBuffer<BeaconInfo> {
 
 
 
+/**
+ * A beacon_info update for the current user's live location share.
+ */
+data class BeaconInfoUpdate (
+    /**
+     * The room where the beacon_info event changed.
+     */
+    var `roomId`: kotlin.String
+    , 
+    /**
+     * The beacon_info event ID.
+     */
+    var `eventId`: kotlin.String
+    , 
+    /**
+     * Whether the share is currently live.
+     */
+    var `live`: kotlin.Boolean
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeBeaconInfoUpdate: FfiConverterRustBuffer<BeaconInfoUpdate> {
+    override fun read(buf: ByteBuffer): BeaconInfoUpdate {
+        return BeaconInfoUpdate(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: BeaconInfoUpdate) = (
+            FfiConverterString.allocationSize(value.`roomId`) +
+            FfiConverterString.allocationSize(value.`eventId`) +
+            FfiConverterBoolean.allocationSize(value.`live`)
+    )
+
+    override fun write(value: BeaconInfoUpdate, buf: ByteBuffer) {
+            FfiConverterString.write(value.`roomId`, buf)
+            FfiConverterString.write(value.`eventId`, buf)
+            FfiConverterBoolean.write(value.`live`, buf)
+    }
+}
+
+
+
 data class ClientProperties (
     /**
      * The client_id provides the widget with the option to behave differently
@@ -33928,6 +34073,11 @@ data class LiveLocationShare (
      * Meaning that the location will stop being shared at ts + timeout.
      */
     var `timeout`: kotlin.ULong
+    , 
+    /**
+     * The event ID of the beacon_info state event for this share.
+     */
+    var `beaconId`: kotlin.String
     
 ){
     
@@ -33948,6 +34098,7 @@ public object FfiConverterTypeLiveLocationShare: FfiConverterRustBuffer<LiveLoca
             FfiConverterString.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
+            FfiConverterString.read(buf),
         )
     }
 
@@ -33955,7 +34106,8 @@ public object FfiConverterTypeLiveLocationShare: FfiConverterRustBuffer<LiveLoca
             FfiConverterOptionalTypeLastLocation.allocationSize(value.`lastLocation`) +
             FfiConverterString.allocationSize(value.`userId`) +
             FfiConverterULong.allocationSize(value.`startTs`) +
-            FfiConverterULong.allocationSize(value.`timeout`)
+            FfiConverterULong.allocationSize(value.`timeout`) +
+            FfiConverterString.allocationSize(value.`beaconId`)
     )
 
     override fun write(value: LiveLocationShare, buf: ByteBuffer) {
@@ -33963,6 +34115,7 @@ public object FfiConverterTypeLiveLocationShare: FfiConverterRustBuffer<LiveLoca
             FfiConverterString.write(value.`userId`, buf)
             FfiConverterULong.write(value.`startTs`, buf)
             FfiConverterULong.write(value.`timeout`, buf)
+            FfiConverterString.write(value.`beaconId`, buf)
     }
 }
 
@@ -34559,6 +34712,10 @@ data class NotificationRoomInfo (
     , 
     var `joinedMembersCount`: kotlin.ULong
     , 
+    var `activeServiceMembersCount`: kotlin.ULong
+    , 
+    var `serviceMembers`: List<kotlin.String>
+    , 
     var `isEncrypted`: kotlin.Boolean?
     , 
     var `isDirect`: kotlin.Boolean
@@ -34586,6 +34743,8 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterSequenceString.read(buf),
             FfiConverterOptionalBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
@@ -34599,6 +34758,8 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterOptionalString.allocationSize(value.`topic`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
+            FfiConverterULong.allocationSize(value.`activeServiceMembersCount`) +
+            FfiConverterSequenceString.allocationSize(value.`serviceMembers`) +
             FfiConverterOptionalBoolean.allocationSize(value.`isEncrypted`) +
             FfiConverterBoolean.allocationSize(value.`isDirect`) +
             FfiConverterBoolean.allocationSize(value.`isSpace`)
@@ -34611,6 +34772,8 @@ public object FfiConverterTypeNotificationRoomInfo: FfiConverterRustBuffer<Notif
             FfiConverterOptionalString.write(value.`topic`, buf)
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
+            FfiConverterULong.write(value.`activeServiceMembersCount`, buf)
+            FfiConverterSequenceString.write(value.`serviceMembers`, buf)
             FfiConverterOptionalBoolean.write(value.`isEncrypted`, buf)
             FfiConverterBoolean.write(value.`isDirect`, buf)
             FfiConverterBoolean.write(value.`isSpace`, buf)
@@ -34663,16 +34826,16 @@ public object FfiConverterTypeNotificationSenderInfo: FfiConverterRustBuffer<Not
 
 
 /**
- * The configuration to use when authenticating with OIDC.
+ * The configuration to use when authenticating with OAuth.
  */
-data class OidcConfiguration (
+data class OAuthConfiguration (
     /**
-     * The name of the client that will be shown during OIDC authentication.
+     * The name of the client that will be shown during OAuth authentication.
      */
     var `clientName`: kotlin.String?
     , 
     /**
-     * The redirect URI that will be used when OIDC authentication is
+     * The redirect URI that will be used when OAuth authentication is
      * successful.
      */
     var `redirectUri`: kotlin.String
@@ -34718,9 +34881,9 @@ data class OidcConfiguration (
 /**
  * @suppress
  */
-public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConfiguration> {
-    override fun read(buf: ByteBuffer): OidcConfiguration {
-        return OidcConfiguration(
+public object FfiConverterTypeOAuthConfiguration: FfiConverterRustBuffer<OAuthConfiguration> {
+    override fun read(buf: ByteBuffer): OAuthConfiguration {
+        return OAuthConfiguration(
             FfiConverterOptionalString.read(buf),
             FfiConverterString.read(buf),
             FfiConverterString.read(buf),
@@ -34731,7 +34894,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
         )
     }
 
-    override fun allocationSize(value: OidcConfiguration) = (
+    override fun allocationSize(value: OAuthConfiguration) = (
             FfiConverterOptionalString.allocationSize(value.`clientName`) +
             FfiConverterString.allocationSize(value.`redirectUri`) +
             FfiConverterString.allocationSize(value.`clientUri`) +
@@ -34741,7 +34904,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
             FfiConverterMapStringString.allocationSize(value.`staticRegistrations`)
     )
 
-    override fun write(value: OidcConfiguration, buf: ByteBuffer) {
+    override fun write(value: OAuthConfiguration, buf: ByteBuffer) {
             FfiConverterOptionalString.write(value.`clientName`, buf)
             FfiConverterString.write(value.`redirectUri`, buf)
             FfiConverterString.write(value.`clientUri`, buf)
@@ -34754,7 +34917,7 @@ public object FfiConverterTypeOidcConfiguration: FfiConverterRustBuffer<OidcConf
 
 
 
-data class OidcCrossSigningResetInfo (
+data class OAuthCrossSigningResetInfo (
     /**
      * The URL where the user can approve the reset of the cross-signing keys.
      */
@@ -34772,18 +34935,18 @@ data class OidcCrossSigningResetInfo (
 /**
  * @suppress
  */
-public object FfiConverterTypeOidcCrossSigningResetInfo: FfiConverterRustBuffer<OidcCrossSigningResetInfo> {
-    override fun read(buf: ByteBuffer): OidcCrossSigningResetInfo {
-        return OidcCrossSigningResetInfo(
+public object FfiConverterTypeOAuthCrossSigningResetInfo: FfiConverterRustBuffer<OAuthCrossSigningResetInfo> {
+    override fun read(buf: ByteBuffer): OAuthCrossSigningResetInfo {
+        return OAuthCrossSigningResetInfo(
             FfiConverterString.read(buf),
         )
     }
 
-    override fun allocationSize(value: OidcCrossSigningResetInfo) = (
+    override fun allocationSize(value: OAuthCrossSigningResetInfo) = (
             FfiConverterString.allocationSize(value.`approvalUrl`)
     )
 
-    override fun write(value: OidcCrossSigningResetInfo, buf: ByteBuffer) {
+    override fun write(value: OAuthCrossSigningResetInfo, buf: ByteBuffer) {
             FfiConverterString.write(value.`approvalUrl`, buf)
     }
 }
@@ -35748,6 +35911,8 @@ data class RoomInfo (
     , 
     var `joinedMembersCount`: kotlin.ULong
     , 
+    var `activeServiceMembersCount`: kotlin.ULong
+    , 
     var `serviceMembers`: List<kotlin.String>
     , 
     var `highlightCount`: kotlin.ULong
@@ -35849,6 +36014,7 @@ data class RoomInfo (
         this.`activeMembersCount`,
         this.`invitedMembersCount`,
         this.`joinedMembersCount`,
+        this.`activeServiceMembersCount`,
         this.`serviceMembers`,
         this.`highlightCount`,
         this.`notificationCount`,
@@ -35899,6 +36065,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
@@ -35941,6 +36108,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.allocationSize(value.`activeMembersCount`) +
             FfiConverterULong.allocationSize(value.`invitedMembersCount`) +
             FfiConverterULong.allocationSize(value.`joinedMembersCount`) +
+            FfiConverterULong.allocationSize(value.`activeServiceMembersCount`) +
             FfiConverterSequenceString.allocationSize(value.`serviceMembers`) +
             FfiConverterULong.allocationSize(value.`highlightCount`) +
             FfiConverterULong.allocationSize(value.`notificationCount`) +
@@ -35982,6 +36150,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`activeMembersCount`, buf)
             FfiConverterULong.write(value.`invitedMembersCount`, buf)
             FfiConverterULong.write(value.`joinedMembersCount`, buf)
+            FfiConverterULong.write(value.`activeServiceMembersCount`, buf)
             FfiConverterSequenceString.write(value.`serviceMembers`, buf)
             FfiConverterULong.write(value.`highlightCount`, buf)
             FfiConverterULong.write(value.`notificationCount`, buf)
@@ -36777,7 +36946,7 @@ data class Session (
      * Additional data for this session if OpenID Connect was used for
      * authentication.
      */
-    var `oidcData`: kotlin.String?
+    var `oauthData`: kotlin.String?
     , 
     /**
      * The sliding sync version used for this session.
@@ -36815,7 +36984,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.allocationSize(value.`userId`) +
             FfiConverterString.allocationSize(value.`deviceId`) +
             FfiConverterString.allocationSize(value.`homeserverUrl`) +
-            FfiConverterOptionalString.allocationSize(value.`oidcData`) +
+            FfiConverterOptionalString.allocationSize(value.`oauthData`) +
             FfiConverterTypeSlidingSyncVersion.allocationSize(value.`slidingSyncVersion`)
     )
 
@@ -36825,7 +36994,7 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
             FfiConverterString.write(value.`userId`, buf)
             FfiConverterString.write(value.`deviceId`, buf)
             FfiConverterString.write(value.`homeserverUrl`, buf)
-            FfiConverterOptionalString.write(value.`oidcData`, buf)
+            FfiConverterOptionalString.write(value.`oauthData`, buf)
             FfiConverterTypeSlidingSyncVersion.write(value.`slidingSyncVersion`, buf)
     }
 }
@@ -40538,8 +40707,12 @@ sealed class CrossSigningResetAuthType {
     object Uiaa : CrossSigningResetAuthType()
     
     
-    data class Oidc(
-        val `info`: org.matrix.rustcomponents.sdk.OidcCrossSigningResetInfo) : CrossSigningResetAuthType()
+    /**
+     * OAuth is used for authentication and the user needs to open a URL to
+     * approve the upload of cross-signing keys.
+     */
+    data class OAuth(
+        val `info`: org.matrix.rustcomponents.sdk.OAuthCrossSigningResetInfo) : CrossSigningResetAuthType()
         
     {
         
@@ -40564,8 +40737,8 @@ public object FfiConverterTypeCrossSigningResetAuthType : FfiConverterRustBuffer
     override fun read(buf: ByteBuffer): CrossSigningResetAuthType {
         return when(buf.getInt()) {
             1 -> CrossSigningResetAuthType.Uiaa
-            2 -> CrossSigningResetAuthType.Oidc(
-                FfiConverterTypeOidcCrossSigningResetInfo.read(buf),
+            2 -> CrossSigningResetAuthType.OAuth(
+                FfiConverterTypeOAuthCrossSigningResetInfo.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -40578,11 +40751,11 @@ public object FfiConverterTypeCrossSigningResetAuthType : FfiConverterRustBuffer
                 4UL
             )
         }
-        is CrossSigningResetAuthType.Oidc -> {
+        is CrossSigningResetAuthType.OAuth -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeOidcCrossSigningResetInfo.allocationSize(value.`info`)
+                + FfiConverterTypeOAuthCrossSigningResetInfo.allocationSize(value.`info`)
             )
         }
     }
@@ -40593,9 +40766,9 @@ public object FfiConverterTypeCrossSigningResetAuthType : FfiConverterRustBuffer
                 buf.putInt(1)
                 Unit
             }
-            is CrossSigningResetAuthType.Oidc -> {
+            is CrossSigningResetAuthType.OAuth -> {
                 buf.putInt(2)
-                FfiConverterTypeOidcCrossSigningResetInfo.write(value.`info`, buf)
+                FfiConverterTypeOAuthCrossSigningResetInfo.write(value.`info`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -44454,7 +44627,7 @@ sealed class HumanQrLoginException: kotlin.Exception() {
             get() = ""
     }
     
-    class OidcMetadataInvalid(
+    class OAuthMetadataInvalid(
         ) : HumanQrLoginException() {
         override val message
             get() = ""
@@ -44516,7 +44689,7 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
             5 -> HumanQrLoginException.Declined()
             6 -> HumanQrLoginException.Unknown()
             7 -> HumanQrLoginException.SlidingSyncNotAvailable()
-            8 -> HumanQrLoginException.OidcMetadataInvalid()
+            8 -> HumanQrLoginException.OAuthMetadataInvalid()
             9 -> HumanQrLoginException.OtherDeviceNotSignedIn()
             10 -> HumanQrLoginException.CheckCodeAlreadySent()
             11 -> HumanQrLoginException.CheckCodeCannotBeSent()
@@ -44556,7 +44729,7 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
-            is HumanQrLoginException.OidcMetadataInvalid -> (
+            is HumanQrLoginException.OAuthMetadataInvalid -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
@@ -44613,7 +44786,7 @@ public object FfiConverterTypeHumanQrLoginError : FfiConverterRustBuffer<HumanQr
                 buf.putInt(7)
                 Unit
             }
-            is HumanQrLoginException.OidcMetadataInvalid -> {
+            is HumanQrLoginException.OAuthMetadataInvalid -> {
                 buf.putInt(8)
                 Unit
             }
@@ -45308,6 +45481,90 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
 }
 
 
+
+
+
+
+
+sealed class LiveLocationException(message: String): kotlin.Exception(message) {
+        
+        class Network(message: String) : LiveLocationException(message)
+        
+        class NotFound(message: String) : LiveLocationException(message)
+        
+        class Redacted(message: String) : LiveLocationException(message)
+        
+        class Stripped(message: String) : LiveLocationException(message)
+        
+        class NotLive(message: String) : LiveLocationException(message)
+        
+        class Deserialization(message: String) : LiveLocationException(message)
+        
+        class Other(message: String) : LiveLocationException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<LiveLocationException> {
+        override fun lift(error_buf: RustBuffer.ByValue): LiveLocationException = FfiConverterTypeLiveLocationError.lift(error_buf)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLiveLocationError : FfiConverterRustBuffer<LiveLocationException> {
+    override fun read(buf: ByteBuffer): LiveLocationException {
+        
+            return when(buf.getInt()) {
+            1 -> LiveLocationException.Network(FfiConverterString.read(buf))
+            2 -> LiveLocationException.NotFound(FfiConverterString.read(buf))
+            3 -> LiveLocationException.Redacted(FfiConverterString.read(buf))
+            4 -> LiveLocationException.Stripped(FfiConverterString.read(buf))
+            5 -> LiveLocationException.NotLive(FfiConverterString.read(buf))
+            6 -> LiveLocationException.Deserialization(FfiConverterString.read(buf))
+            7 -> LiveLocationException.Other(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: LiveLocationException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: LiveLocationException, buf: ByteBuffer) {
+        when(value) {
+            is LiveLocationException.Network -> {
+                buf.putInt(1)
+                Unit
+            }
+            is LiveLocationException.NotFound -> {
+                buf.putInt(2)
+                Unit
+            }
+            is LiveLocationException.Redacted -> {
+                buf.putInt(3)
+                Unit
+            }
+            is LiveLocationException.Stripped -> {
+                buf.putInt(4)
+                Unit
+            }
+            is LiveLocationException.NotLive -> {
+                buf.putInt(5)
+                Unit
+            }
+            is LiveLocationException.Deserialization -> {
+                buf.putInt(6)
+                Unit
+            }
+            is LiveLocationException.Other -> {
+                buf.putInt(7)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
 
 
 
@@ -48431,64 +48688,64 @@ public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<Notifi
 
 
 
-sealed class OidcException(message: String): kotlin.Exception(message) {
+sealed class OAuthException(message: String): kotlin.Exception(message) {
         
-        class NotSupported(message: String) : OidcException(message)
+        class NotSupported(message: String) : OAuthException(message)
         
-        class MetadataInvalid(message: String) : OidcException(message)
+        class MetadataInvalid(message: String) : OAuthException(message)
         
-        class CallbackUrlInvalid(message: String) : OidcException(message)
+        class CallbackUrlInvalid(message: String) : OAuthException(message)
         
-        class Cancelled(message: String) : OidcException(message)
+        class Cancelled(message: String) : OAuthException(message)
         
-        class Generic(message: String) : OidcException(message)
+        class Generic(message: String) : OAuthException(message)
         
 
-    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<OidcException> {
-        override fun lift(error_buf: RustBuffer.ByValue): OidcException = FfiConverterTypeOidcError.lift(error_buf)
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<OAuthException> {
+        override fun lift(error_buf: RustBuffer.ByValue): OAuthException = FfiConverterTypeOAuthError.lift(error_buf)
     }
 }
 
 /**
  * @suppress
  */
-public object FfiConverterTypeOidcError : FfiConverterRustBuffer<OidcException> {
-    override fun read(buf: ByteBuffer): OidcException {
+public object FfiConverterTypeOAuthError : FfiConverterRustBuffer<OAuthException> {
+    override fun read(buf: ByteBuffer): OAuthException {
         
             return when(buf.getInt()) {
-            1 -> OidcException.NotSupported(FfiConverterString.read(buf))
-            2 -> OidcException.MetadataInvalid(FfiConverterString.read(buf))
-            3 -> OidcException.CallbackUrlInvalid(FfiConverterString.read(buf))
-            4 -> OidcException.Cancelled(FfiConverterString.read(buf))
-            5 -> OidcException.Generic(FfiConverterString.read(buf))
+            1 -> OAuthException.NotSupported(FfiConverterString.read(buf))
+            2 -> OAuthException.MetadataInvalid(FfiConverterString.read(buf))
+            3 -> OAuthException.CallbackUrlInvalid(FfiConverterString.read(buf))
+            4 -> OAuthException.Cancelled(FfiConverterString.read(buf))
+            5 -> OAuthException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
     }
 
-    override fun allocationSize(value: OidcException): ULong {
+    override fun allocationSize(value: OAuthException): ULong {
         return 4UL
     }
 
-    override fun write(value: OidcException, buf: ByteBuffer) {
+    override fun write(value: OAuthException, buf: ByteBuffer) {
         when(value) {
-            is OidcException.NotSupported -> {
+            is OAuthException.NotSupported -> {
                 buf.putInt(1)
                 Unit
             }
-            is OidcException.MetadataInvalid -> {
+            is OAuthException.MetadataInvalid -> {
                 buf.putInt(2)
                 Unit
             }
-            is OidcException.CallbackUrlInvalid -> {
+            is OAuthException.CallbackUrlInvalid -> {
                 buf.putInt(3)
                 Unit
             }
-            is OidcException.Cancelled -> {
+            is OAuthException.Cancelled -> {
                 buf.putInt(4)
                 Unit
             }
-            is OidcException.Generic -> {
+            is OAuthException.Generic -> {
                 buf.putInt(5)
                 Unit
             }
@@ -48499,7 +48756,7 @@ public object FfiConverterTypeOidcError : FfiConverterRustBuffer<OidcException> 
 
 
 
-sealed class OidcPrompt {
+sealed class OAuthPrompt {
     
     /**
      * The Authorization Server should prompt the End-User to create a user
@@ -48507,28 +48764,28 @@ sealed class OidcPrompt {
      *
      * Defined in [Initiating User Registration via OpenID Connect](https://openid.net/specs/openid-connect-prompt-create-1_0.html).
      */
-    object Create : OidcPrompt()
+    object Create : OAuthPrompt()
     
     
     /**
      * The Authorization Server should prompt the End-User for
      * reauthentication.
      */
-    object Login : OidcPrompt()
+    object Login : OAuthPrompt()
     
     
     /**
      * The Authorization Server should prompt the End-User for consent before
      * returning information to the Client.
      */
-    object Consent : OidcPrompt()
+    object Consent : OAuthPrompt()
     
     
     /**
      * An unknown value.
      */
     data class Unknown(
-        val `value`: kotlin.String) : OidcPrompt()
+        val `value`: kotlin.String) : OAuthPrompt()
         
     {
         
@@ -48549,39 +48806,39 @@ sealed class OidcPrompt {
 /**
  * @suppress
  */
-public object FfiConverterTypeOidcPrompt : FfiConverterRustBuffer<OidcPrompt>{
-    override fun read(buf: ByteBuffer): OidcPrompt {
+public object FfiConverterTypeOAuthPrompt : FfiConverterRustBuffer<OAuthPrompt>{
+    override fun read(buf: ByteBuffer): OAuthPrompt {
         return when(buf.getInt()) {
-            1 -> OidcPrompt.Create
-            2 -> OidcPrompt.Login
-            3 -> OidcPrompt.Consent
-            4 -> OidcPrompt.Unknown(
+            1 -> OAuthPrompt.Create
+            2 -> OAuthPrompt.Login
+            3 -> OAuthPrompt.Consent
+            4 -> OAuthPrompt.Unknown(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
 
-    override fun allocationSize(value: OidcPrompt) = when(value) {
-        is OidcPrompt.Create -> {
+    override fun allocationSize(value: OAuthPrompt) = when(value) {
+        is OAuthPrompt.Create -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is OidcPrompt.Login -> {
+        is OAuthPrompt.Login -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is OidcPrompt.Consent -> {
+        is OAuthPrompt.Consent -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
             )
         }
-        is OidcPrompt.Unknown -> {
+        is OAuthPrompt.Unknown -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -48590,21 +48847,21 @@ public object FfiConverterTypeOidcPrompt : FfiConverterRustBuffer<OidcPrompt>{
         }
     }
 
-    override fun write(value: OidcPrompt, buf: ByteBuffer) {
+    override fun write(value: OAuthPrompt, buf: ByteBuffer) {
         when(value) {
-            is OidcPrompt.Create -> {
+            is OAuthPrompt.Create -> {
                 buf.putInt(1)
                 Unit
             }
-            is OidcPrompt.Login -> {
+            is OAuthPrompt.Login -> {
                 buf.putInt(2)
                 Unit
             }
-            is OidcPrompt.Consent -> {
+            is OAuthPrompt.Consent -> {
                 buf.putInt(3)
                 Unit
             }
-            is OidcPrompt.Unknown -> {
+            is OAuthPrompt.Unknown -> {
                 buf.putInt(4)
                 FfiConverterString.write(value.`value`, buf)
                 Unit
@@ -56629,7 +56886,8 @@ sealed class TimelineItemContent: Disposable  {
     
     
     data class RtcNotification(
-        val `callIntent`: kotlin.String?) : TimelineItemContent()
+        val `callIntent`: kotlin.String?, 
+        val `declinedBy`: List<kotlin.String>) : TimelineItemContent()
         
     {
         
@@ -56709,7 +56967,8 @@ sealed class TimelineItemContent: Disposable  {
             is TimelineItemContent.RtcNotification -> {
                 
     Disposable.destroy(
-        this.`callIntent`
+        this.`callIntent`,
+        this.`declinedBy`
     )
                 
             }
@@ -56781,6 +57040,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
             2 -> TimelineItemContent.CallInvite
             3 -> TimelineItemContent.RtcNotification(
                 FfiConverterOptionalString.read(buf),
+                FfiConverterSequenceString.read(buf),
                 )
             4 -> TimelineItemContent.RoomMembership(
                 FfiConverterString.read(buf),
@@ -56830,6 +57090,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
             (
                 4UL
                 + FfiConverterOptionalString.allocationSize(value.`callIntent`)
+                + FfiConverterSequenceString.allocationSize(value.`declinedBy`)
             )
         }
         is TimelineItemContent.RoomMembership -> {
@@ -56893,6 +57154,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
             is TimelineItemContent.RtcNotification -> {
                 buf.putInt(3)
                 FfiConverterOptionalString.write(value.`callIntent`, buf)
+                FfiConverterSequenceString.write(value.`declinedBy`, buf)
                 Unit
             }
             is TimelineItemContent.RoomMembership -> {
@@ -57742,6 +58004,72 @@ public object FfiConverterTypeBackupSteadyStateListener: FfiConverterCallbackInt
 
 
 /**
+ * A listener for the current user's client-wide beacon_info updates.
+ */
+public interface BeaconInfoListener {
+    
+    /**
+     * Called whenever the current user's beacon_info changes in any room.
+     */
+    fun `onUpdate`(`update`: BeaconInfoUpdate)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceBeaconInfoListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceBeaconInfoListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeBeaconInfoListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeBeaconInfoUpdate.lift(`update`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeBeaconInfoListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeBeaconInfoListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceBeaconInfoListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_beaconinfolistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeBeaconInfoListener: FfiConverterCallbackInterface<BeaconInfoListener>()
+
+
+
+
+
+/**
  * A listener for receiving call decline events in a room.
  */
 public interface CallDeclineListener {
@@ -58463,7 +58791,7 @@ public object FfiConverterTypeKnockRequestsListener: FfiConverterCallbackInterfa
 /**
  * Listener for live location share updates.
  */
-public interface LiveLocationShareListener {
+public interface LiveLocationsListener {
     
     /**
      * Called with a batch of [`LiveLocationShareUpdate`]s whenever the list
@@ -58477,10 +58805,10 @@ public interface LiveLocationShareListener {
 
 
 // Put the implementation in an object so we don't pollute the top-level namespace
-internal object uniffiCallbackInterfaceLiveLocationShareListener {
-    internal object `onUpdate`: UniffiCallbackInterfaceLiveLocationShareListenerMethod0 {
+internal object uniffiCallbackInterfaceLiveLocationsListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceLiveLocationsListenerMethod0 {
         override fun callback(`uniffiHandle`: Long,`updates`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
-            val uniffiObj = FfiConverterTypeLiveLocationShareListener.handleMap.get(uniffiHandle)
+            val uniffiObj = FfiConverterTypeLiveLocationsListener.handleMap.get(uniffiHandle)
             val makeCall = { ->
                 uniffiObj.`onUpdate`(
                     FfiConverterSequenceTypeLiveLocationShareUpdate.lift(`updates`),
@@ -58493,17 +58821,17 @@ internal object uniffiCallbackInterfaceLiveLocationShareListener {
 
     internal object uniffiFree: UniffiCallbackInterfaceFree {
         override fun callback(handle: Long) {
-            FfiConverterTypeLiveLocationShareListener.handleMap.remove(handle)
+            FfiConverterTypeLiveLocationsListener.handleMap.remove(handle)
         }
     }
 
     internal object uniffiClone: UniffiCallbackInterfaceClone {
         override fun callback(handle: Long): Long {
-            return FfiConverterTypeLiveLocationShareListener.handleMap.clone(handle)
+            return FfiConverterTypeLiveLocationsListener.handleMap.clone(handle)
         }
     }
 
-    internal var vtable = UniffiVTableCallbackInterfaceLiveLocationShareListener.UniffiByValue(
+    internal var vtable = UniffiVTableCallbackInterfaceLiveLocationsListener.UniffiByValue(
         uniffiFree,
         uniffiClone,
         `onUpdate`,
@@ -58512,7 +58840,7 @@ internal object uniffiCallbackInterfaceLiveLocationShareListener {
     // Registers the foreign callback with the Rust side.
     // This method is generated for each callback interface.
     internal fun register(lib: UniffiLib) {
-        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationsharelistener(vtable)
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationslistener(vtable)
     }
 }
 
@@ -58521,7 +58849,7 @@ internal object uniffiCallbackInterfaceLiveLocationShareListener {
  *
  * @suppress
  */
-public object FfiConverterTypeLiveLocationShareListener: FfiConverterCallbackInterface<LiveLocationShareListener>()
+public object FfiConverterTypeLiveLocationsListener: FfiConverterCallbackInterface<LiveLocationsListener>()
 
 
 
@@ -62478,28 +62806,28 @@ public object FfiConverterOptionalTypeMembershipChange: FfiConverterRustBuffer<M
 /**
  * @suppress
  */
-public object FfiConverterOptionalTypeOidcPrompt: FfiConverterRustBuffer<OidcPrompt?> {
-    override fun read(buf: ByteBuffer): OidcPrompt? {
+public object FfiConverterOptionalTypeOAuthPrompt: FfiConverterRustBuffer<OAuthPrompt?> {
+    override fun read(buf: ByteBuffer): OAuthPrompt? {
         if (buf.get().toInt() == 0) {
             return null
         }
-        return FfiConverterTypeOidcPrompt.read(buf)
+        return FfiConverterTypeOAuthPrompt.read(buf)
     }
 
-    override fun allocationSize(value: OidcPrompt?): ULong {
+    override fun allocationSize(value: OAuthPrompt?): ULong {
         if (value == null) {
             return 1UL
         } else {
-            return 1UL + FfiConverterTypeOidcPrompt.allocationSize(value)
+            return 1UL + FfiConverterTypeOAuthPrompt.allocationSize(value)
         }
     }
 
-    override fun write(value: OidcPrompt?, buf: ByteBuffer) {
+    override fun write(value: OAuthPrompt?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
-            FfiConverterTypeOidcPrompt.write(value, buf)
+            FfiConverterTypeOAuthPrompt.write(value, buf)
         }
     }
 }
@@ -64370,24 +64698,24 @@ public object FfiConverterSequenceTypeMembership: FfiConverterRustBuffer<List<Me
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeOidcPrompt: FfiConverterRustBuffer<List<OidcPrompt>> {
-    override fun read(buf: ByteBuffer): List<OidcPrompt> {
+public object FfiConverterSequenceTypeOAuthPrompt: FfiConverterRustBuffer<List<OAuthPrompt>> {
+    override fun read(buf: ByteBuffer): List<OAuthPrompt> {
         val len = buf.getInt()
-        return List<OidcPrompt>(len) {
-            FfiConverterTypeOidcPrompt.read(buf)
+        return List<OAuthPrompt>(len) {
+            FfiConverterTypeOAuthPrompt.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<OidcPrompt>): ULong {
+    override fun allocationSize(value: List<OAuthPrompt>): ULong {
         val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeOidcPrompt.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeOAuthPrompt.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<OidcPrompt>, buf: ByteBuffer) {
+    override fun write(value: List<OAuthPrompt>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach {
-            FfiConverterTypeOidcPrompt.write(it, buf)
+            FfiConverterTypeOAuthPrompt.write(it, buf)
         }
     }
 }
