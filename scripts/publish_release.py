@@ -49,6 +49,12 @@ def commit_and_push_changes(directory: str, message: str):
             check=True,
             capture_output=True,
         )
+        subprocess.run(
+            ["git", "pull", "--rebase", "origin", "main"],
+            cwd=directory,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(["git", "push"], cwd=directory, check=True, capture_output=True)
         print("Changes committed and pushed successfully.")
     except subprocess.CalledProcessError as e:
