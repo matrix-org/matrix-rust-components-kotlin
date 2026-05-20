@@ -1999,6 +1999,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oauth_callb
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_mark_all_rooms_as_read(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler(
@@ -2010,6 +2012,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_account_data_e
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_room_account_data_event(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_optimize_stores(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_pause(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler(
 ): Short
@@ -2026,6 +2030,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias(
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session_with(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_resume(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_room_alias_exists(
 ): Short
@@ -2717,6 +2723,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_key(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_passphrase(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size(
@@ -3214,6 +3222,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oauth_callback(`p
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_mark_all_rooms_as_read(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_new_grant_login_with_qr_code_handler(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3225,6 +3235,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_account_data_event(`
 external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_room_account_data_event(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventType`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_optimize_stores(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_pause(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handler(`ptr`: Long,`listener`: Long,
 ): Long
@@ -3241,6 +3253,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(`ptr`: Lo
 external fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Long,`session`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session_with(`ptr`: Long,`session`: RustBuffer.ByValue,`roomLoadSettings`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_resume(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_room_alias_exists(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
 ): Long
@@ -4050,13 +4064,13 @@ external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_pagination_state(`ptr
 ): RustBufferSpaceRoomListPaginationState.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_reset(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_space(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(`ptr`: Long,`listener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_space_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -4095,6 +4109,8 @@ external fun uniffi_matrix_sdk_ffi_fn_constructor_sqlitestorebuilder_new(`dataPa
 external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_cache_size(`ptr`: Long,`cacheSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_journal_size_limit(`ptr`: Long,`limit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_key(`ptr`: Long,`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_passphrase(`ptr`: Long,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -5848,6 +5864,19 @@ public interface ClientInterface {
     suspend fun `logout`()
     
     /**
+     * Mark all joined rooms as read by sending public, private and fully-read
+     * receipts on each room's latest event.
+     *
+     * This is a best-effort operation — per-room errors are logged and
+     * skipped. Receipts are sent unthreaded, which per the Matrix spec
+     * covers all events in a room including those inside threads.
+     *
+     * This is useful to mitigate backend led wrong iOS app badges and work
+     * around https://github.com/element-hq/element-x-ios/issues/3151
+     */
+    suspend fun `markAllRoomsAsRead`()
+    
+    /**
      * Create a handler for granting login from this device to a new device by
      * way of a QR code.
      */
@@ -5889,6 +5918,26 @@ public interface ClientInterface {
      * SQLite.
      */
     suspend fun `optimizeStores`()
+    
+    /**
+     * Pause the client for background suspension.
+     *
+     * This method:
+     * 1. Disables all send queues (prevents new message sends).
+     * 2. Pauses all database stores, waiting for in-flight operations and
+     * releasing all connections and file locks.
+     *
+     * Call [`Client::resume()`] when the app returns to the foreground.
+     *
+     * # iOS
+     *
+     * Call this before the app is suspended to avoid `0xdead10cc` kills.
+     * Typically called from
+     * [`applicationDidEnterBackground`](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationdidenterbackground(_:))
+     * or an equivalent SwiftUI lifecycle event, *after* stopping the
+     * `matrix_sdk_ui::sync_service::SyncService`.
+     */
+    suspend fun `pause`()
     
     /**
      * Register a handler for notifications generated from sync responses.
@@ -5949,6 +5998,17 @@ public interface ClientInterface {
      * It reloads a set of rooms controlled by [`RoomLoadSettings`].
      */
     suspend fun `restoreSessionWith`(`session`: Session, `roomLoadSettings`: RoomLoadSettings)
+    
+    /**
+     * Resume the client after a [`Client::pause()`].
+     *
+     * Re-acquires store resources and re-enables send queues.
+     *
+     * If your app stopped the `matrix_sdk_ui::sync_service::SyncService`
+     * before pausing, restart it separately as appropriate for your app
+     * lifecycle.
+     */
+    suspend fun `resume`()
     
     /**
      * Checks if a room alias exists in the current homeserver.
@@ -7551,6 +7611,39 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
+     * Mark all joined rooms as read by sending public, private and fully-read
+     * receipts on each room's latest event.
+     *
+     * This is a best-effort operation — per-room errors are logged and
+     * skipped. Receipts are sent unthreaded, which per the Matrix spec
+     * covers all events in a room including those inside threads.
+     *
+     * This is useful to mitigate backend led wrong iOS app badges and work
+     * around https://github.com/element-hq/element-x-ios/issues/3151
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `markAllRoomsAsRead`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_mark_all_rooms_as_read(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Create a handler for granting login from this device to a new device by
      * way of a QR code.
      */override fun `newGrantLoginWithQrCodeHandler`(): GrantLoginWithQrCodeHandler {
@@ -7661,6 +7754,46 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_optimize_stores(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Pause the client for background suspension.
+     *
+     * This method:
+     * 1. Disables all send queues (prevents new message sends).
+     * 2. Pauses all database stores, waiting for in-flight operations and
+     * releasing all connections and file locks.
+     *
+     * Call [`Client::resume()`] when the app returns to the foreground.
+     *
+     * # iOS
+     *
+     * Call this before the app is suspended to avoid `0xdead10cc` kills.
+     * Typically called from
+     * [`applicationDidEnterBackground`](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationdidenterbackground(_:))
+     * or an equivalent SwiftUI lifecycle event, *after* stopping the
+     * `matrix_sdk_ui::sync_service::SyncService`.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `pause`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_pause(
                 uniffiHandle,
                 
             )
@@ -7880,6 +8013,37 @@ open class Client: Disposable, AutoCloseable, ClientInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_restore_session_with(
                 uniffiHandle,
                 FfiConverterTypeSession.lower(`session`),FfiConverterTypeRoomLoadSettings.lower(`roomLoadSettings`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Resume the client after a [`Client::pause()`].
+     *
+     * Re-acquires store resources and re-enables send queues.
+     *
+     * If your app stopped the `matrix_sdk_ui::sync_service::SyncService`
+     * before pausing, restart it separately as appropriate for your app
+     * lifecycle.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `resume`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_resume(
+                uniffiHandle,
+                
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -25219,7 +25383,7 @@ public interface SpaceRoomListInterface {
     /**
      * Return the current list of rooms.
      */
-    fun `rooms`(): List<SpaceRoom>
+    suspend fun `rooms`(): List<SpaceRoom>
     
     /**
      * Returns the space of the room list if known.
@@ -25234,7 +25398,7 @@ public interface SpaceRoomListInterface {
     /**
      * Subscribes to room list updates.
      */
-    fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener): TaskHandle
+    suspend fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener): TaskHandle
     
     /**
      * Subscribe to space updates.
@@ -25427,18 +25591,25 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
     
     /**
      * Return the current list of rooms.
-     */override fun `rooms`(): List<SpaceRoom> {
-            return FfiConverterSequenceTypeSpaceRoom.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(
-        it,
-        _status)
-}
-    }
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `rooms`() : List<SpaceRoom> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeSpaceRoom.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
-    
 
     
     /**
@@ -25475,18 +25646,25 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
     
     /**
      * Subscribes to room list updates.
-     */override fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener): TaskHandle {
-            return FfiConverterTypeTaskHandle.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(
-        it,
-        FfiConverterTypeSpaceRoomListEntriesListener.lower(`listener`),_status)
-}
-    }
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `subscribeToRoomUpdate`(`listener`: SpaceRoomListEntriesListener) : TaskHandle {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(
+                uniffiHandle,
+                FfiConverterTypeSpaceRoomListEntriesListener.lower(`listener`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeTaskHandle.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
-    
 
     
     /**
@@ -26600,7 +26778,14 @@ public interface SqliteStoreBuilderInterface {
     fun `journalSizeLimit`(`limit`: kotlin.UInt?): SqliteStoreBuilder
     
     /**
-     * Set the passphrase for the stores.
+     * Set the raw key for the stores and removes any [`Self::passphrase`]
+     * previously set.
+     */
+    fun `key`(`key`: kotlin.ByteArray?): SqliteStoreBuilder
+    
+    /**
+     * Set the passphrase for the stores and removes any [`Self::key`]
+     * previously set.
      */
     fun `passphrase`(`passphrase`: kotlin.String?): SqliteStoreBuilder
     
@@ -26793,7 +26978,25 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
 
     
     /**
-     * Set the passphrase for the stores.
+     * Set the raw key for the stores and removes any [`Self::passphrase`]
+     * previously set.
+     */override fun `key`(`key`: kotlin.ByteArray?): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_key(
+        it,
+        FfiConverterOptionalByteArray.lower(`key`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set the passphrase for the stores and removes any [`Self::key`]
+     * previously set.
      */override fun `passphrase`(`passphrase`: kotlin.String?): SqliteStoreBuilder {
             return FfiConverterTypeSqliteStoreBuilder.lift(
     callWithHandle {
@@ -35980,6 +36183,11 @@ data class RoomInfo (
     var `numUnreadMentions`: kotlin.ULong
     , 
     /**
+     * Event ID of the user's `m.fully_read` marker for this room, if any.
+     */
+    var `fullyReadEventId`: kotlin.String?
+    , 
+    /**
      * The currently pinned event ids.
      */
     var `pinnedEventIds`: List<kotlin.String>
@@ -36056,6 +36264,7 @@ data class RoomInfo (
         this.`numUnreadMessages`,
         this.`numUnreadNotifications`,
         this.`numUnreadMentions`,
+        this.`fullyReadEventId`,
         this.`pinnedEventIds`,
         this.`joinRule`,
         this.`historyVisibility`,
@@ -36108,6 +36317,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
             FfiConverterULong.read(buf),
+            FfiConverterOptionalString.read(buf),
             FfiConverterSequenceString.read(buf),
             FfiConverterOptionalTypeJoinRule.read(buf),
             FfiConverterTypeRoomHistoryVisibility.read(buf),
@@ -36152,6 +36362,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.allocationSize(value.`numUnreadMessages`) +
             FfiConverterULong.allocationSize(value.`numUnreadNotifications`) +
             FfiConverterULong.allocationSize(value.`numUnreadMentions`) +
+            FfiConverterOptionalString.allocationSize(value.`fullyReadEventId`) +
             FfiConverterSequenceString.allocationSize(value.`pinnedEventIds`) +
             FfiConverterOptionalTypeJoinRule.allocationSize(value.`joinRule`) +
             FfiConverterTypeRoomHistoryVisibility.allocationSize(value.`historyVisibility`) +
@@ -36195,6 +36406,7 @@ public object FfiConverterTypeRoomInfo: FfiConverterRustBuffer<RoomInfo> {
             FfiConverterULong.write(value.`numUnreadMessages`, buf)
             FfiConverterULong.write(value.`numUnreadNotifications`, buf)
             FfiConverterULong.write(value.`numUnreadMentions`, buf)
+            FfiConverterOptionalString.write(value.`fullyReadEventId`, buf)
             FfiConverterSequenceString.write(value.`pinnedEventIds`, buf)
             FfiConverterOptionalTypeJoinRule.write(value.`joinRule`, buf)
             FfiConverterTypeRoomHistoryVisibility.write(value.`historyVisibility`, buf)
@@ -40329,6 +40541,8 @@ sealed class ClientBuildException(message: String): kotlin.Exception(message) {
         
         class EventCache(message: String) : ClientBuildException(message)
         
+        class InvalidRawKey(message: String) : ClientBuildException(message)
+        
         class Generic(message: String) : ClientBuildException(message)
         
 
@@ -40352,7 +40566,8 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
             6 -> ClientBuildException.SlidingSyncVersion(FfiConverterString.read(buf))
             7 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
             8 -> ClientBuildException.EventCache(FfiConverterString.read(buf))
-            9 -> ClientBuildException.Generic(FfiConverterString.read(buf))
+            9 -> ClientBuildException.InvalidRawKey(FfiConverterString.read(buf))
+            10 -> ClientBuildException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -40396,8 +40611,12 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
                 buf.putInt(8)
                 Unit
             }
-            is ClientBuildException.Generic -> {
+            is ClientBuildException.InvalidRawKey -> {
                 buf.putInt(9)
+                Unit
+            }
+            is ClientBuildException.Generic -> {
+                buf.putInt(10)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -61228,6 +61447,38 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
         } else {
             buf.put(1)
             FfiConverterString.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalByteArray: FfiConverterRustBuffer<kotlin.ByteArray?> {
+    override fun read(buf: ByteBuffer): kotlin.ByteArray? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterByteArray.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.ByteArray?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterByteArray.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.ByteArray?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterByteArray.write(value, buf)
         }
     }
 }
