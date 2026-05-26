@@ -47,6 +47,7 @@ import uniffi.matrix_sdk.FfiConverterTypePaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
 import uniffi.matrix_sdk.FfiConverterTypeServerVendorInfo
+import uniffi.matrix_sdk.FfiConverterTypeTileServerInfo
 import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetConfig
 import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk.OAuthAuthorizationData
@@ -54,6 +55,7 @@ import uniffi.matrix_sdk.PaginationStatus
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPowerLevelChanges
 import uniffi.matrix_sdk.ServerVendorInfo
+import uniffi.matrix_sdk.TileServerInfo
 import uniffi.matrix_sdk.VirtualElementCallWidgetConfig
 import uniffi.matrix_sdk.VirtualElementCallWidgetProperties
 import uniffi.matrix_sdk_base.DmRoomDefinition
@@ -96,6 +98,7 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
 import uniffi.matrix_sdk.RustBuffer as RustBufferServerVendorInfo
+import uniffi.matrix_sdk.RustBuffer as RustBufferTileServerInfo
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetConfig
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetProperties
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferDmRoomDefinition
@@ -2091,6 +2094,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_tile_server(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
@@ -3284,7 +3289,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_preview_display_po
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(`ptr`: Long,`policy`: RustBufferMediaRetentionPolicy.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Long,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Long,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,`append`: Byte,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_utd_delegate(`ptr`: Long,`utdDelegate`: Long,
 ): Long
@@ -3313,6 +3318,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_once_v2(`ptr`: Long,`se
 external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_tile_server(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Long,`room`: RustBuffer.ByValue,
 ): Long
@@ -6084,7 +6091,7 @@ public interface ClientInterface {
     /**
      * Registers a pusher with given parameters
      */
-    suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String)
+    suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String, `append`: kotlin.Boolean)
     
     /**
      * Sets the [`UnableToDecryptDelegate`] which will inform about UTDs.
@@ -6179,6 +6186,16 @@ public interface ClientInterface {
      * The listener is called after each successful sync response.
      */
     fun `syncV2`(`settings`: SyncSettingsV2, `listener`: SyncListenerV2): TaskHandle
+    
+    /**
+     * Get information about the homeserver's advertised map tile server, if
+     * any.
+     *
+     * Reads the `tile_server` field of the matrix client well-known (MSC3488).
+     * Uses the cached well-known when available, otherwise fetches it from the
+     * homeserver.
+     */
+    suspend fun `tileServer`(): TileServerInfo?
     
     suspend fun `trackRecentlyVisitedRoom`(`room`: kotlin.String)
     
@@ -8368,12 +8385,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String) {
+    override suspend fun `setPusher`(`identifiers`: PusherIdentifiers, `kind`: PusherKind, `appDisplayName`: kotlin.String, `deviceDisplayName`: kotlin.String, `profileTag`: kotlin.String?, `lang`: kotlin.String, `append`: kotlin.Boolean) {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(
                 uniffiHandle,
-                FfiConverterTypePusherIdentifiers.lower(`identifiers`),FfiConverterTypePusherKind.lower(`kind`),FfiConverterString.lower(`appDisplayName`),FfiConverterString.lower(`deviceDisplayName`),FfiConverterOptionalString.lower(`profileTag`),FfiConverterString.lower(`lang`),
+                FfiConverterTypePusherIdentifiers.lower(`identifiers`),FfiConverterTypePusherKind.lower(`kind`),FfiConverterString.lower(`appDisplayName`),FfiConverterString.lower(`deviceDisplayName`),FfiConverterOptionalString.lower(`profileTag`),FfiConverterString.lower(`lang`),FfiConverterBoolean.lower(`append`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8691,6 +8708,34 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     )
     }
     
+
+    
+    /**
+     * Get information about the homeserver's advertised map tile server, if
+     * any.
+     *
+     * Reads the `tile_server` field of the matrix client well-known (MSC3488).
+     * Uses the cached well-known when available, otherwise fetches it from the
+     * homeserver.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `tileServer`() : TileServerInfo? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_tile_server(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeTileServerInfo.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -61873,6 +61918,38 @@ public object FfiConverterOptionalTypeUserIdentity: FfiConverterRustBuffer<UserI
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeTileServerInfo: FfiConverterRustBuffer<TileServerInfo?> {
+    override fun read(buf: ByteBuffer): TileServerInfo? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeTileServerInfo.read(buf)
+    }
+
+    override fun allocationSize(value: TileServerInfo?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeTileServerInfo.allocationSize(value)
+        }
+    }
+
+    override fun write(value: TileServerInfo?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeTileServerInfo.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeAudioInfo: FfiConverterRustBuffer<AudioInfo?> {
     override fun read(buf: ByteBuffer): AudioInfo? {
         if (buf.get().toInt() == 0) {
@@ -65731,6 +65808,8 @@ public object FfiConverterMapTypeTimelineEventTypeLong: FfiConverterRustBuffer<M
  */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
 
 
 
