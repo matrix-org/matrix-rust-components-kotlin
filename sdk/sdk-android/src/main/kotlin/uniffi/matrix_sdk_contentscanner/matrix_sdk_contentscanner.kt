@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.matrix_sdk_ui
+package uniffi.matrix_sdk_contentscanner
 
 // Common helper code.
 //
@@ -58,7 +58,7 @@ open class RustBuffer : Structure() {
     companion object {
         internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
             // Note: need to convert the size to a `Long` value to make this work with JVM.
-            UniffiLib.ffi_matrix_sdk_ui_rustbuffer_alloc(size.toLong(), status)
+            UniffiLib.ffi_matrix_sdk_contentscanner_rustbuffer_alloc(size.toLong(), status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -74,7 +74,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
-            UniffiLib.ffi_matrix_sdk_ui_rustbuffer_free(buf, status)
+            UniffiLib.ffi_matrix_sdk_contentscanner_rustbuffer_free(buf, status)
         }
     }
 
@@ -631,10 +631,10 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 // We now use JNA's "direct mapping" - unclear if same considerations apply exactly.
 internal object IntegrityCheckingUniffiLib {
     init {
-        Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_ui"))
+        Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_contentscanner"))
         uniffiCheckContractApiVersion(this)
     }
-    external fun ffi_matrix_sdk_ui_uniffi_contract_version(
+    external fun ffi_matrix_sdk_contentscanner_uniffi_contract_version(
     ): Int
 
         
@@ -644,112 +644,112 @@ internal object UniffiLib {
     
 
     init {
-        Native.register(UniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_ui"))
+        Native.register(UniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_contentscanner"))
         
     }
-    external fun ffi_matrix_sdk_ui_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_ui_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_ui_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    external fun ffi_matrix_sdk_ui_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_ui_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_u8(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_u8(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    external fun ffi_matrix_sdk_ui_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_i8(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_i8(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    external fun ffi_matrix_sdk_ui_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_u16(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_u16(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    external fun ffi_matrix_sdk_ui_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_i16(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_i16(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    external fun ffi_matrix_sdk_ui_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_u32(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_u32(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    external fun ffi_matrix_sdk_ui_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_i32(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_i32(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    external fun ffi_matrix_sdk_ui_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_u64(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_u64(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    external fun ffi_matrix_sdk_ui_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_i64(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_i64(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    external fun ffi_matrix_sdk_ui_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_f32(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_f32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_f32(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_f32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Float
-    external fun ffi_matrix_sdk_ui_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_f64(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_f64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_f64(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_f64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
-    external fun ffi_matrix_sdk_ui_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_rust_buffer(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_rust_buffer(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_rust_buffer(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_ui_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_cancel_void(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_void(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_free_void(`handle`: Long,
+    external fun ffi_matrix_sdk_contentscanner_rust_future_free_void(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_ui_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
 
         
@@ -759,7 +759,7 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     // Get the bindings contract version from our ComponentInterface
     val bindings_contract_version = 30
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_matrix_sdk_ui_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_matrix_sdk_contentscanner_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
@@ -859,29 +859,6 @@ object NoHandle
 /**
  * @suppress
  */
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1UL
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
-
-/**
- * @suppress
- */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -939,27 +916,51 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 /**
- * Where this event came.
+ * The reason for the content scanner error.
  */
 
-enum class EventItemOrigin {
+enum class ErrorReason {
     
     /**
-     * The event was created locally.
+     * The JSON file is malformed.
      */
-    LOCAL,
+    MCS_MALFORMED_JSON,
     /**
-     * The event came from a sync response.
+     * The media could not be decrypted.
      */
-    SYNC,
+    MCS_MEDIA_FAILED_TO_DECRYPT,
     /**
-     * The event came from pagination.
+     * No access token was provided.
      */
-    PAGINATION,
+    M_MISSING_TOKEN,
     /**
-     * The event came from a cache.
+     * The access token provided is invalid.
      */
-    CACHE;
+    M_UNKNOWN_TOKEN,
+    /**
+     * The media was not found.
+     */
+    M_NOT_FOUND,
+    /**
+     * The media has some potentially dangerous content.
+     */
+    MCS_MEDIA_NOT_CLEAN,
+    /**
+     * The media has been blocked by the server because of its mime type.
+     */
+    MCS_MIME_TYPE_FORBIDDEN,
+    /**
+     * The used public key is wrong.
+     */
+    MCS_BAD_DECRYPTION,
+    /**
+     * An unknown error occurred.
+     */
+    M_UNKNOWN,
+    /**
+     * The server failed to request media from the media repo.
+     */
+    MCS_MEDIA_REQUEST_FAILED;
 
     
 
@@ -971,529 +972,16 @@ enum class EventItemOrigin {
 /**
  * @suppress
  */
-public object FfiConverterTypeEventItemOrigin: FfiConverterRustBuffer<EventItemOrigin> {
+public object FfiConverterTypeErrorReason: FfiConverterRustBuffer<ErrorReason> {
     override fun read(buf: ByteBuffer) = try {
-        EventItemOrigin.values()[buf.getInt() - 1]
+        ErrorReason.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: EventItemOrigin) = 4UL
+    override fun allocationSize(value: ErrorReason) = 4UL
 
-    override fun write(value: EventItemOrigin, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-
-enum class LatestEventValueLocalState {
-    
-    IS_SENDING,
-    HAS_BEEN_SENT,
-    CANNOT_BE_SENT;
-
-    
-
-
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeLatestEventValueLocalState: FfiConverterRustBuffer<LatestEventValueLocalState> {
-    override fun read(buf: ByteBuffer) = try {
-        LatestEventValueLocalState.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: LatestEventValueLocalState) = 4UL
-
-    override fun write(value: LatestEventValueLocalState, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-/**
- * The membership states that should be included/excluded from the timeline
- * item filters.
- */
-
-enum class MembershipChangeFilter {
-    
-    /**
-     * Include/exclude all membership state events.
-     */
-    ANY,
-    /**
-     * Include/exclude only `join` membership state events.
-     */
-    JOIN,
-    /**
-     * Include/exclude only `leave` membership state events.
-     */
-    LEAVE,
-    /**
-     * Include/exclude only `invite` membership state events.
-     */
-    INVITE,
-    /**
-     * Include/exclude only `ban` membership state events.
-     */
-    BAN,
-    /**
-     * Include/exclude only `knock` membership state events.
-     */
-    KNOCK;
-
-    
-
-
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeMembershipChangeFilter: FfiConverterRustBuffer<MembershipChangeFilter> {
-    override fun read(buf: ByteBuffer) = try {
-        MembershipChangeFilter.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: MembershipChangeFilter) = 4UL
-
-    override fun write(value: MembershipChangeFilter, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-/**
- * The type of change between the previous and current pinned events.
- */
-
-enum class RoomPinnedEventsChange {
-    
-    /**
-     * Only new event ids were added.
-     */
-    ADDED,
-    /**
-     * Only event ids were removed.
-     */
-    REMOVED,
-    /**
-     * Some change other than only adding or only removing ids happened.
-     */
-    CHANGED;
-
-    
-
-
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeRoomPinnedEventsChange: FfiConverterRustBuffer<RoomPinnedEventsChange> {
-    override fun read(buf: ByteBuffer) = try {
-        RoomPinnedEventsChange.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: RoomPinnedEventsChange) = 4UL
-
-    override fun write(value: RoomPinnedEventsChange, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-sealed class SpaceRoomListPaginationState {
-    
-    data class Idle(
-        val `endReached`: kotlin.Boolean) : SpaceRoomListPaginationState()
-        
-    {
-        
-
-        companion object
-    }
-    
-    object Loading : SpaceRoomListPaginationState()
-    
-    
-
-    
-
-    
-    
-
-
-    companion object
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeSpaceRoomListPaginationState : FfiConverterRustBuffer<SpaceRoomListPaginationState>{
-    override fun read(buf: ByteBuffer): SpaceRoomListPaginationState {
-        return when(buf.getInt()) {
-            1 -> SpaceRoomListPaginationState.Idle(
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> SpaceRoomListPaginationState.Loading
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: SpaceRoomListPaginationState) = when(value) {
-        is SpaceRoomListPaginationState.Idle -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`endReached`)
-            )
-        }
-        is SpaceRoomListPaginationState.Loading -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: SpaceRoomListPaginationState, buf: ByteBuffer) {
-        when(value) {
-            is SpaceRoomListPaginationState.Idle -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`endReached`, buf)
-                Unit
-            }
-            is SpaceRoomListPaginationState.Loading -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-/**
- * The pagination state of a [`ThreadListService`].
- */
-sealed class ThreadListPaginationState {
-    
-    /**
-     * The list is idle (not currently loading).
-     */
-    data class Idle(
-        /**
-         * Whether the end of the thread list has been reached (no more pages
-         * to load).
-         */
-        val `endReached`: kotlin.Boolean) : ThreadListPaginationState()
-        
-    {
-        
-
-        companion object
-    }
-    
-    /**
-     * The list is currently loading the next page.
-     */
-    object Loading : ThreadListPaginationState()
-    
-    
-
-    
-
-    
-    
-
-
-    companion object
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeThreadListPaginationState : FfiConverterRustBuffer<ThreadListPaginationState>{
-    override fun read(buf: ByteBuffer): ThreadListPaginationState {
-        return when(buf.getInt()) {
-            1 -> ThreadListPaginationState.Idle(
-                FfiConverterBoolean.read(buf),
-                )
-            2 -> ThreadListPaginationState.Loading
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: ThreadListPaginationState) = when(value) {
-        is ThreadListPaginationState.Idle -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`endReached`)
-            )
-        }
-        is ThreadListPaginationState.Loading -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-    }
-
-    override fun write(value: ThreadListPaginationState, buf: ByteBuffer) {
-        when(value) {
-            is ThreadListPaginationState.Idle -> {
-                buf.putInt(1)
-                FfiConverterBoolean.write(value.`endReached`, buf)
-                Unit
-            }
-            is ThreadListPaginationState.Loading -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-/**
- * Options for controlling the behaviour of [`TimelineFocus::Event`]
- * for threaded events.
- */
-sealed class TimelineEventFocusThreadMode {
-    
-    /**
-     * Force the timeline into threaded mode.
-     *
-     * When the focused event is part of a thread, the timeline will be focused
-     * on that thread's root. Otherwise, the timeline will treat the target
-     * event itself as the thread root. Threaded events will never be
-     * hidden.
-     */
-    object ForceThread : TimelineEventFocusThreadMode()
-    
-    
-    /**
-     * Automatically determine if the target event is part of a thread or not.
-     *
-     * If the event is part of a thread, the timeline
-     * will be filtered to on-thread events.
-     */
-    data class Automatic(
-        /**
-         * When the target event is not part of a thread, whether to
-         * hide in-thread replies from the live timeline.
-         *
-         * Has no effect when the target event is part of a thread.
-         *
-         * This should be set to true when the client can create
-         * [`TimelineFocus::Thread`]-focused timelines from the thread roots
-         * themselves and doesn't use the [`Self::ForceThread`] mode.
-         */
-        val `hideThreadedEvents`: kotlin.Boolean) : TimelineEventFocusThreadMode()
-        
-    {
-        
-
-        companion object
-    }
-    
-
-    
-
-    
-    
-
-
-    companion object
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeTimelineEventFocusThreadMode : FfiConverterRustBuffer<TimelineEventFocusThreadMode>{
-    override fun read(buf: ByteBuffer): TimelineEventFocusThreadMode {
-        return when(buf.getInt()) {
-            1 -> TimelineEventFocusThreadMode.ForceThread
-            2 -> TimelineEventFocusThreadMode.Automatic(
-                FfiConverterBoolean.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
-    }
-
-    override fun allocationSize(value: TimelineEventFocusThreadMode) = when(value) {
-        is TimelineEventFocusThreadMode.ForceThread -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is TimelineEventFocusThreadMode.Automatic -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-                + FfiConverterBoolean.allocationSize(value.`hideThreadedEvents`)
-            )
-        }
-    }
-
-    override fun write(value: TimelineEventFocusThreadMode, buf: ByteBuffer) {
-        when(value) {
-            is TimelineEventFocusThreadMode.ForceThread -> {
-                buf.putInt(1)
-                Unit
-            }
-            is TimelineEventFocusThreadMode.Automatic -> {
-                buf.putInt(2)
-                FfiConverterBoolean.write(value.`hideThreadedEvents`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-}
-
-
-
-
-
-/**
- * Extends [`ShieldStateCode`] to allow for a `SentInClear` code.
- */
-
-enum class TimelineEventShieldStateCode {
-    
-    /**
-     * Not enough information available to check the authenticity.
-     */
-    AUTHENTICITY_NOT_GUARANTEED,
-    /**
-     * The sending device isn't yet known by the Client.
-     */
-    UNKNOWN_DEVICE,
-    /**
-     * The sending device hasn't been verified by the sender.
-     */
-    UNSIGNED_DEVICE,
-    /**
-     * The sender hasn't been verified by the Client's user.
-     */
-    UNVERIFIED_IDENTITY,
-    /**
-     * The sender was previously verified but changed their identity.
-     */
-    VERIFICATION_VIOLATION,
-    /**
-     * The `sender` field on the event does not match the owner of the device
-     * that established the Megolm session.
-     */
-    MISMATCHED_SENDER,
-    /**
-     * An unencrypted event in an encrypted room.
-     */
-    SENT_IN_CLEAR;
-
-    
-
-
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeTimelineEventShieldStateCode: FfiConverterRustBuffer<TimelineEventShieldStateCode> {
-    override fun read(buf: ByteBuffer) = try {
-        TimelineEventShieldStateCode.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: TimelineEventShieldStateCode) = 4UL
-
-    override fun write(value: TimelineEventShieldStateCode, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-/**
- * The level of read receipt tracking for the timeline.
- */
-
-enum class TimelineReadReceiptTracking {
-    
-    /**
-     * Track read receipts for all events.
-     */
-    ALL_EVENTS,
-    /**
-     * Track read receipts only for message-like events.
-     */
-    MESSAGE_LIKE_EVENTS,
-    /**
-     * Disable read receipt tracking.
-     */
-    DISABLED;
-
-    
-
-
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeTimelineReadReceiptTracking: FfiConverterRustBuffer<TimelineReadReceiptTracking> {
-    override fun read(buf: ByteBuffer) = try {
-        TimelineReadReceiptTracking.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: TimelineReadReceiptTracking) = 4UL
-
-    override fun write(value: TimelineReadReceiptTracking, buf: ByteBuffer) {
+    override fun write(value: ErrorReason, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
