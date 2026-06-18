@@ -2376,8 +2376,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_event_cache_storage(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_decline_call(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
@@ -3689,8 +3687,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_ban_user(`ptr`: Long,`userId`:
 external fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_decline_call(`ptr`: Long,`rtcNotificationEventId`: RustBuffer.ByValue,
 ): Long
@@ -16778,14 +16774,6 @@ public interface RoomInterface {
     suspend fun `clearComposerDraft`(`threadRoot`: kotlin.String?)
     
     /**
-     * Clear the event cache storage for the current room.
-     *
-     * This will remove all the information related to the event cache, in
-     * memory and in the persisted storage, if enabled.
-     */
-    suspend fun `clearEventCacheStorage`()
-    
-    /**
      * Declines a call (and stop ringing).
      *
      * # Arguments
@@ -17585,34 +17573,6 @@ open class Room: Disposable, AutoCloseable, RoomInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(
                 uniffiHandle,
                 FfiConverterOptionalString.lower(`threadRoot`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
-     * Clear the event cache storage for the current room.
-     *
-     * This will remove all the information related to the event cache, in
-     * memory and in the persisted storage, if enabled.
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `clearEventCacheStorage`() {
-        return uniffiRustCallAsync(
-        callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_clear_event_cache_storage(
-                uniffiHandle,
-                
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
