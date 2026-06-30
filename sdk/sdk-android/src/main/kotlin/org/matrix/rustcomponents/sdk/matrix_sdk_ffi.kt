@@ -68,6 +68,8 @@ import uniffi.matrix_sdk_common.BackgroundTaskFailureReason
 import uniffi.matrix_sdk_common.FfiConverterTypeBackgroundTaskFailureReason
 import uniffi.matrix_sdk_contentscanner.ErrorReason
 import uniffi.matrix_sdk_contentscanner.FfiConverterTypeErrorReason
+import uniffi.matrix_sdk_contentscanner.FfiConverterTypeMediaScanResponse
+import uniffi.matrix_sdk_contentscanner.MediaScanResponse
 import uniffi.matrix_sdk_crypto.CollectStrategy
 import uniffi.matrix_sdk_crypto.DecryptionSettings
 import uniffi.matrix_sdk_crypto.FfiConverterTypeCollectStrategy
@@ -116,6 +118,7 @@ import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferBackgroundTaskFailureReason
 import uniffi.matrix_sdk_contentscanner.RustBuffer as RustBufferErrorReason
+import uniffi.matrix_sdk_contentscanner.RustBuffer as RustBufferMediaScanResponse
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferCollectStrategy
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferDecryptionSettings
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
@@ -1929,6 +1932,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_content_scanner(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt(
@@ -2069,6 +2074,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_account_data(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_avatar_url(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_content_scanner(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_delegate(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
@@ -2175,8 +2182,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_ver
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_dm_room_definition(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_content_scanner(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_history_on_invite(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url(
@@ -2210,6 +2215,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_search_index_store(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_contentscanner_scan(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server(
 ): Short
@@ -2895,6 +2902,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_send(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_constructor_contentscanner_new(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_database(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_str(
@@ -3158,6 +3167,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`
 ): Byte
 external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Long,`syncService`: RustBuffer.ByValue,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_content_scanner(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Long,`request`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(`ptr`: Long,`jwt`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
@@ -3298,6 +3309,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(`ptr`: Long
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(`ptr`: Long,`url`: RustBuffer.ByValue,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_set_content_scanner(`ptr`: Long,`contentScanner`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(`ptr`: Long,`name`: RustBuffer.ByValue,
@@ -3360,7 +3373,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(`ptr`: Long
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_get_recent_emojis(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_search_messages(`ptr`: Long,`query`: RustBuffer.ByValue,`filter`: RustBuffer.ByValue,`numResultsPerBatch`: Int,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_search_messages(`ptr`: Long,`query`: RustBuffer.ByValue,`filter`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_homeservercapabilities(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3418,8 +3431,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verificat
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(`ptr`: Long,`dmRoomDefinition`: RustBufferDmRoomDefinition.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_content_scanner(`ptr`: Long,`scannerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_on_invite(`ptr`: Long,`enableShareHistoryOnInvite`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_homeserver_url(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3453,6 +3464,14 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Lon
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(`ptr`: Long,`username`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_search_index_store(`ptr`: Long,`path`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_clone_contentscanner(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_free_contentscanner(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_constructor_contentscanner_new(`scannerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_contentscanner_scan(`ptr`: Long,`client`: Long,`mediaSource`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_encryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -3884,7 +3903,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Long,`mim
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Long,`userIds`: RustBuffer.ByValue,`sendHandle`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_search_messages(`ptr`: Long,`query`: RustBuffer.ByValue,`numResultsPerBatch`: Int,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_room_search_messages(`ptr`: Long,`query`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -5644,6 +5663,11 @@ public interface ClientInterface {
      */
     suspend fun `clearCaches`(`syncService`: SyncService?)
     
+    /**
+     * Returns the currently used [`ContentScanner`] instance, if any.
+     */
+    suspend fun `contentScanner`(): ContentScanner?
+    
     suspend fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
     
     /**
@@ -6087,6 +6111,12 @@ public interface ClientInterface {
     suspend fun `setAvatarUrl`(`url`: kotlin.String)
     
     /**
+     * Enables or disables the content scanner feature using the provided
+     * [`ContentScanner`] instance.
+     */
+    suspend fun `setContentScanner`(`contentScanner`: ContentScanner?)
+    
+    /**
      * Sets the [ClientDelegate] which will inform about authentication errors.
      * Returns an error if the delegate was already set.
      */
@@ -6295,7 +6325,7 @@ public interface ClientInterface {
      * Search across all all rooms for the given query, returning an iterator
      * over the results.
      */
-    suspend fun `searchMessages`(`query`: kotlin.String, `filter`: SearchRoomFilter, `numResultsPerBatch`: kotlin.UInt): GlobalSearchIterator
+    suspend fun `searchMessages`(`query`: kotlin.String, `filter`: SearchRoomFilter): GlobalSearchIterator
     
     companion object
 }
@@ -6635,6 +6665,29 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         
         // Error FFI converter
         ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the currently used [`ContentScanner`] instance, if any.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `contentScanner`() : ContentScanner? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_content_scanner(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeContentScanner.lift(it) },
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
     )
     }
 
@@ -8297,6 +8350,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
+     * Enables or disables the content scanner feature using the provided
+     * [`ContentScanner`] instance.
+     */
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setContentScanner`(`contentScanner`: ContentScanner?) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_content_scanner(
+                uniffiHandle,
+                FfiConverterOptionalTypeContentScanner.lower(`contentScanner`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
      * Sets the [ClientDelegate] which will inform about authentication errors.
      * Returns an error if the delegate was already set.
      */
@@ -9029,12 +9107,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `searchMessages`(`query`: kotlin.String, `filter`: SearchRoomFilter, `numResultsPerBatch`: kotlin.UInt) : GlobalSearchIterator {
+    override suspend fun `searchMessages`(`query`: kotlin.String, `filter`: SearchRoomFilter) : GlobalSearchIterator {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_search_messages(
                 uniffiHandle,
-                FfiConverterString.lower(`query`),FfiConverterTypeSearchRoomFilter.lower(`filter`),FfiConverterUInt.lower(`numResultsPerBatch`),
+                FfiConverterString.lower(`query`),FfiConverterTypeSearchRoomFilter.lower(`filter`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -9221,8 +9299,6 @@ public interface ClientBuilderInterface {
     fun `disableSslVerification`(): ClientBuilder
     
     fun `dmRoomDefinition`(`dmRoomDefinition`: DmRoomDefinition): ClientBuilder
-    
-    fun `enableContentScanner`(`scannerUrl`: kotlin.String): ClientBuilder
     
     /**
      * Set whether to enable the experimental support for sending and receiving
@@ -9586,19 +9662,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
-    override fun `enableContentScanner`(`scannerUrl`: kotlin.String): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_content_scanner(
-        it,
-        FfiConverterString.lower(`scannerUrl`),_status)
-}
-    }
-    )
-    }
-    
-
     
     /**
      * Set whether to enable the experimental support for sending and receiving
@@ -9907,6 +9970,283 @@ public object FfiConverterTypeClientBuilder: FfiConverter<ClientBuilder, Long> {
     override fun allocationSize(value: ClientBuilder) = 8UL
 
     override fun write(value: ClientBuilder, buf: ByteBuffer) {
+        buf.putLong(lower(value))
+    }
+}
+
+
+// This template implements a class for working with a Rust struct via a handle
+// to the live Rust struct on the other side of the FFI.
+//
+// There's some subtlety here, because we have to be careful not to operate on a Rust
+// struct after it has been dropped, and because we must expose a public API for freeing
+// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
+//
+//   * Each instance holds an opaque handle to the underlying Rust struct.
+//     Method calls need to read this handle from the object's state and pass it in to
+//     the Rust FFI.
+//
+//   * When an instance is no longer needed, its handle should be passed to a
+//     special destructor function provided by the Rust FFI, which will drop the
+//     underlying Rust struct.
+//
+//   * Given an instance, calling code is expected to call the special
+//     `destroy` method in order to free it after use, either by calling it explicitly
+//     or by using a higher-level helper like the `use` method. Failing to do so risks
+//     leaking the underlying Rust struct.
+//
+//   * We can't assume that calling code will do the right thing, and must be prepared
+//     to handle Kotlin method calls executing concurrently with or even after a call to
+//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
+//
+//   * We must never allow Rust code to operate on the underlying Rust struct after
+//     the destructor has been called, and must never call the destructor more than once.
+//     Doing so may trigger memory unsafety.
+//
+//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
+//     is implemented to call the destructor when the Kotlin object becomes unreachable.
+//     This is done in a background thread. This is not a panacea, and client code should be aware that
+//      1. the thread may starve if some there are objects that have poorly performing
+//     `drop` methods or do significant work in their `drop` methods.
+//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
+//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
+//
+// If we try to implement this with mutual exclusion on access to the handle, there is the
+// possibility of a race between a method call and a concurrent call to `destroy`:
+//
+//    * Thread A starts a method call, reads the value of the handle, but is interrupted
+//      before it can pass the handle over the FFI to Rust.
+//    * Thread B calls `destroy` and frees the underlying Rust struct.
+//    * Thread A resumes, passing the already-read handle value to Rust and triggering
+//      a use-after-free.
+//
+// One possible solution would be to use a `ReadWriteLock`, with each method call taking
+// a read lock (and thus allowed to run concurrently) and the special `destroy` method
+// taking a write lock (and thus blocking on live method calls). However, we aim not to
+// generate methods with any hidden blocking semantics, and a `destroy` method that might
+// block if called incorrectly seems to meet that bar.
+//
+// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
+// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
+// has been called. These are updated according to the following rules:
+//
+//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
+//      The initial value for the flag is false.
+//
+//    * At the start of each method call, we atomically check the counter.
+//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
+//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
+//
+//    * At the end of each method call, we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+//    * When `destroy` is called, we atomically flip the flag from false to true.
+//      If the flag was already true we silently fail.
+//      Otherwise we atomically decrement and check the counter.
+//      If it has reached zero then we destroy the underlying Rust struct.
+//
+// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
+// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
+//
+// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
+// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
+// of the underlying Rust code.
+//
+// This makes a cleaner a better alternative to _not_ calling `destroy()` as
+// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
+// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
+// thread may be starved, and the app will leak memory.
+//
+// In this case, `destroy`ing manually may be a better solution.
+//
+// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
+// with Rust peers are reclaimed:
+//
+// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
+// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
+// 3. The memory is reclaimed when the process terminates.
+//
+// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
+//
+
+
+public interface ContentScannerInterface {
+    
+    /**
+     * Scan a media source, returning a [`MediaScanResponse`] with the scan
+     * result, or an error if something failed when trying to scan the media.
+     */
+    suspend fun `scan`(`client`: Client, `mediaSource`: MediaSource): MediaScanResponse
+    
+    companion object
+}
+
+open class ContentScanner: Disposable, AutoCloseable, ContentScannerInterface
+{
+
+    @Suppress("UNUSED_PARAMETER")
+    /**
+     * @suppress
+     */
+    constructor(withHandle: UniffiWithHandle, handle: Long) {
+        this.handle = handle
+        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(handle))
+    }
+
+    /**
+     * @suppress
+     *
+     * This constructor can be used to instantiate a fake object. Only used for tests. Any
+     * attempt to actually use an object constructed this way will fail as there is no
+     * connected Rust object.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    constructor(noHandle: NoHandle) {
+        this.handle = 0
+        this.cleanable = null
+    }
+    /**
+     * Instantiate a new [`ContentScanner`] using the `scanner_url`.
+     */
+    constructor(`scannerUrl`: kotlin.String) :
+        this(UniffiWithHandle, 
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_contentscanner_new(
+    
+        FfiConverterString.lower(`scannerUrl`),_status)
+}
+    )
+
+    protected val handle: Long
+    protected val cleanable: UniffiCleaner.Cleanable?
+
+    private val wasDestroyed = AtomicBoolean(false)
+    private val callCounter = AtomicLong(1)
+
+    override fun destroy() {
+        // Only allow a single call to this method.
+        // TODO: maybe we should log a warning if called more than once?
+        if (this.wasDestroyed.compareAndSet(false, true)) {
+            // This decrement always matches the initial count of 1 given at creation time.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    @Synchronized
+    override fun close() {
+        this.destroy()
+    }
+
+    internal inline fun <R> callWithHandle(block: (handle: Long) -> R): R {
+        // Check and increment the call counter, to keep the object alive.
+        // This needs a compare-and-set retry loop in case of concurrent updates.
+        do {
+            val c = this.callCounter.get()
+            if (c == 0L) {
+                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
+            }
+            if (c == Long.MAX_VALUE) {
+                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
+            }
+        } while (! this.callCounter.compareAndSet(c, c + 1L))
+        // Now we can safely do the method call without the handle being freed concurrently.
+        try {
+            return block(this.uniffiCloneHandle())
+        } finally {
+            // This decrement always matches the increment we performed above.
+            if (this.callCounter.decrementAndGet() == 0L) {
+                cleanable?.clean()
+            }
+        }
+    }
+
+    // Use a static inner class instead of a closure so as not to accidentally
+    // capture `this` as part of the cleanable's action.
+    private class UniffiCleanAction(private val handle: Long) : Runnable {
+        override fun run() {
+            if (handle == 0.toLong()) {
+                // Fake object created with `NoHandle`, don't try to free.
+                return;
+            }
+            uniffiRustCall { status ->
+                UniffiLib.uniffi_matrix_sdk_ffi_fn_free_contentscanner(handle, status)
+            }
+        }
+    }
+
+    /**
+     * @suppress
+     */
+    fun uniffiCloneHandle(): Long {
+        if (handle == 0.toLong()) {
+            throw InternalException("uniffiCloneHandle() called on NoHandle object");
+        }
+        return uniffiRustCall() { status ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_contentscanner(handle, status)
+        }
+    }
+
+    
+    /**
+     * Scan a media source, returning a [`MediaScanResponse`] with the scan
+     * result, or an error if something failed when trying to scan the media.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `scan`(`client`: Client, `mediaSource`: MediaSource) : MediaScanResponse {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_contentscanner_scan(
+                uniffiHandle,
+                FfiConverterTypeClient.lower(`client`),FfiConverterTypeMediaSource.lower(`mediaSource`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation).let { RustBufferMediaScanResponse.create(it.capacity.toULong(), it.len.toULong(), it.data) } },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeMediaScanResponse.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+
+    
+
+
+    
+    
+    /**
+     * @suppress
+     */
+    companion object
+    
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeContentScanner: FfiConverter<ContentScanner, Long> {
+    override fun lower(value: ContentScanner): Long {
+        return value.uniffiCloneHandle()
+    }
+
+    override fun lift(value: Long): ContentScanner {
+        return ContentScanner(UniffiWithHandle, value)
+    }
+
+    override fun read(buf: ByteBuffer): ContentScanner {
+        return lift(buf.getLong())
+    }
+
+    override fun allocationSize(value: ContentScanner) = 8UL
+
+    override fun write(value: ContentScanner, buf: ByteBuffer) {
         buf.putLong(lower(value))
     }
 }
@@ -10894,8 +11234,8 @@ public object FfiConverterTypeEncryption: FfiConverter<Encryption, Long> {
 public interface GlobalSearchIteratorInterface {
     
     /**
-     * Return a list of events for the next batch of search results, or `None`
-     * if there are no more results.
+     * Return the next page of search results, or `None` if there are no more
+     * results.
      */
     suspend fun `nextEvents`(): List<GlobalSearchResult>?
     
@@ -11000,8 +11340,8 @@ open class GlobalSearchIterator: Disposable, AutoCloseable, GlobalSearchIterator
 
     
     /**
-     * Return a list of events for the next batch of search results, or `None`
-     * if there are no more results.
+     * Return the next page of search results, or `None` if there are no more
+     * results.
      */
     @Throws(SearchException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -17392,10 +17732,9 @@ public interface RoomInterface {
     
     /**
      * Search for messages in this room matching the given query, returning an
-     * iterator over the results that yields `num_results_per_batch` results at
-     * a time.
+     * iterator that yields one page of results at a time.
      */
-    fun `searchMessages`(`query`: kotlin.String, `numResultsPerBatch`: kotlin.UInt): RoomSearchIterator
+    fun `searchMessages`(`query`: kotlin.String): RoomSearchIterator
     
     companion object
 }
@@ -19800,15 +20139,14 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     
     /**
      * Search for messages in this room matching the given query, returning an
-     * iterator over the results that yields `num_results_per_batch` results at
-     * a time.
-     */override fun `searchMessages`(`query`: kotlin.String, `numResultsPerBatch`: kotlin.UInt): RoomSearchIterator {
+     * iterator that yields one page of results at a time.
+     */override fun `searchMessages`(`query`: kotlin.String): RoomSearchIterator {
             return FfiConverterTypeRoomSearchIterator.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_search_messages(
         it,
-        FfiConverterString.lower(`query`),FfiConverterUInt.lower(`numResultsPerBatch`),_status)
+        FfiConverterString.lower(`query`),_status)
 }
     }
     )
@@ -23170,8 +23508,8 @@ public object FfiConverterTypeRoomPreview: FfiConverter<RoomPreview, Long> {
 public interface RoomSearchIteratorInterface {
     
     /**
-     * Return a list of events for the next batch of search results, or `None`
-     * if there are no more results.
+     * Return the next page of search results, or `None` if there are no more
+     * results.
      */
     suspend fun `nextEvents`(): List<RoomSearchResult>?
     
@@ -23276,8 +23614,8 @@ open class RoomSearchIterator: Disposable, AutoCloseable, RoomSearchIteratorInte
 
     
     /**
-     * Return a list of events for the next batch of search results, or `None`
-     * if there are no more results.
+     * Return the next page of search results, or `None` if there are no more
+     * results.
      */
     @Throws(SearchException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -60612,6 +60950,38 @@ public object FfiConverterOptionalDuration: FfiConverterRustBuffer<java.time.Dur
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeContentScanner: FfiConverterRustBuffer<ContentScanner?> {
+    override fun read(buf: ByteBuffer): ContentScanner? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeContentScanner.read(buf)
+    }
+
+    override fun allocationSize(value: ContentScanner?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeContentScanner.allocationSize(value)
+        }
+    }
+
+    override fun write(value: ContentScanner?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeContentScanner.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeIdentityResetHandle: FfiConverterRustBuffer<IdentityResetHandle?> {
     override fun read(buf: ByteBuffer): IdentityResetHandle? {
         if (buf.get().toInt() == 0) {
@@ -64854,6 +65224,8 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
  */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
 
 
 

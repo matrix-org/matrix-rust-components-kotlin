@@ -859,6 +859,29 @@ object NoHandle
 /**
  * @suppress
  */
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
+
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
+
+    override fun allocationSize(value: Boolean) = 1UL
+
+    override fun write(value: Boolean, buf: ByteBuffer) {
+        buf.put(lower(value))
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -910,6 +933,54 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+
+
+/**
+ * A media scan response containing the result of the scan.
+ * Spec: <https://github.com/element-hq/matrix-content-scanner-python/blob/main/docs/api.md#get-_matrixmedia_proxyunstablescanservernamemediaid>
+ */
+data class MediaScanResponse (
+    /**
+     * Whether the media is clean or contained something dangerous.
+     */
+    var `clean`: kotlin.Boolean
+    , 
+    /**
+     * Extra information about the scan.
+     */
+    var `info`: kotlin.String
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeMediaScanResponse: FfiConverterRustBuffer<MediaScanResponse> {
+    override fun read(buf: ByteBuffer): MediaScanResponse {
+        return MediaScanResponse(
+            FfiConverterBoolean.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MediaScanResponse) = (
+            FfiConverterBoolean.allocationSize(value.`clean`) +
+            FfiConverterString.allocationSize(value.`info`)
+    )
+
+    override fun write(value: MediaScanResponse, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`clean`, buf)
+            FfiConverterString.write(value.`info`, buf)
     }
 }
 
