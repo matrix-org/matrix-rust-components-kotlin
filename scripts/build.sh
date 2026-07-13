@@ -13,6 +13,11 @@ helpFunction() {
   exit 1
 }
 
+echo_and_exec() {
+    echo "$ $@"
+    "$@"
+}
+
 scripts_dir=$(
   cd "$(dirname "${BASH_SOURCE[0]}")" || exit
   pwd -P
@@ -84,11 +89,10 @@ echo "profile = $profile"
 echo "gradle_module = $gradle_module"
 echo "src-dir = $src_dir"
 
-pushd "$sdk_path" || exit 1
+echo_and_exec cd "$sdk_path"
+echo_and_exec cargo xtask kotlin build-android-library --profile "$profile" "${target_command[@]}" --src-dir "$src_dir" --package "$package"
 
-cargo xtask kotlin build-android-library --profile "$profile" "${target_command[@]}" --src-dir "$src_dir" --package "$package"
-
-pushd "$scripts_dir/.." || exit 1
+cd "$scripts_dir/.."
 
 shift $((OPTIND - 1))
 
