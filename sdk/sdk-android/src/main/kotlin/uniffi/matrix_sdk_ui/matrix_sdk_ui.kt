@@ -1131,6 +1131,89 @@ public object FfiConverterTypeRoomPinnedEventsChange: FfiConverterRustBuffer<Roo
 
 
 
+/**
+ * Whether the search service is currently loading a page of results.
+ */
+sealed class SearchServicePaginationState {
+    
+    /**
+     * Not currently paginating. `end_reached` is `true` once every source has
+     * been exhausted for the current query.
+     */
+    data class Idle(
+        val `endReached`: kotlin.Boolean) : SearchServicePaginationState()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * A page of results is currently being loaded.
+     */
+    object Loading : SearchServicePaginationState()
+    
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSearchServicePaginationState : FfiConverterRustBuffer<SearchServicePaginationState>{
+    override fun read(buf: ByteBuffer): SearchServicePaginationState {
+        return when(buf.getInt()) {
+            1 -> SearchServicePaginationState.Idle(
+                FfiConverterBoolean.read(buf),
+                )
+            2 -> SearchServicePaginationState.Loading
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SearchServicePaginationState) = when(value) {
+        is SearchServicePaginationState.Idle -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterBoolean.allocationSize(value.`endReached`)
+            )
+        }
+        is SearchServicePaginationState.Loading -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: SearchServicePaginationState, buf: ByteBuffer) {
+        when(value) {
+            is SearchServicePaginationState.Idle -> {
+                buf.putInt(1)
+                FfiConverterBoolean.write(value.`endReached`, buf)
+                Unit
+            }
+            is SearchServicePaginationState.Loading -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class SpaceRoomListPaginationState {
     
     data class Idle(
