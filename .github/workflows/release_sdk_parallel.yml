@@ -114,7 +114,7 @@ jobs:
 
       - name: Extract debug symbols
         run: |
-          pushd ${RUST_SDK_PATH}/target/${{ matrix.target }}/dist
+          pushd ${RUST_SDK_PATH}/target/${{ matrix.target }}/small-release-stripped
           echo "Original library with debug info:"
           ls -lh libmatrix_sdk_ffi.so 
           echo "Extracting debug symbols"
@@ -129,10 +129,10 @@ jobs:
           popd
           echo "Replacing built file with stripped one"
           EXISTING_FILE=$(find sdk/sdk-android/src/main/jniLibs/ -name libmatrix_sdk_ffi.so)
-          cp ${RUST_SDK_PATH}/target/${{ matrix.target }}/dist/libmatrix_sdk_ffi.so $EXISTING_FILE
+          cp ${RUST_SDK_PATH}/target/${{ matrix.target }}/small-release-stripped/libmatrix_sdk_ffi.so $EXISTING_FILE
           ls -lh $EXISTING_FILE
           mkdir -p debuginfo/${{ matrix.target }}
-          cp ${RUST_SDK_PATH}/target/${{ matrix.target }}/dist/libmatrix_sdk_ffi.so.debug debuginfo/${{ matrix.target }}/
+          cp ${RUST_SDK_PATH}/target/${{ matrix.target }}/small-release-stripped/libmatrix_sdk_ffi.so.debug debuginfo/${{ matrix.target }}/
 
       - name: Set linkable git ref
         id: set_linkable_ref

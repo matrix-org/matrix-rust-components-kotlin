@@ -65,7 +65,7 @@ else
 fi
 
 if ${is_release}; then
-  profile="dist"
+  profile="small-release-stripped"
 else
   profile="reldev"
 fi
