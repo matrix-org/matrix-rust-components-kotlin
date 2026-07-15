@@ -37465,6 +37465,10 @@ data class RoomMember (
     , 
     var `avatarUrl`: kotlin.String?
     , 
+    var `status`: UserStatus?
+    , 
+    var `call`: UserCall?
+    , 
     var `membership`: MembershipState
     , 
     var `isNameAmbiguous`: kotlin.Boolean
@@ -37497,6 +37501,8 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterString.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeUserStatus.read(buf),
+            FfiConverterOptionalTypeUserCall.read(buf),
             FfiConverterTypeMembershipState.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterTypePowerLevel.read(buf),
@@ -37511,6 +37517,8 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterString.allocationSize(value.`userId`) +
             FfiConverterOptionalString.allocationSize(value.`displayName`) +
             FfiConverterOptionalString.allocationSize(value.`avatarUrl`) +
+            FfiConverterOptionalTypeUserStatus.allocationSize(value.`status`) +
+            FfiConverterOptionalTypeUserCall.allocationSize(value.`call`) +
             FfiConverterTypeMembershipState.allocationSize(value.`membership`) +
             FfiConverterBoolean.allocationSize(value.`isNameAmbiguous`) +
             FfiConverterTypePowerLevel.allocationSize(value.`powerLevel`) +
@@ -37524,6 +37532,8 @@ public object FfiConverterTypeRoomMember: FfiConverterRustBuffer<RoomMember> {
             FfiConverterString.write(value.`userId`, buf)
             FfiConverterOptionalString.write(value.`displayName`, buf)
             FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+            FfiConverterOptionalTypeUserStatus.write(value.`status`, buf)
+            FfiConverterOptionalTypeUserCall.write(value.`call`, buf)
             FfiConverterTypeMembershipState.write(value.`membership`, buf)
             FfiConverterBoolean.write(value.`isNameAmbiguous`, buf)
             FfiConverterTypePowerLevel.write(value.`powerLevel`, buf)
@@ -50627,7 +50637,9 @@ sealed class ProfileDetails {
     data class Ready(
         val `displayName`: kotlin.String?, 
         val `displayNameAmbiguous`: kotlin.Boolean, 
-        val `avatarUrl`: kotlin.String?) : ProfileDetails()
+        val `avatarUrl`: kotlin.String?, 
+        val `status`: org.matrix.rustcomponents.sdk.UserStatus?, 
+        val `call`: org.matrix.rustcomponents.sdk.UserCall?) : ProfileDetails()
         
     {
         
@@ -50666,6 +50678,8 @@ public object FfiConverterTypeProfileDetails : FfiConverterRustBuffer<ProfileDet
                 FfiConverterOptionalString.read(buf),
                 FfiConverterBoolean.read(buf),
                 FfiConverterOptionalString.read(buf),
+                FfiConverterOptionalTypeUserStatus.read(buf),
+                FfiConverterOptionalTypeUserCall.read(buf),
                 )
             4 -> ProfileDetails.Error(
                 FfiConverterString.read(buf),
@@ -50694,6 +50708,8 @@ public object FfiConverterTypeProfileDetails : FfiConverterRustBuffer<ProfileDet
                 + FfiConverterOptionalString.allocationSize(value.`displayName`)
                 + FfiConverterBoolean.allocationSize(value.`displayNameAmbiguous`)
                 + FfiConverterOptionalString.allocationSize(value.`avatarUrl`)
+                + FfiConverterOptionalTypeUserStatus.allocationSize(value.`status`)
+                + FfiConverterOptionalTypeUserCall.allocationSize(value.`call`)
             )
         }
         is ProfileDetails.Error -> {
@@ -50720,6 +50736,8 @@ public object FfiConverterTypeProfileDetails : FfiConverterRustBuffer<ProfileDet
                 FfiConverterOptionalString.write(value.`displayName`, buf)
                 FfiConverterBoolean.write(value.`displayNameAmbiguous`, buf)
                 FfiConverterOptionalString.write(value.`avatarUrl`, buf)
+                FfiConverterOptionalTypeUserStatus.write(value.`status`, buf)
+                FfiConverterOptionalTypeUserCall.write(value.`call`, buf)
                 Unit
             }
             is ProfileDetails.Error -> {
