@@ -1590,6 +1590,12 @@ sealed class GlobalAccountDataEventType: Disposable  {
     
     
     /**
+     * m.image_pack.rooms
+     */
+    object ImagePackRooms : GlobalAccountDataEventType()
+    
+    
+    /**
      * m.push_rules
      */
     object PushRules : GlobalAccountDataEventType()
@@ -1651,26 +1657,6 @@ sealed class GlobalAccountDataEventType: Disposable  {
      * io.element.msc4278.media_preview_config
      */
     object UnstableMediaPreviewConfig : GlobalAccountDataEventType()
-    
-    
-    /**
-     * m.image_pack
-     *
-     * This variant uses the unstable type `im.ponies.user_emotes`.
-     *
-     * This variant can also be deserialized from the `m.image_pack` type.
-     */
-    object AccountImagePack : GlobalAccountDataEventType()
-    
-    
-    /**
-     * m.image_pack.rooms
-     *
-     * This variant uses the unstable type `im.ponies.emote_rooms`.
-     *
-     * This variant can also be deserialized from the `m.image_pack.rooms` type.
-     */
-    object ImagePackRooms : GlobalAccountDataEventType()
     
     
     /**
@@ -1739,6 +1725,8 @@ sealed class GlobalAccountDataEventType: Disposable  {
             }
             is GlobalAccountDataEventType.IgnoredUserList -> {// Nothing to destroy
             }
+            is GlobalAccountDataEventType.ImagePackRooms -> {// Nothing to destroy
+            }
             is GlobalAccountDataEventType.PushRules -> {// Nothing to destroy
             }
             is GlobalAccountDataEventType.SecretStorageDefaultKey -> {// Nothing to destroy
@@ -1753,10 +1741,6 @@ sealed class GlobalAccountDataEventType: Disposable  {
             is GlobalAccountDataEventType.MediaPreviewConfig -> {// Nothing to destroy
             }
             is GlobalAccountDataEventType.UnstableMediaPreviewConfig -> {// Nothing to destroy
-            }
-            is GlobalAccountDataEventType.AccountImagePack -> {// Nothing to destroy
-            }
-            is GlobalAccountDataEventType.ImagePackRooms -> {// Nothing to destroy
             }
             is GlobalAccountDataEventType.RecentEmoji -> {// Nothing to destroy
             }
@@ -1818,18 +1802,17 @@ public object FfiConverterTypeGlobalAccountDataEventType : FfiConverterRustBuffe
             2 -> GlobalAccountDataEventType.IdentityServer
             3 -> GlobalAccountDataEventType.InvitePermissionConfig
             4 -> GlobalAccountDataEventType.IgnoredUserList
-            5 -> GlobalAccountDataEventType.PushRules
-            6 -> GlobalAccountDataEventType.SecretStorageDefaultKey
-            7 -> GlobalAccountDataEventType.SecretStorageKey(
+            5 -> GlobalAccountDataEventType.ImagePackRooms
+            6 -> GlobalAccountDataEventType.PushRules
+            7 -> GlobalAccountDataEventType.SecretStorageDefaultKey
+            8 -> GlobalAccountDataEventType.SecretStorageKey(
                 FfiConverterString.read(buf),
                 )
-            8 -> GlobalAccountDataEventType.MediaPreviewConfig
-            9 -> GlobalAccountDataEventType.UnstableMediaPreviewConfig
-            10 -> GlobalAccountDataEventType.AccountImagePack
-            11 -> GlobalAccountDataEventType.ImagePackRooms
-            12 -> GlobalAccountDataEventType.RecentEmoji
-            13 -> GlobalAccountDataEventType.KeyBackup
-            14 -> GlobalAccountDataEventType.Custom(
+            9 -> GlobalAccountDataEventType.MediaPreviewConfig
+            10 -> GlobalAccountDataEventType.UnstableMediaPreviewConfig
+            11 -> GlobalAccountDataEventType.RecentEmoji
+            12 -> GlobalAccountDataEventType.KeyBackup
+            13 -> GlobalAccountDataEventType.Custom(
                 FfiConverterTypePrivOwnedStr.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -1861,6 +1844,12 @@ public object FfiConverterTypeGlobalAccountDataEventType : FfiConverterRustBuffe
                 4UL
             )
         }
+        is GlobalAccountDataEventType.ImagePackRooms -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
         is GlobalAccountDataEventType.PushRules -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1887,18 +1876,6 @@ public object FfiConverterTypeGlobalAccountDataEventType : FfiConverterRustBuffe
             )
         }
         is GlobalAccountDataEventType.UnstableMediaPreviewConfig -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is GlobalAccountDataEventType.AccountImagePack -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is GlobalAccountDataEventType.ImagePackRooms -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -1943,45 +1920,41 @@ public object FfiConverterTypeGlobalAccountDataEventType : FfiConverterRustBuffe
                 buf.putInt(4)
                 Unit
             }
-            is GlobalAccountDataEventType.PushRules -> {
+            is GlobalAccountDataEventType.ImagePackRooms -> {
                 buf.putInt(5)
                 Unit
             }
-            is GlobalAccountDataEventType.SecretStorageDefaultKey -> {
+            is GlobalAccountDataEventType.PushRules -> {
                 buf.putInt(6)
                 Unit
             }
-            is GlobalAccountDataEventType.SecretStorageKey -> {
+            is GlobalAccountDataEventType.SecretStorageDefaultKey -> {
                 buf.putInt(7)
+                Unit
+            }
+            is GlobalAccountDataEventType.SecretStorageKey -> {
+                buf.putInt(8)
                 FfiConverterString.write(value.v1, buf)
                 Unit
             }
             is GlobalAccountDataEventType.MediaPreviewConfig -> {
-                buf.putInt(8)
-                Unit
-            }
-            is GlobalAccountDataEventType.UnstableMediaPreviewConfig -> {
                 buf.putInt(9)
                 Unit
             }
-            is GlobalAccountDataEventType.AccountImagePack -> {
+            is GlobalAccountDataEventType.UnstableMediaPreviewConfig -> {
                 buf.putInt(10)
                 Unit
             }
-            is GlobalAccountDataEventType.ImagePackRooms -> {
+            is GlobalAccountDataEventType.RecentEmoji -> {
                 buf.putInt(11)
                 Unit
             }
-            is GlobalAccountDataEventType.RecentEmoji -> {
+            is GlobalAccountDataEventType.KeyBackup -> {
                 buf.putInt(12)
                 Unit
             }
-            is GlobalAccountDataEventType.KeyBackup -> {
-                buf.putInt(13)
-                Unit
-            }
             is GlobalAccountDataEventType.Custom -> {
-                buf.putInt(14)
+                buf.putInt(13)
                 FfiConverterTypePrivOwnedStr.write(value.v1, buf)
                 Unit
             }
@@ -3263,6 +3236,12 @@ sealed class StateEventType: Disposable  {
     
     
     /**
+     * m.room.image_pack
+     */
+    object RoomImagePack : StateEventType()
+    
+    
+    /**
      * m.room.join_rules
      */
     object RoomJoinRules : StateEventType()
@@ -3342,16 +3321,6 @@ sealed class StateEventType: Disposable  {
      * m.space.parent
      */
     object SpaceParent : StateEventType()
-    
-    
-    /**
-     * m.image_pack
-     *
-     * This variant uses the unstable type `im.ponies.room_emotes`.
-     *
-     * This variant can also be deserialized from the `m.image_pack` type.
-     */
-    object RoomImagePack : StateEventType()
     
     
     /**
@@ -3448,6 +3417,8 @@ sealed class StateEventType: Disposable  {
             }
             is StateEventType.RoomHistoryVisibility -> {// Nothing to destroy
             }
+            is StateEventType.RoomImagePack -> {// Nothing to destroy
+            }
             is StateEventType.RoomJoinRules -> {// Nothing to destroy
             }
             is StateEventType.RoomLanguage -> {// Nothing to destroy
@@ -3473,8 +3444,6 @@ sealed class StateEventType: Disposable  {
             is StateEventType.SpaceChild -> {// Nothing to destroy
             }
             is StateEventType.SpaceParent -> {// Nothing to destroy
-            }
-            is StateEventType.RoomImagePack -> {// Nothing to destroy
             }
             is StateEventType.BeaconInfo -> {// Nothing to destroy
             }
@@ -3543,20 +3512,20 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
             7 -> StateEventType.RoomEncryption
             8 -> StateEventType.RoomGuestAccess
             9 -> StateEventType.RoomHistoryVisibility
-            10 -> StateEventType.RoomJoinRules
-            11 -> StateEventType.RoomLanguage
-            12 -> StateEventType.RoomMember
-            13 -> StateEventType.RoomName
-            14 -> StateEventType.RoomPinnedEvents
-            15 -> StateEventType.RoomPolicy
-            16 -> StateEventType.RoomPowerLevels
-            17 -> StateEventType.RoomServerAcl
-            18 -> StateEventType.RoomThirdPartyInvite
-            19 -> StateEventType.RoomTombstone
-            20 -> StateEventType.RoomTopic
-            21 -> StateEventType.SpaceChild
-            22 -> StateEventType.SpaceParent
-            23 -> StateEventType.RoomImagePack
+            10 -> StateEventType.RoomImagePack
+            11 -> StateEventType.RoomJoinRules
+            12 -> StateEventType.RoomLanguage
+            13 -> StateEventType.RoomMember
+            14 -> StateEventType.RoomName
+            15 -> StateEventType.RoomPinnedEvents
+            16 -> StateEventType.RoomPolicy
+            17 -> StateEventType.RoomPowerLevels
+            18 -> StateEventType.RoomServerAcl
+            19 -> StateEventType.RoomThirdPartyInvite
+            20 -> StateEventType.RoomTombstone
+            21 -> StateEventType.RoomTopic
+            22 -> StateEventType.SpaceChild
+            23 -> StateEventType.SpaceParent
             24 -> StateEventType.BeaconInfo
             25 -> StateEventType.CallMember
             26 -> StateEventType.MemberHints
@@ -3617,6 +3586,12 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
             )
         }
         is StateEventType.RoomHistoryVisibility -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is StateEventType.RoomImagePack -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -3700,12 +3675,6 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
                 4UL
             )
         }
-        is StateEventType.RoomImagePack -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
         is StateEventType.BeaconInfo -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -3771,59 +3740,59 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
                 buf.putInt(9)
                 Unit
             }
-            is StateEventType.RoomJoinRules -> {
+            is StateEventType.RoomImagePack -> {
                 buf.putInt(10)
                 Unit
             }
-            is StateEventType.RoomLanguage -> {
+            is StateEventType.RoomJoinRules -> {
                 buf.putInt(11)
                 Unit
             }
-            is StateEventType.RoomMember -> {
+            is StateEventType.RoomLanguage -> {
                 buf.putInt(12)
                 Unit
             }
-            is StateEventType.RoomName -> {
+            is StateEventType.RoomMember -> {
                 buf.putInt(13)
                 Unit
             }
-            is StateEventType.RoomPinnedEvents -> {
+            is StateEventType.RoomName -> {
                 buf.putInt(14)
                 Unit
             }
-            is StateEventType.RoomPolicy -> {
+            is StateEventType.RoomPinnedEvents -> {
                 buf.putInt(15)
                 Unit
             }
-            is StateEventType.RoomPowerLevels -> {
+            is StateEventType.RoomPolicy -> {
                 buf.putInt(16)
                 Unit
             }
-            is StateEventType.RoomServerAcl -> {
+            is StateEventType.RoomPowerLevels -> {
                 buf.putInt(17)
                 Unit
             }
-            is StateEventType.RoomThirdPartyInvite -> {
+            is StateEventType.RoomServerAcl -> {
                 buf.putInt(18)
                 Unit
             }
-            is StateEventType.RoomTombstone -> {
+            is StateEventType.RoomThirdPartyInvite -> {
                 buf.putInt(19)
                 Unit
             }
-            is StateEventType.RoomTopic -> {
+            is StateEventType.RoomTombstone -> {
                 buf.putInt(20)
                 Unit
             }
-            is StateEventType.SpaceChild -> {
+            is StateEventType.RoomTopic -> {
                 buf.putInt(21)
                 Unit
             }
-            is StateEventType.SpaceParent -> {
+            is StateEventType.SpaceChild -> {
                 buf.putInt(22)
                 Unit
             }
-            is StateEventType.RoomImagePack -> {
+            is StateEventType.SpaceParent -> {
                 buf.putInt(23)
                 Unit
             }
@@ -4200,6 +4169,12 @@ sealed class TimelineEventType: Disposable  {
     
     
     /**
+     * m.room.image_pack
+     */
+    object RoomImagePack : TimelineEventType()
+    
+    
+    /**
      * m.room.join_rules
      */
     object RoomJoinRules : TimelineEventType()
@@ -4279,16 +4254,6 @@ sealed class TimelineEventType: Disposable  {
      * m.space.parent
      */
     object SpaceParent : TimelineEventType()
-    
-    
-    /**
-     * m.image_pack
-     *
-     * This variant uses the unstable type `im.ponies.room_emotes`.
-     *
-     * This variant can also be deserialized from the `m.image_pack` type.
-     */
-    object RoomImagePack : TimelineEventType()
     
     
     /**
@@ -4463,6 +4428,8 @@ sealed class TimelineEventType: Disposable  {
             }
             is TimelineEventType.RoomHistoryVisibility -> {// Nothing to destroy
             }
+            is TimelineEventType.RoomImagePack -> {// Nothing to destroy
+            }
             is TimelineEventType.RoomJoinRules -> {// Nothing to destroy
             }
             is TimelineEventType.RoomLanguage -> {// Nothing to destroy
@@ -4488,8 +4455,6 @@ sealed class TimelineEventType: Disposable  {
             is TimelineEventType.SpaceChild -> {// Nothing to destroy
             }
             is TimelineEventType.SpaceParent -> {// Nothing to destroy
-            }
-            is TimelineEventType.RoomImagePack -> {// Nothing to destroy
             }
             is TimelineEventType.BeaconInfo -> {// Nothing to destroy
             }
@@ -4597,20 +4562,20 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
             46 -> TimelineEventType.RoomEncryption
             47 -> TimelineEventType.RoomGuestAccess
             48 -> TimelineEventType.RoomHistoryVisibility
-            49 -> TimelineEventType.RoomJoinRules
-            50 -> TimelineEventType.RoomLanguage
-            51 -> TimelineEventType.RoomMember
-            52 -> TimelineEventType.RoomName
-            53 -> TimelineEventType.RoomPinnedEvents
-            54 -> TimelineEventType.RoomPolicy
-            55 -> TimelineEventType.RoomPowerLevels
-            56 -> TimelineEventType.RoomServerAcl
-            57 -> TimelineEventType.RoomThirdPartyInvite
-            58 -> TimelineEventType.RoomTombstone
-            59 -> TimelineEventType.RoomTopic
-            60 -> TimelineEventType.SpaceChild
-            61 -> TimelineEventType.SpaceParent
-            62 -> TimelineEventType.RoomImagePack
+            49 -> TimelineEventType.RoomImagePack
+            50 -> TimelineEventType.RoomJoinRules
+            51 -> TimelineEventType.RoomLanguage
+            52 -> TimelineEventType.RoomMember
+            53 -> TimelineEventType.RoomName
+            54 -> TimelineEventType.RoomPinnedEvents
+            55 -> TimelineEventType.RoomPolicy
+            56 -> TimelineEventType.RoomPowerLevels
+            57 -> TimelineEventType.RoomServerAcl
+            58 -> TimelineEventType.RoomThirdPartyInvite
+            59 -> TimelineEventType.RoomTombstone
+            60 -> TimelineEventType.RoomTopic
+            61 -> TimelineEventType.SpaceChild
+            62 -> TimelineEventType.SpaceParent
             63 -> TimelineEventType.BeaconInfo
             64 -> TimelineEventType.CallMember
             65 -> TimelineEventType.MemberHints
@@ -4910,6 +4875,12 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
                 4UL
             )
         }
+        is TimelineEventType.RoomImagePack -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
         is TimelineEventType.RoomJoinRules -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -4983,12 +4954,6 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
             )
         }
         is TimelineEventType.SpaceParent -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4UL
-            )
-        }
-        is TimelineEventType.RoomImagePack -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -5215,59 +5180,59 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
                 buf.putInt(48)
                 Unit
             }
-            is TimelineEventType.RoomJoinRules -> {
+            is TimelineEventType.RoomImagePack -> {
                 buf.putInt(49)
                 Unit
             }
-            is TimelineEventType.RoomLanguage -> {
+            is TimelineEventType.RoomJoinRules -> {
                 buf.putInt(50)
                 Unit
             }
-            is TimelineEventType.RoomMember -> {
+            is TimelineEventType.RoomLanguage -> {
                 buf.putInt(51)
                 Unit
             }
-            is TimelineEventType.RoomName -> {
+            is TimelineEventType.RoomMember -> {
                 buf.putInt(52)
                 Unit
             }
-            is TimelineEventType.RoomPinnedEvents -> {
+            is TimelineEventType.RoomName -> {
                 buf.putInt(53)
                 Unit
             }
-            is TimelineEventType.RoomPolicy -> {
+            is TimelineEventType.RoomPinnedEvents -> {
                 buf.putInt(54)
                 Unit
             }
-            is TimelineEventType.RoomPowerLevels -> {
+            is TimelineEventType.RoomPolicy -> {
                 buf.putInt(55)
                 Unit
             }
-            is TimelineEventType.RoomServerAcl -> {
+            is TimelineEventType.RoomPowerLevels -> {
                 buf.putInt(56)
                 Unit
             }
-            is TimelineEventType.RoomThirdPartyInvite -> {
+            is TimelineEventType.RoomServerAcl -> {
                 buf.putInt(57)
                 Unit
             }
-            is TimelineEventType.RoomTombstone -> {
+            is TimelineEventType.RoomThirdPartyInvite -> {
                 buf.putInt(58)
                 Unit
             }
-            is TimelineEventType.RoomTopic -> {
+            is TimelineEventType.RoomTombstone -> {
                 buf.putInt(59)
                 Unit
             }
-            is TimelineEventType.SpaceChild -> {
+            is TimelineEventType.RoomTopic -> {
                 buf.putInt(60)
                 Unit
             }
-            is TimelineEventType.SpaceParent -> {
+            is TimelineEventType.SpaceChild -> {
                 buf.putInt(61)
                 Unit
             }
-            is TimelineEventType.RoomImagePack -> {
+            is TimelineEventType.SpaceParent -> {
                 buf.putInt(62)
                 Unit
             }

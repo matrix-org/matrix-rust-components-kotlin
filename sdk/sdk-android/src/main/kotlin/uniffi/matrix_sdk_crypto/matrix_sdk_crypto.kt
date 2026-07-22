@@ -997,6 +997,25 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     }
 }
 
+/**
+ * @suppress
+ */
+public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
+    override fun read(buf: ByteBuffer): ByteArray {
+        val len = buf.getInt()
+        val byteArr = ByteArray(len)
+        buf.get(byteArr)
+        return byteArr
+    }
+    override fun allocationSize(value: ByteArray): ULong {
+        return 4UL + value.size.toULong()
+    }
+    override fun write(value: ByteArray, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        buf.put(value)
+    }
+}
+
 
 // This template implements a class for working with a Rust struct via a handle
 // to the live Rust struct on the other side of the FFI.
@@ -1766,6 +1785,65 @@ public object FfiConverterTypeDecryptionSettings: FfiConverterRustBuffer<Decrypt
 
 
 /**
+ * The object we receive from [`RawX509Signer`], and pass to
+ * [`RawX509Verifier`].
+ *
+ * A simplified representation of the data in the signature object.
+ */
+data class RawX509Signature (
+    /**
+     * The raw bytes of the signature.
+     */
+    var `signatureBytes`: kotlin.ByteArray
+    , 
+    /**
+     * The PEM-encoded certificate chain, starting with the device's own
+     * certificate, followed by intermediate certificates.
+     */
+    var `certificateChain`: kotlin.String
+    , 
+    /**
+     * The algorithm that the signer used to construct the signature.
+     */
+    var `signatureScheme`: X509SignatureScheme
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRawX509Signature: FfiConverterRustBuffer<RawX509Signature> {
+    override fun read(buf: ByteBuffer): RawX509Signature {
+        return RawX509Signature(
+            FfiConverterByteArray.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeX509SignatureScheme.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RawX509Signature) = (
+            FfiConverterByteArray.allocationSize(value.`signatureBytes`) +
+            FfiConverterString.allocationSize(value.`certificateChain`) +
+            FfiConverterTypeX509SignatureScheme.allocationSize(value.`signatureScheme`)
+    )
+
+    override fun write(value: RawX509Signature, buf: ByteBuffer) {
+            FfiConverterByteArray.write(value.`signatureBytes`, buf)
+            FfiConverterString.write(value.`certificateChain`, buf)
+            FfiConverterTypeX509SignatureScheme.write(value.`signatureScheme`, buf)
+    }
+}
+
+
+
+/**
  * Strategy to collect the devices that should receive room keys for the
  * current discussion.
  */
@@ -2352,6 +2430,53 @@ public object FfiConverterTypeUtdCause: FfiConverterRustBuffer<UtdCause> {
     override fun allocationSize(value: UtdCause) = 4UL
 
     override fun write(value: UtdCause, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * The algorithm that was used to construct the signature.
+ *
+ * This might be extended in future, but for now we only support
+ * RsaPssSha512.
+ */
+
+enum class X509SignatureScheme {
+    
+    /**
+     * SHA-512 message digest, with RSASSA-PSS signature scheme (aka RSA-PSS),
+     * per [RFC 8017 § 8.1].
+     *
+     * Not to be confused with RSA-PKCS1, which is incompatible.
+     *
+     * [RFC 8017 § 8.1]: https://www.rfc-editor.org/info/rfc8017/#section-8.1
+     */
+    RSA_PSS_SHA512;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeX509SignatureScheme: FfiConverterRustBuffer<X509SignatureScheme> {
+    override fun read(buf: ByteBuffer) = try {
+        X509SignatureScheme.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: X509SignatureScheme) = 4UL
+
+    override fun write(value: X509SignatureScheme, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
