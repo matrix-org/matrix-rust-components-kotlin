@@ -2126,6 +2126,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_sup
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_user_status_supported(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias(
@@ -3401,6 +3403,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_suppor
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_report_room_api_supported(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(`ptr`: Long,`alias`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_is_user_status_supported(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Long,`roomId`: RustBuffer.ByValue,
 ): Long
@@ -6086,6 +6090,11 @@ public interface ClientInterface {
     suspend fun `isRoomAliasAvailable`(`alias`: kotlin.String): kotlin.Boolean
     
     /**
+     * Checks if the server supports user status.
+     */
+    suspend fun `isUserStatusSupported`(): kotlin.Boolean
+    
+    /**
      * Join a room by its ID.
      *
      * Use this method when the homeserver already knows of the given room ID.
@@ -7783,6 +7792,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(
                 uniffiHandle,
                 FfiConverterString.lower(`alias`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Checks if the server supports user status.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isUserStatusSupported`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_user_status_supported(
+                uniffiHandle,
+                
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
