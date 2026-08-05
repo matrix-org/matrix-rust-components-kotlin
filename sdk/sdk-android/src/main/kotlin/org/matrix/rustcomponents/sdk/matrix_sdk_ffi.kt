@@ -775,6 +775,9 @@ internal interface UniffiCallbackInterfaceBackupStateListenerMethod0 : com.sun.j
 internal interface UniffiCallbackInterfaceBackupSteadyStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceDehydratedDeviceEventListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`event`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceEnableRecoveryProgressListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -1195,6 +1198,25 @@ internal open class UniffiVTableCallbackInterfaceBackupSteadyStateListener(
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onEvent")
+internal open class UniffiVTableCallbackInterfaceDehydratedDeviceEventListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onEvent`: UniffiCallbackInterfaceDehydratedDeviceEventListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onEvent`: UniffiCallbackInterfaceDehydratedDeviceEventListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceDehydratedDeviceEventListener(`uniffiFree`,`uniffiClone`,`onEvent`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceDehydratedDeviceEventListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onEvent` = other.`onEvent`
     }
 
 }
@@ -2048,8 +2070,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_call_status(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_user_status(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_content_scanner(
@@ -2069,6 +2089,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_backpagination(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_call_status(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress(
 ): Short
@@ -2195,8 +2217,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_session(
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_account_data(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_avatar_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_call_status(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_content_scanner(
 ): Short
@@ -2360,7 +2380,13 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_create_dehydrated_device(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_dehydrated_device_event_listener(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_delete_dehydrated_device(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery(
 ): Short
@@ -2374,6 +2400,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_ver
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_import_secrets_bundle(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_dehydrated_device_supported(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover(
@@ -2386,9 +2414,15 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state_listener(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_rehydrate_dehydrated_device(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_identity(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_start_dehydrated_devices(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_stop_dehydrated_devices(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity(
 ): Short
@@ -3008,6 +3042,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_content(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction(
@@ -3124,6 +3160,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_backupstatelistener_on_update
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_dehydrateddeviceeventlistener_on_event(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update(
@@ -3233,6 +3271,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceCallDeclineListener.register(this)
         uniffiCallbackInterfaceClientDelegate.register(this)
         uniffiCallbackInterfaceClientSessionDelegate.register(this)
+        uniffiCallbackInterfaceDehydratedDeviceEventListener.register(this)
         uniffiCallbackInterfaceDuplicateKeyUploadErrorListener.register(this)
         uniffiCallbackInterfaceEnableRecoveryProgressListener.register(this)
         uniffiCallbackInterfaceGeneratedQrLoginProgressListener.register(this)
@@ -3338,8 +3377,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`
 ): Byte
 external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Long,`syncService`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_call_status(`ptr`: Long,
-): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_user_status(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_content_scanner(`ptr`: Long,
@@ -3359,6 +3396,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Long,
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Long,`enable`: Byte,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_backpagination(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_call_status(`ptr`: Long,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
@@ -3485,8 +3524,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_session(`ptr`: Long,uniffi_o
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(`ptr`: Long,`url`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_call_status(`ptr`: Long,`call`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_set_content_scanner(`ptr`: Long,`contentScanner`: RustBuffer.ByValue,
 ): Long
@@ -3686,7 +3723,13 @@ external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state(`ptr`: Long
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_create_dehydrated_device(`ptr`: Long,`displayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_curve25519_key(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_dehydrated_device_event_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_delete_dehydrated_device(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_disable_recovery(`ptr`: Long,
 ): Long
@@ -3700,6 +3743,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_encryption_has_devices_to_verify_ag
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_import_secrets_bundle(`ptr`: Long,`secretsBundle`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_dehydrated_device_supported(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
@@ -3712,10 +3757,16 @@ external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state(`ptr`: Lo
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_rehydrate_dehydrated_device(`ptr`: Long,`pickleKey`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_identity(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_start_dehydrated_devices(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_encryption_stop_dehydrated_devices(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,`fallbackToServer`: Byte,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4518,6 +4569,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Long,`pa
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Long,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_with_extra_content(`ptr`: Long,`msg`: Long,`extraContentJson`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Long,`listener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
@@ -4633,6 +4686,8 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncnotificationliste
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupstatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupStateListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupsteadystatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupSteadyStateListener,
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_dehydrateddeviceeventlistener(`vtable`: UniffiVTableCallbackInterfaceDehydratedDeviceEventListener,
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_enablerecoveryprogresslistener(`vtable`: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener,
 ): Unit
@@ -5901,12 +5956,6 @@ public interface ClientInterface {
     suspend fun `clearCaches`(`syncService`: SyncService?)
     
     /**
-     * Clear the current user's call indicator (MSC4426 `m.call` profile
-     * field).
-     */
-    suspend fun `clearCallStatus`()
-    
-    /**
      * Clear the current user's status (MSC4426).
      *
      * Deletes both `m.status` and `m.call` concurrently. Clearing `m.status`
@@ -5974,6 +6023,12 @@ public interface ClientInterface {
      * the event cache (so, before spawning a sync service or a timeline).
      */
     fun `enableAutomaticBackpagination`()
+    
+    /**
+     * Enable or disable automatic mirroring of this device's MatrixRTC
+     * participation into the MSC4426 `m.call` profile field.
+     */
+    fun `enableAutomaticCallStatus`(`enabled`: kotlin.Boolean)
     
     /**
      * Enables or disables progress reporting for media uploads in the send
@@ -6366,16 +6421,6 @@ public interface ClientInterface {
      * Updates the user's avatar using the provided MXC url.
      */
     suspend fun `setAvatarUrl`(`url`: kotlin.String)
-    
-    /**
-     * Set the current user's call indicator (MSC4426 `m.call` profile field).
-     *
-     * Presence of a value indicates the user is in a call. The optional
-     * `call_joined_ts` on [`UserCall`] carries the Unix-epoch seconds when
-     * the user joined the call, if known. Use [`Self::clear_call_status`] to
-     * remove it when the call ends.
-     */
-    suspend fun `setCallStatus`(`call`: UserCall)
     
     /**
      * Enables or disables the content scanner feature using the provided
@@ -6960,32 +7005,6 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Clear the current user's call indicator (MSC4426 `m.call` profile
-     * field).
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `clearCallStatus`() {
-        return uniffiRustCallAsync(
-        callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_clear_call_status(
-                uniffiHandle,
-                
-            )
-        },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
      * Clear the current user's status (MSC4426).
      *
      * Deletes both `m.status` and `m.call` concurrently. Clearing `m.status`
@@ -7225,6 +7244,22 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_backpagination(
         it,
         _status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Enable or disable automatic mirroring of this device's MatrixRTC
+     * participation into the MSC4426 `m.call` profile field.
+     */override fun `enableAutomaticCallStatus`(`enabled`: kotlin.Boolean)
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_call_status(
+        it,
+        FfiConverterBoolean.lower(`enabled`),_status)
 }
     }
     
@@ -8704,36 +8739,6 @@ open class Client: Disposable, AutoCloseable, ClientInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(
                 uniffiHandle,
                 FfiConverterString.lower(`url`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        
-        // Error FFI converter
-        ClientException.ErrorHandler,
-    )
-    }
-
-    
-    /**
-     * Set the current user's call indicator (MSC4426 `m.call` profile field).
-     *
-     * Presence of a value indicates the user is in a call. The optional
-     * `call_joined_ts` on [`UserCall`] carries the Unix-epoch seconds when
-     * the user joined the call, if known. Use [`Self::clear_call_status`] to
-     * remove it when the call ends.
-     */
-    @Throws(ClientException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `setCallStatus`(`call`: UserCall) {
-        return uniffiRustCallAsync(
-        callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_call_status(
-                uniffiHandle,
-                FfiConverterTypeUserCall.lower(`call`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -11148,10 +11153,33 @@ public interface EncryptionInterface {
     fun `backupStateListener`(`listener`: BackupStateListener): TaskHandle
     
     /**
+     * Build a fresh dehydrated device, encrypt it with the supplied pickle
+     * key, and upload it to the homeserver. Returns the new device ID.
+     *
+     * The pickle key is a 32-byte secret, base64 encoded. Callers are
+     * responsible for storing the pickle key safely (typically in Secret
+     * Storage via [`Encryption::start_dehydrated_devices`]).
+     */
+    suspend fun `createDehydratedDevice`(`displayName`: kotlin.String?, `pickleKey`: kotlin.String): kotlin.String
+    
+    /**
      * Get the public curve25519 key of our own device in base64. This is
      * usually what is called the identity key of the device.
      */
     suspend fun `curve25519Key`(): kotlin.String?
+    
+    /**
+     * Subscribe to lifecycle events emitted by the dehydrated-device
+     * manager. The returned [`TaskHandle`] keeps the listener alive; drop
+     * it to unsubscribe.
+     */
+    fun `dehydratedDeviceEventListener`(`listener`: DehydratedDeviceEventListener): TaskHandle
+    
+    /**
+     * Delete the current dehydrated device, if one exists. Silent if no
+     * device is on the server or the server does not implement MSC3814.
+     */
+    suspend fun `deleteDehydratedDevice`()
     
     suspend fun `disableRecovery`()
     
@@ -11190,6 +11218,12 @@ public interface EncryptionInterface {
      */
     suspend fun `importSecretsBundle`(`secretsBundle`: SecretsBundleWithUserId)
     
+    /**
+     * Return whether the homeserver advertises support for MSC3814
+     * dehydrated devices.
+     */
+    suspend fun `isDehydratedDeviceSupported`(): kotlin.Boolean
+    
     suspend fun `isLastDevice`(): kotlin.Boolean
     
     /**
@@ -11217,12 +11251,39 @@ public interface EncryptionInterface {
     fun `recoveryStateListener`(`listener`: RecoveryStateListener): TaskHandle
     
     /**
+     * Rehydrate the dehydrated device currently on the server, if any.
+     *
+     * Returns `true` if a device was rehydrated end to end, `false` if the
+     * server reports no dehydrated device or does not implement the endpoint.
+     */
+    suspend fun `rehydrateDehydratedDevice`(`pickleKey`: kotlin.String): kotlin.Boolean
+    
+    /**
      * Completely reset the current user's crypto identity: reset the cross
      * signing keys, delete the existing backup and recovery key.
      */
     suspend fun `resetIdentity`(): IdentityResetHandle?
     
     suspend fun `resetRecoveryKey`(): kotlin.String
+    
+    /**
+     * Start using dehydrated devices for this client, resolving the pickle
+     * key through Secret Storage and scheduling weekly rotation.
+     *
+     * The Rust-side copy of the recovery key is zeroized after Secret
+     * Storage has been unlocked; the caller keeps responsibility for the
+     * string it passed in.
+     */
+    suspend fun `startDehydratedDevices`(`recoveryKey`: kotlin.String, `settings`: StartDehydratedDevicesSettings)
+    
+    /**
+     * Stop the scheduled dehydrated-device rotation.
+     *
+     * Has no effect when no rotation is scheduled. Existing dehydrated
+     * devices on the server are left in place; pair with
+     * [`Encryption::delete_dehydrated_device`] to remove them.
+     */
+    fun `stopDehydratedDevices`()
     
     /**
      * Get the E2EE identity of a user.
@@ -11417,6 +11478,35 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
+     * Build a fresh dehydrated device, encrypt it with the supplied pickle
+     * key, and upload it to the homeserver. Returns the new device ID.
+     *
+     * The pickle key is a 32-byte secret, base64 encoded. Callers are
+     * responsible for storing the pickle key safely (typically in Secret
+     * Storage via [`Encryption::start_dehydrated_devices`]).
+     */
+    @Throws(DehydratedDeviceException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `createDehydratedDevice`(`displayName`: kotlin.String?, `pickleKey`: kotlin.String) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_create_dehydrated_device(
+                uniffiHandle,
+                FfiConverterOptionalString.lower(`displayName`),FfiConverterString.lower(`pickleKey`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        DehydratedDeviceException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Get the public curve25519 key of our own device in base64. This is
      * usually what is called the identity key of the device.
      */
@@ -11436,6 +11526,50 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         { FfiConverterOptionalString.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Subscribe to lifecycle events emitted by the dehydrated-device
+     * manager. The returned [`TaskHandle`] keeps the listener alive; drop
+     * it to unsubscribe.
+     */override fun `dehydratedDeviceEventListener`(`listener`: DehydratedDeviceEventListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_dehydrated_device_event_listener(
+        it,
+        FfiConverterTypeDehydratedDeviceEventListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Delete the current dehydrated device, if one exists. Silent if no
+     * device is on the server or the server does not implement MSC3814.
+     */
+    @Throws(DehydratedDeviceException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `deleteDehydratedDevice`() {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_delete_dehydrated_device(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        DehydratedDeviceException.ErrorHandler,
     )
     }
 
@@ -11593,6 +11727,31 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     }
 
     
+    /**
+     * Return whether the homeserver advertises support for MSC3814
+     * dehydrated devices.
+     */
+    @Throws(DehydratedDeviceException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isDehydratedDeviceSupported`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_is_dehydrated_device_supported(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        DehydratedDeviceException.ErrorHandler,
+    )
+    }
+
+    
     @Throws(RecoveryException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `isLastDevice`() : kotlin.Boolean {
@@ -11720,6 +11879,33 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
+     * Rehydrate the dehydrated device currently on the server, if any.
+     *
+     * Returns `true` if a device was rehydrated end to end, `false` if the
+     * server reports no dehydrated device or does not implement the endpoint.
+     */
+    @Throws(DehydratedDeviceException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `rehydrateDehydratedDevice`(`pickleKey`: kotlin.String) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_rehydrate_dehydrated_device(
+                uniffiHandle,
+                FfiConverterString.lower(`pickleKey`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        DehydratedDeviceException.ErrorHandler,
+    )
+    }
+
+    
+    /**
      * Completely reset the current user's crypto identity: reset the cross
      * signing keys, delete the existing backup and recovery key.
      */
@@ -11763,6 +11949,55 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         RecoveryException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Start using dehydrated devices for this client, resolving the pickle
+     * key through Secret Storage and scheduling weekly rotation.
+     *
+     * The Rust-side copy of the recovery key is zeroized after Secret
+     * Storage has been unlocked; the caller keeps responsibility for the
+     * string it passed in.
+     */
+    @Throws(DehydratedDeviceException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `startDehydratedDevices`(`recoveryKey`: kotlin.String, `settings`: StartDehydratedDevicesSettings) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_start_dehydrated_devices(
+                uniffiHandle,
+                FfiConverterString.lower(`recoveryKey`),FfiConverterTypeStartDehydratedDevicesSettings.lower(`settings`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        DehydratedDeviceException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Stop the scheduled dehydrated-device rotation.
+     *
+     * Has no effect when no rotation is scheduled. Existing dehydrated
+     * devices on the server are left in place; pair with
+     * [`Encryption::delete_dehydrated_device`] to remove them.
+     */override fun `stopDehydratedDevices`()
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_stop_dehydrated_devices(
+        it,
+        _status)
+}
+    }
+    
+    
 
     
     /**
@@ -31449,6 +31684,12 @@ public interface TimelineInterface {
     
     fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.Float>): SendAttachmentJoinHandle
     
+    /**
+     * Like [`Self::send`], but merges the given additional top-level fields
+     * (a JSON object, encoded as a string) into the outgoing event's content.
+     */
+    suspend fun `sendWithExtraContent`(`msg`: RoomMessageEventContentWithoutRelation, `extraContentJson`: kotlin.String?): SendHandle
+    
     suspend fun `subscribeToBackPaginationStatus`(`listener`: PaginationStatusListener): TaskHandle
     
     /**
@@ -32167,6 +32408,31 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     )
     }
     
+
+    
+    /**
+     * Like [`Self::send`], but merges the given additional top-level fields
+     * (a JSON object, encoded as a string) into the outgoing event's content.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendWithExtraContent`(`msg`: RoomMessageEventContentWithoutRelation, `extraContentJson`: kotlin.String?) : SendHandle {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_with_extra_content(
+                uniffiHandle,
+                FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterOptionalString.lower(`extraContentJson`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeSendHandle.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -39945,6 +40211,64 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
 
 
 /**
+ * Settings for [`Encryption::start_dehydrated_devices`].
+ */
+data class StartDehydratedDevicesSettings (
+    /**
+     * Force generation of a fresh random pickle key on start, replacing
+     * any existing entry in Secret Storage and the local cache.
+     */
+    var `createNewKey`: kotlin.Boolean = false 
+    , 
+    /**
+     * Whether to attempt to rehydrate the existing dehydrated device, if
+     * any, before creating the next one.
+     */
+    var `rehydrate`: kotlin.Boolean = true 
+    , 
+    /**
+     * If `true`, the call becomes a no-op when no pickle key is cached
+     * locally.
+     */
+    var `onlyIfKeyCached`: kotlin.Boolean = false 
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeStartDehydratedDevicesSettings: FfiConverterRustBuffer<StartDehydratedDevicesSettings> {
+    override fun read(buf: ByteBuffer): StartDehydratedDevicesSettings {
+        return StartDehydratedDevicesSettings(
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: StartDehydratedDevicesSettings) = (
+            FfiConverterBoolean.allocationSize(value.`createNewKey`) +
+            FfiConverterBoolean.allocationSize(value.`rehydrate`) +
+            FfiConverterBoolean.allocationSize(value.`onlyIfKeyCached`)
+    )
+
+    override fun write(value: StartDehydratedDevicesSettings, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`createNewKey`, buf)
+            FfiConverterBoolean.write(value.`rehydrate`, buf)
+            FfiConverterBoolean.write(value.`onlyIfKeyCached`, buf)
+    }
+}
+
+
+
+/**
  * Contains the disk size of the different stores, if known. It won't be
  * available for in-memory stores.
  */
@@ -41085,6 +41409,12 @@ data class UploadParameters (
      * Optional Event ID to reply to.
      */
     var `inReplyTo`: kotlin.String?
+    , 
+    /**
+     * Optional additional top-level fields for the media event's content,
+     * as a serialized JSON object.
+     */
+    var `extraContentJson`: kotlin.String? = null 
     
 ){
     
@@ -41106,6 +41436,7 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
             FfiConverterOptionalTypeFormattedBody.read(buf),
             FfiConverterOptionalTypeMentions.read(buf),
             FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
         )
     }
 
@@ -41114,7 +41445,8 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
             FfiConverterOptionalString.allocationSize(value.`caption`) +
             FfiConverterOptionalTypeFormattedBody.allocationSize(value.`formattedCaption`) +
             FfiConverterOptionalTypeMentions.allocationSize(value.`mentions`) +
-            FfiConverterOptionalString.allocationSize(value.`inReplyTo`)
+            FfiConverterOptionalString.allocationSize(value.`inReplyTo`) +
+            FfiConverterOptionalString.allocationSize(value.`extraContentJson`)
     )
 
     override fun write(value: UploadParameters, buf: ByteBuffer) {
@@ -41123,6 +41455,7 @@ public object FfiConverterTypeUploadParameters: FfiConverterRustBuffer<UploadPar
             FfiConverterOptionalTypeFormattedBody.write(value.`formattedCaption`, buf)
             FfiConverterOptionalTypeMentions.write(value.`mentions`, buf)
             FfiConverterOptionalString.write(value.`inReplyTo`, buf)
+            FfiConverterOptionalString.write(value.`extraContentJson`, buf)
     }
 }
 
@@ -43586,6 +43919,361 @@ public object FfiConverterTypeDateDividerMode: FfiConverterRustBuffer<DateDivide
 
     override fun write(value: DateDividerMode, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+
+/**
+ * Errors returned by the dehydrated-device FFI surface.
+ */
+sealed class DehydratedDeviceException(message: String): kotlin.Exception(message) {
+        
+    /**
+     * The client is not logged in.
+     */
+        class NotLoggedIn(message: String) : DehydratedDeviceException(message)
+        
+    /**
+     * The supplied base64-encoded pickle key did not decode to 32 bytes.
+     */
+        class InvalidPickleKey(message: String) : DehydratedDeviceException(message)
+        
+    /**
+     * Opening Secret Storage with the supplied recovery key failed.
+     */
+        class SecretStorage(message: String) : DehydratedDeviceException(message)
+        
+    /**
+     * Any other failure surfaced by the SDK.
+     */
+        class Sdk(message: String) : DehydratedDeviceException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<DehydratedDeviceException> {
+        override fun lift(error_buf: RustBuffer.ByValue): DehydratedDeviceException = FfiConverterTypeDehydratedDeviceError.lift(error_buf)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDehydratedDeviceError : FfiConverterRustBuffer<DehydratedDeviceException> {
+    override fun read(buf: ByteBuffer): DehydratedDeviceException {
+        
+            return when(buf.getInt()) {
+            1 -> DehydratedDeviceException.NotLoggedIn(FfiConverterString.read(buf))
+            2 -> DehydratedDeviceException.InvalidPickleKey(FfiConverterString.read(buf))
+            3 -> DehydratedDeviceException.SecretStorage(FfiConverterString.read(buf))
+            4 -> DehydratedDeviceException.Sdk(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: DehydratedDeviceException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: DehydratedDeviceException, buf: ByteBuffer) {
+        when(value) {
+            is DehydratedDeviceException.NotLoggedIn -> {
+                buf.putInt(1)
+                Unit
+            }
+            is DehydratedDeviceException.InvalidPickleKey -> {
+                buf.putInt(2)
+                Unit
+            }
+            is DehydratedDeviceException.SecretStorage -> {
+                buf.putInt(3)
+                Unit
+            }
+            is DehydratedDeviceException.Sdk -> {
+                buf.putInt(4)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+/**
+ * Lifecycle event emitted by the dehydrated-device manager.
+ *
+ * Mirrors [`dehydrated_devices::DehydratedDeviceEvent`]; subscribe via
+ * [`Encryption::dehydrated_device_event_listener`].
+ */
+sealed class DehydratedDeviceEvent {
+    
+    /**
+     * A fresh dehydrated device was constructed in the local crypto store,
+     * before the upload PUT.
+     */
+    data class Created(
+        val `deviceId`: kotlin.String) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The homeserver accepted the upload of the dehydrated device.
+     */
+    data class Uploaded(
+        val `deviceId`: kotlin.String) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The dehydrated device on the homeserver was deleted.
+     */
+    object Deleted : DehydratedDeviceEvent()
+    
+    
+    /**
+     * A pickle key was cached in the local crypto store.
+     */
+    object KeyCached : DehydratedDeviceEvent()
+    
+    
+    /**
+     * Rehydration of a dehydrated device began.
+     */
+    data class RehydrationStarted(
+        val `deviceId`: kotlin.String) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * A batch of to-device events has been imported during rehydration.
+     */
+    data class RehydrationProgress(
+        val `roomKeysImported`: kotlin.ULong, 
+        val `toDeviceEvents`: kotlin.ULong) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * Rehydration finished successfully.
+     */
+    data class RehydrationCompleted(
+        val `deviceId`: kotlin.String, 
+        val `roomKeysImported`: kotlin.ULong, 
+        val `toDeviceEvents`: kotlin.ULong) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * Rehydration failed.
+     */
+    data class RehydrationError(
+        val `error`: kotlin.String) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * A scheduled rotation tick failed; the rotation task remains scheduled.
+     */
+    data class RotationError(
+        val `error`: kotlin.String) : DehydratedDeviceEvent()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDehydratedDeviceEvent : FfiConverterRustBuffer<DehydratedDeviceEvent>{
+    override fun read(buf: ByteBuffer): DehydratedDeviceEvent {
+        return when(buf.getInt()) {
+            1 -> DehydratedDeviceEvent.Created(
+                FfiConverterString.read(buf),
+                )
+            2 -> DehydratedDeviceEvent.Uploaded(
+                FfiConverterString.read(buf),
+                )
+            3 -> DehydratedDeviceEvent.Deleted
+            4 -> DehydratedDeviceEvent.KeyCached
+            5 -> DehydratedDeviceEvent.RehydrationStarted(
+                FfiConverterString.read(buf),
+                )
+            6 -> DehydratedDeviceEvent.RehydrationProgress(
+                FfiConverterULong.read(buf),
+                FfiConverterULong.read(buf),
+                )
+            7 -> DehydratedDeviceEvent.RehydrationCompleted(
+                FfiConverterString.read(buf),
+                FfiConverterULong.read(buf),
+                FfiConverterULong.read(buf),
+                )
+            8 -> DehydratedDeviceEvent.RehydrationError(
+                FfiConverterString.read(buf),
+                )
+            9 -> DehydratedDeviceEvent.RotationError(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: DehydratedDeviceEvent) = when(value) {
+        is DehydratedDeviceEvent.Created -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`deviceId`)
+            )
+        }
+        is DehydratedDeviceEvent.Uploaded -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`deviceId`)
+            )
+        }
+        is DehydratedDeviceEvent.Deleted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is DehydratedDeviceEvent.KeyCached -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is DehydratedDeviceEvent.RehydrationStarted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`deviceId`)
+            )
+        }
+        is DehydratedDeviceEvent.RehydrationProgress -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterULong.allocationSize(value.`roomKeysImported`)
+                + FfiConverterULong.allocationSize(value.`toDeviceEvents`)
+            )
+        }
+        is DehydratedDeviceEvent.RehydrationCompleted -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`deviceId`)
+                + FfiConverterULong.allocationSize(value.`roomKeysImported`)
+                + FfiConverterULong.allocationSize(value.`toDeviceEvents`)
+            )
+        }
+        is DehydratedDeviceEvent.RehydrationError -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+        }
+        is DehydratedDeviceEvent.RotationError -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+        }
+    }
+
+    override fun write(value: DehydratedDeviceEvent, buf: ByteBuffer) {
+        when(value) {
+            is DehydratedDeviceEvent.Created -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`deviceId`, buf)
+                Unit
+            }
+            is DehydratedDeviceEvent.Uploaded -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`deviceId`, buf)
+                Unit
+            }
+            is DehydratedDeviceEvent.Deleted -> {
+                buf.putInt(3)
+                Unit
+            }
+            is DehydratedDeviceEvent.KeyCached -> {
+                buf.putInt(4)
+                Unit
+            }
+            is DehydratedDeviceEvent.RehydrationStarted -> {
+                buf.putInt(5)
+                FfiConverterString.write(value.`deviceId`, buf)
+                Unit
+            }
+            is DehydratedDeviceEvent.RehydrationProgress -> {
+                buf.putInt(6)
+                FfiConverterULong.write(value.`roomKeysImported`, buf)
+                FfiConverterULong.write(value.`toDeviceEvents`, buf)
+                Unit
+            }
+            is DehydratedDeviceEvent.RehydrationCompleted -> {
+                buf.putInt(7)
+                FfiConverterString.write(value.`deviceId`, buf)
+                FfiConverterULong.write(value.`roomKeysImported`, buf)
+                FfiConverterULong.write(value.`toDeviceEvents`, buf)
+                Unit
+            }
+            is DehydratedDeviceEvent.RehydrationError -> {
+                buf.putInt(8)
+                FfiConverterString.write(value.`error`, buf)
+                Unit
+            }
+            is DehydratedDeviceEvent.RotationError -> {
+                buf.putInt(9)
+                FfiConverterString.write(value.`error`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -59663,7 +60351,11 @@ enum class TraceLogPacks {
     /**
      * Enables all the logs relevant to the latest events.
      */
-    LATEST_EVENTS;
+    LATEST_EVENTS,
+    /**
+     * Enables all the logs relevant to message search.
+     */
+    SEARCH;
 
     
 
@@ -60726,6 +61418,66 @@ internal object uniffiCallbackInterfaceClientSessionDelegate {
  * @suppress
  */
 public object FfiConverterTypeClientSessionDelegate: FfiConverterCallbackInterface<ClientSessionDelegate>()
+
+
+
+
+
+public interface DehydratedDeviceEventListener {
+    
+    fun `onEvent`(`event`: DehydratedDeviceEvent)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceDehydratedDeviceEventListener {
+    internal object `onEvent`: UniffiCallbackInterfaceDehydratedDeviceEventListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`event`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeDehydratedDeviceEventListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onEvent`(
+                    FfiConverterTypeDehydratedDeviceEvent.lift(`event`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeDehydratedDeviceEventListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeDehydratedDeviceEventListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceDehydratedDeviceEventListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onEvent`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_dehydrateddeviceeventlistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeDehydratedDeviceEventListener: FfiConverterCallbackInterface<DehydratedDeviceEventListener>()
 
 
 
