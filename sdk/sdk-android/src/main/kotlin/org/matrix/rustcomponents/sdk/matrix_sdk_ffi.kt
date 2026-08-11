@@ -2960,6 +2960,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_parent_span(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_profiles_extension(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id(
@@ -3047,6 +3049,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_cont
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction_with_extra_content(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event(
 ): Short
@@ -3449,7 +3453,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Long,`use
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,`fallbackToWellKnown`: Byte,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_supported(`ptr`: Long,
 ): Long
@@ -4467,6 +4471,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Lo
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_parent_span(`ptr`: Long,`span`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_profiles_extension(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_connection_id(`ptr`: Long,`connectionId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -4574,6 +4580,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_with_extra_content(`p
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Long,`listener`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction_with_extra_content(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,`extraContentJson`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
 ): Long
@@ -6154,8 +6162,13 @@ public interface ClientInterface {
     
     /**
      * Checks if the server supports the LiveKit RTC focus for placing calls.
+     *
+     * Transports are discovered through the authenticated
+     * `GET /_matrix/client/v1/rtc/transports` endpoint (MSC4143). If the
+     * homeserver doesn't implement it and `fallback_to_well_known` is `true`,
+     * then the well-known will be queried.
      */
-    suspend fun `isLivekitRtcSupported`(): kotlin.Boolean
+    suspend fun `isLivekitRtcSupported`(`fallbackToWellKnown`: kotlin.Boolean = false): kotlin.Boolean
     
     /**
      * Checks if the server supports login using a QR code.
@@ -7810,15 +7823,20 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     
     /**
      * Checks if the server supports the LiveKit RTC focus for placing calls.
+     *
+     * Transports are discovered through the authenticated
+     * `GET /_matrix/client/v1/rtc/transports` endpoint (MSC4143). If the
+     * homeserver doesn't implement it and `fallback_to_well_known` is `true`,
+     * then the well-known will be queried.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `isLivekitRtcSupported`() : kotlin.Boolean {
+    override suspend fun `isLivekitRtcSupported`(`fallbackToWellKnown`: kotlin.Boolean) : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(
                 uniffiHandle,
-                
+                FfiConverterBoolean.lower(`fallbackToWellKnown`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -30200,6 +30218,11 @@ public interface SyncServiceBuilderInterface {
     fun `withOfflineMode`(): SyncServiceBuilder
     
     /**
+     * Set a parent tracing Span for the tasks within this sync service.
+     */
+    fun `withParentSpan`(`span`: Span): SyncServiceBuilder
+    
+    /**
      * Enable the Profiles sliding sync extension for the room list service.
      *
      * Required to merge the global `m.status` and `m.call` fields into the
@@ -30357,6 +30380,22 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(
         it,
         _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set a parent tracing Span for the tasks within this sync service.
+     */override fun `withParentSpan`(`span`: Span): SyncServiceBuilder {
+            return FfiConverterTypeSyncServiceBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_parent_span(
+        it,
+        FfiConverterTypeSpan.lower(`span`),_status)
 }
     }
     )
@@ -31710,6 +31749,16 @@ public interface TimelineInterface {
     suspend fun `toggleReaction`(`itemId`: EventOrTransactionId, `key`: kotlin.String): kotlin.Boolean
     
     /**
+     * Like [`Self::toggle_reaction`], but merges the given additional
+     * top-level fields (a JSON object, encoded as a string) into the
+     * reaction's content when one is added.
+     *
+     * Removing a reaction is a redaction, which carries no content, so the
+     * extra fields are only used when adding one.
+     */
+    suspend fun `toggleReactionWithExtraContent`(`itemId`: EventOrTransactionId, `key`: kotlin.String, `extraContentJson`: kotlin.String?): kotlin.Boolean
+    
+    /**
      * Adds a new pinned event by sending an updated `m.room.pinned_events`
      * event without the event id we want to remove.
      *
@@ -32479,6 +32528,35 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(
                 uniffiHandle,
                 FfiConverterTypeEventOrTransactionId.lower(`itemId`),FfiConverterString.lower(`key`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Like [`Self::toggle_reaction`], but merges the given additional
+     * top-level fields (a JSON object, encoded as a string) into the
+     * reaction's content when one is added.
+     *
+     * Removing a reaction is a redaction, which carries no content, so the
+     * extra fields are only used when adding one.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `toggleReactionWithExtraContent`(`itemId`: EventOrTransactionId, `key`: kotlin.String, `extraContentJson`: kotlin.String?) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction_with_extra_content(
+                uniffiHandle,
+                FfiConverterTypeEventOrTransactionId.lower(`itemId`),FfiConverterString.lower(`key`),FfiConverterOptionalString.lower(`extraContentJson`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -41921,6 +41999,12 @@ data class WidgetCapabilities (
      * This allows the widget to download files (avatars)
      */
     var `downloadFiles`: kotlin.Boolean
+    , 
+    /**
+     * This allows the widget to discover the RTC transports advertised by the
+     * homeserver (MSC4515).
+     */
+    var `rtcTransports`: kotlin.Boolean
     
 ){
     
@@ -41943,6 +42027,7 @@ public object FfiConverterTypeWidgetCapabilities: FfiConverterRustBuffer<WidgetC
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
         )
     }
 
@@ -41952,7 +42037,8 @@ public object FfiConverterTypeWidgetCapabilities: FfiConverterRustBuffer<WidgetC
             FfiConverterBoolean.allocationSize(value.`requiresClient`) +
             FfiConverterBoolean.allocationSize(value.`updateDelayedEvent`) +
             FfiConverterBoolean.allocationSize(value.`sendDelayedEvent`) +
-            FfiConverterBoolean.allocationSize(value.`downloadFiles`)
+            FfiConverterBoolean.allocationSize(value.`downloadFiles`) +
+            FfiConverterBoolean.allocationSize(value.`rtcTransports`)
     )
 
     override fun write(value: WidgetCapabilities, buf: ByteBuffer) {
@@ -41962,6 +42048,7 @@ public object FfiConverterTypeWidgetCapabilities: FfiConverterRustBuffer<WidgetC
             FfiConverterBoolean.write(value.`updateDelayedEvent`, buf)
             FfiConverterBoolean.write(value.`sendDelayedEvent`, buf)
             FfiConverterBoolean.write(value.`downloadFiles`, buf)
+            FfiConverterBoolean.write(value.`rtcTransports`, buf)
     }
 }
 
