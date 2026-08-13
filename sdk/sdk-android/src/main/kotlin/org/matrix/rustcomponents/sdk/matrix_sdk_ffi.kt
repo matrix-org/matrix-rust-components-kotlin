@@ -2146,6 +2146,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_livekit_rtc_support
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_login_with_qr_code_supported(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_profiles_sliding_sync_extension_supported(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
@@ -3456,6 +3458,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Long,
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,`fallbackToWellKnown`: Byte,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_supported(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_is_profiles_sliding_sync_extension_supported(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_report_room_api_supported(`ptr`: Long,
 ): Long
@@ -6176,6 +6180,11 @@ public interface ClientInterface {
     suspend fun `isLoginWithQrCodeSupported`(): kotlin.Boolean
     
     /**
+     * Checks if the server supports the Profiles sliding sync extension.
+     */
+    suspend fun `isProfilesSlidingSyncExtensionSupported`(): kotlin.Boolean
+    
+    /**
      * Checks if the server supports the report room API.
      */
     suspend fun `isReportRoomApiSupported`(): kotlin.Boolean
@@ -7859,6 +7868,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_supported(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Checks if the server supports the Profiles sliding sync extension.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isProfilesSlidingSyncExtensionSupported`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_profiles_sliding_sync_extension_supported(
                 uniffiHandle,
                 
             )
