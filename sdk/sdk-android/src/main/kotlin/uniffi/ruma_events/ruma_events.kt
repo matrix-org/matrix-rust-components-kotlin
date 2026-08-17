@@ -634,7 +634,6 @@ internal object IntegrityCheckingUniffiLib {
     init {
         Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "ruma_events"))
         uniffiCheckContractApiVersion(this)
-        uniffiCheckApiChecksums(this)
     }
     external fun uniffi_ruma_events_checksum_func_ephemeral_room_event_type_from_string(
     ): Short
@@ -857,30 +856,6 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     val scaffolding_contract_version = lib.ffi_ruma_events_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
-    }
-}
-@Suppress("UNUSED_PARAMETER")
-private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_ruma_events_checksum_func_ephemeral_room_event_type_from_string() != 49031.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_ruma_events_checksum_func_global_account_data_event_type_from_string() != 55409.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_ruma_events_checksum_func_message_like_event_type_from_string() != 19374.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_ruma_events_checksum_func_room_account_data_event_type_from_string() != 19617.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_ruma_events_checksum_func_state_event_type_from_string() != 7090.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_ruma_events_checksum_func_timeline_event_type_from_string() != 64429.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_ruma_events_checksum_func_to_device_event_type_from_string() != 65088.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
 

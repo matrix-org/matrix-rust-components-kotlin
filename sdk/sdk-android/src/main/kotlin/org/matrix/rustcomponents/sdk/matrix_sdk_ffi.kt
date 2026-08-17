@@ -907,6 +907,9 @@ internal interface UniffiCallbackInterfaceWidgetCapabilitiesProviderMethod0 : co
 internal interface UniffiCallbackInterfaceRawX509SignerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`uniffiOutReturn`: RustBufferRawX509Signature,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceRawX509SignerMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: LongByReference,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceRawX509VerifierMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`sig`: RustBufferRawX509Signature.ByValue,`uniffiOutReturn`: ByteByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -1922,22 +1925,25 @@ internal open class UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider(
     }
 
 }
-@Structure.FieldOrder("uniffiFree", "uniffiClone", "sign")
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "sign", "validityNotAfter")
 internal open class UniffiVTableCallbackInterfaceRawX509Signer(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
     @JvmField internal var `sign`: UniffiCallbackInterfaceRawX509SignerMethod0? = null,
+    @JvmField internal var `validityNotAfter`: UniffiCallbackInterfaceRawX509SignerMethod1? = null,
 ) : Structure() {
     class UniffiByValue(
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
         `uniffiClone`: UniffiCallbackInterfaceClone? = null,
         `sign`: UniffiCallbackInterfaceRawX509SignerMethod0? = null,
-    ): UniffiVTableCallbackInterfaceRawX509Signer(`uniffiFree`,`uniffiClone`,`sign`,), Structure.ByValue
+        `validityNotAfter`: UniffiCallbackInterfaceRawX509SignerMethod1? = null,
+    ): UniffiVTableCallbackInterfaceRawX509Signer(`uniffiFree`,`uniffiClone`,`sign`,`validityNotAfter`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRawX509Signer) {
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `sign` = other.`sign`
+        `validityNotAfter` = other.`validityNotAfter`
     }
 
 }
@@ -2083,6 +2089,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account(
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_device_id(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_disable_well_known_lookup(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
 ): Short
@@ -2312,6 +2320,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_sign(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_validity_not_after(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509verifier_verify(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_add_root_certificates(
@@ -2333,6 +2343,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automat
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_well_known_lookup(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_dm_room_definition(
 ): Short
@@ -3397,6 +3409,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(`ptr`: Long,`i
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_client_disable_well_known_lookup(`ptr`: Long,`disable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Long,`enable`: Byte,
@@ -3455,7 +3469,7 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Long,`use
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Long,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,`fallbackToWellKnown`: Byte,
+external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_supported(`ptr`: Long,
 ): Long
@@ -3639,6 +3653,8 @@ external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_rawx509signer(`vtable
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_rawx509signer_sign(`ptr`: Long,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBufferRawX509Signature.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_method_rawx509signer_validity_not_after(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_clone_rawx509verifier(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_rawx509verifier(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -3672,6 +3688,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_tok
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_well_known_lookup(`ptr`: Long,`disableWellKnownLookup`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(`ptr`: Long,`dmRoomDefinition`: RustBufferDmRoomDefinition.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -6011,6 +6029,18 @@ public interface ClientInterface {
     
     fun `deviceId`(): kotlin.String
     
+    /**
+     * Change whether this client is allowed to look up the homeserver's
+     * `/.well-known/matrix/client` file.
+     *
+     * Some deployments must not emit any request to the well-known URI of
+     * their domain. When disabled, [`Client::tile_server`] returns `None`,
+     * [`Client::well_known_rtc_transports`] returns an empty list, and
+     * [`Client::discover_rtc_transports`] doesn't fall back to the well-known
+     * `m.rtc_foci`, relying only on the MSC4143 discovery endpoint.
+     */
+    fun `disableWellKnownLookup`(`disable`: kotlin.Boolean)
+    
     suspend fun `displayName`(): kotlin.String
     
     /**
@@ -6169,10 +6199,12 @@ public interface ClientInterface {
      *
      * Transports are discovered through the authenticated
      * `GET /_matrix/client/v1/rtc/transports` endpoint (MSC4143). If the
-     * homeserver doesn't implement it and `fallback_to_well_known` is `true`,
-     * then the well-known will be queried.
+     * homeserver doesn't implement it, the well-known `m.rtc_foci` are used as
+     * a fallback, unless well-known discovery was disabled with
+     * [`ClientBuilder::disable_well_known_lookup`] or
+     * [`Client::disable_well_known_lookup`].
      */
-    suspend fun `isLivekitRtcSupported`(`fallbackToWellKnown`: kotlin.Boolean = false): kotlin.Boolean
+    suspend fun `isLivekitRtcSupported`(): kotlin.Boolean
     
     /**
      * Checks if the server supports login using a QR code.
@@ -7199,6 +7231,28 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     
 
     
+    /**
+     * Change whether this client is allowed to look up the homeserver's
+     * `/.well-known/matrix/client` file.
+     *
+     * Some deployments must not emit any request to the well-known URI of
+     * their domain. When disabled, [`Client::tile_server`] returns `None`,
+     * [`Client::well_known_rtc_transports`] returns an empty list, and
+     * [`Client::discover_rtc_transports`] doesn't fall back to the well-known
+     * `m.rtc_foci`, relying only on the MSC4143 discovery endpoint.
+     */override fun `disableWellKnownLookup`(`disable`: kotlin.Boolean)
+        = 
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_disable_well_known_lookup(
+        it,
+        FfiConverterBoolean.lower(`disable`),_status)
+}
+    }
+    
+    
+
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `displayName`() : kotlin.String {
@@ -7835,17 +7889,19 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * Transports are discovered through the authenticated
      * `GET /_matrix/client/v1/rtc/transports` endpoint (MSC4143). If the
-     * homeserver doesn't implement it and `fallback_to_well_known` is `true`,
-     * then the well-known will be queried.
+     * homeserver doesn't implement it, the well-known `m.rtc_foci` are used as
+     * a fallback, unless well-known discovery was disabled with
+     * [`ClientBuilder::disable_well_known_lookup`] or
+     * [`Client::disable_well_known_lookup`].
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `isLivekitRtcSupported`(`fallbackToWellKnown`: kotlin.Boolean) : kotlin.Boolean {
+    override suspend fun `isLivekitRtcSupported`() : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`fallbackToWellKnown`),
+                
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -9800,6 +9856,27 @@ public interface ClientBuilderInterface {
     
     fun `disableSslVerification`(): ClientBuilder
     
+    /**
+     * Disable all the `.well-known/matrix/client` lookups, both the one
+     * performed by `ClientBuilder::build` to discover the homeserver, and all
+     * the ones performed later by the built client.
+     *
+     * Some deployments must not emit any request to the well-known URI of
+     * their domain. When disabled, `Client::tile_server` returns `None` and
+     * RTC transport discovery doesn't fall back to the well-known
+     * `m.rtc_foci`, meaning `Client::is_livekit_rtc_supported` only relies on
+     * the MSC4143 discovery endpoint.
+     *
+     * The homeserver must then be resolvable without a well-known lookup, so
+     * `ClientBuilder::homeserver_url` must be used.
+     * `ClientBuilder::server_name` and `ClientBuilder::username` can only
+     * be resolved through the well-known, and `ClientBuilder::build` fails
+     * with `ClientBuildError::WellKnownLookupDisabled` in that case.
+     * `ClientBuilder::server_name_or_homeserver_url` skips the well-known step
+     * and works only when given a homeserver URL.
+     */
+    fun `disableWellKnownLookup`(`disableWellKnownLookup`: kotlin.Boolean): ClientBuilder
+    
     fun `dmRoomDefinition`(`dmRoomDefinition`: DmRoomDefinition): ClientBuilder
     
     /**
@@ -9872,6 +9949,16 @@ public interface ClientBuilderInterface {
     
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
     
+    /**
+     * Set the user ID the homeserver is derived from, when none of
+     * `homeserver_url`, `server_name` or `server_name_or_homeserver_url` was
+     * called.
+     *
+     * The homeserver is then discovered from the server name of that user ID,
+     * which requires a `.well-known/matrix/client` lookup. This is therefore
+     * incompatible with `disable_well_known_lookup`, which makes `build` fail
+     * with `ClientBuildError::WellKnownLookupDisabled`.
+     */
     fun `username`(`username`: kotlin.String): ClientBuilder
     
     fun `withRawX509Signer`(`x509Sign`: RawX509Signer): ClientBuilder
@@ -10155,6 +10242,38 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
+    
+    /**
+     * Disable all the `.well-known/matrix/client` lookups, both the one
+     * performed by `ClientBuilder::build` to discover the homeserver, and all
+     * the ones performed later by the built client.
+     *
+     * Some deployments must not emit any request to the well-known URI of
+     * their domain. When disabled, `Client::tile_server` returns `None` and
+     * RTC transport discovery doesn't fall back to the well-known
+     * `m.rtc_foci`, meaning `Client::is_livekit_rtc_supported` only relies on
+     * the MSC4143 discovery endpoint.
+     *
+     * The homeserver must then be resolvable without a well-known lookup, so
+     * `ClientBuilder::homeserver_url` must be used.
+     * `ClientBuilder::server_name` and `ClientBuilder::username` can only
+     * be resolved through the well-known, and `ClientBuilder::build` fails
+     * with `ClientBuildError::WellKnownLookupDisabled` in that case.
+     * `ClientBuilder::server_name_or_homeserver_url` skips the well-known step
+     * and works only when given a homeserver URL.
+     */override fun `disableWellKnownLookup`(`disableWellKnownLookup`: kotlin.Boolean): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_well_known_lookup(
+        it,
+        FfiConverterBoolean.lower(`disableWellKnownLookup`),_status)
+}
+    }
+    )
+    }
+    
+
     override fun `dmRoomDefinition`(`dmRoomDefinition`: DmRoomDefinition): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
@@ -10403,7 +10522,17 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
-    override fun `username`(`username`: kotlin.String): ClientBuilder {
+    
+    /**
+     * Set the user ID the homeserver is derived from, when none of
+     * `homeserver_url`, `server_name` or `server_name_or_homeserver_url` was
+     * called.
+     *
+     * The homeserver is then discovered from the server name of that user ID,
+     * which requires a `.well-known/matrix/client` lookup. This is therefore
+     * incompatible with `disable_well_known_lookup`, which makes `build` fail
+     * with `ClientBuildError::WellKnownLookupDisabled`.
+     */override fun `username`(`username`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
@@ -18290,6 +18419,12 @@ public interface RawX509Signer {
      */
     fun `sign`(`message`: kotlin.ByteArray): RawX509Signature
     
+    /**
+     * Return the "not after" time for the certificate's validity period as a
+     * UNIX timestamp.
+     */
+    fun `validityNotAfter`(): kotlin.ULong
+    
     companion object
 }
 
@@ -18413,6 +18548,24 @@ open class RawX509SignerImpl: Disposable, AutoCloseable, RawX509Signer
     
 
     
+    /**
+     * Return the "not after" time for the certificate's validity period as a
+     * UNIX timestamp.
+     */
+    @Throws(ClientException::class)override fun `validityNotAfter`(): kotlin.ULong {
+            return FfiConverterULong.lift(
+    callWithHandle {
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_rawx509signer_validity_not_after(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
 
     
 
@@ -18447,6 +18600,22 @@ internal object uniffiCallbackInterfaceRawX509Signer {
             )
         }
     }
+    internal object `validityNotAfter`: UniffiCallbackInterfaceRawX509SignerMethod1 {
+        override fun callback(`uniffiHandle`: Long,`uniffiOutReturn`: LongByReference,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeRawX509Signer.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`validityNotAfter`(
+                )
+            }
+            val writeReturn = { value: kotlin.ULong -> uniffiOutReturn.setValue(FfiConverterULong.lower(value)) }
+            uniffiTraitInterfaceCallWithError(
+                uniffiCallStatus,
+                makeCall,
+                writeReturn,
+                { e: ClientException -> FfiConverterTypeClientError.lower(e) }
+            )
+        }
+    }
 
     internal object uniffiFree: UniffiCallbackInterfaceFree {
         override fun callback(handle: Long) {
@@ -18464,6 +18633,7 @@ internal object uniffiCallbackInterfaceRawX509Signer {
         uniffiFree,
         uniffiClone,
         `sign`,
+        `validityNotAfter`,
     )
 
     // Registers the foreign callback with the Rust side.
@@ -31748,9 +31918,9 @@ public interface TimelineInterface {
      *
      * If the replied to event has a thread relation, it is forwarded on the
      * reply so that clients that support threads can render the reply
-     * inside the thread.
+     * inside the thread. Returns a handle to abort the pending send.
      */
-    suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String)
+    suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String): SendHandle
     
     fun `sendVideo`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `videoInfo`: VideoInfo): SendAttachmentJoinHandle
     
@@ -32440,11 +32610,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
      *
      * If the replied to event has a thread relation, it is forwarded on the
      * reply so that clients that support threads can render the reply
-     * inside the thread.
+     * inside the thread. Returns a handle to abort the pending send.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String) {
+    override suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String) : SendHandle {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(
@@ -32452,12 +32622,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
                 FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterString.lower(`eventId`),
             )
         },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
         // lift function
-        { Unit },
-        
+        { FfiConverterTypeSendHandle.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -43447,6 +43616,8 @@ sealed class ClientBuildException(message: String): kotlin.Exception(message) {
         
         class InvalidServerName(message: String) : ClientBuildException(message)
         
+        class WellKnownLookupDisabled(message: String) : ClientBuildException(message)
+        
         class ServerUnreachable(message: String) : ClientBuildException(message)
         
         class WellKnownLookupFailed(message: String) : ClientBuildException(message)
@@ -43479,15 +43650,16 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
         
             return when(buf.getInt()) {
             1 -> ClientBuildException.InvalidServerName(FfiConverterString.read(buf))
-            2 -> ClientBuildException.ServerUnreachable(FfiConverterString.read(buf))
-            3 -> ClientBuildException.WellKnownLookupFailed(FfiConverterString.read(buf))
-            4 -> ClientBuildException.WellKnownDeserializationException(FfiConverterString.read(buf))
-            5 -> ClientBuildException.SlidingSync(FfiConverterString.read(buf))
-            6 -> ClientBuildException.SlidingSyncVersion(FfiConverterString.read(buf))
-            7 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
-            8 -> ClientBuildException.EventCache(FfiConverterString.read(buf))
-            9 -> ClientBuildException.InvalidRawKey(FfiConverterString.read(buf))
-            10 -> ClientBuildException.Generic(FfiConverterString.read(buf))
+            2 -> ClientBuildException.WellKnownLookupDisabled(FfiConverterString.read(buf))
+            3 -> ClientBuildException.ServerUnreachable(FfiConverterString.read(buf))
+            4 -> ClientBuildException.WellKnownLookupFailed(FfiConverterString.read(buf))
+            5 -> ClientBuildException.WellKnownDeserializationException(FfiConverterString.read(buf))
+            6 -> ClientBuildException.SlidingSync(FfiConverterString.read(buf))
+            7 -> ClientBuildException.SlidingSyncVersion(FfiConverterString.read(buf))
+            8 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
+            9 -> ClientBuildException.EventCache(FfiConverterString.read(buf))
+            10 -> ClientBuildException.InvalidRawKey(FfiConverterString.read(buf))
+            11 -> ClientBuildException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -43503,40 +43675,44 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
                 buf.putInt(1)
                 Unit
             }
-            is ClientBuildException.ServerUnreachable -> {
+            is ClientBuildException.WellKnownLookupDisabled -> {
                 buf.putInt(2)
                 Unit
             }
-            is ClientBuildException.WellKnownLookupFailed -> {
+            is ClientBuildException.ServerUnreachable -> {
                 buf.putInt(3)
                 Unit
             }
-            is ClientBuildException.WellKnownDeserializationException -> {
+            is ClientBuildException.WellKnownLookupFailed -> {
                 buf.putInt(4)
                 Unit
             }
-            is ClientBuildException.SlidingSync -> {
+            is ClientBuildException.WellKnownDeserializationException -> {
                 buf.putInt(5)
                 Unit
             }
-            is ClientBuildException.SlidingSyncVersion -> {
+            is ClientBuildException.SlidingSync -> {
                 buf.putInt(6)
                 Unit
             }
-            is ClientBuildException.Sdk -> {
+            is ClientBuildException.SlidingSyncVersion -> {
                 buf.putInt(7)
                 Unit
             }
-            is ClientBuildException.EventCache -> {
+            is ClientBuildException.Sdk -> {
                 buf.putInt(8)
                 Unit
             }
-            is ClientBuildException.InvalidRawKey -> {
+            is ClientBuildException.EventCache -> {
                 buf.putInt(9)
                 Unit
             }
-            is ClientBuildException.Generic -> {
+            is ClientBuildException.InvalidRawKey -> {
                 buf.putInt(10)
+                Unit
+            }
+            is ClientBuildException.Generic -> {
+                buf.putInt(11)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
