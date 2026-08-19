@@ -2652,6 +2652,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event_with_relations(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_user_receipt(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked(
@@ -4088,6 +4090,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_room_live_locations_observer(`ptr`:
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event_with_relations(`ptr`: Long,`eventId`: RustBuffer.ByValue,`relationFilter`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_load_user_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`thread`: RustBuffer.ByValue,`userId`: RustBuffer.ByValue,
 ): Long
@@ -19329,6 +19333,16 @@ public interface RoomInterface {
     suspend fun `loadOrFetchEvent`(`eventId`: kotlin.String): TimelineEvent
     
     /**
+     * Either loads the event associated with the `event_id` from the event
+     * cache or fetches it from the homeserver, along with the events related
+     * to it (e.g. reactions and edits), fetched recursively.
+     *
+     * An optional filter restricts the relation types fetched; no filter
+     * fetches relations of all types.
+     */
+    suspend fun `loadOrFetchEventWithRelations`(`eventId`: kotlin.String, `relationFilter`: List<RelationType>?): EventWithRelations
+    
+    /**
      * Load the receipt of the given type for the given user in this room,
      * optionally scoped to a thread.
      *
@@ -20707,6 +20721,35 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
         // lift function
         { FfiConverterTypeTimelineEvent.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Either loads the event associated with the `event_id` from the event
+     * cache or fetches it from the homeserver, along with the events related
+     * to it (e.g. reactions and edits), fetched recursively.
+     *
+     * An optional filter restricts the relation types fetched; no filter
+     * fetches relations of all types.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `loadOrFetchEventWithRelations`(`eventId`: kotlin.String, `relationFilter`: List<RelationType>?) : EventWithRelations {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event_with_relations(
+                uniffiHandle,
+                FfiConverterString.lower(`eventId`),FfiConverterOptionalSequenceTypeRelationType.lower(`relationFilter`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeEventWithRelations.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -35951,6 +35994,64 @@ public object FfiConverterTypeEventTimelineItemDebugInfo: FfiConverterRustBuffer
             FfiConverterString.write(value.`model`, buf)
             FfiConverterOptionalString.write(value.`originalJson`, buf)
             FfiConverterOptionalString.write(value.`latestEditJson`, buf)
+    }
+}
+
+
+
+/**
+ * An event and the events related to it, as returned by
+ * [`Room::load_or_fetch_event_with_relations`].
+ */
+data class EventWithRelations (
+    /**
+     * The event itself.
+     */
+    var `event`: TimelineEvent
+    , 
+    /**
+     * The events related to it, directly or (recursively) through other
+     * related events.
+     */
+    var `relatedEvents`: List<TimelineEvent>
+    
+): Disposable{
+    
+
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`event`,
+        this.`relatedEvents`
+    )
+    }
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeEventWithRelations: FfiConverterRustBuffer<EventWithRelations> {
+    override fun read(buf: ByteBuffer): EventWithRelations {
+        return EventWithRelations(
+            FfiConverterTypeTimelineEvent.read(buf),
+            FfiConverterSequenceTypeTimelineEvent.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: EventWithRelations) = (
+            FfiConverterTypeTimelineEvent.allocationSize(value.`event`) +
+            FfiConverterSequenceTypeTimelineEvent.allocationSize(value.`relatedEvents`)
+    )
+
+    override fun write(value: EventWithRelations, buf: ByteBuffer) {
+            FfiConverterTypeTimelineEvent.write(value.`event`, buf)
+            FfiConverterSequenceTypeTimelineEvent.write(value.`relatedEvents`, buf)
     }
 }
 
@@ -54340,6 +54441,58 @@ public object FfiConverterTypeRecoveryState: FfiConverterRustBuffer<RecoveryStat
 
 
 /**
+ * The relation types that can be used to filter related events when calling
+ * [`Room::load_or_fetch_event_with_relations`].
+ */
+
+enum class RelationType {
+    
+    /**
+     * An annotation to an event (e.g. a reaction), `m.annotation`.
+     */
+    ANNOTATION,
+    /**
+     * A reference to another event, `m.reference`.
+     */
+    REFERENCE,
+    /**
+     * An event that replaces another event (e.g. an edit), `m.replace`.
+     */
+    REPLACEMENT,
+    /**
+     * An event that belongs to a thread, `m.thread`.
+     */
+    THREAD;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRelationType: FfiConverterRustBuffer<RelationType> {
+    override fun read(buf: ByteBuffer) = try {
+        RelationType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RelationType) = 4UL
+
+    override fun write(value: RelationType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * Room account data events.
  */
 sealed class RoomAccountDataEvent {
@@ -67369,6 +67522,38 @@ public object FfiConverterOptionalSequenceTypeAction: FfiConverterRustBuffer<Lis
 /**
  * @suppress
  */
+public object FfiConverterOptionalSequenceTypeRelationType: FfiConverterRustBuffer<List<RelationType>?> {
+    override fun read(buf: ByteBuffer): List<RelationType>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeRelationType.read(buf)
+    }
+
+    override fun allocationSize(value: List<RelationType>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeRelationType.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<RelationType>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeRelationType.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalMapStringLong: FfiConverterRustBuffer<Map<kotlin.String, kotlin.Long>?> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.Long>? {
         if (buf.get().toInt() == 0) {
@@ -67623,6 +67808,34 @@ public object FfiConverterSequenceTypeSessionVerificationEmoji: FfiConverterRust
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeSessionVerificationEmoji.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeTimelineEvent: FfiConverterRustBuffer<List<TimelineEvent>> {
+    override fun read(buf: ByteBuffer): List<TimelineEvent> {
+        val len = buf.getInt()
+        return List<TimelineEvent>(len) {
+            FfiConverterTypeTimelineEvent.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<TimelineEvent>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeTimelineEvent.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<TimelineEvent>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeTimelineEvent.write(it, buf)
         }
     }
 }
@@ -68575,6 +68788,34 @@ public object FfiConverterSequenceTypePushCondition: FfiConverterRustBuffer<List
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypePushCondition.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeRelationType: FfiConverterRustBuffer<List<RelationType>> {
+    override fun read(buf: ByteBuffer): List<RelationType> {
+        val len = buf.getInt()
+        return List<RelationType>(len) {
+            FfiConverterTypeRelationType.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RelationType>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRelationType.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RelationType>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRelationType.write(it, buf)
         }
     }
 }
