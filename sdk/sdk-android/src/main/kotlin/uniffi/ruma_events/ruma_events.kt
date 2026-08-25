@@ -3263,6 +3263,16 @@ sealed class StateEventType: Disposable  {
     
     
     /**
+     * m.room.retention
+     *
+     * This variant uses the unstable type `org.matrix.msc1763.retention`.
+     *
+     * This variant can also be deserialized from the `m.room.retention` type.
+     */
+    object RoomRetention : StateEventType()
+    
+    
+    /**
      * m.room.server_acl
      */
     object RoomServerAcl : StateEventType()
@@ -3408,6 +3418,8 @@ sealed class StateEventType: Disposable  {
             }
             is StateEventType.RoomPowerLevels -> {// Nothing to destroy
             }
+            is StateEventType.RoomRetention -> {// Nothing to destroy
+            }
             is StateEventType.RoomServerAcl -> {// Nothing to destroy
             }
             is StateEventType.RoomThirdPartyInvite -> {// Nothing to destroy
@@ -3495,16 +3507,17 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
             15 -> StateEventType.RoomPinnedEvents
             16 -> StateEventType.RoomPolicy
             17 -> StateEventType.RoomPowerLevels
-            18 -> StateEventType.RoomServerAcl
-            19 -> StateEventType.RoomThirdPartyInvite
-            20 -> StateEventType.RoomTombstone
-            21 -> StateEventType.RoomTopic
-            22 -> StateEventType.SpaceChild
-            23 -> StateEventType.SpaceParent
-            24 -> StateEventType.BeaconInfo
-            25 -> StateEventType.CallMember
-            26 -> StateEventType.MemberHints
-            27 -> StateEventType.Custom(
+            18 -> StateEventType.RoomRetention
+            19 -> StateEventType.RoomServerAcl
+            20 -> StateEventType.RoomThirdPartyInvite
+            21 -> StateEventType.RoomTombstone
+            22 -> StateEventType.RoomTopic
+            23 -> StateEventType.SpaceChild
+            24 -> StateEventType.SpaceParent
+            25 -> StateEventType.BeaconInfo
+            26 -> StateEventType.CallMember
+            27 -> StateEventType.MemberHints
+            28 -> StateEventType.Custom(
                 FfiConverterTypePrivOwnedStr.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -3609,6 +3622,12 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
             )
         }
         is StateEventType.RoomPowerLevels -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is StateEventType.RoomRetention -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -3747,44 +3766,48 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
                 buf.putInt(17)
                 Unit
             }
-            is StateEventType.RoomServerAcl -> {
+            is StateEventType.RoomRetention -> {
                 buf.putInt(18)
                 Unit
             }
-            is StateEventType.RoomThirdPartyInvite -> {
+            is StateEventType.RoomServerAcl -> {
                 buf.putInt(19)
                 Unit
             }
-            is StateEventType.RoomTombstone -> {
+            is StateEventType.RoomThirdPartyInvite -> {
                 buf.putInt(20)
                 Unit
             }
-            is StateEventType.RoomTopic -> {
+            is StateEventType.RoomTombstone -> {
                 buf.putInt(21)
                 Unit
             }
-            is StateEventType.SpaceChild -> {
+            is StateEventType.RoomTopic -> {
                 buf.putInt(22)
                 Unit
             }
-            is StateEventType.SpaceParent -> {
+            is StateEventType.SpaceChild -> {
                 buf.putInt(23)
                 Unit
             }
-            is StateEventType.BeaconInfo -> {
+            is StateEventType.SpaceParent -> {
                 buf.putInt(24)
                 Unit
             }
-            is StateEventType.CallMember -> {
+            is StateEventType.BeaconInfo -> {
                 buf.putInt(25)
                 Unit
             }
-            is StateEventType.MemberHints -> {
+            is StateEventType.CallMember -> {
                 buf.putInt(26)
                 Unit
             }
-            is StateEventType.Custom -> {
+            is StateEventType.MemberHints -> {
                 buf.putInt(27)
+                Unit
+            }
+            is StateEventType.Custom -> {
+                buf.putInt(28)
                 FfiConverterTypePrivOwnedStr.write(value.v1, buf)
                 Unit
             }
@@ -4196,6 +4219,16 @@ sealed class TimelineEventType: Disposable  {
     
     
     /**
+     * m.room.retention
+     *
+     * This variant uses the unstable type `org.matrix.msc1763.retention`.
+     *
+     * This variant can also be deserialized from the `m.room.retention` type.
+     */
+    object RoomRetention : TimelineEventType()
+    
+    
+    /**
      * m.room.server_acl
      */
     object RoomServerAcl : TimelineEventType()
@@ -4419,6 +4452,8 @@ sealed class TimelineEventType: Disposable  {
             }
             is TimelineEventType.RoomPowerLevels -> {// Nothing to destroy
             }
+            is TimelineEventType.RoomRetention -> {// Nothing to destroy
+            }
             is TimelineEventType.RoomServerAcl -> {// Nothing to destroy
             }
             is TimelineEventType.RoomThirdPartyInvite -> {// Nothing to destroy
@@ -4545,16 +4580,17 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
             54 -> TimelineEventType.RoomPinnedEvents
             55 -> TimelineEventType.RoomPolicy
             56 -> TimelineEventType.RoomPowerLevels
-            57 -> TimelineEventType.RoomServerAcl
-            58 -> TimelineEventType.RoomThirdPartyInvite
-            59 -> TimelineEventType.RoomTombstone
-            60 -> TimelineEventType.RoomTopic
-            61 -> TimelineEventType.SpaceChild
-            62 -> TimelineEventType.SpaceParent
-            63 -> TimelineEventType.BeaconInfo
-            64 -> TimelineEventType.CallMember
-            65 -> TimelineEventType.MemberHints
-            66 -> TimelineEventType.Custom(
+            57 -> TimelineEventType.RoomRetention
+            58 -> TimelineEventType.RoomServerAcl
+            59 -> TimelineEventType.RoomThirdPartyInvite
+            60 -> TimelineEventType.RoomTombstone
+            61 -> TimelineEventType.RoomTopic
+            62 -> TimelineEventType.SpaceChild
+            63 -> TimelineEventType.SpaceParent
+            64 -> TimelineEventType.BeaconInfo
+            65 -> TimelineEventType.CallMember
+            66 -> TimelineEventType.MemberHints
+            67 -> TimelineEventType.Custom(
                 FfiConverterTypePrivOwnedStr.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -4898,6 +4934,12 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
                 4UL
             )
         }
+        is TimelineEventType.RoomRetention -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
         is TimelineEventType.RoomServerAcl -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -5187,44 +5229,48 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
                 buf.putInt(56)
                 Unit
             }
-            is TimelineEventType.RoomServerAcl -> {
+            is TimelineEventType.RoomRetention -> {
                 buf.putInt(57)
                 Unit
             }
-            is TimelineEventType.RoomThirdPartyInvite -> {
+            is TimelineEventType.RoomServerAcl -> {
                 buf.putInt(58)
                 Unit
             }
-            is TimelineEventType.RoomTombstone -> {
+            is TimelineEventType.RoomThirdPartyInvite -> {
                 buf.putInt(59)
                 Unit
             }
-            is TimelineEventType.RoomTopic -> {
+            is TimelineEventType.RoomTombstone -> {
                 buf.putInt(60)
                 Unit
             }
-            is TimelineEventType.SpaceChild -> {
+            is TimelineEventType.RoomTopic -> {
                 buf.putInt(61)
                 Unit
             }
-            is TimelineEventType.SpaceParent -> {
+            is TimelineEventType.SpaceChild -> {
                 buf.putInt(62)
                 Unit
             }
-            is TimelineEventType.BeaconInfo -> {
+            is TimelineEventType.SpaceParent -> {
                 buf.putInt(63)
                 Unit
             }
-            is TimelineEventType.CallMember -> {
+            is TimelineEventType.BeaconInfo -> {
                 buf.putInt(64)
                 Unit
             }
-            is TimelineEventType.MemberHints -> {
+            is TimelineEventType.CallMember -> {
                 buf.putInt(65)
                 Unit
             }
-            is TimelineEventType.Custom -> {
+            is TimelineEventType.MemberHints -> {
                 buf.putInt(66)
+                Unit
+            }
+            is TimelineEventType.Custom -> {
+                buf.putInt(67)
                 FfiConverterTypePrivOwnedStr.write(value.v1, buf)
                 Unit
             }
@@ -5255,6 +5301,12 @@ sealed class ToDeviceEventType: Disposable  {
      * m.room_key
      */
     object RoomKey : ToDeviceEventType()
+    
+    
+    /**
+     * m.room_key_bundle
+     */
+    object RoomKeyBundle : ToDeviceEventType()
     
     
     /**
@@ -5401,6 +5453,8 @@ sealed class ToDeviceEventType: Disposable  {
             }
             is ToDeviceEventType.RoomKey -> {// Nothing to destroy
             }
+            is ToDeviceEventType.RoomKeyBundle -> {// Nothing to destroy
+            }
             is ToDeviceEventType.RoomKeyRequest -> {// Nothing to destroy
             }
             is ToDeviceEventType.RoomKeyWithheld -> {// Nothing to destroy
@@ -5485,22 +5539,23 @@ public object FfiConverterTypeToDeviceEventType : FfiConverterRustBuffer<ToDevic
         return when(buf.getInt()) {
             1 -> ToDeviceEventType.Dummy
             2 -> ToDeviceEventType.RoomKey
-            3 -> ToDeviceEventType.RoomKeyRequest
-            4 -> ToDeviceEventType.RoomKeyWithheld
-            5 -> ToDeviceEventType.ForwardedRoomKey
-            6 -> ToDeviceEventType.KeyVerificationRequest
-            7 -> ToDeviceEventType.KeyVerificationReady
-            8 -> ToDeviceEventType.KeyVerificationStart
-            9 -> ToDeviceEventType.KeyVerificationCancel
-            10 -> ToDeviceEventType.KeyVerificationAccept
-            11 -> ToDeviceEventType.KeyVerificationKey
-            12 -> ToDeviceEventType.KeyVerificationMac
-            13 -> ToDeviceEventType.KeyVerificationDone
-            14 -> ToDeviceEventType.RoomEncrypted
-            15 -> ToDeviceEventType.SecretRequest
-            16 -> ToDeviceEventType.SecretSend
-            17 -> ToDeviceEventType.SecretPush
-            18 -> ToDeviceEventType.Custom(
+            3 -> ToDeviceEventType.RoomKeyBundle
+            4 -> ToDeviceEventType.RoomKeyRequest
+            5 -> ToDeviceEventType.RoomKeyWithheld
+            6 -> ToDeviceEventType.ForwardedRoomKey
+            7 -> ToDeviceEventType.KeyVerificationRequest
+            8 -> ToDeviceEventType.KeyVerificationReady
+            9 -> ToDeviceEventType.KeyVerificationStart
+            10 -> ToDeviceEventType.KeyVerificationCancel
+            11 -> ToDeviceEventType.KeyVerificationAccept
+            12 -> ToDeviceEventType.KeyVerificationKey
+            13 -> ToDeviceEventType.KeyVerificationMac
+            14 -> ToDeviceEventType.KeyVerificationDone
+            15 -> ToDeviceEventType.RoomEncrypted
+            16 -> ToDeviceEventType.SecretRequest
+            17 -> ToDeviceEventType.SecretSend
+            18 -> ToDeviceEventType.SecretPush
+            19 -> ToDeviceEventType.Custom(
                 FfiConverterTypePrivOwnedStr.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -5515,6 +5570,12 @@ public object FfiConverterTypeToDeviceEventType : FfiConverterRustBuffer<ToDevic
             )
         }
         is ToDeviceEventType.RoomKey -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ToDeviceEventType.RoomKeyBundle -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -5629,68 +5690,72 @@ public object FfiConverterTypeToDeviceEventType : FfiConverterRustBuffer<ToDevic
                 buf.putInt(2)
                 Unit
             }
-            is ToDeviceEventType.RoomKeyRequest -> {
+            is ToDeviceEventType.RoomKeyBundle -> {
                 buf.putInt(3)
                 Unit
             }
-            is ToDeviceEventType.RoomKeyWithheld -> {
+            is ToDeviceEventType.RoomKeyRequest -> {
                 buf.putInt(4)
                 Unit
             }
-            is ToDeviceEventType.ForwardedRoomKey -> {
+            is ToDeviceEventType.RoomKeyWithheld -> {
                 buf.putInt(5)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationRequest -> {
+            is ToDeviceEventType.ForwardedRoomKey -> {
                 buf.putInt(6)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationReady -> {
+            is ToDeviceEventType.KeyVerificationRequest -> {
                 buf.putInt(7)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationStart -> {
+            is ToDeviceEventType.KeyVerificationReady -> {
                 buf.putInt(8)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationCancel -> {
+            is ToDeviceEventType.KeyVerificationStart -> {
                 buf.putInt(9)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationAccept -> {
+            is ToDeviceEventType.KeyVerificationCancel -> {
                 buf.putInt(10)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationKey -> {
+            is ToDeviceEventType.KeyVerificationAccept -> {
                 buf.putInt(11)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationMac -> {
+            is ToDeviceEventType.KeyVerificationKey -> {
                 buf.putInt(12)
                 Unit
             }
-            is ToDeviceEventType.KeyVerificationDone -> {
+            is ToDeviceEventType.KeyVerificationMac -> {
                 buf.putInt(13)
                 Unit
             }
-            is ToDeviceEventType.RoomEncrypted -> {
+            is ToDeviceEventType.KeyVerificationDone -> {
                 buf.putInt(14)
                 Unit
             }
-            is ToDeviceEventType.SecretRequest -> {
+            is ToDeviceEventType.RoomEncrypted -> {
                 buf.putInt(15)
                 Unit
             }
-            is ToDeviceEventType.SecretSend -> {
+            is ToDeviceEventType.SecretRequest -> {
                 buf.putInt(16)
                 Unit
             }
-            is ToDeviceEventType.SecretPush -> {
+            is ToDeviceEventType.SecretSend -> {
                 buf.putInt(17)
                 Unit
             }
-            is ToDeviceEventType.Custom -> {
+            is ToDeviceEventType.SecretPush -> {
                 buf.putInt(18)
+                Unit
+            }
+            is ToDeviceEventType.Custom -> {
+                buf.putInt(19)
                 FfiConverterTypePrivOwnedStr.write(value.v1, buf)
                 Unit
             }

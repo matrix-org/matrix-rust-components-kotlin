@@ -2362,6 +2362,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipi
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_from_user_id(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths(
@@ -2377,8 +2379,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memor
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_username(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_signer(
 ): Short
@@ -3709,6 +3709,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_st
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(`ptr`: Long,`serverName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_from_user_id(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(`ptr`: Long,`serverNameOrUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_paths(`ptr`: Long,`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -3724,8 +3726,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_cons
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`: Long,`enabled`: Byte,`threadSubscriptions`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Long,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(`ptr`: Long,`username`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_signer(`ptr`: Long,`x509Sign`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -9873,9 +9873,10 @@ public interface ClientBuilderInterface {
      *
      * The homeserver must then be resolvable without a well-known lookup, so
      * `ClientBuilder::homeserver_url` must be used.
-     * `ClientBuilder::server_name` and `ClientBuilder::username` can only
-     * be resolved through the well-known, and `ClientBuilder::build` fails
-     * with `ClientBuildError::WellKnownLookupDisabled` in that case.
+     * `ClientBuilder::server_name` and
+     * `ClientBuilder::server_name_from_user_id` can only be resolved through
+     * the well-known, and `ClientBuilder::build` fails with
+     * `ClientBuildError::WellKnownLookupDisabled` in that case.
      * `ClientBuilder::server_name_or_homeserver_url` skips the well-known step
      * and works only when given a homeserver URL.
      */
@@ -9891,6 +9892,18 @@ public interface ClientBuilderInterface {
      */
     fun `enableShareHistoryOnInvite`(`enableShareHistoryOnInvite`: kotlin.Boolean): ClientBuilder
     
+    /**
+     * Set the homeserver URL to use.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * This is the only one of them that never performs a
+     * `.well-known/matrix/client` lookup, so it is the one to use together
+     * with [`Self::disable_well_known_lookup`].
+     */
     fun `homeserverUrl`(`url`: kotlin.String): ClientBuilder
     
     /**
@@ -9911,8 +9924,57 @@ public interface ClientBuilderInterface {
      */
     fun `roomKeyRecipientStrategy`(`strategy`: CollectStrategy): ClientBuilder
     
+    /**
+     * Set the server name to discover the homeserver from.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * This performs a `.well-known/matrix/client` lookup, and is therefore
+     * incompatible with [`Self::disable_well_known_lookup`]: [`Self::build`]
+     * then fails with [`ClientBuildError::WellKnownLookupDisabled`].
+     */
     fun `serverName`(`serverName`: kotlin.String): ClientBuilder
     
+    /**
+     * Uses the server name from the supplied the user ID to discover the
+     * homeserver.
+     *
+     * When building a client for restoration, prefer to use
+     * [`Self::homeserver_url`] as the restoration will pick up the user ID
+     * from the [`Session`], and using this will result in a needless request
+     * to re-discover the homeserver.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * This performs a `.well-known/matrix/client` lookup, and is therefore
+     * incompatible with [`Self::disable_well_known_lookup`]: [`Self::build`]
+     * then fails with [`ClientBuildError::WellKnownLookupDisabled`].
+     */
+    fun `serverNameFromUserId`(`userId`: kotlin.String): ClientBuilder
+    
+    /**
+     * Set the server name to discover the homeserver from, falling back to
+     * using it as a homeserver URL if discovery fails. When falling back to a
+     * homeserver URL, a check is made to ensure that the server exists (unlike
+     * [`Self::homeserver_url`], so you can guarantee that the client is ready
+     * to use.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * With [`Self::disable_well_known_lookup`], the discovery step is skipped
+     * and only the homeserver URL check is performed, so a homeserver URL
+     * still works while a delegating server name fails with
+     * [`ClientBuildError::InvalidServerName`].
+     */
     fun `serverNameOrHomeserverUrl`(`serverNameOrUrl`: kotlin.String): ClientBuilder
     
     /**
@@ -9952,18 +10014,6 @@ public interface ClientBuilderInterface {
     fun `threadsEnabled`(`enabled`: kotlin.Boolean, `threadSubscriptions`: kotlin.Boolean): ClientBuilder
     
     fun `userAgent`(`userAgent`: kotlin.String): ClientBuilder
-    
-    /**
-     * Set the user ID the homeserver is derived from, when none of
-     * `homeserver_url`, `server_name` or `server_name_or_homeserver_url` was
-     * called.
-     *
-     * The homeserver is then discovered from the server name of that user ID,
-     * which requires a `.well-known/matrix/client` lookup. This is therefore
-     * incompatible with `disable_well_known_lookup`, which makes `build` fail
-     * with `ClientBuildError::WellKnownLookupDisabled`.
-     */
-    fun `username`(`username`: kotlin.String): ClientBuilder
     
     fun `withRawX509Signer`(`x509Sign`: RawX509Signer): ClientBuilder
     
@@ -10260,9 +10310,10 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
      *
      * The homeserver must then be resolvable without a well-known lookup, so
      * `ClientBuilder::homeserver_url` must be used.
-     * `ClientBuilder::server_name` and `ClientBuilder::username` can only
-     * be resolved through the well-known, and `ClientBuilder::build` fails
-     * with `ClientBuildError::WellKnownLookupDisabled` in that case.
+     * `ClientBuilder::server_name` and
+     * `ClientBuilder::server_name_from_user_id` can only be resolved through
+     * the well-known, and `ClientBuilder::build` fails with
+     * `ClientBuildError::WellKnownLookupDisabled` in that case.
      * `ClientBuilder::server_name_or_homeserver_url` skips the well-known step
      * and works only when given a homeserver URL.
      */override fun `disableWellKnownLookup`(`disableWellKnownLookup`: kotlin.Boolean): ClientBuilder {
@@ -10310,7 +10361,19 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
-    override fun `homeserverUrl`(`url`: kotlin.String): ClientBuilder {
+    
+    /**
+     * Set the homeserver URL to use.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * This is the only one of them that never performs a
+     * `.well-known/matrix/client` lookup, so it is the one to use together
+     * with [`Self::disable_well_known_lookup`].
+     */override fun `homeserverUrl`(`url`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
@@ -10385,7 +10448,19 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
-    override fun `serverName`(`serverName`: kotlin.String): ClientBuilder {
+    
+    /**
+     * Set the server name to discover the homeserver from.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * This performs a `.well-known/matrix/client` lookup, and is therefore
+     * incompatible with [`Self::disable_well_known_lookup`]: [`Self::build`]
+     * then fails with [`ClientBuildError::WellKnownLookupDisabled`].
+     */override fun `serverName`(`serverName`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
@@ -10398,7 +10473,55 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     }
     
 
-    override fun `serverNameOrHomeserverUrl`(`serverNameOrUrl`: kotlin.String): ClientBuilder {
+    
+    /**
+     * Uses the server name from the supplied the user ID to discover the
+     * homeserver.
+     *
+     * When building a client for restoration, prefer to use
+     * [`Self::homeserver_url`] as the restoration will pick up the user ID
+     * from the [`Session`], and using this will result in a needless request
+     * to re-discover the homeserver.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * This performs a `.well-known/matrix/client` lookup, and is therefore
+     * incompatible with [`Self::disable_well_known_lookup`]: [`Self::build`]
+     * then fails with [`ClientBuildError::WellKnownLookupDisabled`].
+     */override fun `serverNameFromUserId`(`userId`: kotlin.String): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_from_user_id(
+        it,
+        FfiConverterString.lower(`userId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set the server name to discover the homeserver from, falling back to
+     * using it as a homeserver URL if discovery fails. When falling back to a
+     * homeserver URL, a check is made to ensure that the server exists (unlike
+     * [`Self::homeserver_url`], so you can guarantee that the client is ready
+     * to use.
+     *
+     * The following methods are mutually exclusive: [`Self::homeserver_url`],
+     * [`Self::server_name`], [`Self::server_name_or_homeserver_url`] and
+     * [`Self::server_name_from_user_id`]. If you set more than one, then
+     * whichever was set last will be used.
+     *
+     * With [`Self::disable_well_known_lookup`], the discovery step is skipped
+     * and only the homeserver URL check is performed, so a homeserver URL
+     * still works while a delegating server name fails with
+     * [`ClientBuildError::InvalidServerName`].
+     */override fun `serverNameOrHomeserverUrl`(`serverNameOrUrl`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
@@ -10520,29 +10643,6 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(
         it,
         FfiConverterString.lower(`userAgent`),_status)
-}
-    }
-    )
-    }
-    
-
-    
-    /**
-     * Set the user ID the homeserver is derived from, when none of
-     * `homeserver_url`, `server_name` or `server_name_or_homeserver_url` was
-     * called.
-     *
-     * The homeserver is then discovered from the server name of that user ID,
-     * which requires a `.well-known/matrix/client` lookup. This is therefore
-     * incompatible with `disable_well_known_lookup`, which makes `build` fail
-     * with `ClientBuildError::WellKnownLookupDisabled`.
-     */override fun `username`(`username`: kotlin.String): ClientBuilder {
-            return FfiConverterTypeClientBuilder.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_username(
-        it,
-        FfiConverterString.lower(`username`),_status)
 }
     }
     )
@@ -18419,7 +18519,8 @@ public interface RawX509Signer {
     /**
      * Create a signature for the given message using our private key
      *
-     * Returns (key ID, signature)
+     * Note: the matrix-rust-sdk implementation supports asynchronous signing,
+     * but (for now) in this FFI we only support synchronous.
      */
     fun `sign`(`message`: kotlin.ByteArray): RawX509Signature
     
@@ -18536,7 +18637,8 @@ open class RawX509SignerImpl: Disposable, AutoCloseable, RawX509Signer
     /**
      * Create a signature for the given message using our private key
      *
-     * Returns (key ID, signature)
+     * Note: the matrix-rust-sdk implementation supports asynchronous signing,
+     * but (for now) in this FFI we only support synchronous.
      */
     @Throws(ClientException::class)override fun `sign`(`message`: kotlin.ByteArray): RawX509Signature {
             return FfiConverterTypeRawX509Signature.lift(
@@ -31187,8 +31289,9 @@ public interface ThreadListServiceInterface {
     /**
      * Subscribes to changes in the pagination state.
      *
-     * The `listener` is called once for every state transition. The returned
-     * [`TaskHandle`] keeps the subscription alive
+     * The `listener` is immediately called with the current state, then once
+     * for every state transition. The returned [`TaskHandle`] keeps the
+     * subscription alive
      */
     fun `subscribeToPaginationStateUpdates`(`listener`: ThreadListPaginationStateListener): TaskHandle
     
@@ -31413,8 +31516,9 @@ open class ThreadListService: Disposable, AutoCloseable, ThreadListServiceInterf
     /**
      * Subscribes to changes in the pagination state.
      *
-     * The `listener` is called once for every state transition. The returned
-     * [`TaskHandle`] keeps the subscription alive
+     * The `listener` is immediately called with the current state, then once
+     * for every state transition. The returned [`TaskHandle`] keeps the
+     * subscription alive
      */override fun `subscribeToPaginationStateUpdates`(`listener`: ThreadListPaginationStateListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
     callWithHandle {
