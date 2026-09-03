@@ -1085,6 +1085,109 @@ public object FfiConverterTypeMembershipChangeFilter: FfiConverterRustBuffer<Mem
 
 
 /**
+ * An enum to represent whether a room is about “people” (strictly 2 users) or
+ * “group” (1 or more than 2 users).
+ *
+ * Ideally, we would only want to rely on the
+ * [`matrix_sdk::BaseRoom::is_direct`] method, but the rules are a little bit
+ * different for this high-level UI API.
+ *
+ * This is implemented this way so that it's impossible to filter by “group”
+ * and by “people” at the same time: these criteria are mutually
+ * exclusive by design per filter.
+ */
+
+enum class RoomListFilterCategory {
+    
+    GROUP,
+    PEOPLE;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRoomListFilterCategory: FfiConverterRustBuffer<RoomListFilterCategory> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomListFilterCategory.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomListFilterCategory) = 4UL
+
+    override fun write(value: RoomListFilterCategory, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * Filter read receipts by…
+ *
+ * This type decides which fields to reach in [`ReadReceipts`].
+ *
+ * [`ReadReceipts`]: matrix_sdk_base::read_receipts::ReadReceipts
+ */
+
+enum class RoomListFilterReadReceipts {
+    
+    /**
+     * Filter by mentions, i.e. [`ReadReceipts::num_mentions`].
+     *
+     * [`ReadReceipts::num_mentions`]: matrix_sdk_base::read_receipts::ReadReceipts::num_mentions
+     */
+    MENTIONS,
+    /**
+     * Filter by notifications, i.e. [`ReadReceipts::num_notifications`].
+     *
+     * [`ReadReceipts::num_notifications`]: matrix_sdk_base::read_receipts::ReadReceipts::num_notifications
+     */
+    NOTIFICATIONS,
+    /**
+     * Filter by messages, i.e. [`ReadReceipts::num_unread`].
+     *
+     * [`ReadReceipts::num_unread`]: matrix_sdk_base::read_receipts::ReadReceipts::num_unread
+     */
+    MESSAGES;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRoomListFilterReadReceipts: FfiConverterRustBuffer<RoomListFilterReadReceipts> {
+    override fun read(buf: ByteBuffer) = try {
+        RoomListFilterReadReceipts.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RoomListFilterReadReceipts) = 4UL
+
+    override fun write(value: RoomListFilterReadReceipts, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * The type of change between the previous and current pinned events.
  */
 

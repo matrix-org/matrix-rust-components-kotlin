@@ -86,6 +86,8 @@ import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.FfiConverterTypeMembershipChangeFilter
+import uniffi.matrix_sdk_ui.FfiConverterTypeRoomListFilterCategory
+import uniffi.matrix_sdk_ui.FfiConverterTypeRoomListFilterReadReceipts
 import uniffi.matrix_sdk_ui.FfiConverterTypeRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.FfiConverterTypeSearchServicePaginationState
 import uniffi.matrix_sdk_ui.FfiConverterTypeSpaceRoomListPaginationState
@@ -95,6 +97,8 @@ import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineEventShieldStateCode
 import uniffi.matrix_sdk_ui.FfiConverterTypeTimelineReadReceiptTracking
 import uniffi.matrix_sdk_ui.LatestEventValueLocalState
 import uniffi.matrix_sdk_ui.MembershipChangeFilter
+import uniffi.matrix_sdk_ui.RoomListFilterCategory
+import uniffi.matrix_sdk_ui.RoomListFilterReadReceipts
 import uniffi.matrix_sdk_ui.RoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.SearchServicePaginationState
 import uniffi.matrix_sdk_ui.SpaceRoomListPaginationState
@@ -132,6 +136,8 @@ import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferMembershipChangeFilter
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomListFilterCategory
+import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomListFilterReadReceipts
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomPinnedEventsChange
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSearchServicePaginationState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferSpaceRoomListPaginationState
@@ -2032,6 +2038,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_func_server_name_from_user_id(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions(
@@ -2096,8 +2104,6 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_backpagination(
-): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_call_status(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress(
@@ -2139,6 +2145,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verificati
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_store_sizes(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver(
 ): Short
@@ -2347,6 +2355,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_ver
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_well_known_lookup(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_dm_room_definition(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_automatic_back_pagination(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_history_on_invite(
 ): Short
@@ -2569,6 +2579,10 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline(
 external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline_and_ban(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_mark_as_seen(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids_no_sync(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
 ): Short
@@ -2848,11 +2862,15 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicada
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_remove_room_subscriptions(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_reset_and_add_room_subscriptions(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
+external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_set_room_subscriptions(
 ): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_subscribe_to_rooms(
+external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator(
 ): Short
@@ -3015,6 +3033,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_conte
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit(
+): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll(
 ): Short
@@ -3417,8 +3437,6 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Long,`enable`: Byte,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_backpagination(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_call_status(`ptr`: Long,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
@@ -3460,6 +3478,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_get_session_verification_con
 external fun uniffi_matrix_sdk_ffi_fn_method_client_get_store_sizes(`ptr`: Long,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url(`ptr`: Long,`url`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url_preview(`ptr`: Long,`url`: RustBuffer.ByValue,`ts`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -3694,6 +3714,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verificat
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_well_known_lookup(`ptr`: Long,`disableWellKnownLookup`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(`ptr`: Long,`dmRoomDefinition`: RustBufferDmRoomDefinition.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_automatic_back_pagination(`ptr`: Long,`enableAutomaticBackPagination`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_on_invite(`ptr`: Long,`enableShareHistoryOnInvite`: Byte,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -4009,6 +4031,10 @@ external fun uniffi_matrix_sdk_ffi_fn_clone_room(`handle`: Long,uniffi_out_err: 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_room(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids_no_sync(`ptr`: Long,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_room_active_room_call_participants(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4315,11 +4341,15 @@ external fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`handle`: Long,uniffi
 ): Unit
 external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms(`ptr`: Long,
 ): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_remove_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): Unit
+external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_reset_and_add_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
+): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_set_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
 ): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_subscribe_to_rooms(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
+external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Long,`delayBeforeShowingInMs`: Int,`delayBeforeHidingInMs`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
@@ -4541,7 +4571,7 @@ external fun uniffi_matrix_sdk_ffi_fn_clone_sendhandle(`handle`: Long,uniffi_out
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_free_sendhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_abort(`ptr`: Long,
+external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_abort(`ptr`: Long,`reason`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_try_resend(`ptr`: Long,
 ): Long
@@ -4556,6 +4586,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(`pt
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_poll(`ptr`: Long,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Long,`eventOrTransactionId`: RustBuffer.ByValue,`newContent`: RustBuffer.ByValue,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit_revisions(`ptr`: Long,`eventId`: RustBuffer.ByValue,
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Long,`pollStartEventId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,
 ): Long
@@ -4850,6 +4882,8 @@ external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: 
 external fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`mentions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+external fun uniffi_matrix_sdk_ffi_fn_func_server_name_from_user_id(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 external fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Long,`props`: RustBuffer.ByValue,
 ): Long
@@ -6059,18 +6093,6 @@ public interface ClientInterface {
     suspend fun `enableAllSendQueues`(`enable`: kotlin.Boolean)
     
     /**
-     * Whether to enable automatic backpagination under certain conditions
-     * (e.g. when processing read receipts).
-     *
-     * This is an experimental feature, and might cause performance issues on
-     * large accounts. Use with caution.
-     *
-     * This must be called after creating a client, but before subscribing to
-     * the event cache (so, before spawning a sync service or a timeline).
-     */
-    fun `enableAutomaticBackpagination`()
-    
-    /**
      * Enable or disable automatic mirroring of this device's MatrixRTC
      * participation into the MSC4426 `m.call` profile field.
      */
@@ -6181,6 +6203,18 @@ public interface ClientInterface {
      * `ClientError::Generic`'s `details` field.
      */
     suspend fun `getUrl`(`url`: kotlin.String): kotlin.ByteArray
+    
+    /**
+     * Get the homeserver-generated preview for a URL, as OpenGraph JSON.
+     *
+     * # Arguments
+     *
+     * * `url` - The URL to generate a preview for.
+     *
+     * * `ts` - The preferred point in time to return a preview for, as a Unix
+     * timestamp in milliseconds. Deprecated since Matrix 1.11; pass `None`.
+     */
+    suspend fun `getUrlPreview`(`url`: kotlin.String, `ts`: kotlin.ULong?): kotlin.String?
     
     /**
      * The homeserver this client is configured to use.
@@ -7309,28 +7343,6 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Whether to enable automatic backpagination under certain conditions
-     * (e.g. when processing read receipts).
-     *
-     * This is an experimental feature, and might cause performance issues on
-     * large accounts. Use with caution.
-     *
-     * This must be called after creating a client, but before subscribing to
-     * the event cache (so, before spawning a sync service or a timeline).
-     */override fun `enableAutomaticBackpagination`()
-        = 
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_backpagination(
-        it,
-        _status)
-}
-    }
-    
-    
-
-    
-    /**
      * Enable or disable automatic mirroring of this device's MatrixRTC
      * participation into the MSC4426 `m.call` profile field.
      */override fun `enableAutomaticCallStatus`(`enabled`: kotlin.Boolean)
@@ -7787,6 +7799,37 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterByteArray.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Get the homeserver-generated preview for a URL, as OpenGraph JSON.
+     *
+     * # Arguments
+     *
+     * * `url` - The URL to generate a preview for.
+     *
+     * * `ts` - The preferred point in time to return a preview for, as a Unix
+     * timestamp in milliseconds. Deprecated since Matrix 1.11; pass `None`.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getUrlPreview`(`url`: kotlin.String, `ts`: kotlin.ULong?) : kotlin.String? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_url_preview(
+                uniffiHandle,
+                FfiConverterString.lower(`url`),FfiConverterOptionalULong.lower(`ts`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalString.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -9885,6 +9928,13 @@ public interface ClientBuilderInterface {
     fun `dmRoomDefinition`(`dmRoomDefinition`: DmRoomDefinition): ClientBuilder
     
     /**
+     * Set whether to automatically back-paginate a room's history in the
+     * background, under certain conditions (search backfill, latest-event
+     * resolution, read-receipt finding). Off by default.
+     */
+    fun `enableAutomaticBackPagination`(`enableAutomaticBackPagination`: kotlin.Boolean): ClientBuilder
+    
+    /**
      * Set whether to enable the experimental support for sending and receiving
      * encrypted room history on invite, per [MSC4268].
      *
@@ -10336,6 +10386,24 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(
         it,
         FfiConverterTypeDmRoomDefinition.lower(`dmRoomDefinition`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Set whether to automatically back-paginate a room's history in the
+     * background, under certain conditions (search backfill, latest-event
+     * resolution, read-receipt finding). Off by default.
+     */override fun `enableAutomaticBackPagination`(`enableAutomaticBackPagination`: kotlin.Boolean): ClientBuilder {
+            return FfiConverterTypeClientBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_automatic_back_pagination(
+        it,
+        FfiConverterBoolean.lower(`enableAutomaticBackPagination`),_status)
 }
     }
     )
@@ -18526,7 +18594,7 @@ public interface RawX509Signer {
     
     /**
      * Return the "not after" time for the certificate's validity period as a
-     * UNIX timestamp.
+     * number of milliseconds since the UNIX epoch.
      */
     fun `validityNotAfter`(): kotlin.ULong
     
@@ -18656,7 +18724,7 @@ open class RawX509SignerImpl: Disposable, AutoCloseable, RawX509Signer
     
     /**
      * Return the "not after" time for the certificate's validity period as a
-     * UNIX timestamp.
+     * number of milliseconds since the UNIX epoch.
      */
     @Throws(ClientException::class)override fun `validityNotAfter`(): kotlin.ULong {
             return FfiConverterULong.lift(
@@ -19213,6 +19281,19 @@ public object FfiConverterTypeRawX509Verifier: FfiConverter<RawX509Verifier, Lon
 
 
 public interface RoomInterface {
+    
+    /**
+     * Get the user IDs of the joined and invited members, without the service
+     * members. The current user is part of the result. Fetches the member list
+     * if it is not synced yet.
+     */
+    suspend fun `activeHumanMemberIds`(): List<kotlin.String>
+    
+    /**
+     * Same as [`Self::active_human_member_ids`], without a request to the
+     * homeserver, so members can be missing.
+     */
+    suspend fun `activeHumanMemberIdsNoSync`(): List<kotlin.String>
     
     fun `activeMembersCount`(): kotlin.ULong
     
@@ -19939,6 +20020,57 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         return uniffiRustCall() { status ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_clone_room(handle, status)
         }
+    }
+
+    
+    /**
+     * Get the user IDs of the joined and invited members, without the service
+     * members. The current user is part of the result. Fetches the member list
+     * if it is not synced yet.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `activeHumanMemberIds`() : List<kotlin.String> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Same as [`Self::active_human_member_ids`], without a request to the
+     * homeserver, so members can be missing.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `activeHumanMemberIdsNoSync`() : List<kotlin.String> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids_no_sync(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
     }
 
     override fun `activeMembersCount`(): kotlin.ULong {
@@ -23723,11 +23855,15 @@ public interface RoomListServiceInterface {
     
     suspend fun `allRooms`(): RoomList
     
+    fun `removeRoomSubscriptions`(`roomIds`: List<kotlin.String>)
+    
+    suspend fun `resetAndAddRoomSubscriptions`(`roomIds`: List<kotlin.String>)
+    
     fun `room`(`roomId`: kotlin.String): Room
     
-    fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
+    suspend fun `setRoomSubscriptions`(`roomIds`: List<kotlin.String>)
     
-    suspend fun `subscribeToRooms`(`roomIds`: List<kotlin.String>)
+    fun `state`(`listener`: RoomListServiceStateListener): TaskHandle
     
     fun `syncIndicator`(`delayBeforeShowingInMs`: kotlin.UInt, `delayBeforeHidingInMs`: kotlin.UInt, `listener`: RoomListServiceSyncIndicatorListener): TaskHandle
     
@@ -23852,39 +23988,25 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
     }
 
     
-    @Throws(RoomListException::class)override fun `room`(`roomId`: kotlin.String): Room {
-            return FfiConverterTypeRoom.lift(
+    @Throws(RoomListException::class)override fun `removeRoomSubscriptions`(`roomIds`: List<kotlin.String>)
+        = 
     callWithHandle {
     uniffiRustCallWithError(RoomListException) { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_remove_room_subscriptions(
         it,
-        FfiConverterString.lower(`roomId`),_status)
+        FfiConverterSequenceString.lower(`roomIds`),_status)
 }
-    }
-    )
     }
     
-
-    override fun `state`(`listener`: RoomListServiceStateListener): TaskHandle {
-            return FfiConverterTypeTaskHandle.lift(
-    callWithHandle {
-    uniffiRustCall() { _status ->
-    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(
-        it,
-        FfiConverterTypeRoomListServiceStateListener.lower(`listener`),_status)
-}
-    }
-    )
-    }
     
 
     
     @Throws(RoomListException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `subscribeToRooms`(`roomIds`: List<kotlin.String>) {
+    override suspend fun `resetAndAddRoomSubscriptions`(`roomIds`: List<kotlin.String>) {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_subscribe_to_rooms(
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_reset_and_add_room_subscriptions(
                 uniffiHandle,
                 FfiConverterSequenceString.lower(`roomIds`),
             )
@@ -23899,6 +24021,55 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
         RoomListException.ErrorHandler,
     )
     }
+
+    
+    @Throws(RoomListException::class)override fun `room`(`roomId`: kotlin.String): Room {
+            return FfiConverterTypeRoom.lift(
+    callWithHandle {
+    uniffiRustCallWithError(RoomListException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(
+        it,
+        FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    @Throws(RoomListException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `setRoomSubscriptions`(`roomIds`: List<kotlin.String>) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_set_room_subscriptions(
+                uniffiHandle,
+                FfiConverterSequenceString.lower(`roomIds`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        RoomListException.ErrorHandler,
+    )
+    }
+
+    override fun `state`(`listener`: RoomListServiceStateListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(
+        it,
+        FfiConverterTypeRoomListServiceStateListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
 
     override fun `syncIndicator`(`delayBeforeShowingInMs`: kotlin.UInt, `delayBeforeHidingInMs`: kotlin.UInt, `listener`: RoomListServiceSyncIndicatorListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -26976,7 +27147,8 @@ public object FfiConverterTypeSendGalleryJoinHandle: FfiConverter<SendGalleryJoi
 public interface SendHandleInterface {
     
     /**
-     * Try to abort the sending of the current event.
+     * Try to abort the sending of the current event, with an optional
+     * `reason` applied to the redaction when the event went out anyway.
      *
      * If this returns `true`, then the sending could be aborted, because the
      * event hasn't been sent yet. Otherwise, if this returns `false`, the
@@ -26985,7 +27157,7 @@ public interface SendHandleInterface {
      * This has an effect only on the first call; subsequent calls will always
      * return `false`.
      */
-    suspend fun `abort`(): kotlin.Boolean
+    suspend fun `abort`(`reason`: kotlin.String? = null): kotlin.Boolean
     
     /**
      * Attempt to manually resend messages that failed to send due to issues
@@ -27107,7 +27279,8 @@ open class SendHandle: Disposable, AutoCloseable, SendHandleInterface
 
     
     /**
-     * Try to abort the sending of the current event.
+     * Try to abort the sending of the current event, with an optional
+     * `reason` applied to the redaction when the event went out anyway.
      *
      * If this returns `true`, then the sending could be aborted, because the
      * event hasn't been sent yet. Otherwise, if this returns `false`, the
@@ -27118,12 +27291,12 @@ open class SendHandle: Disposable, AutoCloseable, SendHandleInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `abort`() : kotlin.Boolean {
+    override suspend fun `abort`(`reason`: kotlin.String?) : kotlin.Boolean {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sendhandle_abort(
                 uniffiHandle,
-                
+                FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -31951,6 +32124,15 @@ public interface TimelineInterface {
      */
     suspend fun `edit`(`eventOrTransactionId`: EventOrTransactionId, `newContent`: EditedContent)
     
+    /**
+     * Get the edit history for the given event.
+     *
+     * Returns all revisions of the event, in chronological order.
+     * The first entry is the original event content, followed by each
+     * edit in the order they were applied.
+     */
+    suspend fun `editRevisions`(`eventId`: kotlin.String): List<EditRevisionRecord>
+    
     suspend fun `endPoll`(`pollStartEventId`: kotlin.String, `text`: kotlin.String)
     
     suspend fun `fetchDetailsForEvent`(`eventId`: kotlin.String)
@@ -32300,6 +32482,34 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         // lift function
         { Unit },
         
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Get the edit history for the given event.
+     *
+     * Returns all revisions of the event, in chronological order.
+     * The first entry is the original event content, followed by each
+     * edit in the order they were applied.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `editRevisions`(`eventId`: kotlin.String) : List<EditRevisionRecord> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_edit_revisions(
+                uniffiHandle,
+                FfiConverterString.lower(`eventId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeEditRevisionRecord.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -35873,6 +36083,53 @@ public object FfiConverterTypeDuplicateOneTimeKeyErrorMessage: FfiConverterRustB
     override fun write(value: DuplicateOneTimeKeyErrorMessage, buf: ByteBuffer) {
             FfiConverterString.write(value.`oldKey`, buf)
             FfiConverterString.write(value.`newKey`, buf)
+    }
+}
+
+
+
+data class EditRevisionRecord (
+    var `content`: TimelineItemContent
+    , 
+    var `timestamp`: kotlin.ULong?
+    
+): Disposable{
+    
+
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        
+    Disposable.destroy(
+        this.`content`,
+        this.`timestamp`
+    )
+    }
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeEditRevisionRecord: FfiConverterRustBuffer<EditRevisionRecord> {
+    override fun read(buf: ByteBuffer): EditRevisionRecord {
+        return EditRevisionRecord(
+            FfiConverterTypeTimelineItemContent.read(buf),
+            FfiConverterOptionalULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: EditRevisionRecord) = (
+            FfiConverterTypeTimelineItemContent.allocationSize(value.`content`) +
+            FfiConverterOptionalULong.allocationSize(value.`timestamp`)
+    )
+
+    override fun write(value: EditRevisionRecord, buf: ByteBuffer) {
+            FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+            FfiConverterOptionalULong.write(value.`timestamp`, buf)
     }
 }
 
@@ -55295,8 +55552,14 @@ sealed class RoomListEntriesDynamicFilterKind {
     object Joined : RoomListEntriesDynamicFilterKind()
     
     
-    object Unread : RoomListEntriesDynamicFilterKind()
-    
+    data class ReadReceipts(
+        val `expect`: uniffi.matrix_sdk_ui.RoomListFilterReadReceipts) : RoomListEntriesDynamicFilterKind()
+        
+    {
+        
+
+        companion object
+    }
     
     object Favourite : RoomListEntriesDynamicFilterKind()
     
@@ -55314,7 +55577,7 @@ sealed class RoomListEntriesDynamicFilterKind {
     
     
     data class Category(
-        val `expect`: org.matrix.rustcomponents.sdk.RoomListFilterCategory) : RoomListEntriesDynamicFilterKind()
+        val `expect`: uniffi.matrix_sdk_ui.RoomListFilterCategory) : RoomListEntriesDynamicFilterKind()
         
     {
         
@@ -55375,7 +55638,9 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
             5 -> RoomListEntriesDynamicFilterKind.Space
             6 -> RoomListEntriesDynamicFilterKind.NonLeft
             7 -> RoomListEntriesDynamicFilterKind.Joined
-            8 -> RoomListEntriesDynamicFilterKind.Unread
+            8 -> RoomListEntriesDynamicFilterKind.ReadReceipts(
+                FfiConverterTypeRoomListFilterReadReceipts.read(buf),
+                )
             9 -> RoomListEntriesDynamicFilterKind.Favourite
             10 -> RoomListEntriesDynamicFilterKind.LowPriority
             11 -> RoomListEntriesDynamicFilterKind.NonLowPriority
@@ -55442,10 +55707,11 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 4UL
             )
         }
-        is RoomListEntriesDynamicFilterKind.Unread -> {
+        is RoomListEntriesDynamicFilterKind.ReadReceipts -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
+                + FfiConverterTypeRoomListFilterReadReceipts.allocationSize(value.`expect`)
             )
         }
         is RoomListEntriesDynamicFilterKind.Favourite -> {
@@ -55546,8 +55812,9 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
                 buf.putInt(7)
                 Unit
             }
-            is RoomListEntriesDynamicFilterKind.Unread -> {
+            is RoomListEntriesDynamicFilterKind.ReadReceipts -> {
                 buf.putInt(8)
+                FfiConverterTypeRoomListFilterReadReceipts.write(value.`expect`, buf)
                 Unit
             }
             is RoomListEntriesDynamicFilterKind.Favourite -> {
@@ -56132,40 +56399,6 @@ public object FfiConverterTypeRoomListError : FfiConverterRustBuffer<RoomListExc
     }
 
 }
-
-
-
-
-enum class RoomListFilterCategory {
-    
-    GROUP,
-    PEOPLE;
-
-    
-
-
-    companion object
-}
-
-
-/**
- * @suppress
- */
-public object FfiConverterTypeRoomListFilterCategory: FfiConverterRustBuffer<RoomListFilterCategory> {
-    override fun read(buf: ByteBuffer) = try {
-        RoomListFilterCategory.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: RoomListFilterCategory) = 4UL
-
-    override fun write(value: RoomListFilterCategory, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
 
 
 
@@ -68034,6 +68267,34 @@ public object FfiConverterSequenceTypeConditionalPushRule: FfiConverterRustBuffe
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeEditRevisionRecord: FfiConverterRustBuffer<List<EditRevisionRecord>> {
+    override fun read(buf: ByteBuffer): List<EditRevisionRecord> {
+        val len = buf.getInt()
+        return List<EditRevisionRecord>(len) {
+            FfiConverterTypeEditRevisionRecord.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<EditRevisionRecord>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeEditRevisionRecord.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<EditRevisionRecord>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeEditRevisionRecord.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeIdentityStatusChange: FfiConverterRustBuffer<List<IdentityStatusChange>> {
     override fun read(buf: ByteBuffer): List<IdentityStatusChange> {
         val len = buf.getInt()
@@ -69723,6 +69984,10 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
 
 
 
+
+
+
+
  fun `sdkGitSha`(): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
@@ -70029,6 +70294,23 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(
     
         FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeMentions.lower(`mentions`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * The server name part of the given user ID, including the port when the
+         * server name has one.
+         *
+         * Returns an error if the user ID is invalid.
+         */
+    @Throws(ClientException::class) fun `serverNameFromUserId`(`userId`: kotlin.String): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCallWithError(ClientException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_func_server_name_from_user_id(
+    
+        FfiConverterString.lower(`userId`),_status)
 }
     )
     }
