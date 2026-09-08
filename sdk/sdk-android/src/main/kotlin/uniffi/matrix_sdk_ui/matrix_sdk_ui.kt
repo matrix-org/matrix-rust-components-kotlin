@@ -30,6 +30,9 @@ import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
+import uniffi.ruma_events.FfiConverterTypeTimelineEventType
+import uniffi.ruma_events.TimelineEventType
+import uniffi.ruma_events.RustBuffer as RustBufferTimelineEventType
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -645,6 +648,7 @@ internal object UniffiLib {
 
     init {
         Native.register(UniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_ui"))
+        uniffi.ruma_events.uniffiEnsureInitialized()
         
     }
     external fun ffi_matrix_sdk_ui_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -1477,6 +1481,245 @@ public object FfiConverterTypeThreadListPaginationState : FfiConverterRustBuffer
 
 
 /**
+ * A condition that matches on an event's type or content.
+ */
+sealed class TimelineEventCondition {
+    
+    /**
+     * The event has the specified event type.
+     */
+    data class EventType(
+        val v1: uniffi.ruma_events.TimelineEventType) : TimelineEventCondition()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The event is an `m.room.member` event that represents a membership
+     * change (join, leave, etc.).
+     */
+    data class MembershipChange(
+        val v1: uniffi.matrix_sdk_ui.MembershipChangeFilter) : TimelineEventCondition()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * The event is an `m.room.member` event that represents a profile
+     * change (displayname or avatar URL).
+     */
+    object ProfileChange : TimelineEventCondition()
+    
+    
+    /**
+     * The event is a custom message-like event type.
+     */
+    object AnyCustomMessageLikeEvent : TimelineEventCondition()
+    
+    
+    /**
+     * The event is a custom state event type.
+     */
+    object AnyCustomStateEvent : TimelineEventCondition()
+    
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTimelineEventCondition : FfiConverterRustBuffer<TimelineEventCondition>{
+    override fun read(buf: ByteBuffer): TimelineEventCondition {
+        return when(buf.getInt()) {
+            1 -> TimelineEventCondition.EventType(
+                FfiConverterTypeTimelineEventType.read(buf),
+                )
+            2 -> TimelineEventCondition.MembershipChange(
+                FfiConverterTypeMembershipChangeFilter.read(buf),
+                )
+            3 -> TimelineEventCondition.ProfileChange
+            4 -> TimelineEventCondition.AnyCustomMessageLikeEvent
+            5 -> TimelineEventCondition.AnyCustomStateEvent
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: TimelineEventCondition) = when(value) {
+        is TimelineEventCondition.EventType -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeTimelineEventType.allocationSize(value.v1)
+            )
+        }
+        is TimelineEventCondition.MembershipChange -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeMembershipChangeFilter.allocationSize(value.v1)
+            )
+        }
+        is TimelineEventCondition.ProfileChange -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineEventCondition.AnyCustomMessageLikeEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is TimelineEventCondition.AnyCustomStateEvent -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+    }
+
+    override fun write(value: TimelineEventCondition, buf: ByteBuffer) {
+        when(value) {
+            is TimelineEventCondition.EventType -> {
+                buf.putInt(1)
+                FfiConverterTypeTimelineEventType.write(value.v1, buf)
+                Unit
+            }
+            is TimelineEventCondition.MembershipChange -> {
+                buf.putInt(2)
+                FfiConverterTypeMembershipChangeFilter.write(value.v1, buf)
+                Unit
+            }
+            is TimelineEventCondition.ProfileChange -> {
+                buf.putInt(3)
+                Unit
+            }
+            is TimelineEventCondition.AnyCustomMessageLikeEvent -> {
+                buf.putInt(4)
+                Unit
+            }
+            is TimelineEventCondition.AnyCustomStateEvent -> {
+                buf.putInt(5)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * A timeline filter that in- or excludes events based on their type or
+ * content.
+ */
+sealed class TimelineEventFilter {
+    
+    /**
+     * Only return items whose event matches any of the conditions in the list.
+     */
+    data class Include(
+        val v1: List<uniffi.matrix_sdk_ui.TimelineEventCondition>) : TimelineEventFilter()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * Return all items except the ones whose event matches any of the
+     * conditions in the list
+     */
+    data class Exclude(
+        val v1: List<uniffi.matrix_sdk_ui.TimelineEventCondition>) : TimelineEventFilter()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeTimelineEventFilter : FfiConverterRustBuffer<TimelineEventFilter>{
+    override fun read(buf: ByteBuffer): TimelineEventFilter {
+        return when(buf.getInt()) {
+            1 -> TimelineEventFilter.Include(
+                FfiConverterSequenceTypeTimelineEventCondition.read(buf),
+                )
+            2 -> TimelineEventFilter.Exclude(
+                FfiConverterSequenceTypeTimelineEventCondition.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: TimelineEventFilter) = when(value) {
+        is TimelineEventFilter.Include -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeTimelineEventCondition.allocationSize(value.v1)
+            )
+        }
+        is TimelineEventFilter.Exclude -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeTimelineEventCondition.allocationSize(value.v1)
+            )
+        }
+    }
+
+    override fun write(value: TimelineEventFilter, buf: ByteBuffer) {
+        when(value) {
+            is TimelineEventFilter.Include -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeTimelineEventCondition.write(value.v1, buf)
+                Unit
+            }
+            is TimelineEventFilter.Exclude -> {
+                buf.putInt(2)
+                FfiConverterSequenceTypeTimelineEventCondition.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
  * Options for controlling the behaviour of [`TimelineFocus::Event`]
  * for threaded events.
  */
@@ -1681,6 +1924,36 @@ public object FfiConverterTypeTimelineReadReceiptTracking: FfiConverterRustBuffe
 
     override fun write(value: TimelineReadReceiptTracking, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeTimelineEventCondition: FfiConverterRustBuffer<List<TimelineEventCondition>> {
+    override fun read(buf: ByteBuffer): List<TimelineEventCondition> {
+        val len = buf.getInt()
+        return List<TimelineEventCondition>(len) {
+            FfiConverterTypeTimelineEventCondition.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<TimelineEventCondition>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeTimelineEventCondition.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<TimelineEventCondition>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeTimelineEventCondition.write(it, buf)
+        }
     }
 }
 
