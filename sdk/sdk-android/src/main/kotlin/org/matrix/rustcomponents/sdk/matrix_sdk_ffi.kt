@@ -2286,6 +2286,8 @@ external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_tile_server(
 ): Short
+external fun uniffi_matrix_sdk_ffi_checksum_method_client_total_unread_notifications(
+): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
 ): Short
 external fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
@@ -3608,6 +3610,8 @@ external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Long,uni
 external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_tile_server(`ptr`: Long,
+): Long
+external fun uniffi_matrix_sdk_ffi_fn_method_client_total_unread_notifications(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
 external fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Long,`room`: RustBuffer.ByValue,
 ): Long
@@ -6657,6 +6661,12 @@ public interface ClientInterface {
      */
     suspend fun `tileServer`(): TileServerInfo?
     
+    /**
+     * The total number of client-side computed unread notifications across all
+     * joined rooms.
+     */
+    fun `totalUnreadNotifications`(): kotlin.ULong
+    
     suspend fun `trackRecentlyVisitedRoom`(`room`: kotlin.String)
     
     suspend fun `unignoreUser`(`userId`: kotlin.String)
@@ -9460,6 +9470,23 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         UniffiNullRustCallStatusErrorHandler,
     )
     }
+
+    
+    /**
+     * The total number of client-side computed unread notifications across all
+     * joined rooms.
+     */override fun `totalUnreadNotifications`(): kotlin.ULong {
+            return FfiConverterULong.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_total_unread_notifications(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
 
     
     @Throws(ClientException::class)
