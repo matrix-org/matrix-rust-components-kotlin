@@ -99,6 +99,43 @@ internal open class ForeignBytes : Structure() {
 
     class ByValue : ForeignBytes(), Structure.ByValue
 }
+
+// Converter for `&[u8]` / `[ByRef] bytes` arguments.
+//
+// Only `lower` is valid — zero-copy byte buffers only flow foreign -> Rust,
+// and only in argument position. `lift`, `read`, `write`, and
+// `allocationSize` have no sound implementation here and all panic at
+// runtime. The `FfiConverter` interface is implemented so that the
+// compiler enforces the full method set (rather than relying on eyeball).
+//
+// The provided `ByteBuffer` MUST be direct — only direct buffers have a
+// stable native address that JNA can expose via `getDirectBufferPointer`.
+// The returned `ForeignBytes.ByValue` is only valid for the duration of
+// the FFI call; the Rust side treats it as a borrow.
+internal object FfiConverterByRefBytes : FfiConverter<java.nio.ByteBuffer, ForeignBytes.ByValue> {
+    override fun lower(value: java.nio.ByteBuffer): ForeignBytes.ByValue {
+        require(value.isDirect) { "UniFFI zero-copy &[u8] requires a direct ByteBuffer. Use ByteBuffer.allocateDirect()." }
+        val remaining = value.remaining()
+        val fb = ForeignBytes.ByValue()
+        fb.len = remaining
+        // Zero-length direct buffers: skip getDirectBufferPointer (platform-variable behavior)
+        // and pass null. The Rust side treats (null, 0) as &[].
+        fb.data = if (remaining == 0) null else com.sun.jna.Native.getDirectBufferPointer(value)
+        return fb
+    }
+
+    override fun lift(value: ForeignBytes.ByValue): java.nio.ByteBuffer =
+        error("ByRef bytes cannot be lifted: zero-copy &[u8] only flows foreign->Rust")
+
+    override fun read(buf: java.nio.ByteBuffer): java.nio.ByteBuffer =
+        error("ByRef bytes cannot be read from a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+
+    override fun write(value: java.nio.ByteBuffer, buf: java.nio.ByteBuffer): Unit =
+        error("ByRef bytes cannot be written to a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+
+    override fun allocationSize(value: java.nio.ByteBuffer): ULong =
+        error("ByRef bytes have no RustBuffer allocation size: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+}
 /**
  * The FfiConverter interface handles converter types to and from the FFI
  *
@@ -634,21 +671,22 @@ internal object IntegrityCheckingUniffiLib {
     init {
         Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "ruma_events"))
         uniffiCheckContractApiVersion(this)
+        uniffiCheckApiChecksums(this)
     }
     external fun uniffi_ruma_events_checksum_func_ephemeral_room_event_type_from_string(
-    ): Short
+    ): Int
     external fun uniffi_ruma_events_checksum_func_global_account_data_event_type_from_string(
-    ): Short
+    ): Int
     external fun uniffi_ruma_events_checksum_func_message_like_event_type_from_string(
-    ): Short
+    ): Int
     external fun uniffi_ruma_events_checksum_func_room_account_data_event_type_from_string(
-    ): Short
+    ): Int
     external fun uniffi_ruma_events_checksum_func_state_event_type_from_string(
-    ): Short
+    ): Int
     external fun uniffi_ruma_events_checksum_func_timeline_event_type_from_string(
-    ): Short
+    ): Int
     external fun uniffi_ruma_events_checksum_func_to_device_event_type_from_string(
-    ): Short
+    ): Int
     external fun ffi_ruma_events_uniffi_contract_version(
     ): Int
 
@@ -668,185 +706,185 @@ internal object UniffiLib {
         
     }
     external fun uniffi_ruma_events_fn_clone_privatestring(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_free_privatestring(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_ruma_events_fn_func_ephemeral_room_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_func_global_account_data_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_func_message_like_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_func_room_account_data_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_func_state_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_func_timeline_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_ruma_events_fn_func_to_device_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_ruma_events_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_ruma_events_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_ruma_events_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun ffi_ruma_events_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_ruma_events_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_u8(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_u8(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun ffi_ruma_events_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_i8(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_i8(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun ffi_ruma_events_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_u16(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_u16(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Short
-external fun ffi_ruma_events_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_i16(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_i16(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Short
-external fun ffi_ruma_events_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_u32(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_u32(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun ffi_ruma_events_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_i32(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_i32(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun ffi_ruma_events_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_u64(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_u64(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun ffi_ruma_events_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_i64(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_i64(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun ffi_ruma_events_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_f32(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_f32(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Float
-external fun ffi_ruma_events_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_f64(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_f64(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Double
-external fun ffi_ruma_events_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_rust_buffer(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_rust_buffer(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_ruma_events_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_cancel_void(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_free_void(`handle`: Long,
-): Unit
-external fun ffi_ruma_events_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
+    ): Long
+    external fun uniffi_ruma_events_fn_free_privatestring(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_display(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ruma_events_fn_func_ephemeral_room_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_func_global_account_data_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_func_message_like_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_func_room_account_data_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_func_state_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_func_timeline_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_ruma_events_fn_func_to_device_event_type_from_string(`s`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_ruma_events_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_ruma_events_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_ruma_events_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun ffi_ruma_events_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_ruma_events_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_u8(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_u8(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_ruma_events_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_i8(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_i8(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun ffi_ruma_events_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_u16(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_u16(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_ruma_events_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_i16(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_i16(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Short
+    external fun ffi_ruma_events_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_u32(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_u32(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_ruma_events_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_i32(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_i32(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_ruma_events_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_u64(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_u64(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun ffi_ruma_events_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_i64(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_i64(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun ffi_ruma_events_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_f32(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_f32(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Float
+    external fun ffi_ruma_events_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_f64(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_f64(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Double
+    external fun ffi_ruma_events_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_rust_buffer(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_rust_buffer(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_ruma_events_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_cancel_void(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_free_void(`handle`: Long,
+    ): Unit
+    external fun ffi_ruma_events_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
 
-    
+        
 }
 
 private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
@@ -856,6 +894,30 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     val scaffolding_contract_version = lib.ffi_ruma_events_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
+    }
+}
+@Suppress("UNUSED_PARAMETER")
+private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
+    if ((lib.uniffi_ruma_events_checksum_func_ephemeral_room_event_type_from_string() and 0xFFFF) != 51810) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ruma_events_checksum_func_global_account_data_event_type_from_string() and 0xFFFF) != 52367) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ruma_events_checksum_func_message_like_event_type_from_string() and 0xFFFF) != 24196) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ruma_events_checksum_func_room_account_data_event_type_from_string() and 0xFFFF) != 53674) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ruma_events_checksum_func_state_event_type_from_string() and 0xFFFF) != 63281) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ruma_events_checksum_func_timeline_event_type_from_string() and 0xFFFF) != 30144) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_ruma_events_checksum_func_to_device_event_type_from_string() and 0xFFFF) != 26044) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
 
@@ -1249,6 +1311,11 @@ open class PrivateString: Disposable, AutoCloseable, PrivateStringInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -1400,6 +1467,7 @@ sealed class EphemeralRoomEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_eq_eq(FfiConverterTypeEphemeralRoomEventType.lower(this),
+        
         FfiConverterTypeEphemeralRoomEventType.lower(`other`),_status)
 }
     )
@@ -1454,6 +1522,7 @@ sealed class EphemeralRoomEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_ephemeralroomeventtype_uniffi_trait_eq_eq(FfiConverterTypeEphemeralRoomEventType.lower(this),
+        
         FfiConverterTypeEphemeralRoomEventType.lower(`other`),_status)
 }
     )
@@ -1486,7 +1555,7 @@ public object FfiConverterTypeEphemeralRoomEventType : FfiConverterRustBuffer<Ep
         }
     }
 
-    override fun allocationSize(value: EphemeralRoomEventType) = when(value) {
+    override fun allocationSize(value: EphemeralRoomEventType): ULong = when(value) {
         is EphemeralRoomEventType.Receipt -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1606,6 +1675,7 @@ sealed class GlobalAccountDataEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_eq(FfiConverterTypeGlobalAccountDataEventType.lower(this),
+        
         FfiConverterTypeGlobalAccountDataEventType.lower(`other`),_status)
 }
     )
@@ -1671,6 +1741,7 @@ sealed class GlobalAccountDataEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_eq(FfiConverterTypeGlobalAccountDataEventType.lower(this),
+        
         FfiConverterTypeGlobalAccountDataEventType.lower(`other`),_status)
 }
     )
@@ -1750,6 +1821,7 @@ sealed class GlobalAccountDataEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_globalaccountdataeventtype_uniffi_trait_eq_eq(FfiConverterTypeGlobalAccountDataEventType.lower(this),
+        
         FfiConverterTypeGlobalAccountDataEventType.lower(`other`),_status)
 }
     )
@@ -1794,7 +1866,7 @@ public object FfiConverterTypeGlobalAccountDataEventType : FfiConverterRustBuffe
         }
     }
 
-    override fun allocationSize(value: GlobalAccountDataEventType) = when(value) {
+    override fun allocationSize(value: GlobalAccountDataEventType): ULong = when(value) {
         is GlobalAccountDataEventType.Direct -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -2259,6 +2331,7 @@ sealed class MessageLikeEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_eq_eq(FfiConverterTypeMessageLikeEventType.lower(this),
+        
         FfiConverterTypeMessageLikeEventType.lower(`other`),_status)
 }
     )
@@ -2387,6 +2460,7 @@ sealed class MessageLikeEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_messagelikeeventtype_uniffi_trait_eq_eq(FfiConverterTypeMessageLikeEventType.lower(this),
+        
         FfiConverterTypeMessageLikeEventType.lower(`other`),_status)
 }
     )
@@ -2456,7 +2530,7 @@ public object FfiConverterTypeMessageLikeEventType : FfiConverterRustBuffer<Mess
         }
     }
 
-    override fun allocationSize(value: MessageLikeEventType) = when(value) {
+    override fun allocationSize(value: MessageLikeEventType): ULong = when(value) {
         is MessageLikeEventType.Audio -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -2951,6 +3025,7 @@ sealed class RoomAccountDataEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_eq_eq(FfiConverterTypeRoomAccountDataEventType.lower(this),
+        
         FfiConverterTypeRoomAccountDataEventType.lower(`other`),_status)
 }
     )
@@ -3015,6 +3090,7 @@ sealed class RoomAccountDataEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_roomaccountdataeventtype_uniffi_trait_eq_eq(FfiConverterTypeRoomAccountDataEventType.lower(this),
+        
         FfiConverterTypeRoomAccountDataEventType.lower(`other`),_status)
 }
     )
@@ -3052,7 +3128,7 @@ public object FfiConverterTypeRoomAccountDataEventType : FfiConverterRustBuffer<
         }
     }
 
-    override fun allocationSize(value: RoomAccountDataEventType) = when(value) {
+    override fun allocationSize(value: RoomAccountDataEventType): ULong = when(value) {
         is RoomAccountDataEventType.FullyRead -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -3363,6 +3439,7 @@ sealed class StateEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_eq_eq(FfiConverterTypeStateEventType.lower(this),
+        
         FfiConverterTypeStateEventType.lower(`other`),_status)
 }
     )
@@ -3467,6 +3544,7 @@ sealed class StateEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_stateeventtype_uniffi_trait_eq_eq(FfiConverterTypeStateEventType.lower(this),
+        
         FfiConverterTypeStateEventType.lower(`other`),_status)
 }
     )
@@ -3524,7 +3602,7 @@ public object FfiConverterTypeStateEventType : FfiConverterRustBuffer<StateEvent
         }
     }
 
-    override fun allocationSize(value: StateEventType) = when(value) {
+    override fun allocationSize(value: StateEventType): ULong = when(value) {
         is StateEventType.PolicyRuleRoom -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -4319,6 +4397,7 @@ sealed class TimelineEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeTimelineEventType.lower(this),
+        
         FfiConverterTypeTimelineEventType.lower(`other`),_status)
 }
     )
@@ -4501,6 +4580,7 @@ sealed class TimelineEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_timelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeTimelineEventType.lower(this),
+        
         FfiConverterTypeTimelineEventType.lower(`other`),_status)
 }
     )
@@ -4597,7 +4677,7 @@ public object FfiConverterTypeTimelineEventType : FfiConverterRustBuffer<Timelin
         }
     }
 
-    override fun allocationSize(value: TimelineEventType) = when(value) {
+    override fun allocationSize(value: TimelineEventType): ULong = when(value) {
         is TimelineEventType.Audio -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -5428,6 +5508,7 @@ sealed class ToDeviceEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_eq_eq(FfiConverterTypeToDeviceEventType.lower(this),
+        
         FfiConverterTypeToDeviceEventType.lower(`other`),_status)
 }
     )
@@ -5514,6 +5595,7 @@ sealed class ToDeviceEventType: Disposable  {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_method_todeviceeventtype_uniffi_trait_eq_eq(FfiConverterTypeToDeviceEventType.lower(this),
+        
         FfiConverterTypeToDeviceEventType.lower(`other`),_status)
 }
     )
@@ -5562,7 +5644,7 @@ public object FfiConverterTypeToDeviceEventType : FfiConverterRustBuffer<ToDevic
         }
     }
 
-    override fun allocationSize(value: ToDeviceEventType) = when(value) {
+    override fun allocationSize(value: ToDeviceEventType): ULong = when(value) {
         is ToDeviceEventType.Dummy -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -5767,11 +5849,6 @@ public object FfiConverterTypeToDeviceEventType : FfiConverterRustBuffer<ToDevic
 
 
 
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- * It's also what we have an external type that references a custom type.
- */
 public typealias PrivOwnedStr = PrivateString
 public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
         /**
@@ -5781,6 +5858,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_ephemeral_room_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )
@@ -5794,6 +5872,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_global_account_data_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )
@@ -5807,6 +5886,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_message_like_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )
@@ -5820,6 +5900,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_room_account_data_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )
@@ -5833,6 +5914,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_state_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )
@@ -5846,6 +5928,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_timeline_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )
@@ -5859,6 +5942,7 @@ public typealias FfiConverterTypePrivOwnedStr = FfiConverterTypePrivateString
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_ruma_events_fn_func_to_device_event_type_from_string(
     
+        
         FfiConverterString.lower(`s`),_status)
 }
     )

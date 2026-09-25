@@ -101,6 +101,43 @@ internal open class ForeignBytes : Structure() {
 
     class ByValue : ForeignBytes(), Structure.ByValue
 }
+
+// Converter for `&[u8]` / `[ByRef] bytes` arguments.
+//
+// Only `lower` is valid — zero-copy byte buffers only flow foreign -> Rust,
+// and only in argument position. `lift`, `read`, `write`, and
+// `allocationSize` have no sound implementation here and all panic at
+// runtime. The `FfiConverter` interface is implemented so that the
+// compiler enforces the full method set (rather than relying on eyeball).
+//
+// The provided `ByteBuffer` MUST be direct — only direct buffers have a
+// stable native address that JNA can expose via `getDirectBufferPointer`.
+// The returned `ForeignBytes.ByValue` is only valid for the duration of
+// the FFI call; the Rust side treats it as a borrow.
+internal object FfiConverterByRefBytes : FfiConverter<java.nio.ByteBuffer, ForeignBytes.ByValue> {
+    override fun lower(value: java.nio.ByteBuffer): ForeignBytes.ByValue {
+        require(value.isDirect) { "UniFFI zero-copy &[u8] requires a direct ByteBuffer. Use ByteBuffer.allocateDirect()." }
+        val remaining = value.remaining()
+        val fb = ForeignBytes.ByValue()
+        fb.len = remaining
+        // Zero-length direct buffers: skip getDirectBufferPointer (platform-variable behavior)
+        // and pass null. The Rust side treats (null, 0) as &[].
+        fb.data = if (remaining == 0) null else com.sun.jna.Native.getDirectBufferPointer(value)
+        return fb
+    }
+
+    override fun lift(value: ForeignBytes.ByValue): java.nio.ByteBuffer =
+        error("ByRef bytes cannot be lifted: zero-copy &[u8] only flows foreign->Rust")
+
+    override fun read(buf: java.nio.ByteBuffer): java.nio.ByteBuffer =
+        error("ByRef bytes cannot be read from a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+
+    override fun write(value: java.nio.ByteBuffer, buf: java.nio.ByteBuffer): Unit =
+        error("ByRef bytes cannot be written to a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+
+    override fun allocationSize(value: java.nio.ByteBuffer): ULong =
+        error("ByRef bytes have no RustBuffer allocation size: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+}
 /**
  * The FfiConverter interface handles converter types to and from the FFI
  *
@@ -636,6 +673,7 @@ internal object IntegrityCheckingUniffiLib {
     init {
         Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_ui"))
         uniffiCheckContractApiVersion(this)
+        uniffiCheckApiChecksums(this)
     }
     external fun ffi_matrix_sdk_ui_uniffi_contract_version(
     ): Int
@@ -666,7 +704,7 @@ internal object UniffiLib {
     external fun ffi_matrix_sdk_ui_rust_future_free_u8(`handle`: Long,
     ): Unit
     external fun ffi_matrix_sdk_ui_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Byte
+    ): Int
     external fun ffi_matrix_sdk_ui_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
     external fun ffi_matrix_sdk_ui_rust_future_cancel_i8(`handle`: Long,
@@ -682,7 +720,7 @@ internal object UniffiLib {
     external fun ffi_matrix_sdk_ui_rust_future_free_u16(`handle`: Long,
     ): Unit
     external fun ffi_matrix_sdk_ui_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-    ): Short
+    ): Int
     external fun ffi_matrix_sdk_ui_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
     external fun ffi_matrix_sdk_ui_rust_future_cancel_i16(`handle`: Long,
@@ -767,6 +805,9 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
+}
+@Suppress("UNUSED_PARAMETER")
+private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
 }
 
 /**
@@ -1286,7 +1327,7 @@ public object FfiConverterTypeSearchServicePaginationState : FfiConverterRustBuf
         }
     }
 
-    override fun allocationSize(value: SearchServicePaginationState) = when(value) {
+    override fun allocationSize(value: SearchServicePaginationState): ULong = when(value) {
         is SearchServicePaginationState.Idle -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1359,7 +1400,7 @@ public object FfiConverterTypeSpaceRoomListPaginationState : FfiConverterRustBuf
         }
     }
 
-    override fun allocationSize(value: SpaceRoomListPaginationState) = when(value) {
+    override fun allocationSize(value: SpaceRoomListPaginationState): ULong = when(value) {
         is SpaceRoomListPaginationState.Idle -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1445,7 +1486,7 @@ public object FfiConverterTypeThreadListPaginationState : FfiConverterRustBuffer
         }
     }
 
-    override fun allocationSize(value: ThreadListPaginationState) = when(value) {
+    override fun allocationSize(value: ThreadListPaginationState): ULong = when(value) {
         is ThreadListPaginationState.Idle -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1558,7 +1599,7 @@ public object FfiConverterTypeTimelineEventCondition : FfiConverterRustBuffer<Ti
         }
     }
 
-    override fun allocationSize(value: TimelineEventCondition) = when(value) {
+    override fun allocationSize(value: TimelineEventCondition): ULong = when(value) {
         is TimelineEventCondition.EventType -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1682,7 +1723,7 @@ public object FfiConverterTypeTimelineEventFilter : FfiConverterRustBuffer<Timel
         }
     }
 
-    override fun allocationSize(value: TimelineEventFilter) = when(value) {
+    override fun allocationSize(value: TimelineEventFilter): ULong = when(value) {
         is TimelineEventFilter.Include -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -1785,7 +1826,7 @@ public object FfiConverterTypeTimelineEventFocusThreadMode : FfiConverterRustBuf
         }
     }
 
-    override fun allocationSize(value: TimelineEventFocusThreadMode) = when(value) {
+    override fun allocationSize(value: TimelineEventFocusThreadMode): ULong = when(value) {
         is TimelineEventFocusThreadMode.ForceThread -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (

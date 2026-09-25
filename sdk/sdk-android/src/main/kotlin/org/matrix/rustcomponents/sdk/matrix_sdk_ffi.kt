@@ -82,6 +82,8 @@ import uniffi.matrix_sdk_crypto.IdentityState
 import uniffi.matrix_sdk_crypto.QrCodeIntent
 import uniffi.matrix_sdk_crypto.RawX509Signature
 import uniffi.matrix_sdk_crypto.UtdCause
+import uniffi.matrix_sdk_sqlite.Base64Variant
+import uniffi.matrix_sdk_sqlite.FfiConverterTypeBase64Variant
 import uniffi.matrix_sdk_ui.EventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeEventItemOrigin
 import uniffi.matrix_sdk_ui.FfiConverterTypeLatestEventValueLocalState
@@ -133,6 +135,7 @@ import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferIdentityState
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferQrCodeIntent
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferRawX509Signature
 import uniffi.matrix_sdk_crypto.RustBuffer as RustBufferUtdCause
+import uniffi.matrix_sdk_sqlite.RustBuffer as RustBufferBase64Variant
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferEventItemOrigin
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferLatestEventValueLocalState
 import uniffi.matrix_sdk_ui.RustBuffer as RustBufferRoomListFilterCategory
@@ -215,6 +218,43 @@ internal open class ForeignBytes : Structure() {
     @JvmField var data: Pointer? = null
 
     class ByValue : ForeignBytes(), Structure.ByValue
+}
+
+// Converter for `&[u8]` / `[ByRef] bytes` arguments.
+//
+// Only `lower` is valid — zero-copy byte buffers only flow foreign -> Rust,
+// and only in argument position. `lift`, `read`, `write`, and
+// `allocationSize` have no sound implementation here and all panic at
+// runtime. The `FfiConverter` interface is implemented so that the
+// compiler enforces the full method set (rather than relying on eyeball).
+//
+// The provided `ByteBuffer` MUST be direct — only direct buffers have a
+// stable native address that JNA can expose via `getDirectBufferPointer`.
+// The returned `ForeignBytes.ByValue` is only valid for the duration of
+// the FFI call; the Rust side treats it as a borrow.
+internal object FfiConverterByRefBytes : FfiConverter<java.nio.ByteBuffer, ForeignBytes.ByValue> {
+    override fun lower(value: java.nio.ByteBuffer): ForeignBytes.ByValue {
+        require(value.isDirect) { "UniFFI zero-copy &[u8] requires a direct ByteBuffer. Use ByteBuffer.allocateDirect()." }
+        val remaining = value.remaining()
+        val fb = ForeignBytes.ByValue()
+        fb.len = remaining
+        // Zero-length direct buffers: skip getDirectBufferPointer (platform-variable behavior)
+        // and pass null. The Rust side treats (null, 0) as &[].
+        fb.data = if (remaining == 0) null else com.sun.jna.Native.getDirectBufferPointer(value)
+        return fb
+    }
+
+    override fun lift(value: ForeignBytes.ByValue): java.nio.ByteBuffer =
+        error("ByRef bytes cannot be lifted: zero-copy &[u8] only flows foreign->Rust")
+
+    override fun read(buf: java.nio.ByteBuffer): java.nio.ByteBuffer =
+        error("ByRef bytes cannot be read from a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+
+    override fun write(value: java.nio.ByteBuffer, buf: java.nio.ByteBuffer): Unit =
+        error("ByRef bytes cannot be written to a buffer: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
+
+    override fun allocationSize(value: java.nio.ByteBuffer): ULong =
+        error("ByRef bytes have no RustBuffer allocation size: zero-copy &[u8] is only supported in argument position, not nested in records/options/etc.")
 }
 /**
  * The FfiConverter interface handles converter types to and from the FFI
@@ -775,6 +815,9 @@ internal interface UniffiCallbackInterfaceSendQueueRoomUpdateListenerMethod0 : c
 internal interface UniffiCallbackInterfaceSyncNotificationListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`notification`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceToDeviceMessageListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceBackupStateListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -822,6 +865,9 @@ internal interface UniffiCallbackInterfaceKnockRequestsListenerMethod0 : com.sun
 }
 internal interface UniffiCallbackInterfaceRoomInfoListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomInfo`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceRoomStateEventsListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`events`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceSendQueueListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
@@ -908,7 +954,7 @@ internal interface UniffiCallbackInterfaceUnableToDecryptDelegateMethod0 : com.s
     fun callback(`uniffiHandle`: Long,`info`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceWidgetCapabilitiesProviderMethod0 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`capabilities`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`capabilities`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteRustBuffer,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,)
 }
 internal interface UniffiCallbackInterfaceRawX509SignerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`uniffiOutReturn`: RustBufferRawX509Signature,uniffiCallStatus: UniffiRustCallStatus,)
@@ -1169,6 +1215,25 @@ internal open class UniffiVTableCallbackInterfaceSyncNotificationListener(
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `onNotification` = other.`onNotification`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onMessage")
+internal open class UniffiVTableCallbackInterfaceToDeviceMessageListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onMessage`: UniffiCallbackInterfaceToDeviceMessageListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onMessage`: UniffiCallbackInterfaceToDeviceMessageListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceToDeviceMessageListener(`uniffiFree`,`uniffiClone`,`onMessage`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceToDeviceMessageListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onMessage` = other.`onMessage`
     }
 
 }
@@ -1473,6 +1538,25 @@ internal open class UniffiVTableCallbackInterfaceRoomInfoListener(
         `uniffiFree` = other.`uniffiFree`
         `uniffiClone` = other.`uniffiClone`
         `call` = other.`call`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceRoomStateEventsListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceRoomStateEventsListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceRoomStateEventsListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceRoomStateEventsListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceRoomStateEventsListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
     }
 
 }
@@ -1993,1295 +2077,1318 @@ internal object IntegrityCheckingUniffiLib {
     init {
         Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_ffi"))
         uniffiCheckContractApiVersion(this)
+        uniffiCheckApiChecksums(this)
     }
     external fun uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_database_contains_secrets_bundle(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_json_string_contains_secrets_bundle(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_enable_sentry_logging(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_init_platform(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_reload_tracing_file_writer(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_room_alias_permalink(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_suggested_power_level_for_role(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_suggested_role_for_power_level(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html_as_emote(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_server_name_from_user_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oauth_prompts(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oauth_login(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_sso_login(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_abort_oauth_auth(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_account_data(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_account_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_await_room_remote_echo(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_user_status(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_content_scanner(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_device_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_disable_well_known_lookup(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_call_status(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_encryption(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_fetch_media_preview_config(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_rooms(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_invite_avatars_display_policy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_max_media_upload_size(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_content(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_file(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_preview_display_policy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_thumbnail(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_notification_settings(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_profile(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_store_sizes(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_capabilities(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_login_details(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_ignore_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_livekit_rtc_supported(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_login_with_qr_code_supported(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_profiles_sliding_sync_extension_supported(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_user_status_supported(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_knock(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oauth_callback(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_mark_all_rooms_as_read(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_notification_client(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_account_data_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_room_account_data_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_optimize_stores(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_pause(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_request_openid_token(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session_with(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_resume(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_room_alias_exists(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_rooms(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_users(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_server(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_session(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_account_data(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_avatar_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_content_scanner(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_delegate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_invite_avatars_display_policy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_preview_display_policy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_presence(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_user_status(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_utd_delegate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_space_service(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_duplicate_key_upload_errors(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_media_preview_config(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_beacon_info_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_profile(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_room_info(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_once_v2(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_tile_server(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_total_unread_notifications(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_media(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oauth(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id_server_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_add_recent_emoji(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_service(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_avatar(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_displayname(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_password(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_thirdparty_ids(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_get_login_token(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_extended_profile_fields(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_forgets_room_when_leaving(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_refresh(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_sign(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_validity_not_after(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509verifier_verify(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_add_root_certificates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_backups(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_cross_signing(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download_strategy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_lock_config(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_decryption_settings(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_well_known_lookup(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_dm_room_definition(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_automatic_back_pagination(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_history_on_invite(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_in_memory_store(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_from_user_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sqlite_store(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_signer(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_verifier(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_search_index_store(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_contentscanner_scan(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_create_dehydrated_device(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_dehydrated_device_event_listener(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_delete_dehydrated_device(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_ed25519_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_verify_against(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_import_secrets_bundle(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_dehydrated_device_supported(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_fix_backup(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state_listener(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_rehydrate_dehydrated_device(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_identity(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_start_dehydrated_devices(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_stop_dehydrated_devices(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state_listener(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_auth_type(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_cancel(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_secretsbundlewithuserid_contains_backup_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_has_verification_violation(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_is_verified(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_was_previously_verified(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_withdraw_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_content(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_sender_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_event_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsobserver_subscribe(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notifications(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_push_encrypted_event_to_device(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_raw_push_rules(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_invite_for_me_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_custom_push_rule(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_invite_for_me_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_estimate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_thresholds(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_span_enter(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_span_exit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_span_is_none(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_checkcodesender_send(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_cancel(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_confirm(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_base_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_intent(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_to_bytes(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_accept(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline_and_ban(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_mark_as_seen(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids_no_sync(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_room_call_participants(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_apply_power_level_changes(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_avatar_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_ban_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_decline_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_display_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_edit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_enable_encryption(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_forget(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_get_room_visibility(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_heroes(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_invite_user_by_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_invited_members_count(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_inviter(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_direct(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_encrypted(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_public(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_send_queue_enabled(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_space(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_join(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_kick_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_encryption_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_live_locations_observer(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event_with_relations(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_user_receipt(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_event_permalink(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_permalink(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_member(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_member_display_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_member_with_sender_info(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_members(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_members_no_sync(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_predecessor_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_preview_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_raw_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_redact(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_room_alias_from_room_directory(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_report_content(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_report_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_room_events_debug_string(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_raw(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_single_receipt(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_own_member_display_name(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_successor_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_suggested_role_for_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_thread_list_service(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline_with_configuration(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_topic(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_typing_notice(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_unban_user(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_canonical_alias(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_history_visibility(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_join_rules(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_power_levels_for_users(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_room_visibility(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_ban(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_invite(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_kick(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_pin_unpin(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_other(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_own(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_message(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_trigger_room_notification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_ban(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_invite(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_kick(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_pin_unpin(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_other(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_own(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_message(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_trigger_room_notification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_events(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_user_power_levels(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_values(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_add_one_page(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_reset_to_one_page(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_controller(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_entries_stream(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_remove_room_subscriptions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_reset_and_add_room_subscriptions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_set_room_subscriptions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_has_notifications(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_highlight_count(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_forget(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_info(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_inviter(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_details(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_paginate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_pagination_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_set_query(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_pagination_state_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_results(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_description(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_symbol(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_leave(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_paginate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_pagination_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_reset(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_space(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_space_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_add_child_to_space(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_editable_spaces(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_get_space_room(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parents_of_child(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_leave_space(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_remove_child_from_space(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_filters(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_space_filters(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_top_level_joined_spaces(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_joined_spaces(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_key(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_passphrase(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_room_list_service(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_start(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_parent_span(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_timeline_limit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_share_pos(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_contains_only_emojis(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_debug_info(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_send_handle(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_latest_json(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendhandle_try_resend(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_details_for_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_members(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_forwards(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_poll_response(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_read_receipt(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_content(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction_with_extra_content(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_gallery(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_virtual(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_fmt_debug(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendgalleryjoinhandle_cancel(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendgalleryjoinhandle_join(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_num_replies(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event_id(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_items(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_paginate(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_pagination_state(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_reset(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_items_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_pagination_state_updates(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_send(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_contentscanner_new(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_database(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_str(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_new(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_modern_defaults2025(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_zxcvbn_defaults(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_current(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_new(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_new_bridge_span(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_url(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_constructor_sqlitestorebuilder_new(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_accountdatalistener_on_change(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_beaconinfolistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_on_background_task_error_report(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_retrieve_session_from_keychain(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_save_session_in_keychain(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_duplicatekeyuploaderrorlistener_on_duplicate_key_upload_error(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_mediapreviewconfiglistener_on_change(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_profilelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomaccountdatalistener_on_change(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomupdatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncnotificationlistener_on_notification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_backupstatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_dehydrateddeviceeventlistener_on_event(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_grantgeneratedqrloginprogresslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_grantqrloginprogresslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_qrloginprogresslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_calldeclinelistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestslistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sendqueuelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistloadingstatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchservicepaginationstatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_searchserviceresultslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_data(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_fail(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_cancel(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistentrieslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistspacelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicespacefilterslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_synclistenerv2_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistentrieslistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistpaginationstatelistener_on_update(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_unabletodecryptdelegate_on_utd(
-): Short
-external fun uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities(
-): Short
-external fun ffi_matrix_sdk_ffi_uniffi_contract_version(
-): Int
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_database_contains_secrets_bundle(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_json_string_contains_secrets_bundle(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_enable_sentry_logging(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_init_platform(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_reload_tracing_file_writer(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_log_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_room_alias_permalink(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_suggested_power_level_for_role(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_suggested_role_for_power_level(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html_as_emote(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_server_name_from_user_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oauth_prompts(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oauth_login(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_sso_login(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_abort_oauth_auth(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_account_data(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_account_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_await_room_remote_echo(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_clear_user_status(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_content_scanner(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_create_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_device_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_disable_well_known_lookup(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_call_status(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_encryption(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_fetch_media_preview_config(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_invite_avatars_display_policy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_max_media_upload_size(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_content(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_file(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_preview_display_policy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_media_thumbnail(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_notification_settings(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_profile(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_store_sizes(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_capabilities(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_login_details(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_ignore_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_livekit_rtc_supported(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_login_with_qr_code_supported(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_profiles_sliding_sync_extension_supported(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_user_status_supported(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_knock(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_login(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oauth_callback(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_logout(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_mark_all_rooms_as_read(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_notification_client(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_notification_client_with_timeouts(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_account_data_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_observe_room_account_data_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_optimize_stores(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_pause(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_request_openid_token(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_restore_session_with(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_resume(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_room_alias_exists(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_users(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_send_encrypted_to_device_message(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_server(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_session(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_account_data(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_avatar_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_content_scanner(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_delegate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_invite_avatars_display_policy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_preview_display_policy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_presence(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_user_status(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_set_utd_delegate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_space_service(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_custom_to_device_messages(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_duplicate_key_upload_errors(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_media_preview_config(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_beacon_info_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_profile(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_room_info(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_once_v2(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_service(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_tile_server(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_total_unread_notifications(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_media(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oauth(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_user_id_server_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_add_recent_emoji(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_service(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_avatar(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_displayname(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_password(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_thirdparty_ids(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_get_login_token(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_extended_profile_fields(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_forgets_room_when_leaving(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_refresh(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_sign(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_validity_not_after(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_rawx509verifier_verify(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_add_root_certificates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_backups(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_cross_signing(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download_strategy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_lock_config(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_decryption_settings(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_well_known_lookup(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_dm_room_definition(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_automatic_back_pagination(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_history_on_invite(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_in_memory_store(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_from_user_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sqlite_store(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_signer(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_verifier(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_search_index_store(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_contentscanner_scan(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_create_dehydrated_device(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_dehydrated_device_event_listener(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_delete_dehydrated_device(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_ed25519_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_verify_against(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_import_secrets_bundle(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_dehydrated_device_supported(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_fix_backup(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state_listener(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_rehydrate_dehydrated_device(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_identity(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_start_dehydrated_devices(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_stop_dehydrated_devices(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state_listener(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_auth_type(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_cancel(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_secretsbundlewithuserid_contains_backup_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_has_verification_violation(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_is_verified(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_was_previously_verified(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_useridentity_withdraw_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_content(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_sender_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_event_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationsobserver_subscribe(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notifications(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationclient_timeouts(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_push_encrypted_event_to_device(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_raw_push_rules(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_invite_for_me_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_custom_push_rule(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_invite_for_me_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_estimate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_thresholds(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_span_enter(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_span_exit(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_span_is_none(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_checkcodesender_send(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_cancel(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_confirm(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_base_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_intent(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_to_bytes(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_accept(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline_and_ban(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_mark_as_seen(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids_no_sync(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_active_room_call_participants(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_apply_power_level_changes(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_avatar_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_ban_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_decline_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_display_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_edit(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_enable_encryption(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_forget(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_get_room_visibility(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_heroes(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_invite_user_by_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_invited_members_count(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_inviter(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_direct(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_encrypted(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_public(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_send_queue_enabled(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_is_space(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_join(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_kick_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_encryption_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_latest_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_leave(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_live_locations_observer(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event_with_relations(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_load_user_receipt(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_event_permalink(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_permalink(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_member(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_member_display_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_member_with_sender_info(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_members(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_members_no_sync(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_membership(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_predecessor_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_preview_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_raw_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_redact(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_remove_room_alias_from_room_directory(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_report_content(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_report_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_room_events_debug_string(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_room_info(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_raw(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_single_receipt(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_own_member_display_name(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_topic(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_state_events(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_state_events(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_successor_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_suggested_role_for_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_thread_list_service(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_timeline_with_configuration(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_topic(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_typing_notice(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_unban_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_canonical_alias(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_history_visibility(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_join_rules(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_power_levels_for_users(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_update_room_visibility(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_ban(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_invite(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_kick(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_pin_unpin(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_other(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_own(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_message(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_trigger_room_notification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_ban(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_invite(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_kick(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_pin_unpin(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_other(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_own(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_message(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_trigger_room_notification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_events(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_user_power_levels(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_values(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlist_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_add_one_page(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_reset_to_one_page(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_controller(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_entries_stream(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_remove_room_subscriptions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_reset_and_add_room_subscriptions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_set_room_subscriptions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_has_notifications(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_highlight_count(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_forget(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_info(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_inviter(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_details(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_mediasource_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_paginate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_pagination_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_set_query(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_pagination_state_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_results(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_description(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_symbol(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_leave(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_paginate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_pagination_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_reset(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_space(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_space_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_add_child_to_space(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_editable_spaces(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_get_space_room(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parent_ids_of_child(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parents_of_child(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_leave_space(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_remove_child_from_space(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_filters(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_space_filters(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_top_level_joined_spaces(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_ancestors_of(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_joined_spaces(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_high_entropy_passphrase(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_key(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_passphrase(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_room_list_service(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_start(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_parent_span(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_timeline_limit(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_share_pos(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_contains_only_emojis(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_debug_info(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_send_handle(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_latest_json(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendhandle_try_resend(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_details_for_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_members(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_forwards(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_poll_response(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_read_receipt(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_content(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction_with_extra_content(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_gallery(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_virtual(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_fmt_debug(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendgalleryjoinhandle_cancel(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendgalleryjoinhandle_join(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadsummary_num_replies(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event_id(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_items(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_paginate(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_pagination_state(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_reset(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_items_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_pagination_state_updates(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_send(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_contentscanner_new(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_database(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_str(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_new(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_modern_defaults2025(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_zxcvbn_defaults(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_current(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_new(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_span_new_bridge_span(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_url(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_constructor_sqlitestorebuilder_new(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_accountdatalistener_on_change(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_beaconinfolistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_on_background_task_error_report(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_retrieve_session_from_keychain(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_save_session_in_keychain(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_duplicatekeyuploaderrorlistener_on_duplicate_key_upload_error(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_mediapreviewconfiglistener_on_change(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_profilelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomaccountdatalistener_on_change(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomupdatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncnotificationlistener_on_notification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_todevicemessagelistener_on_message(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_backupstatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_dehydrateddeviceeventlistener_on_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_livelocationslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_grantgeneratedqrloginprogresslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_grantqrloginprogresslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_qrloginprogresslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_calldeclinelistener_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_knockrequestslistener_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomstateeventslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sendqueuelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistloadingstatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchservicepaginationstatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_searchserviceresultslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_data(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_fail(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_cancel(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistentrieslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistspacelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_spaceservicespacefilterslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_synclistenerv2_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistentrieslistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_threadlistpaginationstatelistener_on_update(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_unabletodecryptdelegate_on_utd(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities(
+    ): Int
+    external fun ffi_matrix_sdk_ffi_uniffi_contract_version(
+    ): Int
 
-    
+        
 }
 
 internal object UniffiLib {
@@ -3327,6 +3434,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceRoomListLoadingStateListener.register(this)
         uniffiCallbackInterfaceRoomListServiceStateListener.register(this)
         uniffiCallbackInterfaceRoomListServiceSyncIndicatorListener.register(this)
+        uniffiCallbackInterfaceRoomStateEventsListener.register(this)
         uniffiCallbackInterfaceSearchServicePaginationStateListener.register(this)
         uniffiCallbackInterfaceSearchServiceResultsListener.register(this)
         uniffiCallbackInterfaceSendQueueListener.register(this)
@@ -3344,6 +3452,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceThreadListEntriesListener.register(this)
         uniffiCallbackInterfaceThreadListPaginationStateListener.register(this)
         uniffiCallbackInterfaceTimelineListener.register(this)
+        uniffiCallbackInterfaceToDeviceMessageListener.register(this)
         uniffiCallbackInterfaceTypingNotificationsListener.register(this)
         uniffiCallbackInterfaceUnableToDecryptDelegate.register(this)
         uniffiCallbackInterfaceVerificationStateListener.register(this)
@@ -3353,1632 +3462,1655 @@ internal object UniffiLib {
         uniffi.matrix_sdk_common.uniffiEnsureInitialized()
         uniffi.matrix_sdk_contentscanner.uniffiEnsureInitialized()
         uniffi.matrix_sdk_crypto.uniffiEnsureInitialized()
+        uniffi.matrix_sdk_sqlite.uniffiEnsureInitialized()
         uniffi.matrix_sdk_ui.uniffiEnsureInitialized()
         uniffi.ruma_events.uniffiEnsureInitialized()
         
     }
     external fun uniffi_matrix_sdk_ffi_fn_clone_roommessageeventcontentwithoutrelation(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roommessageeventcontentwithoutrelation(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roommessageeventcontentwithoutrelation_with_mentions(`ptr`: Long,`mentions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_homeserverlogindetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oauth_prompts(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oauth_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_password_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_sso_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_ssohandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_ssohandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_ssohandler_finish(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_ssohandler_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_client(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_client(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_client_abort_oauth_auth(`ptr`: Long,`authorizationData`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Long,`action`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_available_sliding_sync_versions(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_avatar_url(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_await_room_remote_echo(`ptr`: Long,`roomId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_cached_avatar_url(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Long,`syncService`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_user_status(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_content_scanner(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Long,`request`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(`ptr`: Long,`jwt`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_deactivate_account(`ptr`: Long,`authData`: RustBuffer.ByValue,`eraseData`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(`ptr`: Long,`identifiers`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_disable_well_known_lookup(`ptr`: Long,`disable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Long,`enable`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_call_status(`ptr`: Long,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_client_encryption(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_fetch_media_preview_config(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_room(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_rooms(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_invite_avatars_display_policy(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_max_media_upload_size(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_content(`ptr`: Long,`mediaSource`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_file(`ptr`: Long,`mediaSource`: Long,`filename`: RustBuffer.ByValue,`mimeType`: RustBuffer.ByValue,`useCache`: Byte,`tempDir`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_preview_display_policy(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_thumbnail(`ptr`: Long,`mediaSource`: Long,`width`: Long,`height`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_notification_settings(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_profile(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_alias(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_id(`ptr`: Long,`roomId`: RustBuffer.ByValue,`viaServers`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_session_verification_controller(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_store_sizes(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url(`ptr`: Long,`url`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url_preview(`ptr`: Long,`url`: RustBuffer.ByValue,`ts`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver_capabilities(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver_login_details(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_supported(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_profiles_sliding_sync_extension_supported(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_report_room_api_supported(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(`ptr`: Long,`alias`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_is_user_status_supported(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Long,`roomId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id_or_alias(`ptr`: Long,`roomIdOrAlias`: RustBuffer.ByValue,`serverNames`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_knock(`ptr`: Long,`roomIdOrAlias`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,`serverNames`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Long,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(`ptr`: Long,`email`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oauth_callback(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_mark_all_rooms_as_read(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_new_grant_login_with_qr_code_handler(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Long,`processSetup`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_account_data_event(`ptr`: Long,`eventType`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_room_account_data_event(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventType`: RustBufferRoomAccountDataEventType.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_optimize_stores(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_pause(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handler(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_remove_avatar(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_request_openid_token(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_supported_versions(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_well_known(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Long,`session`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session_with(`ptr`: Long,`session`: RustBuffer.ByValue,`roomLoadSettings`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_resume(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_room_alias_exists(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_room_directory_search(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_search_users(`ptr`: Long,`searchTerm`: RustBuffer.ByValue,`limit`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_server(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_server_vendor_info(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_session(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(`ptr`: Long,`url`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_content_scanner(`ptr`: Long,`contentScanner`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(`ptr`: Long,`name`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_invite_avatars_display_policy(`ptr`: Long,`policy`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_preview_display_policy(`ptr`: Long,`policy`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(`ptr`: Long,`policy`: RustBufferMediaRetentionPolicy.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_presence(`ptr`: Long,`presence`: RustBuffer.ByValue,`immediate`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Long,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,`append`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_user_status(`ptr`: Long,`status`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_set_utd_delegate(`ptr`: Long,`utdDelegate`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_sliding_sync_version(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_space_service(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_start_sso_login(`ptr`: Long,`redirectUrl`: RustBuffer.ByValue,`idpId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_duplicate_key_upload_errors(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_media_preview_config(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_beacon_info_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_profile(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_room_info(`ptr`: Long,`roomId`: RustBuffer.ByValue,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_status(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_updates(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_once_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_tile_server(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_total_unread_notifications(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Long,`room`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_media(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_url_for_oauth(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,`prompt`: RustBuffer.ByValue,`loginHint`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`additionalScopes`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_user_id_server_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(`ptr`: Long,`emoji`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_get_recent_emojis(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_client_search_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_homeservercapabilities(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_homeservercapabilities(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_avatar(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_displayname(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_password(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_thirdparty_ids(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_get_login_token(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_extended_profile_fields(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_forgets_room_when_leaving(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_refresh(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_mediafilehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_mediafilehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_mediafilehandle_path(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_mediafilehandle_persist(`ptr`: Long,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_clone_rawx509signer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_rawx509signer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_rawx509signer(`vtable`: UniffiVTableCallbackInterfaceRawX509Signer,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_rawx509signer_sign(`ptr`: Long,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferRawX509Signature.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_rawx509signer_validity_not_after(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_rawx509verifier(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_rawx509verifier(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_rawx509verifier(`vtable`: UniffiVTableCallbackInterfaceRawX509Verifier,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_rawx509verifier_verify(`ptr`: Long,`message`: RustBuffer.ByValue,`sig`: RustBufferRawX509Signature.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_clone_clientbuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_clientbuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_clientbuilder_new(uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_add_root_certificates(`ptr`: Long,`certificates`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_auto_enable_backups(`ptr`: Long,`autoEnableBackups`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_auto_enable_cross_signing(`ptr`: Long,`autoEnableCrossSigning`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_backup_download_strategy(`ptr`: Long,`backupDownloadStrategy`: RustBufferBackupDownloadStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_lock_config(`ptr`: Long,`crossProcessLockConfig`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_decryption_settings(`ptr`: Long,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_well_known_lookup(`ptr`: Long,`disableWellKnownLookup`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(`ptr`: Long,`dmRoomDefinition`: RustBufferDmRoomDefinition.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_automatic_back_pagination(`ptr`: Long,`enableAutomaticBackPagination`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_on_invite(`ptr`: Long,`enableShareHistoryOnInvite`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_homeserver_url(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_in_memory_store(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Long,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_strategy(`ptr`: Long,`strategy`: RustBufferCollectStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(`ptr`: Long,`serverName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_from_user_id(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(`ptr`: Long,`serverNameOrUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_paths(`ptr`: Long,`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(`ptr`: Long,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Long,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sqlite_store(`ptr`: Long,`config`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`: Long,`enabled`: Byte,`threadSubscriptions`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Long,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_signer(`ptr`: Long,`x509Sign`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_verifier(`ptr`: Long,`x509Verify`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_search_index_store(`ptr`: Long,`path`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_contentscanner(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_contentscanner(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_contentscanner_new(`scannerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_contentscanner_scan(`ptr`: Long,`client`: Long,`mediaSource`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_encryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_encryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_exists_on_server(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_create_dehydrated_device(`ptr`: Long,`displayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_curve25519_key(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_dehydrated_device_event_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_delete_dehydrated_device(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_disable_recovery(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_ed25519_key(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Long,`waitForBackupsToUpload`: Byte,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_has_devices_to_verify_against(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_import_secrets_bundle(`ptr`: Long,`secretsBundle`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_dehydrated_device_supported(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_fix_backup(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_reset(`ptr`: Long,`oldRecoveryKey`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_rehydrate_dehydrated_device(`ptr`: Long,`pickleKey`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_identity(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_start_dehydrated_devices(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_stop_dehydrated_devices(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,`fallbackToServer`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(`ptr`: Long,`progressListener`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_e2ee_initialization_tasks(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_identityresethandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_identityresethandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_auth_type(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_cancel(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_reset(`ptr`: Long,`auth`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_secretsbundlewithuserid(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_secretsbundlewithuserid(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_database(`databasePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_str(`userId`: RustBuffer.ByValue,`bundle`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_secretsbundlewithuserid_contains_backup_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_clone_useridentity(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_useridentity(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_has_verification_violation(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_is_verified(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_master_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_pin(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_was_previously_verified(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_withdraw_verification(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_timelineevent(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_timelineevent(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_content(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_sender_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_thread_root_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_timestamp(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_livelocationsobserver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_livelocationsobserver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_livelocationsobserver_subscribe(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notifications(`ptr`: Long,`requests`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_notificationsettings(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_notificationsettings(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_push_encrypted_event_to_device(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(`ptr`: Long,`isEncrypted`: Byte,`isOneToOne`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_raw_push_rules(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(`ptr`: Long,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_rooms_with_user_defined_rules(`ptr`: Long,`enabled`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_user_defined_room_notification_mode(`ptr`: Long,`roomId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_invite_for_me_enabled(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(`ptr`: Long,`roomId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(`ptr`: Long,`enabled`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_custom_push_rule(`ptr`: Long,`ruleId`: RustBuffer.ByValue,`ruleKind`: RustBuffer.ByValue,`actions`: RustBuffer.ByValue,`conditions`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(`ptr`: Long,`isEncrypted`: Byte,`isOneToOne`: Byte,`mode`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_invite_for_me_enabled(`ptr`: Long,`enabled`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(`ptr`: Long,`enabled`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode(`ptr`: Long,`roomId`: RustBuffer.ByValue,`mode`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled(`ptr`: Long,`enabled`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_passwordstrengthestimator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_passwordstrengthestimator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_new(`thresholds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_with_modern_defaults2025(uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_with_zxcvbn_defaults(uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_passwordstrengthestimator_estimate(`ptr`: Long,`password`: RustBuffer.ByValue,`userInputs`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_passwordstrengthestimator_thresholds(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_span(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_span(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_span_current(uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_span_new(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`name`: RustBuffer.ByValue,`bridgeTraceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_span_new_bridge_span(`target`: RustBuffer.ByValue,`parentTraceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_span_enter(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_span_exit(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_span_is_none(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_checkcodesender_send(`ptr`: Long,`code`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_continuationmessagesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_continuationmessagesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_continuationmessagesender_cancel(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_continuationmessagesender_confirm(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_grantloginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_grantloginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_generate(`ptr`: Long,`progressListener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_scan(`ptr`: Long,`qrCodeData`: Long,`progressListener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_loginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_loginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_generate(`ptr`: Long,`progressListener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_scan(`ptr`: Long,`qrCodeData`: Long,`progressListener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_qrcodedata(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_qrcodedata(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_qrcodedata_from_bytes(`bytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_base_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_intent(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferQrCodeIntent.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_server_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_to_bytes(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_knockrequestactions(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_knockrequestactions(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_accept(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_decline(`ptr`: Long,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_decline_and_ban(`ptr`: Long,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_mark_as_seen(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_room(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_room(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids_no_sync(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_active_room_call_participants(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_apply_power_level_changes(`ptr`: Long,`changes`: RustBufferRoomPowerLevelChanges.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_avatar_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_ban_user(`ptr`: Long,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_decline_call(`ptr`: Long,`rtcNotificationEventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_discard_room_key(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_edit(`ptr`: Long,`eventId`: RustBuffer.ByValue,`newContent`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_enable_encryption(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_enable_send_queue(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_room_encryption_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferEncryptionState.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(`ptr`: Long,`threadRootEventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_forget(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_get_room_visibility(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_room_heroes(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_device_trust_and_resend(`ptr`: Long,`devices`: RustBuffer.ByValue,`sendHandle`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_invite_user_by_id(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_invited_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_inviter(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_is_direct(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_is_encrypted(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_is_public(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_is_send_queue_enabled(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_room_is_space(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_room_join(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_joined_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_kick_user(`ptr`: Long,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_latest_encryption_state(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_latest_event(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_live_locations_observer(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event_with_relations(`ptr`: Long,`eventId`: RustBuffer.ByValue,`relationFilter`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_load_user_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`thread`: RustBuffer.ByValue,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_fully_read_unchecked(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Long,`receiptType`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_event_permalink(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_permalink(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_member_avatar_url(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_member_display_name(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_member_with_sender_info(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_members(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_members_no_sync(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_predecessor_room(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_preview_room(`ptr`: Long,`via`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_publish_room_alias_in_room_directory(`ptr`: Long,`alias`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_raw_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_redact(`ptr`: Long,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_remove_avatar(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_remove_room_alias_from_room_directory(`ptr`: Long,`alias`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_report_content(`ptr`: Long,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_report_room(`ptr`: Long,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_reset_power_levels(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_room_events_debug_string(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(`ptr`: Long,`draft`: RustBuffer.ByValue,`threadRoot`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(`ptr`: Long,`geoUri`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_send_single_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`thread`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`stateKey`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Long,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Long,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_name(`ptr`: Long,`name`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_own_member_display_name(`ptr`: Long,`displayName`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_thread_subscription(`ptr`: Long,`threadRootEventId`: RustBuffer.ByValue,`subscribed`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Long,`topic`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(`ptr`: Long,`newValue`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_start_live_location_share(`ptr`: Long,`durationMillis`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_stop_live_location_share(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_call_decline_events(`ptr`: Long,`rtcNotificationEventId`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_knock_requests(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_send_queue_updates(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_successor_room(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_suggested_role_for_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_thread_list_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_timeline(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_timeline_with_configuration(`ptr`: Long,`configuration`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_topic(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_room_typing_notice(`ptr`: Long,`isTyping`: Byte,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_unban_user(`ptr`: Long,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_update_canonical_alias(`ptr`: Long,`alias`: RustBuffer.ByValue,`altAliases`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_update_history_visibility(`ptr`: Long,`visibility`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_update_join_rules(`ptr`: Long,`newRule`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_update_power_levels_for_users(`ptr`: Long,`updates`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_update_room_visibility(`ptr`: Long,`visibility`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Long,`userIds`: RustBuffer.ByValue,`sendHandle`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_len(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_next_chunk(`ptr`: Long,`chunkSize`: Int,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_roompowerlevels(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roompowerlevels(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_ban(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_invite(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_kick(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_pin_unpin(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_other(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_own(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_message(`ptr`: Long,`message`: RustBufferMessageLikeEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_state(`ptr`: Long,`stateEvent`: RustBufferStateEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_trigger_room_notification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_ban(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_invite(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_kick(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_pin_unpin(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_redact_other(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_redact_own(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_send_message(`ptr`: Long,`userId`: RustBuffer.ByValue,`message`: RustBufferMessageLikeEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_send_state(`ptr`: Long,`userId`: RustBuffer.ByValue,`stateEvent`: RustBufferStateEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_trigger_room_notification(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_events(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_user_power_levels(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_values(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_roomdirectorysearch(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roomdirectorysearch(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_is_at_last_page(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_loaded_pages(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_next_page(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_results(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(`ptr`: Long,`filter`: RustBuffer.ByValue,`batchSize`: Int,`viaServerName`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_roomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(`ptr`: Long,`pageSize`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlist_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_roomlistdynamicentriescontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roomlistdynamicentriescontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_add_one_page(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_reset_to_one_page(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_set_filter(`ptr`: Long,`kind`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_clone_roomlistentrieswithdynamicadaptersresult(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roomlistentrieswithdynamicadaptersresult(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_controller(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_entries_stream(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_roomlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_remove_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_reset_and_add_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_set_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Long,`delayBeforeShowingInMs`: Int,`delayBeforeHidingInMs`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_unreadnotificationscount(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_unreadnotificationscount(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_has_notifications(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_highlight_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_notification_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun uniffi_matrix_sdk_ffi_fn_clone_roompreview(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_roompreview(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_forget(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_inviter(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_leave(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_own_membership_details(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_mediasource(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_mediasource(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_json(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_url(`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_mediasource_to_json(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_mediasource_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_searchservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_searchservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_paginate(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferSearchServicePaginationState.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_set_query(`ptr`: Long,`query`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_subscribe_to_results(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_sessionverificationcontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_accept_verification_request(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_acknowledge_verification_request(`ptr`: Long,`senderId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_device_verification(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_user_verification(`ptr`: Long,`userId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_sessionverificationemoji(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationemoji(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationemoji_description(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationemoji_symbol(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_leavespacehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_leavespacehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_leave(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_spaceroomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_spaceroomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_paginate(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferSpaceRoomListPaginationState.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_reset(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_space(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_space_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_spaceservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_spaceservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_add_child_to_space(`ptr`: Long,`childId`: RustBuffer.ByValue,`spaceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_editable_spaces(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_get_space_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_parents_of_child(`ptr`: Long,`childId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_leave_space(`ptr`: Long,`spaceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_remove_child_from_space(`ptr`: Long,`childId`: RustBuffer.ByValue,`spaceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_filters(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_room_list(`ptr`: Long,`spaceId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_space_filters(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_top_level_joined_spaces(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_top_level_joined_spaces(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_sqlitestorebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_sqlitestorebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_constructor_sqlitestorebuilder_new(`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_cache_size(`ptr`: Long,`cacheSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_journal_size_limit(`ptr`: Long,`limit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_key(`ptr`: Long,`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_passphrase(`ptr`: Long,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_pool_max_size(`ptr`: Long,`poolMaxSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_system_is_memory_constrained(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_syncservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_syncservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_expire_sessions(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_room_list_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_stop(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_syncservicebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_syncservicebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_parent_span(`ptr`: Long,`span`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_connection_id(`ptr`: Long,`connectionId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_timeline_limit(`ptr`: Long,`limit`: Int,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_share_pos(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_taskhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_taskhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_taskhandle_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_taskhandle_is_finished(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_clone_lazytimelineitemprovider(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_lazytimelineitemprovider(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_contains_only_emojis(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_debug_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_send_handle(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_shields(`ptr`: Long,`strict`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_latest_json(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_sendattachmentjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_sendattachmentjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_sendhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_sendhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_abort(`ptr`: Long,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_try_resend(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_timeline(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_timeline(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_add_listener(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(`ptr`: Long,`msgType`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_poll(`ptr`: Long,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Long,`eventOrTransactionId`: RustBuffer.ByValue,`newContent`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit_revisions(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Long,`pollStartEventId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_details_for_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_members(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_event_timeline_item_by_event_id(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event_id(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_load_reply_details(`ptr`: Long,`eventIdStr`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(`ptr`: Long,`receiptType`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(`ptr`: Long,`numEvents`: Short,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_forwards(`ptr`: Long,`numEvents`: Short,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(`ptr`: Long,`eventOrTransactionId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(`ptr`: Long,`sessionIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send(`ptr`: Long,`msg`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Long,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Long,`params`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Long,`params`: RustBuffer.ByValue,`thumbnailSource`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Long,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,`repliedToEventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(`ptr`: Long,`pollStartEventId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_read_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(`ptr`: Long,`msg`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Long,`params`: RustBuffer.ByValue,`thumbnailSource`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Long,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_with_extra_content(`ptr`: Long,`msg`: Long,`extraContentJson`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Long,`listener`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction_with_extra_content(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,`extraContentJson`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_gallery(`ptr`: Long,`params`: RustBuffer.ByValue,`itemInfos`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_timelineitem(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_timelineitem(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_as_event(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_as_virtual(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_fmt_debug(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_unique_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_sendgalleryjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_sendgalleryjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sendgalleryjoinhandle_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_sendgalleryjoinhandle_join(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_threadsummary(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_threadsummary(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_latest_event(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_num_replies(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_inreplytodetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_inreplytodetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_clone_threadlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_threadlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_items(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_paginate(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferThreadListPaginationState.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_reset(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_items_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_widgetdriver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(`ptr`: Long,`room`: Long,`capabilitiesProvider`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriverhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_free_widgetdriverhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_recv(`ptr`: Long,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(`ptr`: Long,`msg`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_accountdatalistener(`vtable`: UniffiVTableCallbackInterfaceAccountDataListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_beaconinfolistener(`vtable`: UniffiVTableCallbackInterfaceBeaconInfoListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientdelegate(`vtable`: UniffiVTableCallbackInterfaceClientDelegate,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientsessiondelegate(`vtable`: UniffiVTableCallbackInterfaceClientSessionDelegate,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_duplicatekeyuploaderrorlistener(`vtable`: UniffiVTableCallbackInterfaceDuplicateKeyUploadErrorListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_ignoreduserslistener(`vtable`: UniffiVTableCallbackInterfaceIgnoredUsersListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_mediapreviewconfiglistener(`vtable`: UniffiVTableCallbackInterfaceMediaPreviewConfigListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_profilelistener(`vtable`: UniffiVTableCallbackInterfaceProfileListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_progresswatcher(`vtable`: UniffiVTableCallbackInterfaceProgressWatcher,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomaccountdatalistener(`vtable`: UniffiVTableCallbackInterfaceRoomAccountDataListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomerrorlistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomErrorListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomupdatelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncnotificationlistener(`vtable`: UniffiVTableCallbackInterfaceSyncNotificationListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupstatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupsteadystatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupSteadyStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_dehydrateddeviceeventlistener(`vtable`: UniffiVTableCallbackInterfaceDehydratedDeviceEventListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_enablerecoveryprogresslistener(`vtable`: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_recoverystatelistener(`vtable`: UniffiVTableCallbackInterfaceRecoveryStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(`vtable`: UniffiVTableCallbackInterfaceVerificationStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationslistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationsListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_generatedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantgeneratedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGrantQrLoginProgressListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_qrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceQrLoginProgressListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_calldeclinelistener(`vtable`: UniffiVTableCallbackInterfaceCallDeclineListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(`vtable`: UniffiVTableCallbackInterfaceIdentityStatusChangeListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_knockrequestslistener(`vtable`: UniffiVTableCallbackInterfaceKnockRequestsListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roominfolistener(`vtable`: UniffiVTableCallbackInterfaceRoomInfoListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueuelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_typingnotificationslistener(`vtable`: UniffiVTableCallbackInterfaceTypingNotificationsListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomdirectorysearchentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomListEntriesListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistloadingstatelistener(`vtable`: UniffiVTableCallbackInterfaceRoomListLoadingStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistservicestatelistener(`vtable`: UniffiVTableCallbackInterfaceRoomListServiceStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistservicesyncindicatorlistener(`vtable`: UniffiVTableCallbackInterfaceRoomListServiceSyncIndicatorListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_searchservicepaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceSearchServicePaginationStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_searchserviceresultslistener(`vtable`: UniffiVTableCallbackInterfaceSearchServiceResultsListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sessionverificationcontrollerdelegate(`vtable`: UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistspacelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicejoinedspaceslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicespacefilterslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceSpaceFiltersListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncservicestateobserver(`vtable`: UniffiVTableCallbackInterfaceSyncServiceStateObserver,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_synclistenerv2(`vtable`: UniffiVTableCallbackInterfaceSyncListenerV2,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_paginationstatuslistener(`vtable`: UniffiVTableCallbackInterfacePaginationStatusListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_timelinelistener(`vtable`: UniffiVTableCallbackInterfaceTimelineListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceThreadListEntriesListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceThreadListPaginationStateListener,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_unabletodecryptdelegate(`vtable`: UniffiVTableCallbackInterfaceUnableToDecryptDelegate,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_widgetcapabilitiesprovider(`vtable`: UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider,
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_database_contains_secrets_bundle(`databasePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_json_string_contains_secrets_bundle(`bundle`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_enable_sentry_logging(`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_func_init_platform(`config`: RustBuffer.ByValue,`useLightweightTokioRuntime`: Byte,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_func_reload_tracing_file_writer(`configuration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_room_alias_permalink(`roomAlias`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_is_room_alias_format_valid(`alias`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun uniffi_matrix_sdk_ffi_fn_func_room_alias_name_from_room_display_name(`roomName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_suggested_power_level_for_role(`role`: RustBufferRoomMemberRole.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_suggested_role_for_power_level(`powerLevel`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBufferRoomMemberRole.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html_as_emote(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown(`md`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown_as_emote(`md`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`mentions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_server_name_from_user_id(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Long,`props`: RustBuffer.ByValue,
-): Long
-external fun uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(`ownUserId`: RustBuffer.ByValue,`ownDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBufferVirtualElementCallWidgetProperties.ByValue,`config`: RustBufferVirtualElementCallWidgetConfig.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_matrix_sdk_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_matrix_sdk_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_matrix_sdk_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
-external fun ffi_matrix_sdk_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_matrix_sdk_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_u8(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_u8(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun ffi_matrix_sdk_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_i8(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_i8(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Byte
-external fun ffi_matrix_sdk_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_u16(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_u16(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Short
-external fun ffi_matrix_sdk_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_i16(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_i16(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Short
-external fun ffi_matrix_sdk_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_u32(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_u32(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun ffi_matrix_sdk_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_i32(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_i32(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Int
-external fun ffi_matrix_sdk_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_u64(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_u64(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun ffi_matrix_sdk_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_i64(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_i64(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Long
-external fun ffi_matrix_sdk_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_f32(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_f32(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Float
-external fun ffi_matrix_sdk_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_f64(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_f64(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Double
-external fun ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): RustBuffer.ByValue
-external fun ffi_matrix_sdk_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_cancel_void(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_free_void(`handle`: Long,
-): Unit
-external fun ffi_matrix_sdk_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
-): Unit
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roommessageeventcontentwithoutrelation(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roommessageeventcontentwithoutrelation_with_mentions(`ptr`: Long,`mentions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_homeserverlogindetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_homeserverlogindetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_sliding_sync_version(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supported_oauth_prompts(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_oauth_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_password_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_supports_sso_login(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeserverlogindetails_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_ssohandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_ssohandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_ssohandler_finish(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_ssohandler_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_client(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_client(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_abort_oauth_auth(`ptr`: Long,`authorizationData`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_account_url(`ptr`: Long,`action`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_available_sliding_sync_versions(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_avatar_url(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_await_room_remote_echo(`ptr`: Long,`roomId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_cached_avatar_url(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_can_deactivate_account(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(`ptr`: Long,`syncService`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_clear_user_status(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_content_scanner(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_create_room(`ptr`: Long,`request`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(`ptr`: Long,`jwt`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_deactivate_account(`ptr`: Long,`authData`: RustBuffer.ByValue,`eraseData`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(`ptr`: Long,`identifiers`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_device_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_disable_well_known_lookup(`ptr`: Long,`disable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Long,`enable`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_call_status(`ptr`: Long,`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_encryption(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_fetch_media_preview_config(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_room(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_dm_rooms(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_invite_avatars_display_policy(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_max_media_upload_size(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_content(`ptr`: Long,`mediaSource`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_file(`ptr`: Long,`mediaSource`: Long,`filename`: RustBuffer.ByValue,`mimeType`: RustBuffer.ByValue,`useCache`: Byte,`tempDir`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_preview_display_policy(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_media_thumbnail(`ptr`: Long,`mediaSource`: Long,`width`: Long,`height`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_notification_settings(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_profile(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_recently_visited_rooms(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_alias(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_id(`ptr`: Long,`roomId`: RustBuffer.ByValue,`viaServers`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_session_verification_controller(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_store_sizes(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url(`ptr`: Long,`url`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url_preview(`ptr`: Long,`url`: RustBuffer.ByValue,`ts`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver_capabilities(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver_login_details(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_ignored_users(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_livekit_rtc_supported(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_login_with_qr_code_supported(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_profiles_sliding_sync_extension_supported(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_report_room_api_supported(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(`ptr`: Long,`alias`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_user_status_supported(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Long,`roomId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id_or_alias(`ptr`: Long,`roomIdOrAlias`: RustBuffer.ByValue,`serverNames`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_knock(`ptr`: Long,`roomIdOrAlias`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,`serverNames`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_login(`ptr`: Long,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(`ptr`: Long,`email`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,`initialDeviceName`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_login_with_oauth_callback(`ptr`: Long,`callbackUrl`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_logout(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_mark_all_rooms_as_read(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_new_grant_login_with_qr_code_handler(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client(`ptr`: Long,`processSetup`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_notification_client_with_timeouts(`ptr`: Long,`processSetup`: RustBuffer.ByValue,`timeouts`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_account_data_event(`ptr`: Long,`eventType`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_observe_room_account_data_event(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventType`: RustBufferRoomAccountDataEventType.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_optimize_stores(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_pause(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handler(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_remove_avatar(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_request_openid_token(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_supported_versions(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_reset_well_known(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session(`ptr`: Long,`session`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_restore_session_with(`ptr`: Long,`session`: RustBuffer.ByValue,`roomLoadSettings`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_resume(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_room_alias_exists(`ptr`: Long,`roomAlias`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_room_directory_search(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_search_users(`ptr`: Long,`searchTerm`: RustBuffer.ByValue,`limit`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_send_encrypted_to_device_message(`ptr`: Long,`eventType`: RustBuffer.ByValue,`recipients`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_server(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_server_vendor_info(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_session(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(`ptr`: Long,`url`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_content_scanner(`ptr`: Long,`contentScanner`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(`ptr`: Long,`name`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_invite_avatars_display_policy(`ptr`: Long,`policy`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_preview_display_policy(`ptr`: Long,`policy`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(`ptr`: Long,`policy`: RustBufferMediaRetentionPolicy.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_presence(`ptr`: Long,`presence`: RustBuffer.ByValue,`immediate`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(`ptr`: Long,`identifiers`: RustBuffer.ByValue,`kind`: RustBuffer.ByValue,`appDisplayName`: RustBuffer.ByValue,`deviceDisplayName`: RustBuffer.ByValue,`profileTag`: RustBuffer.ByValue,`lang`: RustBuffer.ByValue,`append`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_user_status(`ptr`: Long,`status`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_set_utd_delegate(`ptr`: Long,`utdDelegate`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_sliding_sync_version(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_space_service(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_start_sso_login(`ptr`: Long,`redirectUrl`: RustBuffer.ByValue,`idpId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_custom_to_device_messages(`ptr`: Long,`eventTypes`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_duplicate_key_upload_errors(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_media_preview_config(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_beacon_info_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_profile(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_room_info(`ptr`: Long,`roomId`: RustBuffer.ByValue,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_status(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_updates(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_once_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(`ptr`: Long,`settings`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_tile_server(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_total_unread_notifications(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Long,`room`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_media(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`progressWatcher`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_url_for_oauth(`ptr`: Long,`oauthConfiguration`: RustBuffer.ByValue,`prompt`: RustBuffer.ByValue,`loginHint`: RustBuffer.ByValue,`deviceId`: RustBuffer.ByValue,`additionalScopes`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_user_id_server_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(`ptr`: Long,`emoji`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_get_recent_emojis(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_search_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_homeservercapabilities(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_homeservercapabilities(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_avatar(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_displayname(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_password(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_change_thirdparty_ids(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_can_get_login_token(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_extended_profile_fields(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_forgets_room_when_leaving(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_homeservercapabilities_refresh(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_mediafilehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_mediafilehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_mediafilehandle_path(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_mediafilehandle_persist(`ptr`: Long,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_clone_rawx509signer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_rawx509signer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_rawx509signer(`vtable`: UniffiVTableCallbackInterfaceRawX509Signer,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_rawx509signer_sign(`ptr`: Long,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferRawX509Signature.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_rawx509signer_validity_not_after(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_rawx509verifier(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_rawx509verifier(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_rawx509verifier(`vtable`: UniffiVTableCallbackInterfaceRawX509Verifier,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_rawx509verifier_verify(`ptr`: Long,`message`: RustBuffer.ByValue,`sig`: RustBufferRawX509Signature.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_clone_clientbuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_clientbuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_clientbuilder_new(uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_add_root_certificates(`ptr`: Long,`certificates`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_auto_enable_backups(`ptr`: Long,`autoEnableBackups`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_auto_enable_cross_signing(`ptr`: Long,`autoEnableCrossSigning`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_backup_download_strategy(`ptr`: Long,`backupDownloadStrategy`: RustBufferBackupDownloadStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_build(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_lock_config(`ptr`: Long,`crossProcessLockConfig`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_decryption_settings(`ptr`: Long,`decryptionSettings`: RustBufferDecryptionSettings.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_automatic_token_refresh(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_built_in_root_certificates(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_ssl_verification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_well_known_lookup(`ptr`: Long,`disableWellKnownLookup`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(`ptr`: Long,`dmRoomDefinition`: RustBufferDmRoomDefinition.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_automatic_back_pagination(`ptr`: Long,`enableAutomaticBackPagination`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_on_invite(`ptr`: Long,`enableShareHistoryOnInvite`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_homeserver_url(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_in_memory_store(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(`ptr`: Long,`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(`ptr`: Long,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_strategy(`ptr`: Long,`strategy`: RustBufferCollectStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(`ptr`: Long,`serverName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_from_user_id(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(`ptr`: Long,`serverNameOrUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_paths(`ptr`: Long,`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(`ptr`: Long,`sessionDelegate`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(`ptr`: Long,`versionBuilder`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sqlite_store(`ptr`: Long,`config`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_system_is_memory_constrained(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(`ptr`: Long,`enabled`: Byte,`threadSubscriptions`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(`ptr`: Long,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_signer(`ptr`: Long,`x509Sign`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_verifier(`ptr`: Long,`x509Verify`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_search_index_store(`ptr`: Long,`path`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_contentscanner(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_contentscanner(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_contentscanner_new(`scannerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_contentscanner_scan(`ptr`: Long,`client`: Long,`mediaSource`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_encryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_encryption(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_exists_on_server(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_create_dehydrated_device(`ptr`: Long,`displayName`: RustBuffer.ByValue,`pickleKey`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_curve25519_key(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_dehydrated_device_event_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_delete_dehydrated_device(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_disable_recovery(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_ed25519_key(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_backups(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(`ptr`: Long,`waitForBackupsToUpload`: Byte,`passphrase`: RustBuffer.ByValue,`progressListener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_has_devices_to_verify_against(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_import_secrets_bundle(`ptr`: Long,`secretsBundle`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_dehydrated_device_supported(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_is_last_device(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_fix_backup(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_reset(`ptr`: Long,`oldRecoveryKey`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_rehydrate_dehydrated_device(`ptr`: Long,`pickleKey`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_identity(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_reset_recovery_key(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_start_dehydrated_devices(`ptr`: Long,`recoveryKey`: RustBuffer.ByValue,`settings`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_stop_dehydrated_devices(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(`ptr`: Long,`userId`: RustBuffer.ByValue,`fallbackToServer`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state_listener(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(`ptr`: Long,`progressListener`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_e2ee_initialization_tasks(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_identityresethandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_identityresethandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_auth_type(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_cancel(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_identityresethandle_reset(`ptr`: Long,`auth`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_secretsbundlewithuserid(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_secretsbundlewithuserid(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_database(`databasePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_str(`userId`: RustBuffer.ByValue,`bundle`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_secretsbundlewithuserid_contains_backup_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_clone_useridentity(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_useridentity(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_has_verification_violation(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_is_verified(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_master_key(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_pin(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_was_previously_verified(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_useridentity_withdraw_verification(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_timelineevent(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_timelineevent(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_content(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_sender_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_thread_root_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineevent_timestamp(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_livelocationsobserver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_livelocationsobserver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_livelocationsobserver_subscribe(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_notificationclient(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(`ptr`: Long,`roomId`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notifications(`ptr`: Long,`requests`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationclient_timeouts(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_notificationsettings(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_notificationsettings(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_homeserver_push_encrypted_event_to_device(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_can_push_encrypted_event_to_device(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_contains_keywords_rules(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(`ptr`: Long,`isEncrypted`: Byte,`isOneToOne`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_raw_push_rules(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(`ptr`: Long,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_rooms_with_user_defined_rules(`ptr`: Long,`enabled`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_user_defined_room_notification_mode(`ptr`: Long,`roomId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_call_enabled(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_invite_for_me_enabled(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_room_mention_enabled(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_is_user_mention_enabled(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(`ptr`: Long,`roomId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(`ptr`: Long,`enabled`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_custom_push_rule(`ptr`: Long,`ruleId`: RustBuffer.ByValue,`ruleKind`: RustBuffer.ByValue,`actions`: RustBuffer.ByValue,`conditions`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(`ptr`: Long,`isEncrypted`: Byte,`isOneToOne`: Byte,`mode`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_invite_for_me_enabled(`ptr`: Long,`enabled`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(`ptr`: Long,`enabled`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode(`ptr`: Long,`roomId`: RustBuffer.ByValue,`mode`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled(`ptr`: Long,`enabled`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,`isEncrypted`: Byte,`isOneToOne`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_passwordstrengthestimator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_passwordstrengthestimator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_new(`thresholds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_with_modern_defaults2025(uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_with_zxcvbn_defaults(uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_passwordstrengthestimator_estimate(`ptr`: Long,`password`: RustBuffer.ByValue,`userInputs`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_passwordstrengthestimator_thresholds(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_span(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_span(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_span_current(uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_span_new(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`name`: RustBuffer.ByValue,`bridgeTraceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_span_new_bridge_span(`target`: RustBuffer.ByValue,`parentTraceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_span_enter(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_span_exit(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_span_is_none(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_clone_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_checkcodesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_checkcodesender_send(`ptr`: Long,`code`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_continuationmessagesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_continuationmessagesender(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_continuationmessagesender_cancel(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_continuationmessagesender_confirm(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_grantloginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_grantloginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_generate(`ptr`: Long,`progressListener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_scan(`ptr`: Long,`qrCodeData`: Long,`progressListener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_loginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_loginwithqrcodehandler(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_generate(`ptr`: Long,`progressListener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_scan(`ptr`: Long,`qrCodeData`: Long,`progressListener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_qrcodedata(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_qrcodedata(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_qrcodedata_from_bytes(`bytes`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_base_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_intent(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferQrCodeIntent.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_server_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_qrcodedata_to_bytes(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_knockrequestactions(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_knockrequestactions(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_accept(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_decline(`ptr`: Long,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_decline_and_ban(`ptr`: Long,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_mark_as_seen(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_room(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_room(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_active_human_member_ids_no_sync(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_active_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_active_room_call_participants(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_alternative_aliases(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_apply_power_level_changes(`ptr`: Long,`changes`: RustBufferRoomPowerLevelChanges.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_avatar_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_ban_user(`ptr`: Long,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_canonical_alias(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_decline_call(`ptr`: Long,`rtcNotificationEventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_discard_room_key(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_display_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_edit(`ptr`: Long,`eventId`: RustBuffer.ByValue,`newContent`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_enable_encryption(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_enable_send_queue(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_encryption_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferEncryptionState.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(`ptr`: Long,`threadRootEventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_forget(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_get_power_levels(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_get_room_visibility(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_has_active_room_call(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_heroes(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_device_trust_and_resend(`ptr`: Long,`devices`: RustBuffer.ByValue,`sendHandle`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_invite_user_by_id(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_invited_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_inviter(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_is_direct(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_is_encrypted(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_is_public(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_is_send_queue_enabled(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_is_space(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_join(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_joined_members_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_kick_user(`ptr`: Long,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_latest_encryption_state(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_latest_event(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_leave(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_live_locations_observer(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(`ptr`: Long,`threadRoot`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event_with_relations(`ptr`: Long,`eventId`: RustBuffer.ByValue,`relationFilter`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_load_user_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`thread`: RustBuffer.ByValue,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_fully_read_unchecked(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(`ptr`: Long,`receiptType`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_event_permalink(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_permalink(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_member(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_member_avatar_url(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_member_display_name(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_member_with_sender_info(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_members(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_members_no_sync(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_membership(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_own_user_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_predecessor_room(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_preview_room(`ptr`: Long,`via`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_publish_room_alias_in_room_directory(`ptr`: Long,`alias`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_raw_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_redact(`ptr`: Long,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_remove_avatar(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_remove_room_alias_from_room_directory(`ptr`: Long,`alias`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_report_content(`ptr`: Long,`eventId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_report_room(`ptr`: Long,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_reset_power_levels(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_room_events_debug_string(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_room_info(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(`ptr`: Long,`draft`: RustBuffer.ByValue,`threadRoot`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(`ptr`: Long,`geoUri`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_single_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`thread`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`stateKey`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Long,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(`ptr`: Long,`isLowPriority`: Byte,`tagOrder`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_name(`ptr`: Long,`name`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_own_member_display_name(`ptr`: Long,`displayName`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_thread_subscription(`ptr`: Long,`threadRootEventId`: RustBuffer.ByValue,`subscribed`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_topic(`ptr`: Long,`topic`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(`ptr`: Long,`newValue`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_start_live_location_share(`ptr`: Long,`durationMillis`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_state_events(`ptr`: Long,`eventType`: RustBufferStateEventType.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_stop_live_location_share(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_call_decline_events(`ptr`: Long,`rtcNotificationEventId`: RustBuffer.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_knock_requests(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_send_queue_updates(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_state_events(`ptr`: Long,`eventType`: RustBufferStateEventType.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_successor_room(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_suggested_role_for_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_thread_list_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_timeline(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_timeline_with_configuration(`ptr`: Long,`configuration`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_topic(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_typing_notice(`ptr`: Long,`isTyping`: Byte,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_unban_user(`ptr`: Long,`userId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_update_canonical_alias(`ptr`: Long,`alias`: RustBuffer.ByValue,`altAliases`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_update_history_visibility(`ptr`: Long,`visibility`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_update_join_rules(`ptr`: Long,`newRule`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_update_power_levels_for_users(`ptr`: Long,`updates`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_update_room_visibility(`ptr`: Long,`visibility`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Long,`userIds`: RustBuffer.ByValue,`sendHandle`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_len(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_next_chunk(`ptr`: Long,`chunkSize`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roompowerlevels(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roompowerlevels(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_ban(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_invite(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_kick(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_pin_unpin(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_other(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_redact_own(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_message(`ptr`: Long,`message`: RustBufferMessageLikeEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_state(`ptr`: Long,`stateEvent`: RustBufferStateEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_trigger_room_notification(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_ban(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_invite(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_kick(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_pin_unpin(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_redact_other(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_redact_own(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_send_message(`ptr`: Long,`userId`: RustBuffer.ByValue,`message`: RustBufferMessageLikeEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_send_state(`ptr`: Long,`userId`: RustBuffer.ByValue,`stateEvent`: RustBufferStateEventType.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_trigger_room_notification(`ptr`: Long,`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_events(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_user_power_levels(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_values(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roomdirectorysearch(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roomdirectorysearch(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_is_at_last_page(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_loaded_pages(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_next_page(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_results(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(`ptr`: Long,`filter`: RustBuffer.ByValue,`batchSize`: Int,`viaServerName`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(`ptr`: Long,`pageSize`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlist_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roomlistdynamicentriescontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roomlistdynamicentriescontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_add_one_page(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_reset_to_one_page(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_set_filter(`ptr`: Long,`kind`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roomlistentrieswithdynamicadaptersresult(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roomlistentrieswithdynamicadaptersresult(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_controller(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistentrieswithdynamicadaptersresult_entries_stream(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roomlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roomlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_all_rooms(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_remove_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_reset_and_add_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_set_room_subscriptions(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(`ptr`: Long,`delayBeforeShowingInMs`: Int,`delayBeforeHidingInMs`: Int,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_unreadnotificationscount(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_unreadnotificationscount(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_has_notifications(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_highlight_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_fn_method_unreadnotificationscount_notification_count(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_fn_clone_roompreview(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_roompreview(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_forget(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_inviter(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_leave(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_roompreview_own_membership_details(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_mediasource(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_mediasource(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_json(`json`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_url(`url`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_mediasource_to_json(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_mediasource_url(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_searchservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_searchservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_paginate(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferSearchServicePaginationState.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_set_query(`ptr`: Long,`query`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_searchservice_subscribe_to_results(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_sessionverificationcontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationcontroller(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_accept_verification_request(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_acknowledge_verification_request(`ptr`: Long,`senderId`: RustBuffer.ByValue,`flowId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_approve_verification(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_cancel_verification(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_device_verification(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_user_verification(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_sessionverificationemoji(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_sessionverificationemoji(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationemoji_description(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationemoji_symbol(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_leavespacehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_leavespacehandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_leave(`ptr`: Long,`roomIds`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_spaceroomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_spaceroomlist(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_paginate(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferSpaceRoomListPaginationState.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_reset(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_rooms(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_space(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_space_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_spaceservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_spaceservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_add_child_to_space(`ptr`: Long,`childId`: RustBuffer.ByValue,`spaceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_editable_spaces(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_get_space_room(`ptr`: Long,`roomId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_parent_ids_of_child(`ptr`: Long,`childId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_parents_of_child(`ptr`: Long,`childId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_leave_space(`ptr`: Long,`spaceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_remove_child_from_space(`ptr`: Long,`childId`: RustBuffer.ByValue,`spaceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_filters(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_room_list(`ptr`: Long,`spaceId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_space_filters(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_top_level_joined_spaces(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_top_level_ancestors_of(`ptr`: Long,`childId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_spaceservice_top_level_joined_spaces(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_sqlitestorebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_sqlitestorebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_constructor_sqlitestorebuilder_new(`dataPath`: RustBuffer.ByValue,`cachePath`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_cache_size(`ptr`: Long,`cacheSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_high_entropy_passphrase(`ptr`: Long,`passphrase`: RustBuffer.ByValue,`base64Variant`: RustBufferBase64Variant.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_journal_size_limit(`ptr`: Long,`limit`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_key(`ptr`: Long,`key`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_passphrase(`ptr`: Long,`passphrase`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_pool_max_size(`ptr`: Long,`poolMaxSize`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_system_is_memory_constrained(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_syncservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_syncservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_expire_sessions(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_room_list_service(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_start(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_state(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservice_stop(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_syncservicebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_syncservicebuilder(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_finish(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_offline_mode(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_parent_span(`ptr`: Long,`span`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_connection_id(`ptr`: Long,`connectionId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_timeline_limit(`ptr`: Long,`limit`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_share_pos(`ptr`: Long,`enable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_taskhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_taskhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_taskhandle_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_taskhandle_is_finished(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_clone_lazytimelineitemprovider(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_lazytimelineitemprovider(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_contains_only_emojis(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_debug_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_send_handle(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_shields(`ptr`: Long,`strict`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_latest_json(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_sendattachmentjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_sendattachmentjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sendattachmentjoinhandle_join(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_sendhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_sendhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_abort(`ptr`: Long,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sendhandle_try_resend(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_timeline(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_timeline(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_add_listener(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(`ptr`: Long,`msgType`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_poll(`ptr`: Long,`question`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,`maxSelections`: Byte,`pollKind`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Long,`eventOrTransactionId`: RustBuffer.ByValue,`newContent`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit_revisions(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Long,`pollStartEventId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_details_for_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_members(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_get_event_timeline_item_by_event_id(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_latest_event_id(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_load_reply_details(`ptr`: Long,`eventIdStr`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(`ptr`: Long,`receiptType`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(`ptr`: Long,`numEvents`: Short,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_forwards(`ptr`: Long,`numEvents`: Short,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(`ptr`: Long,`eventOrTransactionId`: RustBuffer.ByValue,`reason`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(`ptr`: Long,`sessionIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send(`ptr`: Long,`msg`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Long,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(`ptr`: Long,`params`: RustBuffer.ByValue,`fileInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(`ptr`: Long,`params`: RustBuffer.ByValue,`thumbnailSource`: RustBuffer.ByValue,`imageInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(`ptr`: Long,`body`: RustBuffer.ByValue,`geoUri`: RustBuffer.ByValue,`description`: RustBuffer.ByValue,`zoomLevel`: RustBuffer.ByValue,`assetType`: RustBuffer.ByValue,`repliedToEventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(`ptr`: Long,`pollStartEventId`: RustBuffer.ByValue,`answers`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_read_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(`ptr`: Long,`msg`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(`ptr`: Long,`params`: RustBuffer.ByValue,`thumbnailSource`: RustBuffer.ByValue,`videoInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(`ptr`: Long,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,`waveform`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_with_extra_content(`ptr`: Long,`msg`: Long,`extraContentJson`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(`ptr`: Long,`listener`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction_with_extra_content(`ptr`: Long,`itemId`: RustBuffer.ByValue,`key`: RustBuffer.ByValue,`extraContentJson`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_gallery(`ptr`: Long,`params`: RustBuffer.ByValue,`itemInfos`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_timelineitem(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_timelineitem(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_as_event(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_as_virtual(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_fmt_debug(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_timelineitem_unique_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_sendgalleryjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_sendgalleryjoinhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sendgalleryjoinhandle_cancel(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_sendgalleryjoinhandle_join(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_threadsummary(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_threadsummary(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_latest_event(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadsummary_num_replies(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_inreplytodetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_inreplytodetails(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_inreplytodetails_event_id(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_clone_threadlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_threadlistservice(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_items(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_paginate(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_pagination_state(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferThreadListPaginationState.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_reset(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_items_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_pagination_state_updates(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_widgetdriver(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(`ptr`: Long,`room`: Long,`capabilitiesProvider`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_clone_widgetdriverhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_free_widgetdriverhandle(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_recv(`ptr`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(`ptr`: Long,`msg`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_accountdatalistener(`vtable`: UniffiVTableCallbackInterfaceAccountDataListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_beaconinfolistener(`vtable`: UniffiVTableCallbackInterfaceBeaconInfoListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientdelegate(`vtable`: UniffiVTableCallbackInterfaceClientDelegate,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_clientsessiondelegate(`vtable`: UniffiVTableCallbackInterfaceClientSessionDelegate,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_duplicatekeyuploaderrorlistener(`vtable`: UniffiVTableCallbackInterfaceDuplicateKeyUploadErrorListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_ignoreduserslistener(`vtable`: UniffiVTableCallbackInterfaceIgnoredUsersListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_mediapreviewconfiglistener(`vtable`: UniffiVTableCallbackInterfaceMediaPreviewConfigListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_profilelistener(`vtable`: UniffiVTableCallbackInterfaceProfileListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_progresswatcher(`vtable`: UniffiVTableCallbackInterfaceProgressWatcher,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomaccountdatalistener(`vtable`: UniffiVTableCallbackInterfaceRoomAccountDataListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomerrorlistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomErrorListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueueroomupdatelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueRoomUpdateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncnotificationlistener(`vtable`: UniffiVTableCallbackInterfaceSyncNotificationListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_todevicemessagelistener(`vtable`: UniffiVTableCallbackInterfaceToDeviceMessageListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupstatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_backupsteadystatelistener(`vtable`: UniffiVTableCallbackInterfaceBackupSteadyStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_dehydrateddeviceeventlistener(`vtable`: UniffiVTableCallbackInterfaceDehydratedDeviceEventListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_enablerecoveryprogresslistener(`vtable`: UniffiVTableCallbackInterfaceEnableRecoveryProgressListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_recoverystatelistener(`vtable`: UniffiVTableCallbackInterfaceRecoveryStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_verificationstatelistener(`vtable`: UniffiVTableCallbackInterfaceVerificationStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_livelocationslistener(`vtable`: UniffiVTableCallbackInterfaceLiveLocationsListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_notificationsettingsdelegate(`vtable`: UniffiVTableCallbackInterfaceNotificationSettingsDelegate,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_generatedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGeneratedQrLoginProgressListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantgeneratedqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGrantGeneratedQrLoginProgressListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_grantqrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceGrantQrLoginProgressListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_qrloginprogresslistener(`vtable`: UniffiVTableCallbackInterfaceQrLoginProgressListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_calldeclinelistener(`vtable`: UniffiVTableCallbackInterfaceCallDeclineListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_identitystatuschangelistener(`vtable`: UniffiVTableCallbackInterfaceIdentityStatusChangeListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_knockrequestslistener(`vtable`: UniffiVTableCallbackInterfaceKnockRequestsListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roominfolistener(`vtable`: UniffiVTableCallbackInterfaceRoomInfoListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomstateeventslistener(`vtable`: UniffiVTableCallbackInterfaceRoomStateEventsListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueuelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_typingnotificationslistener(`vtable`: UniffiVTableCallbackInterfaceTypingNotificationsListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomdirectorysearchentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomListEntriesListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistloadingstatelistener(`vtable`: UniffiVTableCallbackInterfaceRoomListLoadingStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistservicestatelistener(`vtable`: UniffiVTableCallbackInterfaceRoomListServiceStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomlistservicesyncindicatorlistener(`vtable`: UniffiVTableCallbackInterfaceRoomListServiceSyncIndicatorListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_searchservicepaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceSearchServicePaginationStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_searchserviceresultslistener(`vtable`: UniffiVTableCallbackInterfaceSearchServiceResultsListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sessionverificationcontrollerdelegate(`vtable`: UniffiVTableCallbackInterfaceSessionVerificationControllerDelegate,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListEntriesListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListPaginationStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceroomlistspacelistener(`vtable`: UniffiVTableCallbackInterfaceSpaceRoomListSpaceListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicejoinedspaceslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceJoinedSpacesListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_spaceservicespacefilterslistener(`vtable`: UniffiVTableCallbackInterfaceSpaceServiceSpaceFiltersListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_syncservicestateobserver(`vtable`: UniffiVTableCallbackInterfaceSyncServiceStateObserver,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_synclistenerv2(`vtable`: UniffiVTableCallbackInterfaceSyncListenerV2,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_paginationstatuslistener(`vtable`: UniffiVTableCallbackInterfacePaginationStatusListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_timelinelistener(`vtable`: UniffiVTableCallbackInterfaceTimelineListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistentrieslistener(`vtable`: UniffiVTableCallbackInterfaceThreadListEntriesListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_threadlistpaginationstatelistener(`vtable`: UniffiVTableCallbackInterfaceThreadListPaginationStateListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_unabletodecryptdelegate(`vtable`: UniffiVTableCallbackInterfaceUnableToDecryptDelegate,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_widgetcapabilitiesprovider(`vtable`: UniffiVTableCallbackInterfaceWidgetCapabilitiesProvider,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_ne(`ptr`: RustBuffer.ByValue,`other`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_hash(`ptr`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_sdk_git_sha(uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_gen_transaction_id(uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_database_contains_secrets_bundle(`databasePath`: RustBuffer.ByValue,`passphrase`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_json_string_contains_secrets_bundle(`bundle`: RustBuffer.ByValue,`backupInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_enable_sentry_logging(`enabled`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_func_init_platform(`config`: RustBuffer.ByValue,`useLightweightTokioRuntime`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_func_reload_tracing_file_writer(`configuration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_func_log_event(`file`: RustBuffer.ByValue,`line`: RustBuffer.ByValue,`level`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_room_alias_permalink(`roomAlias`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_is_room_alias_format_valid(`alias`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun uniffi_matrix_sdk_ffi_fn_func_room_alias_name_from_room_display_name(`roomName`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_suggested_power_level_for_role(`role`: RustBufferRoomMemberRole.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_suggested_role_for_power_level(`powerLevel`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBufferRoomMemberRole.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(`message`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html_as_emote(`body`: RustBuffer.ByValue,`htmlBody`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown(`md`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown_as_emote(`md`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(`msgtype`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(`uri`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(`caption`: RustBuffer.ByValue,`formattedCaption`: RustBuffer.ByValue,`mentions`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_server_name_from_user_id(`userId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(`widgetSettings`: RustBuffer.ByValue,`room`: Long,`props`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(`ownUserId`: RustBuffer.ByValue,`ownDeviceId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(`settings`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(`props`: RustBufferVirtualElementCallWidgetProperties.ByValue,`config`: RustBufferVirtualElementCallWidgetConfig.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_matrix_sdk_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_matrix_sdk_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_matrix_sdk_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_u8(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_u8(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_i8(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_i8(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_u16(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_u16(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_i16(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_i16(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Short
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_u32(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_u32(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_i32(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_i32(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Int
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_u64(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_u64(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_i64(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_i64(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_f32(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_f32(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Float
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_f64(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_f64(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Double
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun ffi_matrix_sdk_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_cancel_void(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_free_void(`handle`: Long,
+    ): Unit
+    external fun ffi_matrix_sdk_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
 
-    
+        
 }
 
 private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
@@ -4988,6 +5120,1968 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     val scaffolding_contract_version = lib.ffi_matrix_sdk_ffi_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
+    }
+}
+@Suppress("UNUSED_PARAMETER")
+private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_sdk_git_sha() and 0xFFFF) != 43878) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_gen_transaction_id() and 0xFFFF) != 26810) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_database_contains_secrets_bundle() and 0xFFFF) != 28934) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_json_string_contains_secrets_bundle() and 0xFFFF) != 44533) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_enable_sentry_logging() and 0xFFFF) != 25711) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_init_platform() and 0xFFFF) != 44640) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_reload_tracing_file_writer() and 0xFFFF) != 13845) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_log_event() and 0xFFFF) != 12580) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_matrix_to_room_alias_permalink() and 0xFFFF) != 43825) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_is_room_alias_format_valid() and 0xFFFF) != 35959) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_room_alias_name_from_room_display_name() and 0xFFFF) != 29328) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_matrix_to_user_permalink() and 0xFFFF) != 3430) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_suggested_power_level_for_role() and 0xFFFF) != 18936) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_suggested_role_for_power_level() and 0xFFFF) != 34501) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_content_without_relation_from_message() and 0xFFFF) != 32988) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html() and 0xFFFF) != 35250) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_html_as_emote() and 0xFFFF) != 887) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown() and 0xFFFF) != 2043) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_from_markdown_as_emote() and 0xFFFF) != 18816) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() and 0xFFFF) != 60397) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() and 0xFFFF) != 47063) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit() and 0xFFFF) != 45966) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_server_name_from_user_id() and 0xFFFF) != 45296) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() and 0xFFFF) != 44877) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() and 0xFFFF) != 65024) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() and 0xFFFF) != 34266) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() and 0xFFFF) != 51000) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions() and 0xFFFF) != 23475) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_sliding_sync_version() and 0xFFFF) != 20692) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supported_oauth_prompts() and 0xFFFF) != 14932) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_oauth_login() and 0xFFFF) != 20923) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_password_login() and 0xFFFF) != 42871) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_supports_sso_login() and 0xFFFF) != 43252) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeserverlogindetails_url() and 0xFFFF) != 34432) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish() and 0xFFFF) != 52093) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url() and 0xFFFF) != 38378) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_abort_oauth_auth() and 0xFFFF) != 7594) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_data() and 0xFFFF) != 32871) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_account_url() and 0xFFFF) != 45869) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_available_sliding_sync_versions() and 0xFFFF) != 46489) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_avatar_url() and 0xFFFF) != 29009) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_await_room_remote_echo() and 0xFFFF) != 19069) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url() and 0xFFFF) != 30350) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account() and 0xFFFF) != 12377) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches() and 0xFFFF) != 18813) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_user_status() and 0xFFFF) != 10577) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_content_scanner() and 0xFFFF) != 5909) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() and 0xFFFF) != 3492) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt() and 0xFFFF) != 56228) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account() and 0xFFFF) != 50064) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher() and 0xFFFF) != 29493) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_device_id() and 0xFFFF) != 2605) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_disable_well_known_lookup() and 0xFFFF) != 38090) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_display_name() and 0xFFFF) != 13626) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues() and 0xFFFF) != 38523) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_enable_automatic_call_status() and 0xFFFF) != 4173) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_enable_send_queue_upload_progress() and 0xFFFF) != 64037) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_encryption() and 0xFFFF) != 32249) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_fetch_media_preview_config() and 0xFFFF) != 4594) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_room() and 0xFFFF) != 35770) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_rooms() and 0xFFFF) != 26367) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_invite_avatars_display_policy() and 0xFFFF) != 48202) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_max_media_upload_size() and 0xFFFF) != 31461) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_content() and 0xFFFF) != 13672) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_file() and 0xFFFF) != 46613) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_preview_display_policy() and 0xFFFF) != 56154) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_thumbnail() and 0xFFFF) != 29416) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_notification_settings() and 0xFFFF) != 23861) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_profile() and 0xFFFF) != 27667) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() and 0xFFFF) != 31275) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room() and 0xFFFF) != 21053) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias() and 0xFFFF) != 1624) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id() and 0xFFFF) != 32950) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller() and 0xFFFF) != 58138) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_store_sizes() and 0xFFFF) != 7663) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_url() and 0xFFFF) != 18890) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview() and 0xFFFF) != 13590) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_homeserver() and 0xFFFF) != 42423) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_capabilities() and 0xFFFF) != 6875) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_login_details() and 0xFFFF) != 50528) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignore_user() and 0xFFFF) != 35445) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() and 0xFFFF) != 60744) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_livekit_rtc_supported() and 0xFFFF) != 21068) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_login_with_qr_code_supported() and 0xFFFF) != 48668) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_profiles_sliding_sync_extension_supported() and 0xFFFF) != 2146) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported() and 0xFFFF) != 26132) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() and 0xFFFF) != 29606) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_user_status_supported() and 0xFFFF) != 49650) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() and 0xFFFF) != 56087) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias() and 0xFFFF) != 36531) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_knock() and 0xFFFF) != 32237) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_login() and 0xFFFF) != 49150) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_email() and 0xFFFF) != 15305) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_login_with_oauth_callback() and 0xFFFF) != 44635) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() and 0xFFFF) != 12942) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_mark_all_rooms_as_read() and 0xFFFF) != 20882) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler() and 0xFFFF) != 23786) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler() and 0xFFFF) != 2903) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() and 0xFFFF) != 20149) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client_with_timeouts() and 0xFFFF) != 36455) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_observe_account_data_event() and 0xFFFF) != 33952) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_observe_room_account_data_event() and 0xFFFF) != 43975) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_optimize_stores() and 0xFFFF) != 24510) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_pause() and 0xFFFF) != 15854) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler() and 0xFFFF) != 47738) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar() and 0xFFFF) != 31550) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_request_openid_token() and 0xFFFF) != 65329) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions() and 0xFFFF) != 61164) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known() and 0xFFFF) != 52326) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() and 0xFFFF) != 40715) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session() and 0xFFFF) != 15288) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_restore_session_with() and 0xFFFF) != 12975) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_resume() and 0xFFFF) != 61108) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_room_alias_exists() and 0xFFFF) != 35828) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search() and 0xFFFF) != 3333) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_rooms() and 0xFFFF) != 64941) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_search_users() and 0xFFFF) != 51156) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_send_encrypted_to_device_message() and 0xFFFF) != 36432) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_server() and 0xFFFF) != 53378) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info() and 0xFFFF) != 11469) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_session() and 0xFFFF) != 13261) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_account_data() and 0xFFFF) != 60818) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_avatar_url() and 0xFFFF) != 7083) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_content_scanner() and 0xFFFF) != 54842) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_delegate() and 0xFFFF) != 5412) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_display_name() and 0xFFFF) != 48372) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_invite_avatars_display_policy() and 0xFFFF) != 45636) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_media_preview_display_policy() and 0xFFFF) != 58885) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_media_retention_policy() and 0xFFFF) != 25475) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_presence() and 0xFFFF) != 44523) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() and 0xFFFF) != 23660) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_user_status() and 0xFFFF) != 4862) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_utd_delegate() and 0xFFFF) != 58546) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sliding_sync_version() and 0xFFFF) != 65430) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_space_service() and 0xFFFF) != 482) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login() and 0xFFFF) != 26018) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_custom_to_device_messages() and 0xFFFF) != 60226) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_duplicate_key_upload_errors() and 0xFFFF) != 61081) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_ignored_users() and 0xFFFF) != 43126) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_media_preview_config() and 0xFFFF) != 2320) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_beacon_info_updates() and 0xFFFF) != 60970) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_profile() and 0xFFFF) != 44633) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_room_info() and 0xFFFF) != 42276) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status() and 0xFFFF) != 3015) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates() and 0xFFFF) != 25278) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_once_v2() and 0xFFFF) != 36079) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_service() and 0xFFFF) != 3217) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2() and 0xFFFF) != 34947) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_tile_server() and 0xFFFF) != 12042) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_total_unread_notifications() and 0xFFFF) != 58479) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room() and 0xFFFF) != 59733) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user() and 0xFFFF) != 28367) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar() and 0xFFFF) != 20638) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_media() and 0xFFFF) != 27840) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oauth() and 0xFFFF) != 14390) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id() and 0xFFFF) != 42220) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id_server_name() and 0xFFFF) != 46746) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_add_recent_emoji() and 0xFFFF) != 6775) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recent_emojis() and 0xFFFF) != 3907) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_search_service() and 0xFFFF) != 4417) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_avatar() and 0xFFFF) != 36643) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_displayname() and 0xFFFF) != 2609) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_password() and 0xFFFF) != 24454) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_change_thirdparty_ids() and 0xFFFF) != 32830) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_can_get_login_token() and 0xFFFF) != 48439) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_extended_profile_fields() and 0xFFFF) != 42881) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_forgets_room_when_leaving() and 0xFFFF) != 5097) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_homeservercapabilities_refresh() and 0xFFFF) != 26943) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_path() and 0xFFFF) != 9243) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_mediafilehandle_persist() and 0xFFFF) != 65270) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_sign() and 0xFFFF) != 31874) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_rawx509signer_validity_not_after() and 0xFFFF) != 29001) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_rawx509verifier_verify() and 0xFFFF) != 41140) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_add_root_certificates() and 0xFFFF) != 41491) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_backups() and 0xFFFF) != 3029) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_cross_signing() and 0xFFFF) != 30673) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download_strategy() and 0xFFFF) != 45874) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() and 0xFFFF) != 26704) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_cross_process_lock_config() and 0xFFFF) != 34445) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_decryption_settings() and 0xFFFF) != 56141) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_automatic_token_refresh() and 0xFFFF) != 24815) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_built_in_root_certificates() and 0xFFFF) != 23450) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_ssl_verification() and 0xFFFF) != 59151) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_disable_well_known_lookup() and 0xFFFF) != 23377) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_dm_room_definition() and 0xFFFF) != 4261) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_automatic_back_pagination() and 0xFFFF) != 2744) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_enable_share_history_on_invite() and 0xFFFF) != 65179) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_homeserver_url() and 0xFFFF) != 12248) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_in_memory_store() and 0xFFFF) != 16792) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_proxy() and 0xFFFF) != 37144) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_request_config() and 0xFFFF) != 42730) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_room_key_recipient_strategy() and 0xFFFF) != 27294) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name() and 0xFFFF) != 50140) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_from_user_id() and 0xFFFF) != 2715) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url() and 0xFFFF) != 27197) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths() and 0xFFFF) != 40724) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate() and 0xFFFF) != 12605) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sliding_sync_version_builder() and 0xFFFF) != 50057) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sqlite_store() and 0xFFFF) != 59413) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() and 0xFFFF) != 41143) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled() and 0xFFFF) != 10730) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_user_agent() and 0xFFFF) != 33630) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_signer() and 0xFFFF) != 13804) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_raw_x509_verifier() and 0xFFFF) != 13646) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_with_search_index_store() and 0xFFFF) != 61083) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_contentscanner_scan() and 0xFFFF) != 55879) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server() and 0xFFFF) != 29875) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state() and 0xFFFF) != 17664) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state_listener() and 0xFFFF) != 47643) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_create_dehydrated_device() and 0xFFFF) != 40440) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key() and 0xFFFF) != 31520) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_dehydrated_device_event_listener() and 0xFFFF) != 50887) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_delete_dehydrated_device() and 0xFFFF) != 30488) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery() and 0xFFFF) != 40334) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_ed25519_key() and 0xFFFF) != 34833) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_backups() and 0xFFFF) != 38908) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_enable_recovery() and 0xFFFF) != 1090) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_verify_against() and 0xFFFF) != 53568) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_import_secrets_bundle() and 0xFFFF) != 63785) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_dehydrated_device_supported() and 0xFFFF) != 63170) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() and 0xFFFF) != 24421) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover() and 0xFFFF) != 50803) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_fix_backup() and 0xFFFF) != 61212) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset() and 0xFFFF) != 2527) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state() and 0xFFFF) != 7834) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recovery_state_listener() and 0xFFFF) != 26153) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_rehydrate_dehydrated_device() and 0xFFFF) != 52062) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_identity() and 0xFFFF) != 15496) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() and 0xFFFF) != 28581) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_start_dehydrated_devices() and 0xFFFF) != 49831) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_stop_dehydrated_devices() and 0xFFFF) != 4775) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity() and 0xFFFF) != 37690) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state() and 0xFFFF) != 53401) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state_listener() and 0xFFFF) != 63391) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_backup_upload_steady_state() and 0xFFFF) != 22467) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_wait_for_e2ee_initialization_tasks() and 0xFFFF) != 51060) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_auth_type() and 0xFFFF) != 18545) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_cancel() and 0xFFFF) != 20914) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset() and 0xFFFF) != 3385) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_secretsbundlewithuserid_contains_backup_key() and 0xFFFF) != 21861) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_has_verification_violation() and 0xFFFF) != 7724) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_is_verified() and 0xFFFF) != 63527) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key() and 0xFFFF) != 30981) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin() and 0xFFFF) != 40348) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_was_previously_verified() and 0xFFFF) != 37423) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_withdraw_verification() and 0xFFFF) != 65004) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_content() and 0xFFFF) != 53982) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_event_id() and 0xFFFF) != 11029) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_sender_id() and 0xFFFF) != 60965) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_thread_root_event_id() and 0xFFFF) != 13327) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp() and 0xFFFF) != 4201) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationsobserver_subscribe() and 0xFFFF) != 8714) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() and 0xFFFF) != 64274) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notifications() and 0xFFFF) != 16281) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_room() and 0xFFFF) != 7775) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_timeouts() and 0xFFFF) != 49822) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_homeserver_push_encrypted_event_to_device() and 0xFFFF) != 48912) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_can_push_encrypted_event_to_device() and 0xFFFF) != 6149) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules() and 0xFFFF) != 47887) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode() and 0xFFFF) != 49990) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_raw_push_rules() and 0xFFFF) != 59675) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings() and 0xFFFF) != 14192) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules() and 0xFFFF) != 65190) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_user_defined_room_notification_mode() and 0xFFFF) != 34929) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_call_enabled() and 0xFFFF) != 33396) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_invite_for_me_enabled() and 0xFFFF) != 52762) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_room_mention_enabled() and 0xFFFF) != 64811) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_is_user_mention_enabled() and 0xFFFF) != 59539) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_restore_default_room_notification_mode() and 0xFFFF) != 27960) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_call_enabled() and 0xFFFF) != 24829) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_custom_push_rule() and 0xFFFF) != 26829) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode() and 0xFFFF) != 29556) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate() and 0xFFFF) != 25839) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_invite_for_me_enabled() and 0xFFFF) != 26453) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_mention_enabled() and 0xFFFF) != 36523) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_room_notification_mode() and 0xFFFF) != 53682) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled() and 0xFFFF) != 49801) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() and 0xFFFF) != 64791) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_estimate() and 0xFFFF) != 43415) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_thresholds() and 0xFFFF) != 3347) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_span_enter() and 0xFFFF) != 6796) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_span_exit() and 0xFFFF) != 40817) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_span_is_none() and 0xFFFF) != 30328) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_checkcodesender_send() and 0xFFFF) != 25521) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_cancel() and 0xFFFF) != 55522) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_confirm() and 0xFFFF) != 18414) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate() and 0xFFFF) != 61870) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan() and 0xFFFF) != 47395) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate() and 0xFFFF) != 15861) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan() and 0xFFFF) != 40418) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_base_url() and 0xFFFF) != 20926) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_intent() and 0xFFFF) != 42531) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name() and 0xFFFF) != 17844) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_to_bytes() and 0xFFFF) != 34533) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_accept() and 0xFFFF) != 51860) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline() and 0xFFFF) != 37997) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_decline_and_ban() and 0xFFFF) != 41745) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestactions_mark_as_seen() and 0xFFFF) != 45676) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids() and 0xFFFF) != 12185) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_human_member_ids_no_sync() and 0xFFFF) != 16908) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_members_count() and 0xFFFF) != 62951) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_active_room_call_participants() and 0xFFFF) != 18323) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_alternative_aliases() and 0xFFFF) != 9907) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_apply_power_level_changes() and 0xFFFF) != 10374) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_avatar_url() and 0xFFFF) != 58808) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_ban_user() and 0xFFFF) != 56871) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_canonical_alias() and 0xFFFF) != 20243) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft() and 0xFFFF) != 56827) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_decline_call() and 0xFFFF) != 40439) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key() and 0xFFFF) != 26947) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_display_name() and 0xFFFF) != 44239) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_edit() and 0xFFFF) != 59260) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_enable_encryption() and 0xFFFF) != 12368) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_enable_send_queue() and 0xFFFF) != 10158) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_encryption_state() and 0xFFFF) != 7391) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_fetch_thread_subscription() and 0xFFFF) != 32369) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_forget() and 0xFFFF) != 725) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_power_levels() and 0xFFFF) != 60659) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_get_room_visibility() and 0xFFFF) != 30457) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_has_active_room_call() and 0xFFFF) != 41039) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_heroes() and 0xFFFF) != 21840) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_id() and 0xFFFF) != 28686) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend() and 0xFFFF) != 33031) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user() and 0xFFFF) != 10201) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_invite_user_by_id() and 0xFFFF) != 29592) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_invited_members_count() and 0xFFFF) != 63396) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_inviter() and 0xFFFF) != 8013) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_direct() and 0xFFFF) != 53432) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_encrypted() and 0xFFFF) != 53552) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_public() and 0xFFFF) != 20659) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_send_queue_enabled() and 0xFFFF) != 55497) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_is_space() and 0xFFFF) != 3282) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_join() and 0xFFFF) != 37979) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_joined_members_count() and 0xFFFF) != 42210) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_kick_user() and 0xFFFF) != 56657) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_latest_encryption_state() and 0xFFFF) != 49419) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_latest_event() and 0xFFFF) != 62992) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_leave() and 0xFFFF) != 25121) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_live_locations_observer() and 0xFFFF) != 53773) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_composer_draft() and 0xFFFF) != 25857) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event() and 0xFFFF) != 16576) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event_with_relations() and 0xFFFF) != 5676) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_user_receipt() and 0xFFFF) != 24376) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked() and 0xFFFF) != 40862) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() and 0xFFFF) != 21259) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_event_permalink() and 0xFFFF) != 63905) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_matrix_to_permalink() and 0xFFFF) != 18133) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_member() and 0xFFFF) != 17149) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_avatar_url() and 0xFFFF) != 42315) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_display_name() and 0xFFFF) != 29038) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_member_with_sender_info() and 0xFFFF) != 12546) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_members() and 0xFFFF) != 57063) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_members_no_sync() and 0xFFFF) != 18379) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_membership() and 0xFFFF) != 60384) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_own_user_id() and 0xFFFF) != 47172) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_predecessor_room() and 0xFFFF) != 19410) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_preview_room() and 0xFFFF) != 10129) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory() and 0xFFFF) != 45260) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_raw_name() and 0xFFFF) != 61864) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_redact() and 0xFFFF) != 51147) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar() and 0xFFFF) != 49932) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_room_alias_from_room_directory() and 0xFFFF) != 23464) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_content() and 0xFFFF) != 18600) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_room() and 0xFFFF) != 57822) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels() and 0xFFFF) != 61300) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_events_debug_string() and 0xFFFF) != 47632) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_room_info() and 0xFFFF) != 11004) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_save_composer_draft() and 0xFFFF) != 34609) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location() and 0xFFFF) != 29293) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() and 0xFFFF) != 33452) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_single_receipt() and 0xFFFF) != 54263) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw() and 0xFFFF) != 1352) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite() and 0xFFFF) != 17735) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_low_priority() and 0xFFFF) != 19842) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_name() and 0xFFFF) != 33512) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_own_member_display_name() and 0xFFFF) != 47962) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() and 0xFFFF) != 16350) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() and 0xFFFF) != 5022) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_unread_flag() and 0xFFFF) != 28138) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share() and 0xFFFF) != 14892) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_state_events() and 0xFFFF) != 9090) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share() and 0xFFFF) != 49334) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events() and 0xFFFF) != 19237) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes() and 0xFFFF) != 7209) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests() and 0xFFFF) != 28083) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() and 0xFFFF) != 21243) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates() and 0xFFFF) != 14598) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_state_events() and 0xFFFF) != 49220) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications() and 0xFFFF) != 60113) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_successor_room() and 0xFFFF) != 21345) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_suggested_role_for_user() and 0xFFFF) != 18904) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_thread_list_service() and 0xFFFF) != 15299) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline() and 0xFFFF) != 10110) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_timeline_with_configuration() and 0xFFFF) != 39102) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_topic() and 0xFFFF) != 27901) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_typing_notice() and 0xFFFF) != 22181) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_unban_user() and 0xFFFF) != 18373) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_canonical_alias() and 0xFFFF) != 59566) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_history_visibility() and 0xFFFF) != 27209) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_join_rules() and 0xFFFF) != 50969) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_power_levels_for_users() and 0xFFFF) != 60483) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_room_visibility() and 0xFFFF) != 27925) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() and 0xFFFF) != 25508) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend() and 0xFFFF) != 20291) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len() and 0xFFFF) != 36990) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk() and 0xFFFF) != 30596) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_ban() and 0xFFFF) != 58264) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_invite() and 0xFFFF) != 3359) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_kick() and 0xFFFF) != 27259) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_pin_unpin() and 0xFFFF) != 21674) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_other() and 0xFFFF) != 2271) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_redact_own() and 0xFFFF) != 24980) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_message() and 0xFFFF) != 25997) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_send_state() and 0xFFFF) != 6693) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_own_user_trigger_room_notification() and 0xFFFF) != 23989) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_ban() and 0xFFFF) != 6597) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_invite() and 0xFFFF) != 43405) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_kick() and 0xFFFF) != 45394) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_pin_unpin() and 0xFFFF) != 21637) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_other() and 0xFFFF) != 42584) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_own() and 0xFFFF) != 59071) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_message() and 0xFFFF) != 331) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_state() and 0xFFFF) != 56937) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_trigger_room_notification() and 0xFFFF) != 64214) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_events() and 0xFFFF) != 19530) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_user_power_levels() and 0xFFFF) != 64043) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_values() and 0xFFFF) != 42499) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_is_at_last_page() and 0xFFFF) != 43874) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_loaded_pages() and 0xFFFF) != 41934) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_next_page() and 0xFFFF) != 2921) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results() and 0xFFFF) != 42287) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() and 0xFFFF) != 56447) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() and 0xFFFF) != 15118) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_loading_state() and 0xFFFF) != 19590) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_room() and 0xFFFF) != 39542) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_add_one_page() and 0xFFFF) != 27631) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_reset_to_one_page() and 0xFFFF) != 57135) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistdynamicentriescontroller_set_filter() and 0xFFFF) != 45381) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_controller() and 0xFFFF) != 58497) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieswithdynamicadaptersresult_entries_stream() and 0xFFFF) != 52965) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_all_rooms() and 0xFFFF) != 47352) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_remove_room_subscriptions() and 0xFFFF) != 32088) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_reset_and_add_room_subscriptions() and 0xFFFF) != 11809) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_room() and 0xFFFF) != 53257) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_set_room_subscriptions() and 0xFFFF) != 24338) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_state() and 0xFFFF) != 33187) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservice_sync_indicator() and 0xFFFF) != 29793) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_has_notifications() and 0xFFFF) != 22019) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_highlight_count() and 0xFFFF) != 57182) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_unreadnotificationscount_notification_count() and 0xFFFF) != 4597) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_forget() and 0xFFFF) != 59098) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_info() and 0xFFFF) != 42643) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_inviter() and 0xFFFF) != 51093) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_leave() and 0xFFFF) != 2702) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompreview_own_membership_details() and 0xFFFF) != 18406) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_to_json() and 0xFFFF) != 35598) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_mediasource_url() and 0xFFFF) != 55979) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_paginate() and 0xFFFF) != 6399) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_pagination_state() and 0xFFFF) != 21986) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_set_query() and 0xFFFF) != 2525) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_pagination_state_updates() and 0xFFFF) != 41707) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_results() and 0xFFFF) != 42994) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request() and 0xFFFF) != 63394) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request() and 0xFFFF) != 18373) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() and 0xFFFF) != 26159) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_cancel_verification() and 0xFFFF) != 15915) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() and 0xFFFF) != 61574) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification() and 0xFFFF) != 1050) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification() and 0xFFFF) != 35126) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate() and 0xFFFF) != 49952) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_start_sas_verification() and 0xFFFF) != 27771) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_description() and 0xFFFF) != 22864) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationemoji_symbol() and 0xFFFF) != 6955) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_leave() and 0xFFFF) != 36267) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_leavespacehandle_rooms() and 0xFFFF) != 36304) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_paginate() and 0xFFFF) != 55523) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_pagination_state() and 0xFFFF) != 18118) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_reset() and 0xFFFF) != 22706) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms() and 0xFFFF) != 44616) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_space() and 0xFFFF) != 58114) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_pagination_state_updates() and 0xFFFF) != 54680) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_room_update() and 0xFFFF) != 19721) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_subscribe_to_space_updates() and 0xFFFF) != 62183) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_add_child_to_space() and 0xFFFF) != 24077) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_editable_spaces() and 0xFFFF) != 23552) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_get_space_room() and 0xFFFF) != 27486) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parent_ids_of_child() and 0xFFFF) != 8766) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parents_of_child() and 0xFFFF) != 36617) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_leave_space() and 0xFFFF) != 62335) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_remove_child_from_space() and 0xFFFF) != 20772) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_filters() and 0xFFFF) != 38445) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list() and 0xFFFF) != 21044) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_space_filters() and 0xFFFF) != 51732) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_subscribe_to_top_level_joined_spaces() and 0xFFFF) != 15109) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_ancestors_of() and 0xFFFF) != 61938) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_joined_spaces() and 0xFFFF) != 60660) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size() and 0xFFFF) != 51603) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_high_entropy_passphrase() and 0xFFFF) != 44330) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit() and 0xFFFF) != 48797) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_key() and 0xFFFF) != 30115) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_passphrase() and 0xFFFF) != 42006) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size() and 0xFFFF) != 11712) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained() and 0xFFFF) != 21398) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions() and 0xFFFF) != 59217) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_room_list_service() and 0xFFFF) != 1335) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_start() and 0xFFFF) != 35005) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_state() and 0xFFFF) != 15517) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_stop() and 0xFFFF) != 51463) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_finish() and 0xFFFF) != 14129) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_offline_mode() and 0xFFFF) != 41418) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_parent_span() and 0xFFFF) != 61147) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id() and 0xFFFF) != 56899) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_timeline_limit() and 0xFFFF) != 21875) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_share_pos() and 0xFFFF) != 57939) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_cancel() and 0xFFFF) != 52084) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_taskhandle_is_finished() and 0xFFFF) != 35721) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_contains_only_emojis() and 0xFFFF) != 34117) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_debug_info() and 0xFFFF) != 43508) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_send_handle() and 0xFFFF) != 19510) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_get_shields() and 0xFFFF) != 29176) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_lazytimelineitemprovider_latest_json() and 0xFFFF) != 31853) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_cancel() and 0xFFFF) != 11522) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() and 0xFFFF) != 61070) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort() and 0xFFFF) != 49988) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_try_resend() and 0xFFFF) != 14844) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener() and 0xFFFF) != 65368) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content() and 0xFFFF) != 25662) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll() and 0xFFFF) != 47147) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() and 0xFFFF) != 45899) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions() and 0xFFFF) != 40262) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll() and 0xFFFF) != 8036) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_details_for_event() and 0xFFFF) != 22350) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_members() and 0xFFFF) != 39770) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() and 0xFFFF) != 49000) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event_id() and 0xFFFF) != 55615) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details() and 0xFFFF) != 8357) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read() and 0xFFFF) != 26178) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() and 0xFFFF) != 27830) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_forwards() and 0xFFFF) != 22178) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event() and 0xFFFF) != 2293) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event() and 0xFFFF) != 46975) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption() and 0xFFFF) != 4954) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send() and 0xFFFF) != 19080) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() and 0xFFFF) != 48107) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() and 0xFFFF) != 1749) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() and 0xFFFF) != 27766) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() and 0xFFFF) != 39599) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_poll_response() and 0xFFFF) != 16775) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_read_receipt() and 0xFFFF) != 10485) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply() and 0xFFFF) != 64045) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() and 0xFFFF) != 5467) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() and 0xFFFF) != 62779) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_content() and 0xFFFF) != 14666) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() and 0xFFFF) != 61171) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction() and 0xFFFF) != 3610) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_toggle_reaction_with_extra_content() and 0xFFFF) != 31009) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_unpin_event() and 0xFFFF) != 7353) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_gallery() and 0xFFFF) != 59461) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_event() and 0xFFFF) != 65296) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_as_virtual() and 0xFFFF) != 12591) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_fmt_debug() and 0xFFFF) != 47814) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineitem_unique_id() and 0xFFFF) != 16319) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendgalleryjoinhandle_cancel() and 0xFFFF) != 18847) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendgalleryjoinhandle_join() and 0xFFFF) != 36238) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadsummary_latest_event() and 0xFFFF) != 35055) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadsummary_num_replies() and 0xFFFF) != 2152) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event() and 0xFFFF) != 64767) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_inreplytodetails_event_id() and 0xFFFF) != 17578) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_items() and 0xFFFF) != 64108) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_paginate() and 0xFFFF) != 24435) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_pagination_state() and 0xFFFF) != 48064) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_reset() and 0xFFFF) != 11316) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_items_updates() and 0xFFFF) != 64846) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistservice_subscribe_to_pagination_state_updates() and 0xFFFF) != 15617) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriver_run() and 0xFFFF) != 44829) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_recv() and 0xFFFF) != 26873) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_widgetdriverhandle_send() and 0xFFFF) != 616) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_clientbuilder_new() and 0xFFFF) != 40378) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_contentscanner_new() and 0xFFFF) != 51327) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_database() and 0xFFFF) != 44628) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_secretsbundlewithuserid_from_str() and 0xFFFF) != 25880) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_new() and 0xFFFF) != 13036) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_modern_defaults2025() and 0xFFFF) != 41863) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_zxcvbn_defaults() and 0xFFFF) != 29936) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_current() and 0xFFFF) != 54655) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new() and 0xFFFF) != 8416) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new_bridge_span() and 0xFFFF) != 11047) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes() and 0xFFFF) != 49339) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_json() and 0xFFFF) != 60865) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_mediasource_from_url() and 0xFFFF) != 52389) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_sqlitestorebuilder_new() and 0xFFFF) != 54572) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_accountdatalistener_on_change() and 0xFFFF) != 17278) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_beaconinfolistener_on_update() and 0xFFFF) != 40372) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_did_receive_auth_error() and 0xFFFF) != 20270) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientdelegate_on_background_task_error_report() and 0xFFFF) != 53524) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_retrieve_session_from_keychain() and 0xFFFF) != 60962) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientsessiondelegate_save_session_in_keychain() and 0xFFFF) != 35999) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_duplicatekeyuploaderrorlistener_on_duplicate_key_upload_error() and 0xFFFF) != 41375) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_ignoreduserslistener_call() and 0xFFFF) != 45390) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_mediapreviewconfiglistener_on_change() and 0xFFFF) != 65101) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_profilelistener_on_update() and 0xFFFF) != 54917) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_progresswatcher_transmission_progress() and 0xFFFF) != 34965) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomaccountdatalistener_on_change() and 0xFFFF) != 6602) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomerrorlistener_on_error() and 0xFFFF) != 30892) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueueroomupdatelistener_on_update() and 0xFFFF) != 11458) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncnotificationlistener_on_notification() and 0xFFFF) != 2087) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_todevicemessagelistener_on_message() and 0xFFFF) != 17223) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_backupstatelistener_on_update() and 0xFFFF) != 3556) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_backupsteadystatelistener_on_update() and 0xFFFF) != 24223) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_dehydrateddeviceeventlistener_on_event() and 0xFFFF) != 46441) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_enablerecoveryprogresslistener_on_update() and 0xFFFF) != 64663) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_recoverystatelistener_on_update() and 0xFFFF) != 32646) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update() and 0xFFFF) != 65323) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationslistener_on_update() and 0xFFFF) != 7495) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() and 0xFFFF) != 63508) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_generatedqrloginprogresslistener_on_update() and 0xFFFF) != 2469) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantgeneratedqrloginprogresslistener_on_update() and 0xFFFF) != 52933) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantqrloginprogresslistener_on_update() and 0xFFFF) != 1771) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrloginprogresslistener_on_update() and 0xFFFF) != 56642) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_calldeclinelistener_call() and 0xFFFF) != 13036) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identitystatuschangelistener_call() and 0xFFFF) != 45143) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_knockrequestslistener_call() and 0xFFFF) != 63856) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roominfolistener_call() and 0xFFFF) != 26634) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomstateeventslistener_on_update() and 0xFFFF) != 57215) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendqueuelistener_on_update() and 0xFFFF) != 44694) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call() and 0xFFFF) != 39527) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update() and 0xFFFF) != 58189) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update() and 0xFFFF) != 24362) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistloadingstatelistener_on_update() and 0xFFFF) != 37126) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservicestatelistener_on_update() and 0xFFFF) != 64500) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlistservicesyncindicatorlistener_on_update() and 0xFFFF) != 7533) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservicepaginationstatelistener_on_update() and 0xFFFF) != 63277) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchserviceresultslistener_on_update() and 0xFFFF) != 54562) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request() and 0xFFFF) != 4653) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() and 0xFFFF) != 61041) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification() and 0xFFFF) != 12348) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_data() and 0xFFFF) != 25284) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_fail() and 0xFFFF) != 33581) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_cancel() and 0xFFFF) != 13853) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_finish() and 0xFFFF) != 32959) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistentrieslistener_on_update() and 0xFFFF) != 2729) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistpaginationstatelistener_on_update() and 0xFFFF) != 42671) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlistspacelistener_on_update() and 0xFFFF) != 50206) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservicejoinedspaceslistener_on_update() and 0xFFFF) != 19391) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservicespacefilterslistener_on_update() and 0xFFFF) != 18964) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicestateobserver_on_update() and 0xFFFF) != 48158) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_synclistenerv2_on_update() and 0xFFFF) != 8562) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_paginationstatuslistener_on_update() and 0xFFFF) != 28733) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelinelistener_on_update() and 0xFFFF) != 48738) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistentrieslistener_on_update() and 0xFFFF) != 2867) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_threadlistpaginationstatelistener_on_update() and 0xFFFF) != 6993) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_unabletodecryptdelegate_on_utd() and 0xFFFF) != 5732) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_widgetcapabilitiesprovider_acquire_capabilities() and 0xFFFF) != 28941) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
 
@@ -5042,6 +7136,95 @@ internal suspend fun<T, F, E: kotlin.Exception> uniffiRustCallAsync(
         freeFunc(rustFuture)
     }
 }
+internal inline fun<T> uniffiTraitInterfaceCallAsync(
+    crossinline makeCall: suspend () -> T,
+    crossinline handleSuccess: (T) -> Unit,
+    crossinline handleError: (UniffiRustCallStatus.ByValue) -> Unit,
+    uniffiOutDroppedCallback: UniffiForeignFutureDroppedCallbackStruct,
+) {
+    // Using `GlobalScope` is labeled as a "delicate API" and generally discouraged in Kotlin programs, since it breaks structured concurrency.
+    // However, our parent task is a Rust future, so we're going to need to break structure concurrency in any case.
+    //
+    // Uniffi does its best to support structured concurrency across the FFI.
+    // If the Rust future is dropped, `uniffiForeignFutureDroppedCallbackImpl` is called, which will cancel the Kotlin coroutine if it's still running.
+    @OptIn(DelicateCoroutinesApi::class)
+    val job = GlobalScope.launch coroutineBlock@ {
+        // Note: it's important we call either `handleSuccess` or `handleError` exactly once.  Each
+        // call consumes an Arc reference, which means there should be no possibility of a double
+        // call.  The following code is structured so that will will never call both `handleSuccess`
+        // and `handleError`, even in the face of weird exceptions.
+        //
+        // In extreme circumstances we may not call either, for example if we fail to make the JNA
+        // call to `handleSuccess`.  This means we will leak the Arc reference, which is better than
+        // double-freeing it.
+        val callResult = try {
+            makeCall()
+        } catch(e: kotlin.Exception) {
+            handleError(
+                UniffiRustCallStatus.create(
+                    UNIFFI_CALL_UNEXPECTED_ERROR,
+                    FfiConverterString.lower(e.toString()),
+                )
+            )
+            return@coroutineBlock
+        }
+        handleSuccess(callResult)
+    }
+    val handle = uniffiForeignFutureHandleMap.insert(job)
+    uniffiOutDroppedCallback.uniffiSetValue(UniffiForeignFutureDroppedCallbackStruct(handle, uniffiForeignFutureDroppedCallbackImpl))
+}
+
+internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallAsyncWithError(
+    crossinline makeCall: suspend () -> T,
+    crossinline handleSuccess: (T) -> Unit,
+    crossinline handleError: (UniffiRustCallStatus.ByValue) -> Unit,
+    crossinline lowerError: (E) -> RustBuffer.ByValue,
+    uniffiOutDroppedCallback: UniffiForeignFutureDroppedCallbackStruct,
+) {
+    // See uniffiTraitInterfaceCallAsync for details on `DelicateCoroutinesApi`
+    @OptIn(DelicateCoroutinesApi::class)
+    val job = GlobalScope.launch coroutineBlock@ {
+        // See the note in uniffiTraitInterfaceCallAsync for details on `handleSuccess` and
+        // `handleError`.
+        val callResult = try {
+            makeCall()
+        } catch(e: kotlin.Exception) {
+            if (e is E) {
+                handleError(
+                    UniffiRustCallStatus.create(
+                        UNIFFI_CALL_ERROR,
+                        lowerError(e),
+                    )
+                )
+            } else {
+                handleError(
+                    UniffiRustCallStatus.create(
+                        UNIFFI_CALL_UNEXPECTED_ERROR,
+                        FfiConverterString.lower(e.toString()),
+                    )
+                )
+            }
+            return@coroutineBlock
+        }
+        handleSuccess(callResult)
+    }
+    val handle = uniffiForeignFutureHandleMap.insert(job)
+    uniffiOutDroppedCallback.uniffiSetValue(UniffiForeignFutureDroppedCallbackStruct(handle, uniffiForeignFutureDroppedCallbackImpl))
+}
+
+internal val uniffiForeignFutureHandleMap = UniffiHandleMap<Job>()
+
+internal object uniffiForeignFutureDroppedCallbackImpl: UniffiForeignFutureDroppedCallback {
+    override fun callback(handle: Long) {
+        val job = uniffiForeignFutureHandleMap.remove(handle)
+        if (!job.isCompleted) {
+            job.cancel()
+        }
+    }
+}
+
+// For testing
+public fun uniffiForeignFutureHandleCount() = uniffiForeignFutureHandleMap.size
 
 // Public interface members begin here.
 
@@ -5225,6 +7408,10 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
         return value.toUByte()
     }
 
+    fun lift(value: Int): UByte {
+        return value.toUByte()
+    }
+
     override fun read(buf: ByteBuffer): UByte {
         return lift(buf.get())
     }
@@ -5245,6 +7432,10 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
  */
 public object FfiConverterUShort: FfiConverter<UShort, Short> {
     override fun lift(value: Short): UShort {
+        return value.toUShort()
+    }
+
+    fun lift(value: Int): UShort {
         return value.toUShort()
     }
 
@@ -5692,6 +7883,11 @@ open class CheckCodeSender: Disposable, AutoCloseable, CheckCodeSenderInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -5774,7 +7970,8 @@ open class CheckCodeSender: Disposable, AutoCloseable, CheckCodeSenderInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_checkcodesender_send(
                 uniffiHandle,
-                FfiConverterUByte.lower(`code`),
+                
+        FfiConverterUByte.lower(`code`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -6329,7 +8526,21 @@ public interface ClientInterface {
      */
     fun `newLoginWithQrCodeHandler`(`oauthConfiguration`: OAuthConfiguration): LoginWithQrCodeHandler
     
+    /**
+     * Creates a client specialised in fetching the content of push
+     * notifications, using the default `NotificationClientTimeouts`.
+     *
+     * See `Client::notification_client_with_timeouts` to override them.
+     */
     suspend fun `notificationClient`(`processSetup`: NotificationProcessSetup): NotificationClient
+    
+    /**
+     * Creates a client specialised in fetching the content of push
+     * notifications, with custom `NotificationClientTimeouts`.
+     *
+     * The timeouts are fixed for the lifetime of the returned client.
+     */
+    suspend fun `notificationClientWithTimeouts`(`processSetup`: NotificationProcessSetup, `timeouts`: NotificationClientTimeouts): NotificationClient
     
     /**
      * Subscribe to updates of global account data events.
@@ -6458,6 +8669,26 @@ public interface ClientInterface {
     suspend fun `searchUsers`(`searchTerm`: kotlin.String, `limit`: kotlin.ULong): SearchUsersResults
     
     /**
+     * Olm-encrypt a to-device message and send it to a set of recipient
+     * devices.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the to-device event to send.
+     *
+     * * `recipients` - The devices to send the message to, as a `user id ->
+     * device ids` map. The special device id `"*"` targets every device of
+     * that user we know about.
+     *
+     * * `content` - The content of the to-device event, as a JSON string,
+     * encrypted for and sent to every recipient.
+     *
+     * The returned value contains details of any recipients that did not
+     * receive the message
+     */
+    suspend fun `sendEncryptedToDeviceMessage`(`eventType`: kotlin.String, `recipients`: Map<kotlin.String, List<kotlin.String>>, `content`: kotlin.String): SendToDeviceOutcome
+    
+    /**
      * The URL of the server.
      *
      * Not to be confused with the `Self::homeserver`. `server` is usually
@@ -6563,6 +8794,21 @@ public interface ClientInterface {
      * Returns a handler to start the SSO login process.
      */
     suspend fun `startSsoLogin`(`redirectUrl`: kotlin.String, `idpId`: kotlin.String?): SsoHandler
+    
+    /**
+     * Subscribe to the custom to-device messages received by this client.
+     *
+     * The listener is called with every to-device message whose type is one
+     * of `event_types`, or with every custom to-device message if
+     * `event_types` is empty. A message that was sent encrypted is delivered
+     * decrypted, along with its encryption info.
+     *
+     * The to-device traffic the SDK uses for its own crypto machinery and the
+     * messages it could not decrypt are never delivered.
+     *
+     * Use the returned [`TaskHandle`] to cancel the subscription.
+     */
+    fun `subscribeToCustomToDeviceMessages`(`eventTypes`: List<kotlin.String>, `listener`: ToDeviceMessageListener): TaskHandle
     
     /**
      * Subscribe to duplicate key upload errors triggered by requests to
@@ -6774,6 +9020,11 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -6850,7 +9101,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_abort_oauth_auth(
                 uniffiHandle,
-                FfiConverterTypeOAuthAuthorizationData.lower(`authorizationData`),
+                
+        FfiConverterTypeOAuthAuthorizationData.lower(`authorizationData`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -6878,7 +9130,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_account_data(
                 uniffiHandle,
-                FfiConverterString.lower(`eventType`),
+                
+        FfiConverterString.lower(`eventType`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -6899,7 +9152,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_account_url(
                 uniffiHandle,
-                FfiConverterOptionalTypeAccountManagementAction.lower(`action`),
+                
+        FfiConverterOptionalTypeAccountManagementAction.lower(`action`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -6981,7 +9235,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_await_room_remote_echo(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),
+                
+        FfiConverterString.lower(`roomId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -7067,7 +9322,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_clear_caches(
                 uniffiHandle,
-                FfiConverterOptionalTypeSyncService.lower(`syncService`),
+                
+        FfiConverterOptionalTypeSyncService.lower(`syncService`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7141,7 +9397,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_create_room(
                 uniffiHandle,
-                FfiConverterTypeCreateRoomParameters.lower(`request`),
+                
+        FfiConverterTypeCreateRoomParameters.lower(`request`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7167,7 +9424,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_custom_login_with_jwt(
                 uniffiHandle,
-                FfiConverterString.lower(`jwt`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+                
+        FfiConverterString.lower(`jwt`),
+        FfiConverterOptionalString.lower(`initialDeviceName`),
+        FfiConverterOptionalString.lower(`deviceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7201,7 +9461,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_deactivate_account(
                 uniffiHandle,
-                FfiConverterOptionalTypeAuthData.lower(`authData`),FfiConverterBoolean.lower(`eraseData`),
+                
+        FfiConverterOptionalTypeAuthData.lower(`authData`),
+        FfiConverterBoolean.lower(`eraseData`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7226,7 +9488,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_delete_pusher(
                 uniffiHandle,
-                FfiConverterTypePusherIdentifiers.lower(`identifiers`),
+                
+        FfiConverterTypePusherIdentifiers.lower(`identifiers`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7270,6 +9533,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_disable_well_known_lookup(
         it,
+        
         FfiConverterBoolean.lower(`disable`),_status)
 }
     }
@@ -7313,7 +9577,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`enable`),
+                
+        FfiConverterBoolean.lower(`enable`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -7337,6 +9602,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_enable_automatic_call_status(
         it,
+        
         FfiConverterBoolean.lower(`enabled`),_status)
 }
     }
@@ -7353,6 +9619,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_enable_send_queue_upload_progress(
         it,
+        
         FfiConverterBoolean.lower(`enable`),_status)
 }
     }
@@ -7406,6 +9673,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_dm_room(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -7423,6 +9691,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_dm_rooms(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -7488,7 +9757,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_media_content(
                 uniffiHandle,
-                FfiConverterTypeMediaSource.lower(`mediaSource`),
+                
+        FfiConverterTypeMediaSource.lower(`mediaSource`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7514,7 +9784,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_media_file(
                 uniffiHandle,
-                FfiConverterTypeMediaSource.lower(`mediaSource`),FfiConverterOptionalString.lower(`filename`),FfiConverterString.lower(`mimeType`),FfiConverterBoolean.lower(`useCache`),FfiConverterOptionalString.lower(`tempDir`),
+                
+        FfiConverterTypeMediaSource.lower(`mediaSource`),
+        FfiConverterOptionalString.lower(`filename`),
+        FfiConverterString.lower(`mimeType`),
+        FfiConverterBoolean.lower(`useCache`),
+        FfiConverterOptionalString.lower(`tempDir`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -7560,7 +9835,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_media_thumbnail(
                 uniffiHandle,
-                FfiConverterTypeMediaSource.lower(`mediaSource`),FfiConverterULong.lower(`width`),FfiConverterULong.lower(`height`),
+                
+        FfiConverterTypeMediaSource.lower(`mediaSource`),
+        FfiConverterULong.lower(`width`),
+        FfiConverterULong.lower(`height`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7601,7 +9879,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_profile(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7655,6 +9934,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_room(
         it,
+        
         FfiConverterString.lower(`roomId`),_status)
 }
     }
@@ -7673,7 +9953,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_alias(
                 uniffiHandle,
-                FfiConverterString.lower(`roomAlias`),
+                
+        FfiConverterString.lower(`roomAlias`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -7701,7 +9982,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_room_preview_from_room_id(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),FfiConverterSequenceString.lower(`viaServers`),
+                
+        FfiConverterString.lower(`roomId`),
+        FfiConverterSequenceString.lower(`viaServers`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -7777,7 +10060,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_url(
                 uniffiHandle,
-                FfiConverterString.lower(`url`),
+                
+        FfiConverterString.lower(`url`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7808,7 +10092,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_get_url_preview(
                 uniffiHandle,
-                FfiConverterString.lower(`url`),FfiConverterOptionalULong.lower(`ts`),
+                
+        FfiConverterString.lower(`url`),
+        FfiConverterOptionalULong.lower(`ts`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -7881,7 +10167,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_ignore_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8036,7 +10323,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(
                 uniffiHandle,
-                FfiConverterString.lower(`alias`),
+                
+        FfiConverterString.lower(`alias`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -8088,7 +10376,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),
+                
+        FfiConverterString.lower(`roomId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -8117,7 +10406,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id_or_alias(
                 uniffiHandle,
-                FfiConverterString.lower(`roomIdOrAlias`),FfiConverterSequenceString.lower(`serverNames`),
+                
+        FfiConverterString.lower(`roomIdOrAlias`),
+        FfiConverterSequenceString.lower(`serverNames`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -8141,7 +10432,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_knock(
                 uniffiHandle,
-                FfiConverterString.lower(`roomIdOrAlias`),FfiConverterOptionalString.lower(`reason`),FfiConverterSequenceString.lower(`serverNames`),
+                
+        FfiConverterString.lower(`roomIdOrAlias`),
+        FfiConverterOptionalString.lower(`reason`),
+        FfiConverterSequenceString.lower(`serverNames`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -8165,7 +10459,11 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_login(
                 uniffiHandle,
-                FfiConverterString.lower(`username`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+                
+        FfiConverterString.lower(`username`),
+        FfiConverterString.lower(`password`),
+        FfiConverterOptionalString.lower(`initialDeviceName`),
+        FfiConverterOptionalString.lower(`deviceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8190,7 +10488,11 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_login_with_email(
                 uniffiHandle,
-                FfiConverterString.lower(`email`),FfiConverterString.lower(`password`),FfiConverterOptionalString.lower(`initialDeviceName`),FfiConverterOptionalString.lower(`deviceId`),
+                
+        FfiConverterString.lower(`email`),
+        FfiConverterString.lower(`password`),
+        FfiConverterOptionalString.lower(`initialDeviceName`),
+        FfiConverterOptionalString.lower(`deviceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8215,7 +10517,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_login_with_oauth_callback(
                 uniffiHandle,
-                FfiConverterString.lower(`callbackUrl`),
+                
+        FfiConverterString.lower(`callbackUrl`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8319,6 +10622,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_new_login_with_qr_code_handler(
         it,
+        
         FfiConverterTypeOAuthConfiguration.lower(`oauthConfiguration`),_status)
 }
     }
@@ -8327,6 +10631,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     
 
     
+    /**
+     * Creates a client specialised in fetching the content of push
+     * notifications, using the default `NotificationClientTimeouts`.
+     *
+     * See `Client::notification_client_with_timeouts` to override them.
+     */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `notificationClient`(`processSetup`: NotificationProcessSetup) : NotificationClient {
@@ -8334,7 +10644,37 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_notification_client(
                 uniffiHandle,
-                FfiConverterTypeNotificationProcessSetup.lower(`processSetup`),
+                
+        FfiConverterTypeNotificationProcessSetup.lower(`processSetup`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
+        // lift function
+        { FfiConverterTypeNotificationClient.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Creates a client specialised in fetching the content of push
+     * notifications, with custom `NotificationClientTimeouts`.
+     *
+     * The timeouts are fixed for the lifetime of the returned client.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `notificationClientWithTimeouts`(`processSetup`: NotificationProcessSetup, `timeouts`: NotificationClientTimeouts) : NotificationClient {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_notification_client_with_timeouts(
+                uniffiHandle,
+                
+        FfiConverterTypeNotificationProcessSetup.lower(`processSetup`),
+        FfiConverterTypeNotificationClientTimeouts.lower(`timeouts`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -8360,7 +10700,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_observe_account_data_event(
         it,
-        FfiConverterTypeAccountDataEventType.lower(`eventType`),FfiConverterTypeAccountDataListener.lower(`listener`),_status)
+        
+        FfiConverterTypeAccountDataEventType.lower(`eventType`),
+        FfiConverterTypeAccountDataListener.lower(`listener`),_status)
 }
     }
     )
@@ -8381,7 +10723,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_observe_room_account_data_event(
         it,
-        FfiConverterString.lower(`roomId`),FfiConverterTypeRoomAccountDataEventType.lower(`eventType`),FfiConverterTypeRoomAccountDataListener.lower(`listener`),_status)
+        
+        FfiConverterString.lower(`roomId`),
+        FfiConverterTypeRoomAccountDataEventType.lower(`eventType`),
+        FfiConverterTypeRoomAccountDataListener.lower(`listener`),_status)
 }
     }
     )
@@ -8474,7 +10819,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_register_notification_handler(
                 uniffiHandle,
-                FfiConverterTypeSyncNotificationListener.lower(`listener`),
+                
+        FfiConverterTypeSyncNotificationListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8601,7 +10947,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_resolve_room_alias(
                 uniffiHandle,
-                FfiConverterString.lower(`roomAlias`),
+                
+        FfiConverterString.lower(`roomAlias`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -8630,7 +10977,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_restore_session(
                 uniffiHandle,
-                FfiConverterTypeSession.lower(`session`),
+                
+        FfiConverterTypeSession.lower(`session`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8657,7 +11005,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_restore_session_with(
                 uniffiHandle,
-                FfiConverterTypeSession.lower(`session`),FfiConverterTypeRoomLoadSettings.lower(`roomLoadSettings`),
+                
+        FfiConverterTypeSession.lower(`session`),
+        FfiConverterTypeRoomLoadSettings.lower(`roomLoadSettings`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8713,7 +11063,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_room_alias_exists(
                 uniffiHandle,
-                FfiConverterString.lower(`roomAlias`),
+                
+        FfiConverterString.lower(`roomAlias`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -8760,7 +11111,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_search_users(
                 uniffiHandle,
-                FfiConverterString.lower(`searchTerm`),FfiConverterULong.lower(`limit`),
+                
+        FfiConverterString.lower(`searchTerm`),
+        FfiConverterULong.lower(`limit`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -8768,6 +11121,48 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterTypeSearchUsersResults.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Olm-encrypt a to-device message and send it to a set of recipient
+     * devices.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the to-device event to send.
+     *
+     * * `recipients` - The devices to send the message to, as a `user id ->
+     * device ids` map. The special device id `"*"` targets every device of
+     * that user we know about.
+     *
+     * * `content` - The content of the to-device event, as a JSON string,
+     * encrypted for and sent to every recipient.
+     *
+     * The returned value contains details of any recipients that did not
+     * receive the message
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendEncryptedToDeviceMessage`(`eventType`: kotlin.String, `recipients`: Map<kotlin.String, List<kotlin.String>>, `content`: kotlin.String) : SendToDeviceOutcome {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_send_encrypted_to_device_message(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterMapStringSequenceString.lower(`recipients`),
+        FfiConverterString.lower(`content`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterTypeSendToDeviceOutcome.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -8853,7 +11248,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_account_data(
                 uniffiHandle,
-                FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`content`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8878,7 +11275,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_avatar_url(
                 uniffiHandle,
-                FfiConverterString.lower(`url`),
+                
+        FfiConverterString.lower(`url`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8903,7 +11301,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_content_scanner(
                 uniffiHandle,
-                FfiConverterOptionalTypeContentScanner.lower(`contentScanner`),
+                
+        FfiConverterOptionalTypeContentScanner.lower(`contentScanner`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8928,6 +11327,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_delegate(
         it,
+        
         FfiConverterOptionalTypeClientDelegate.lower(`delegate`),_status)
 }
     }
@@ -8943,7 +11343,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_display_name(
                 uniffiHandle,
-                FfiConverterString.lower(`name`),
+                
+        FfiConverterString.lower(`name`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8968,7 +11369,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_invite_avatars_display_policy(
                 uniffiHandle,
-                FfiConverterTypeInviteAvatars.lower(`policy`),
+                
+        FfiConverterTypeInviteAvatars.lower(`policy`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -8993,7 +11395,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_media_preview_display_policy(
                 uniffiHandle,
-                FfiConverterTypeMediaPreviews.lower(`policy`),
+                
+        FfiConverterTypeMediaPreviews.lower(`policy`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9018,7 +11421,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_media_retention_policy(
                 uniffiHandle,
-                FfiConverterTypeMediaRetentionPolicy.lower(`policy`),
+                
+        FfiConverterTypeMediaRetentionPolicy.lower(`policy`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9048,7 +11452,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_presence(
                 uniffiHandle,
-                FfiConverterTypePresenceState.lower(`presence`),FfiConverterBoolean.lower(`immediate`),
+                
+        FfiConverterTypePresenceState.lower(`presence`),
+        FfiConverterBoolean.lower(`immediate`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9073,7 +11479,14 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_pusher(
                 uniffiHandle,
-                FfiConverterTypePusherIdentifiers.lower(`identifiers`),FfiConverterTypePusherKind.lower(`kind`),FfiConverterString.lower(`appDisplayName`),FfiConverterString.lower(`deviceDisplayName`),FfiConverterOptionalString.lower(`profileTag`),FfiConverterString.lower(`lang`),FfiConverterBoolean.lower(`append`),
+                
+        FfiConverterTypePusherIdentifiers.lower(`identifiers`),
+        FfiConverterTypePusherKind.lower(`kind`),
+        FfiConverterString.lower(`appDisplayName`),
+        FfiConverterString.lower(`deviceDisplayName`),
+        FfiConverterOptionalString.lower(`profileTag`),
+        FfiConverterString.lower(`lang`),
+        FfiConverterBoolean.lower(`append`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9101,7 +11514,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_user_status(
                 uniffiHandle,
-                FfiConverterTypeUserStatus.lower(`status`),
+                
+        FfiConverterTypeUserStatus.lower(`status`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9127,7 +11541,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_set_utd_delegate(
                 uniffiHandle,
-                FfiConverterTypeUnableToDecryptDelegate.lower(`utdDelegate`),
+                
+        FfiConverterTypeUnableToDecryptDelegate.lower(`utdDelegate`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9188,7 +11603,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_start_sso_login(
                 uniffiHandle,
-                FfiConverterString.lower(`redirectUrl`),FfiConverterOptionalString.lower(`idpId`),
+                
+        FfiConverterString.lower(`redirectUrl`),
+        FfiConverterOptionalString.lower(`idpId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -9203,6 +11620,34 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
+     * Subscribe to the custom to-device messages received by this client.
+     *
+     * The listener is called with every to-device message whose type is one
+     * of `event_types`, or with every custom to-device message if
+     * `event_types` is empty. A message that was sent encrypted is delivered
+     * decrypted, along with its encryption info.
+     *
+     * The to-device traffic the SDK uses for its own crypto machinery and the
+     * messages it could not decrypt are never delivered.
+     *
+     * Use the returned [`TaskHandle`] to cancel the subscription.
+     */override fun `subscribeToCustomToDeviceMessages`(`eventTypes`: List<kotlin.String>, `listener`: ToDeviceMessageListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_custom_to_device_messages(
+        it,
+        
+        FfiConverterSequenceString.lower(`eventTypes`),
+        FfiConverterTypeToDeviceMessageListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Subscribe to duplicate key upload errors triggered by requests to
      * /keys/upload.
      */override fun `subscribeToDuplicateKeyUploadErrors`(`listener`: DuplicateKeyUploadErrorListener): TaskHandle {
@@ -9211,6 +11656,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_duplicate_key_upload_errors(
         it,
+        
         FfiConverterTypeDuplicateKeyUploadErrorListener.lower(`listener`),_status)
 }
     }
@@ -9224,6 +11670,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_ignored_users(
         it,
+        
         FfiConverterTypeIgnoredUsersListener.lower(`listener`),_status)
 }
     }
@@ -9242,7 +11689,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_media_preview_config(
                 uniffiHandle,
-                FfiConverterTypeMediaPreviewConfigListener.lower(`listener`),
+                
+        FfiConverterTypeMediaPreviewConfigListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -9268,6 +11716,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_beacon_info_updates(
         it,
+        
         FfiConverterTypeBeaconInfoListener.lower(`listener`),_status)
 }
     }
@@ -9291,6 +11740,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_own_profile(
         it,
+        
         FfiConverterTypeProfileListener.lower(`listener`),_status)
 }
     }
@@ -9318,7 +11768,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_room_info(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),FfiConverterTypeRoomInfoListener.lower(`listener`),
+                
+        FfiConverterString.lower(`roomId`),
+        FfiConverterTypeRoomInfoListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -9344,6 +11796,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_status(
         it,
+        
         FfiConverterTypeSendQueueRoomErrorListener.lower(`listener`),_status)
 }
     }
@@ -9367,7 +11820,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_subscribe_to_send_queue_updates(
                 uniffiHandle,
-                FfiConverterTypeSendQueueRoomUpdateListener.lower(`listener`),
+                
+        FfiConverterTypeSendQueueRoomUpdateListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -9394,7 +11848,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_sync_once_v2(
                 uniffiHandle,
-                FfiConverterTypeSyncSettingsV2.lower(`settings`),
+                
+        FfiConverterTypeSyncSettingsV2.lower(`settings`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -9436,7 +11891,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_sync_v2(
         it,
-        FfiConverterTypeSyncSettingsV2.lower(`settings`),FfiConverterTypeSyncListenerV2.lower(`listener`),_status)
+        
+        FfiConverterTypeSyncSettingsV2.lower(`settings`),
+        FfiConverterTypeSyncListenerV2.lower(`listener`),_status)
 }
     }
     )
@@ -9496,7 +11953,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(
                 uniffiHandle,
-                FfiConverterString.lower(`room`),
+                
+        FfiConverterString.lower(`room`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9518,7 +11976,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9540,7 +11999,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(
                 uniffiHandle,
-                FfiConverterString.lower(`mimeType`),FfiConverterByteArray.lower(`data`),
+                
+        FfiConverterString.lower(`mimeType`),
+        FfiConverterByteArray.lower(`data`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -9562,7 +12023,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_upload_media(
                 uniffiHandle,
-                FfiConverterString.lower(`mimeType`),FfiConverterByteArray.lower(`data`),FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
+                
+        FfiConverterString.lower(`mimeType`),
+        FfiConverterByteArray.lower(`data`),
+        FfiConverterOptionalTypeProgressWatcher.lower(`progressWatcher`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -9617,7 +12081,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_url_for_oauth(
                 uniffiHandle,
-                FfiConverterTypeOAuthConfiguration.lower(`oauthConfiguration`),FfiConverterOptionalTypeOAuthPrompt.lower(`prompt`),FfiConverterOptionalString.lower(`loginHint`),FfiConverterOptionalString.lower(`deviceId`),FfiConverterOptionalSequenceString.lower(`additionalScopes`),
+                
+        FfiConverterTypeOAuthConfiguration.lower(`oauthConfiguration`),
+        FfiConverterOptionalTypeOAuthPrompt.lower(`prompt`),
+        FfiConverterOptionalString.lower(`loginHint`),
+        FfiConverterOptionalString.lower(`deviceId`),
+        FfiConverterOptionalSequenceString.lower(`additionalScopes`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -9673,7 +12142,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_add_recent_emoji(
                 uniffiHandle,
-                FfiConverterString.lower(`emoji`),
+                
+        FfiConverterString.lower(`emoji`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -10129,6 +12599,11 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -10200,6 +12675,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_add_root_certificates(
         it,
+        
         FfiConverterSequenceByteArray.lower(`certificates`),_status)
 }
     }
@@ -10216,6 +12692,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_auto_enable_backups(
         it,
+        
         FfiConverterBoolean.lower(`autoEnableBackups`),_status)
 }
     }
@@ -10229,6 +12706,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_auto_enable_cross_signing(
         it,
+        
         FfiConverterBoolean.lower(`autoEnableCrossSigning`),_status)
 }
     }
@@ -10248,6 +12726,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_backup_download_strategy(
         it,
+        
         FfiConverterTypeBackupDownloadStrategy.lower(`backupDownloadStrategy`),_status)
 }
     }
@@ -10282,6 +12761,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_cross_process_lock_config(
         it,
+        
         FfiConverterTypeCrossProcessLockConfig.lower(`crossProcessLockConfig`),_status)
 }
     }
@@ -10298,6 +12778,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_decryption_settings(
         it,
+        
         FfiConverterTypeDecryptionSettings.lower(`decryptionSettings`),_status)
 }
     }
@@ -10375,6 +12856,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_disable_well_known_lookup(
         it,
+        
         FfiConverterBoolean.lower(`disableWellKnownLookup`),_status)
 }
     }
@@ -10388,6 +12870,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_dm_room_definition(
         it,
+        
         FfiConverterTypeDmRoomDefinition.lower(`dmRoomDefinition`),_status)
 }
     }
@@ -10406,6 +12889,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_automatic_back_pagination(
         it,
+        
         FfiConverterBoolean.lower(`enableAutomaticBackPagination`),_status)
 }
     }
@@ -10425,6 +12909,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_enable_share_history_on_invite(
         it,
+        
         FfiConverterBoolean.lower(`enableShareHistoryOnInvite`),_status)
 }
     }
@@ -10450,6 +12935,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_homeserver_url(
         it,
+        
         FfiConverterString.lower(`url`),_status)
 }
     }
@@ -10479,6 +12965,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_proxy(
         it,
+        
         FfiConverterString.lower(`url`),_status)
 }
     }
@@ -10495,6 +12982,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_request_config(
         it,
+        
         FfiConverterTypeRequestConfig.lower(`config`),_status)
 }
     }
@@ -10512,6 +13000,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_room_key_recipient_strategy(
         it,
+        
         FfiConverterTypeCollectStrategy.lower(`strategy`),_status)
 }
     }
@@ -10537,6 +13026,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name(
         it,
+        
         FfiConverterString.lower(`serverName`),_status)
 }
     }
@@ -10568,6 +13058,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_from_user_id(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -10598,6 +13089,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_server_name_or_homeserver_url(
         it,
+        
         FfiConverterString.lower(`serverNameOrUrl`),_status)
 }
     }
@@ -10619,7 +13111,9 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_session_paths(
         it,
-        FfiConverterString.lower(`dataPath`),FfiConverterString.lower(`cachePath`),_status)
+        
+        FfiConverterString.lower(`dataPath`),
+        FfiConverterString.lower(`cachePath`),_status)
 }
     }
     )
@@ -10632,6 +13126,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_set_session_delegate(
         it,
+        
         FfiConverterTypeClientSessionDelegate.lower(`sessionDelegate`),_status)
 }
     }
@@ -10645,6 +13140,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sliding_sync_version_builder(
         it,
+        
         FfiConverterTypeSlidingSyncVersionBuilder.lower(`versionBuilder`),_status)
 }
     }
@@ -10661,6 +13157,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_sqlite_store(
         it,
+        
         FfiConverterTypeSqliteStoreBuilder.lower(`config`),_status)
 }
     }
@@ -10700,7 +13197,9 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_threads_enabled(
         it,
-        FfiConverterBoolean.lower(`enabled`),FfiConverterBoolean.lower(`threadSubscriptions`),_status)
+        
+        FfiConverterBoolean.lower(`enabled`),
+        FfiConverterBoolean.lower(`threadSubscriptions`),_status)
 }
     }
     )
@@ -10713,6 +13212,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_user_agent(
         it,
+        
         FfiConverterString.lower(`userAgent`),_status)
 }
     }
@@ -10726,6 +13226,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_signer(
         it,
+        
         FfiConverterTypeRawX509Signer.lower(`x509Sign`),_status)
 }
     }
@@ -10739,6 +13240,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_raw_x509_verifier(
         it,
+        
         FfiConverterTypeRawX509Verifier.lower(`x509Verify`),_status)
 }
     }
@@ -10765,7 +13267,9 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_clientbuilder_with_search_index_store(
         it,
-        FfiConverterString.lower(`path`),FfiConverterOptionalString.lower(`password`),_status)
+        
+        FfiConverterString.lower(`path`),
+        FfiConverterOptionalString.lower(`password`),_status)
 }
     }
     )
@@ -10949,6 +13453,7 @@ open class ContentScanner: Disposable, AutoCloseable, ContentScannerInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_contentscanner_new(
     
+        
         FfiConverterString.lower(`scannerUrl`),_status)
 }
     )
@@ -10958,6 +13463,11 @@ open class ContentScanner: Disposable, AutoCloseable, ContentScannerInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -11036,7 +13546,9 @@ open class ContentScanner: Disposable, AutoCloseable, ContentScannerInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_contentscanner_scan(
                 uniffiHandle,
-                FfiConverterTypeClient.lower(`client`),FfiConverterTypeMediaSource.lower(`mediaSource`),
+                
+        FfiConverterTypeClient.lower(`client`),
+        FfiConverterTypeMediaSource.lower(`mediaSource`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -11238,6 +13750,11 @@ open class ContinuationMessageSender: Disposable, AutoCloseable, ContinuationMes
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -11708,6 +14225,11 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -11824,6 +14346,7 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_backup_state_listener(
         it,
+        
         FfiConverterTypeBackupStateListener.lower(`listener`),_status)
 }
     }
@@ -11847,7 +14370,9 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_create_dehydrated_device(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`displayName`),FfiConverterString.lower(`pickleKey`),
+                
+        FfiConverterOptionalString.lower(`displayName`),
+        FfiConverterString.lower(`pickleKey`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -11895,6 +14420,7 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_dehydrated_device_event_listener(
         it,
+        
         FfiConverterTypeDehydratedDeviceEventListener.lower(`listener`),_status)
 }
     }
@@ -12004,7 +14530,10 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_enable_recovery(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`waitForBackupsToUpload`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterTypeEnableRecoveryProgressListener.lower(`progressListener`),
+                
+        FfiConverterBoolean.lower(`waitForBackupsToUpload`),
+        FfiConverterOptionalString.lower(`passphrase`),
+        FfiConverterTypeEnableRecoveryProgressListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -12067,7 +14596,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_import_secrets_bundle(
                 uniffiHandle,
-                FfiConverterTypeSecretsBundleWithUserId.lower(`secretsBundle`),
+                
+        FfiConverterTypeSecretsBundleWithUserId.lower(`secretsBundle`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -12138,7 +14668,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_recover(
                 uniffiHandle,
-                FfiConverterString.lower(`recoveryKey`),
+                
+        FfiConverterString.lower(`recoveryKey`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -12171,7 +14702,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_fix_backup(
                 uniffiHandle,
-                FfiConverterString.lower(`recoveryKey`),
+                
+        FfiConverterString.lower(`recoveryKey`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -12193,7 +14725,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_recover_and_reset(
                 uniffiHandle,
-                FfiConverterString.lower(`oldRecoveryKey`),
+                
+        FfiConverterString.lower(`oldRecoveryKey`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -12225,6 +14758,7 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_recovery_state_listener(
         it,
+        
         FfiConverterTypeRecoveryStateListener.lower(`listener`),_status)
 }
     }
@@ -12246,7 +14780,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_rehydrate_dehydrated_device(
                 uniffiHandle,
-                FfiConverterString.lower(`pickleKey`),
+                
+        FfiConverterString.lower(`pickleKey`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -12321,7 +14856,9 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_start_dehydrated_devices(
                 uniffiHandle,
-                FfiConverterString.lower(`recoveryKey`),FfiConverterTypeStartDehydratedDevicesSettings.lower(`settings`),
+                
+        FfiConverterString.lower(`recoveryKey`),
+        FfiConverterTypeStartDehydratedDevicesSettings.lower(`settings`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -12382,7 +14919,9 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_user_identity(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),FfiConverterBoolean.lower(`fallbackToServer`),
+                
+        FfiConverterString.lower(`userId`),
+        FfiConverterBoolean.lower(`fallbackToServer`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -12414,6 +14953,7 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_verification_state_listener(
         it,
+        
         FfiConverterTypeVerificationStateListener.lower(`listener`),_status)
 }
     }
@@ -12429,7 +14969,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_encryption_wait_for_backup_upload_steady_state(
                 uniffiHandle,
-                FfiConverterOptionalTypeBackupSteadyStateListener.lower(`progressListener`),
+                
+        FfiConverterOptionalTypeBackupSteadyStateListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -12688,6 +15229,11 @@ open class GrantLoginWithQrCodeHandler: Disposable, AutoCloseable, GrantLoginWit
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -12780,7 +15326,8 @@ open class GrantLoginWithQrCodeHandler: Disposable, AutoCloseable, GrantLoginWit
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_generate(
                 uniffiHandle,
-                FfiConverterTypeGrantGeneratedQrLoginProgressListener.lower(`progressListener`),
+                
+        FfiConverterTypeGrantGeneratedQrLoginProgressListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -12823,7 +15370,9 @@ open class GrantLoginWithQrCodeHandler: Disposable, AutoCloseable, GrantLoginWit
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_grantloginwithqrcodehandler_scan(
                 uniffiHandle,
-                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeGrantQrLoginProgressListener.lower(`progressListener`),
+                
+        FfiConverterTypeQrCodeData.lower(`qrCodeData`),
+        FfiConverterTypeGrantQrLoginProgressListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -13022,6 +15571,11 @@ open class HomeserverCapabilities: Disposable, AutoCloseable, HomeserverCapabili
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -13458,6 +16012,11 @@ open class HomeserverLoginDetails: Disposable, AutoCloseable, HomeserverLoginDet
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -13809,6 +16368,11 @@ open class IdentityResetHandle: Disposable, AutoCloseable, IdentityResetHandleIn
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -13929,7 +16493,8 @@ open class IdentityResetHandle: Disposable, AutoCloseable, IdentityResetHandleIn
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_identityresethandle_reset(
                 uniffiHandle,
-                FfiConverterOptionalTypeAuthData.lower(`auth`),
+                
+        FfiConverterOptionalTypeAuthData.lower(`auth`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -14116,6 +16681,11 @@ open class InReplyToDetails: Disposable, AutoCloseable, InReplyToDetailsInterfac
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -14409,6 +16979,11 @@ open class KnockRequestActions: Disposable, AutoCloseable, KnockRequestActionsIn
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -14511,7 +17086,8 @@ open class KnockRequestActions: Disposable, AutoCloseable, KnockRequestActionsIn
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_decline(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -14537,7 +17113,8 @@ open class KnockRequestActions: Disposable, AutoCloseable, KnockRequestActionsIn
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_knockrequestactions_decline_and_ban(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -14780,6 +17357,11 @@ open class LazyTimelineItemProvider: Disposable, AutoCloseable, LazyTimelineItem
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -14900,6 +17482,7 @@ open class LazyTimelineItemProvider: Disposable, AutoCloseable, LazyTimelineItem
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_lazytimelineitemprovider_get_shields(
         it,
+        
         FfiConverterBoolean.lower(`strict`),_status)
 }
     }
@@ -15122,6 +17705,11 @@ open class LeaveSpaceHandle: Disposable, AutoCloseable, LeaveSpaceHandleInterfac
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -15198,7 +17786,8 @@ open class LeaveSpaceHandle: Disposable, AutoCloseable, LeaveSpaceHandleInterfac
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_leavespacehandle_leave(
                 uniffiHandle,
-                FfiConverterSequenceString.lower(`roomIds`),
+                
+        FfiConverterSequenceString.lower(`roomIds`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -15426,6 +18015,11 @@ open class LiveLocationsObserver: Disposable, AutoCloseable, LiveLocationsObserv
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -15508,6 +18102,7 @@ open class LiveLocationsObserver: Disposable, AutoCloseable, LiveLocationsObserv
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_livelocationsobserver_subscribe(
         it,
+        
         FfiConverterTypeLiveLocationsListener.lower(`listener`),_status)
 }
     }
@@ -15739,6 +18334,11 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -15832,7 +18432,8 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_generate(
                 uniffiHandle,
-                FfiConverterTypeGeneratedQrLoginProgressListener.lower(`progressListener`),
+                
+        FfiConverterTypeGeneratedQrLoginProgressListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -15878,7 +18479,9 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_loginwithqrcodehandler_scan(
                 uniffiHandle,
-                FfiConverterTypeQrCodeData.lower(`qrCodeData`),FfiConverterTypeQrLoginProgressListener.lower(`progressListener`),
+                
+        FfiConverterTypeQrCodeData.lower(`qrCodeData`),
+        FfiConverterTypeQrLoginProgressListener.lower(`progressListener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -16077,6 +18680,11 @@ open class MediaFileHandle: Disposable, AutoCloseable, MediaFileHandleInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -16166,6 +18774,7 @@ open class MediaFileHandle: Disposable, AutoCloseable, MediaFileHandleInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_mediafilehandle_persist(
         it,
+        
         FfiConverterString.lower(`path`),_status)
 }
     }
@@ -16347,6 +18956,11 @@ open class MediaSource: Disposable, AutoCloseable, MediaSourceInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -16451,6 +19065,7 @@ open class MediaSource: Disposable, AutoCloseable, MediaSourceInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_json(
     
+        
         FfiConverterString.lower(`json`),_status)
 }
     )
@@ -16463,6 +19078,7 @@ open class MediaSource: Disposable, AutoCloseable, MediaSourceInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_mediasource_from_url(
     
+        
         FfiConverterString.lower(`url`),_status)
 }
     )
@@ -16627,6 +19243,11 @@ public interface NotificationClientInterface {
      */
     fun `getRoom`(`roomId`: kotlin.String): Room?
     
+    /**
+     * Returns the timeouts applied while fetching notifications.
+     */
+    fun `timeouts`(): NotificationClientTimeouts
+    
     companion object
 }
 
@@ -16660,6 +19281,11 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -16744,7 +19370,9 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notification(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`roomId`),
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -16774,7 +19402,8 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_notifications(
                 uniffiHandle,
-                FfiConverterSequenceTypeNotificationItemsRequest.lower(`requests`),
+                
+        FfiConverterSequenceTypeNotificationItemsRequest.lower(`requests`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -16800,7 +19429,24 @@ open class NotificationClient: Disposable, AutoCloseable, NotificationClientInte
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationclient_get_room(
         it,
+        
         FfiConverterString.lower(`roomId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Returns the timeouts applied while fetching notifications.
+     */override fun `timeouts`(): NotificationClientTimeouts {
+            return FfiConverterTypeNotificationClientTimeouts.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationclient_timeouts(
+        it,
+        _status)
 }
     }
     )
@@ -17118,6 +19764,11 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -17275,7 +19926,9 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_default_room_notification_mode(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),
+                
+        FfiConverterBoolean.lower(`isEncrypted`),
+        FfiConverterBoolean.lower(`isOneToOne`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -17330,7 +19983,10 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_room_notification_settings(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),
+                
+        FfiConverterString.lower(`roomId`),
+        FfiConverterBoolean.lower(`isEncrypted`),
+        FfiConverterBoolean.lower(`isOneToOne`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -17353,7 +20009,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_rooms_with_user_defined_rules(
                 uniffiHandle,
-                FfiConverterOptionalBoolean.lower(`enabled`),
+                
+        FfiConverterOptionalBoolean.lower(`enabled`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -17377,7 +20034,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_get_user_defined_room_notification_mode(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),
+                
+        FfiConverterString.lower(`roomId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -17497,7 +20155,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_restore_default_room_notification_mode(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),
+                
+        FfiConverterString.lower(`roomId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17522,7 +20181,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_call_enabled(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`enabled`),
+                
+        FfiConverterBoolean.lower(`enabled`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17547,7 +20207,11 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_custom_push_rule(
                 uniffiHandle,
-                FfiConverterString.lower(`ruleId`),FfiConverterTypeRuleKind.lower(`ruleKind`),FfiConverterSequenceTypeAction.lower(`actions`),FfiConverterSequenceTypePushCondition.lower(`conditions`),
+                
+        FfiConverterString.lower(`ruleId`),
+        FfiConverterTypeRuleKind.lower(`ruleKind`),
+        FfiConverterSequenceTypeAction.lower(`actions`),
+        FfiConverterSequenceTypePushCondition.lower(`conditions`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17579,7 +20243,10 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_default_room_notification_mode(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),FfiConverterTypeRoomNotificationMode.lower(`mode`),
+                
+        FfiConverterBoolean.lower(`isEncrypted`),
+        FfiConverterBoolean.lower(`isOneToOne`),
+        FfiConverterTypeRoomNotificationMode.lower(`mode`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17599,6 +20266,7 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_delegate(
         it,
+        
         FfiConverterOptionalTypeNotificationSettingsDelegate.lower(`delegate`),_status)
 }
     }
@@ -17616,7 +20284,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_invite_for_me_enabled(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`enabled`),
+                
+        FfiConverterBoolean.lower(`enabled`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17641,7 +20310,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_mention_enabled(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`enabled`),
+                
+        FfiConverterBoolean.lower(`enabled`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17666,7 +20336,9 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_room_notification_mode(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),FfiConverterTypeRoomNotificationMode.lower(`mode`),
+                
+        FfiConverterString.lower(`roomId`),
+        FfiConverterTypeRoomNotificationMode.lower(`mode`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17691,7 +20363,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_set_user_mention_enabled(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`enabled`),
+                
+        FfiConverterBoolean.lower(`enabled`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17723,7 +20396,10 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_notificationsettings_unmute_room(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),FfiConverterBoolean.lower(`isEncrypted`),FfiConverterBoolean.lower(`isOneToOne`),
+                
+        FfiConverterString.lower(`roomId`),
+        FfiConverterBoolean.lower(`isEncrypted`),
+        FfiConverterBoolean.lower(`isOneToOne`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -17935,6 +20611,7 @@ open class PasswordStrengthEstimator: Disposable, AutoCloseable, PasswordStrengt
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_passwordstrengthestimator_new(
     
+        
         FfiConverterTypePasswordStrengthThresholds.lower(`thresholds`),_status)
 }
     )
@@ -17944,6 +20621,11 @@ open class PasswordStrengthEstimator: Disposable, AutoCloseable, PasswordStrengt
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -18027,7 +20709,9 @@ open class PasswordStrengthEstimator: Disposable, AutoCloseable, PasswordStrengt
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_passwordstrengthestimator_estimate(
         it,
-        FfiConverterString.lower(`password`),FfiConverterSequenceString.lower(`userInputs`),_status)
+        
+        FfiConverterString.lower(`password`),
+        FfiConverterSequenceString.lower(`userInputs`),_status)
 }
     }
     )
@@ -18291,6 +20975,11 @@ open class QrCodeData: Disposable, AutoCloseable, QrCodeDataInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -18450,6 +21139,7 @@ open class QrCodeData: Disposable, AutoCloseable, QrCodeDataInterface
     uniffiRustCallWithError(QrCodeDecodeException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_qrcodedata_from_bytes(
     
+        
         FfiConverterByteArray.lower(`bytes`),_status)
 }
     )
@@ -18639,6 +21329,11 @@ open class RawX509SignerImpl: Disposable, AutoCloseable, RawX509Signer
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -18717,6 +21412,7 @@ open class RawX509SignerImpl: Disposable, AutoCloseable, RawX509Signer
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_rawx509signer_sign(
         it,
+        
         FfiConverterByteArray.lower(`message`),_status)
 }
     }
@@ -19007,6 +21703,11 @@ open class RawX509VerifierImpl: Disposable, AutoCloseable, RawX509Verifier
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -19085,7 +21786,9 @@ open class RawX509VerifierImpl: Disposable, AutoCloseable, RawX509Verifier
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_rawx509verifier_verify(
         it,
-        FfiConverterByteArray.lower(`message`),FfiConverterTypeRawX509Signature.lower(`sig`),_status)
+        
+        FfiConverterByteArray.lower(`message`),
+        FfiConverterTypeRawX509Signature.lower(`sig`),_status)
 }
     }
     )
@@ -19792,6 +22495,21 @@ public interface RoomInterface {
     suspend fun `startLiveLocationShare`(`durationMillis`: kotlin.ULong): kotlin.String
     
     /**
+     * The current room state events of the given type, one per state key.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state events to read. For a type that
+     * has no variant of its own, build one from its string representation
+     * with `stateEventTypeFromString("com.example.custom")`.
+     *
+     * Only the state the sync asked for is stored locally, so for a custom
+     * event type this is empty unless that type is part of the sliding sync
+     * `required_state`.
+     */
+    suspend fun `stateEvents`(`eventType`: StateEventType): List<RoomStateEvent>
+    
+    /**
      * Stop the current users live location share in the room.
      */
     suspend fun `stopLiveLocationShare`()
@@ -19827,6 +22545,24 @@ public interface RoomInterface {
      * the queue.
      */
     suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueListener): TaskHandle
+    
+    /**
+     * Subscribe to the room state events of the given type.
+     *
+     * The listener is called with the full current list of state events of
+     * that type, one per state key, immediately and then after every sync
+     * that changed any of them. All the changes of one sync are reported as a
+     * single snapshot.
+     *
+     * Use the returned [`TaskHandle`] to cancel the subscription.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state events to listen to. For a type
+     * that has no variant of its own, build one from its string
+     * representation with `stateEventTypeFromString("com.example.custom")`.
+     */
+    fun `subscribeToStateEvents`(`eventType`: StateEventType, `listener`: RoomStateEventsListener): TaskHandle
     
     fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle
     
@@ -19959,6 +22695,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -20133,7 +22874,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_apply_power_level_changes(
                 uniffiHandle,
-                FfiConverterTypeRoomPowerLevelChanges.lower(`changes`),
+                
+        FfiConverterTypeRoomPowerLevelChanges.lower(`changes`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20168,7 +22910,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_ban_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterString.lower(`userId`),
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20206,7 +22950,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_clear_composer_draft(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`threadRoot`),
+                
+        FfiConverterOptionalString.lower(`threadRoot`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20236,7 +22981,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_decline_call(
                 uniffiHandle,
-                FfiConverterString.lower(`rtcNotificationEventId`),
+                
+        FfiConverterString.lower(`rtcNotificationEventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20313,7 +23059,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_edit(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newContent`),
+                
+        FfiConverterString.lower(`eventId`),
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`newContent`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20361,6 +23109,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_enable_send_queue(
         it,
+        
         FfiConverterBoolean.lower(`enable`),_status)
 }
     }
@@ -20396,7 +23145,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_fetch_thread_subscription(
                 uniffiHandle,
-                FfiConverterString.lower(`threadRootEventId`),
+                
+        FfiConverterString.lower(`threadRootEventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -20559,7 +23309,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_ignore_device_trust_and_resend(
                 uniffiHandle,
-                FfiConverterMapStringSequenceString.lower(`devices`),FfiConverterTypeSendHandle.lower(`sendHandle`),
+                
+        FfiConverterMapStringSequenceString.lower(`devices`),
+        FfiConverterTypeSendHandle.lower(`sendHandle`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20588,7 +23340,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_ignore_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20610,7 +23363,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_invite_user_by_id(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20803,7 +23557,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_kick_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterString.lower(`userId`),
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -20925,7 +23681,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_load_composer_draft(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`threadRoot`),
+                
+        FfiConverterOptionalString.lower(`threadRoot`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -20950,7 +23707,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -20979,7 +23737,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_load_or_fetch_event_with_relations(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),FfiConverterOptionalSequenceTypeRelationType.lower(`relationFilter`),
+                
+        FfiConverterString.lower(`eventId`),
+        FfiConverterOptionalSequenceTypeRelationType.lower(`relationFilter`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21011,7 +23771,10 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_load_user_receipt(
                 uniffiHandle,
-                FfiConverterTypeReceiptType.lower(`receiptType`),FfiConverterTypeReceiptThread.lower(`thread`),FfiConverterString.lower(`userId`),
+                
+        FfiConverterTypeReceiptType.lower(`receiptType`),
+        FfiConverterTypeReceiptThread.lower(`thread`),
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21043,7 +23806,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_fully_read_unchecked(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21071,7 +23835,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_mark_as_read(
                 uniffiHandle,
-                FfiConverterTypeReceiptType.lower(`receiptType`),
+                
+        FfiConverterTypeReceiptType.lower(`receiptType`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21093,7 +23858,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_matrix_to_event_permalink(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21135,7 +23901,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_member(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21156,7 +23923,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_member_avatar_url(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21177,7 +23945,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_member_display_name(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21208,7 +23977,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_member_with_sender_info(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21331,7 +24101,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_preview_room(
                 uniffiHandle,
-                FfiConverterSequenceString.lower(`via`),
+                
+        FfiConverterSequenceString.lower(`via`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -21360,7 +24131,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_publish_room_alias_in_room_directory(
                 uniffiHandle,
-                FfiConverterString.lower(`alias`),
+                
+        FfiConverterString.lower(`alias`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -21407,7 +24179,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_redact(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterString.lower(`eventId`),
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21462,7 +24236,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_remove_room_alias_from_room_directory(
                 uniffiHandle,
-                FfiConverterString.lower(`alias`),
+                
+        FfiConverterString.lower(`alias`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -21495,7 +24270,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_report_content(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterString.lower(`eventId`),
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21529,7 +24306,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_report_room(
                 uniffiHandle,
-                FfiConverterString.lower(`reason`),
+                
+        FfiConverterString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21622,7 +24400,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_save_composer_draft(
                 uniffiHandle,
-                FfiConverterTypeComposerDraft.lower(`draft`),FfiConverterOptionalString.lower(`threadRoot`),
+                
+        FfiConverterTypeComposerDraft.lower(`draft`),
+        FfiConverterOptionalString.lower(`threadRoot`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21647,7 +24427,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(
                 uniffiHandle,
-                FfiConverterString.lower(`geoUri`),
+                
+        FfiConverterString.lower(`geoUri`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21678,7 +24459,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_raw(
                 uniffiHandle,
-                FfiConverterString.lower(`eventType`),FfiConverterString.lower(`content`),
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`content`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21711,7 +24494,10 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_single_receipt(
                 uniffiHandle,
-                FfiConverterTypeReceiptType.lower(`receiptType`),FfiConverterTypeReceiptThread.lower(`thread`),FfiConverterString.lower(`eventId`),
+                
+        FfiConverterTypeReceiptType.lower(`receiptType`),
+        FfiConverterTypeReceiptThread.lower(`thread`),
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21748,7 +24534,10 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(
                 uniffiHandle,
-                FfiConverterString.lower(`eventType`),FfiConverterString.lower(`stateKey`),FfiConverterString.lower(`content`),
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`stateKey`),
+        FfiConverterString.lower(`content`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21769,7 +24558,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`isFavourite`),FfiConverterOptionalDouble.lower(`tagOrder`),
+                
+        FfiConverterBoolean.lower(`isFavourite`),
+        FfiConverterOptionalDouble.lower(`tagOrder`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21791,7 +24582,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_is_low_priority(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`isLowPriority`),FfiConverterOptionalDouble.lower(`tagOrder`),
+                
+        FfiConverterBoolean.lower(`isLowPriority`),
+        FfiConverterOptionalDouble.lower(`tagOrder`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21816,7 +24609,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_name(
                 uniffiHandle,
-                FfiConverterString.lower(`name`),
+                
+        FfiConverterString.lower(`name`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21838,7 +24632,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_own_member_display_name(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`displayName`),
+                
+        FfiConverterOptionalString.lower(`displayName`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21873,7 +24668,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_thread_subscription(
                 uniffiHandle,
-                FfiConverterString.lower(`threadRootEventId`),FfiConverterBoolean.lower(`subscribed`),
+                
+        FfiConverterString.lower(`threadRootEventId`),
+        FfiConverterBoolean.lower(`subscribed`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21898,7 +24695,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_topic(
                 uniffiHandle,
-                FfiConverterString.lower(`topic`),
+                
+        FfiConverterString.lower(`topic`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21924,7 +24722,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_set_unread_flag(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`newValue`),
+                
+        FfiConverterBoolean.lower(`newValue`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -21949,7 +24748,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_start_live_location_share(
                 uniffiHandle,
-                FfiConverterULong.lower(`durationMillis`),
+                
+        FfiConverterULong.lower(`durationMillis`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -21957,6 +24757,41 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * The current room state events of the given type, one per state key.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state events to read. For a type that
+     * has no variant of its own, build one from its string representation
+     * with `stateEventTypeFromString("com.example.custom")`.
+     *
+     * Only the state the sync asked for is stored locally, so for a custom
+     * event type this is empty unless that type is part of the sliding sync
+     * `required_state`.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `stateEvents`(`eventType`: StateEventType) : List<RoomStateEvent> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_state_events(
+                uniffiHandle,
+                
+        FfiConverterTypeStateEventType.lower(`eventType`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeRoomStateEvent.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -22001,7 +24836,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_call_decline_events(
         it,
-        FfiConverterString.lower(`rtcNotificationEventId`),FfiConverterTypeCallDeclineListener.lower(`listener`),_status)
+        
+        FfiConverterString.lower(`rtcNotificationEventId`),
+        FfiConverterTypeCallDeclineListener.lower(`listener`),_status)
 }
     }
     )
@@ -22016,7 +24853,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_identity_status_changes(
                 uniffiHandle,
-                FfiConverterTypeIdentityStatusChangeListener.lower(`listener`),
+                
+        FfiConverterTypeIdentityStatusChangeListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -22045,7 +24883,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_knock_requests(
                 uniffiHandle,
-                FfiConverterTypeKnockRequestsListener.lower(`listener`),
+                
+        FfiConverterTypeKnockRequestsListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -22064,6 +24903,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_room_info_updates(
         it,
+        
         FfiConverterTypeRoomInfoListener.lower(`listener`),_status)
 }
     }
@@ -22086,7 +24926,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_send_queue_updates(
                 uniffiHandle,
-                FfiConverterTypeSendQueueListener.lower(`listener`),
+                
+        FfiConverterTypeSendQueueListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -22099,12 +24940,44 @@ open class Room: Disposable, AutoCloseable, RoomInterface
     )
     }
 
+    
+    /**
+     * Subscribe to the room state events of the given type.
+     *
+     * The listener is called with the full current list of state events of
+     * that type, one per state key, immediately and then after every sync
+     * that changed any of them. All the changes of one sync are reported as a
+     * single snapshot.
+     *
+     * Use the returned [`TaskHandle`] to cancel the subscription.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state events to listen to. For a type
+     * that has no variant of its own, build one from its string
+     * representation with `stateEventTypeFromString("com.example.custom")`.
+     */override fun `subscribeToStateEvents`(`eventType`: StateEventType, `listener`: RoomStateEventsListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_state_events(
+        it,
+        
+        FfiConverterTypeStateEventType.lower(`eventType`),
+        FfiConverterTypeRoomStateEventsListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
+
     override fun `subscribeToTypingNotifications`(`listener`: TypingNotificationsListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
     callWithHandle {
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_typing_notifications(
         it,
+        
         FfiConverterTypeTypingNotificationsListener.lower(`listener`),_status)
 }
     }
@@ -22142,7 +25015,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_suggested_role_for_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -22213,7 +25087,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_timeline_with_configuration(
                 uniffiHandle,
-                FfiConverterTypeTimelineConfiguration.lower(`configuration`),
+                
+        FfiConverterTypeTimelineConfiguration.lower(`configuration`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -22247,7 +25122,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_typing_notice(
                 uniffiHandle,
-                FfiConverterBoolean.lower(`isTyping`),
+                
+        FfiConverterBoolean.lower(`isTyping`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22269,7 +25145,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_unban_user(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterString.lower(`userId`),
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22296,7 +25174,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_update_canonical_alias(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`alias`),FfiConverterSequenceString.lower(`altAliases`),
+                
+        FfiConverterOptionalString.lower(`alias`),
+        FfiConverterSequenceString.lower(`altAliases`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22321,7 +25201,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_update_history_visibility(
                 uniffiHandle,
-                FfiConverterTypeRoomHistoryVisibility.lower(`visibility`),
+                
+        FfiConverterTypeRoomHistoryVisibility.lower(`visibility`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22346,7 +25227,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_update_join_rules(
                 uniffiHandle,
-                FfiConverterTypeJoinRule.lower(`newRule`),
+                
+        FfiConverterTypeJoinRule.lower(`newRule`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22368,7 +25250,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_update_power_levels_for_users(
                 uniffiHandle,
-                FfiConverterSequenceTypeUserPowerLevelUpdate.lower(`updates`),
+                
+        FfiConverterSequenceTypeUserPowerLevelUpdate.lower(`updates`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22393,7 +25276,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_update_room_visibility(
                 uniffiHandle,
-                FfiConverterTypeRoomVisibility.lower(`visibility`),
+                
+        FfiConverterTypeRoomVisibility.lower(`visibility`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22430,7 +25314,10 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(
                 uniffiHandle,
-                FfiConverterString.lower(`mimeType`),FfiConverterByteArray.lower(`data`),FfiConverterOptionalTypeImageInfo.lower(`mediaInfo`),
+                
+        FfiConverterString.lower(`mimeType`),
+        FfiConverterByteArray.lower(`data`),
+        FfiConverterOptionalTypeImageInfo.lower(`mediaInfo`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22464,7 +25351,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(
                 uniffiHandle,
-                FfiConverterSequenceString.lower(`userIds`),FfiConverterTypeSendHandle.lower(`sendHandle`),
+                
+        FfiConverterSequenceString.lower(`userIds`),
+        FfiConverterTypeSendHandle.lower(`sendHandle`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -22699,6 +25588,11 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -22848,7 +25742,8 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_results(
                 uniffiHandle,
-                FfiConverterTypeRoomDirectorySearchEntriesListener.lower(`listener`),
+                
+        FfiConverterTypeRoomDirectorySearchEntriesListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -22881,7 +25776,10 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomdirectorysearch_search(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`filter`),FfiConverterUInt.lower(`batchSize`),FfiConverterOptionalString.lower(`viaServerName`),
+                
+        FfiConverterOptionalString.lower(`filter`),
+        FfiConverterUInt.lower(`batchSize`),
+        FfiConverterOptionalString.lower(`viaServerName`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -23071,6 +25969,11 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -23142,7 +26045,9 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlist_entries_with_dynamic_adapters(
         it,
-        FfiConverterUInt.lower(`pageSize`),FfiConverterTypeRoomListEntriesListener.lower(`listener`),_status)
+        
+        FfiConverterUInt.lower(`pageSize`),
+        FfiConverterTypeRoomListEntriesListener.lower(`listener`),_status)
 }
     }
     )
@@ -23156,6 +26061,7 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface
     uniffiRustCallWithError(RoomListException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlist_loading_state(
         it,
+        
         FfiConverterTypeRoomListLoadingStateListener.lower(`listener`),_status)
 }
     }
@@ -23170,6 +26076,7 @@ open class RoomList: Disposable, AutoCloseable, RoomListInterface
     uniffiRustCallWithError(RoomListException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlist_room(
         it,
+        
         FfiConverterString.lower(`roomId`),_status)
 }
     }
@@ -23353,6 +26260,11 @@ open class RoomListDynamicEntriesController: Disposable, AutoCloseable, RoomList
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -23448,6 +26360,7 @@ open class RoomListDynamicEntriesController: Disposable, AutoCloseable, RoomList
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistdynamicentriescontroller_set_filter(
         it,
+        
         FfiConverterTypeRoomListEntriesDynamicFilterKind.lower(`kind`),_status)
 }
     }
@@ -23628,6 +26541,11 @@ open class RoomListEntriesWithDynamicAdaptersResult: Disposable, AutoCloseable, 
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -23904,6 +26822,11 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -23997,6 +26920,7 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
     uniffiRustCallWithError(RoomListException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_remove_room_subscriptions(
         it,
+        
         FfiConverterSequenceString.lower(`roomIds`),_status)
 }
     }
@@ -24011,7 +26935,8 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_reset_and_add_room_subscriptions(
                 uniffiHandle,
-                FfiConverterSequenceString.lower(`roomIds`),
+                
+        FfiConverterSequenceString.lower(`roomIds`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -24032,6 +26957,7 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
     uniffiRustCallWithError(RoomListException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_room(
         it,
+        
         FfiConverterString.lower(`roomId`),_status)
 }
     }
@@ -24047,7 +26973,8 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_set_room_subscriptions(
                 uniffiHandle,
-                FfiConverterSequenceString.lower(`roomIds`),
+                
+        FfiConverterSequenceString.lower(`roomIds`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -24067,6 +26994,7 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_state(
         it,
+        
         FfiConverterTypeRoomListServiceStateListener.lower(`listener`),_status)
 }
     }
@@ -24080,7 +27008,10 @@ open class RoomListService: Disposable, AutoCloseable, RoomListServiceInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roomlistservice_sync_indicator(
         it,
-        FfiConverterUInt.lower(`delayBeforeShowingInMs`),FfiConverterUInt.lower(`delayBeforeHidingInMs`),FfiConverterTypeRoomListServiceSyncIndicatorListener.lower(`listener`),_status)
+        
+        FfiConverterUInt.lower(`delayBeforeShowingInMs`),
+        FfiConverterUInt.lower(`delayBeforeHidingInMs`),
+        FfiConverterTypeRoomListServiceSyncIndicatorListener.lower(`listener`),_status)
 }
     }
     )
@@ -24261,6 +27192,11 @@ open class RoomMembersIterator: Disposable, AutoCloseable, RoomMembersIteratorIn
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -24345,6 +27281,7 @@ open class RoomMembersIterator: Disposable, AutoCloseable, RoomMembersIteratorIn
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roommembersiterator_next_chunk(
         it,
+        
         FfiConverterUInt.lower(`chunkSize`),_status)
 }
     }
@@ -24524,6 +27461,11 @@ open class RoomMessageEventContentWithoutRelation: Disposable, AutoCloseable, Ro
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -24595,6 +27537,7 @@ open class RoomMessageEventContentWithoutRelation: Disposable, AutoCloseable, Ro
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roommessageeventcontentwithoutrelation_with_mentions(
         it,
+        
         FfiConverterTypeMentions.lower(`mentions`),_status)
 }
     }
@@ -24905,6 +27848,11 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -25079,6 +28027,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_message(
         it,
+        
         FfiConverterTypeMessageLikeEventType.lower(`message`),_status)
 }
     }
@@ -25096,6 +28045,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_own_user_send_state(
         it,
+        
         FfiConverterTypeStateEventType.lower(`stateEvent`),_status)
 }
     }
@@ -25133,6 +28083,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_ban(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25153,6 +28104,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_invite(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25173,6 +28125,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_kick(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25193,6 +28146,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_pin_unpin(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25213,6 +28167,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_redact_other(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25233,6 +28188,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_redact_own(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25253,7 +28209,9 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_send_message(
         it,
-        FfiConverterString.lower(`userId`),FfiConverterTypeMessageLikeEventType.lower(`message`),_status)
+        
+        FfiConverterString.lower(`userId`),
+        FfiConverterTypeMessageLikeEventType.lower(`message`),_status)
 }
     }
     )
@@ -25273,7 +28231,9 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_send_state(
         it,
-        FfiConverterString.lower(`userId`),FfiConverterTypeStateEventType.lower(`stateEvent`),_status)
+        
+        FfiConverterString.lower(`userId`),
+        FfiConverterTypeStateEventType.lower(`stateEvent`),_status)
 }
     }
     )
@@ -25293,6 +28253,7 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_roompowerlevels_can_user_trigger_room_notification(
         it,
+        
         FfiConverterString.lower(`userId`),_status)
 }
     }
@@ -25551,6 +28512,11 @@ open class RoomPreview: Disposable, AutoCloseable, RoomPreviewInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -25939,6 +28905,11 @@ open class SearchService: Disposable, AutoCloseable, SearchServiceInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -26059,7 +29030,8 @@ open class SearchService: Disposable, AutoCloseable, SearchServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_searchservice_set_query(
                 uniffiHandle,
-                FfiConverterString.lower(`query`),
+                
+        FfiConverterString.lower(`query`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -26082,6 +29054,7 @@ open class SearchService: Disposable, AutoCloseable, SearchServiceInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_searchservice_subscribe_to_pagination_state_updates(
         it,
+        
         FfiConverterTypeSearchServicePaginationStateListener.lower(`listener`),_status)
 }
     }
@@ -26099,7 +29072,8 @@ open class SearchService: Disposable, AutoCloseable, SearchServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_searchservice_subscribe_to_results(
                 uniffiHandle,
-                FfiConverterTypeSearchServiceResultsListener.lower(`listener`),
+                
+        FfiConverterTypeSearchServiceResultsListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -26299,6 +29273,11 @@ open class SecretsBundleWithUserId: Disposable, AutoCloseable, SecretsBundleWith
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -26406,7 +29385,10 @@ open class SecretsBundleWithUserId: Disposable, AutoCloseable, SecretsBundleWith
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
      suspend fun `fromDatabase`(`databasePath`: kotlin.String, `passphrase`: kotlin.String?, `backupInfo`: kotlin.String) : SecretsBundleWithUserId {
         return uniffiRustCallAsync(
-        UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_database(FfiConverterString.lower(`databasePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterString.lower(`backupInfo`),),
+        UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_database(
+        FfiConverterString.lower(`databasePath`),
+        FfiConverterOptionalString.lower(`passphrase`),
+        FfiConverterString.lower(`backupInfo`),),
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
         { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_u64(future, continuation) },
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_u64(future) },
@@ -26427,7 +29409,10 @@ open class SecretsBundleWithUserId: Disposable, AutoCloseable, SecretsBundleWith
     uniffiRustCallWithError(BundleExportException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_secretsbundlewithuserid_from_str(
     
-        FfiConverterString.lower(`userId`),FfiConverterString.lower(`bundle`),FfiConverterString.lower(`backupInfo`),_status)
+        
+        FfiConverterString.lower(`userId`),
+        FfiConverterString.lower(`bundle`),
+        FfiConverterString.lower(`backupInfo`),_status)
 }
     )
     }
@@ -26607,6 +29592,11 @@ open class SendAttachmentJoinHandle: Disposable, AutoCloseable, SendAttachmentJo
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -26900,6 +29890,11 @@ open class SendGalleryJoinHandle: Disposable, AutoCloseable, SendGalleryJoinHand
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -27215,6 +30210,11 @@ open class SendHandle: Disposable, AutoCloseable, SendHandleInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -27299,7 +30299,8 @@ open class SendHandle: Disposable, AutoCloseable, SendHandleInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sendhandle_abort(
                 uniffiHandle,
-                FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -27564,6 +30565,11 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -27668,7 +30674,9 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_acknowledge_verification_request(
                 uniffiHandle,
-                FfiConverterString.lower(`senderId`),FfiConverterString.lower(`flowId`),
+                
+        FfiConverterString.lower(`senderId`),
+        FfiConverterString.lower(`flowId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -27793,7 +30801,8 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_user_verification(
                 uniffiHandle,
-                FfiConverterString.lower(`userId`),
+                
+        FfiConverterString.lower(`userId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -27813,6 +30822,7 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(
         it,
+        
         FfiConverterOptionalTypeSessionVerificationControllerDelegate.lower(`delegate`),_status)
 }
     }
@@ -28018,6 +31028,11 @@ open class SessionVerificationEmoji: Disposable, AutoCloseable, SessionVerificat
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -28350,6 +31365,11 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -28536,6 +31556,7 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_pagination_state_updates(
         it,
+        
         FfiConverterTypeSpaceRoomListPaginationStateListener.lower(`listener`),_status)
 }
     }
@@ -28553,7 +31574,8 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_room_update(
                 uniffiHandle,
-                FfiConverterTypeSpaceRoomListEntriesListener.lower(`listener`),
+                
+        FfiConverterTypeSpaceRoomListEntriesListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -28575,6 +31597,7 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceroomlist_subscribe_to_space_updates(
         it,
+        
         FfiConverterTypeSpaceRoomListSpaceListener.lower(`listener`),_status)
 }
     }
@@ -28743,6 +31766,26 @@ public interface SpaceServiceInterface {
     suspend fun `getSpaceRoom`(`roomId`: kotlin.String): SpaceRoom?
     
     /**
+     * Returns the room IDs of all known direct parents of the given child
+     * space or room.
+     *
+     * This is a much cheaper version of [`Self::joined_parents_of_child()`]
+     * that doesn't build any `SpaceRoom` instances, it only reads the
+     * existing space graph.
+     *
+     * The returned IDs are always joined spaces, as that's all the space graph
+     * includes. Note that an empty result either means that the child is a
+     * top-level space (which has no direct parents) or the child isn't part of
+     * the space graph at all.
+     * See [`Self::top_level_ancestors_of()`] if you need that particular level
+     * of detail.
+     *
+     * Note: Unlike [`Self::top_level_joined_spaces()`], this method does not
+     * recompute the space graph nor notify subscribers about changes.
+     */
+    suspend fun `joinedParentIdsOfChild`(`childId`: kotlin.String): List<kotlin.String>
+    
+    /**
      * Returns all known direct-parents of a given space room ID.
      */
     suspend fun `joinedParentsOfChild`(`childId`: kotlin.String): List<SpaceRoom>
@@ -28786,6 +31829,25 @@ public interface SpaceServiceInterface {
      * joined or left, the stream will yield diffs that reflect the changes.
      */
     suspend fun `subscribeToTopLevelJoinedSpaces`(`listener`: SpaceServiceJoinedSpacesListener): TaskHandle
+    
+    /**
+     * Returns the room IDs of the top-level joined space(s) that the given
+     * child room/space descends from, by walking the space graph upwards.
+     *
+     * A room/space can be the child of multiple spaces, so this might return
+     * multiple top-level spaces (in no order).
+     *
+     * A top-level space is its own only ancestor, which makes
+     * `top_level_ancestors_of(id) == [id]` a cheap top-level space check.
+     *
+     * Returns an empty vector if the room isn't part of the graph, which is
+     * notably the case for a room that was joined too recently for the graph
+     * to have been rebuilt.
+     *
+     * Note: Unlike [`Self::top_level_joined_spaces()`], this method does not
+     * recompute the space graph nor notify subscribers about changes.
+     */
+    suspend fun `topLevelAncestorsOf`(`childId`: kotlin.String): List<kotlin.String>
     
     /**
      * Returns a list of all the top-level joined spaces. It will eagerly
@@ -28834,6 +31896,11 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -28908,7 +31975,9 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_add_child_to_space(
                 uniffiHandle,
-                FfiConverterString.lower(`childId`),FfiConverterString.lower(`spaceId`),
+                
+        FfiConverterString.lower(`childId`),
+        FfiConverterString.lower(`spaceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -28961,7 +32030,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_get_space_room(
                 uniffiHandle,
-                FfiConverterString.lower(`roomId`),
+                
+        FfiConverterString.lower(`roomId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -28969,6 +32039,46 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterOptionalTypeSpaceRoom.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the room IDs of all known direct parents of the given child
+     * space or room.
+     *
+     * This is a much cheaper version of [`Self::joined_parents_of_child()`]
+     * that doesn't build any `SpaceRoom` instances, it only reads the
+     * existing space graph.
+     *
+     * The returned IDs are always joined spaces, as that's all the space graph
+     * includes. Note that an empty result either means that the child is a
+     * top-level space (which has no direct parents) or the child isn't part of
+     * the space graph at all.
+     * See [`Self::top_level_ancestors_of()`] if you need that particular level
+     * of detail.
+     *
+     * Note: Unlike [`Self::top_level_joined_spaces()`], this method does not
+     * recompute the space graph nor notify subscribers about changes.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `joinedParentIdsOfChild`(`childId`: kotlin.String) : List<kotlin.String> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_parent_ids_of_child(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`childId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceString.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -28985,7 +32095,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_joined_parents_of_child(
                 uniffiHandle,
-                FfiConverterString.lower(`childId`),
+                
+        FfiConverterString.lower(`childId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -29015,7 +32126,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_leave_space(
                 uniffiHandle,
-                FfiConverterString.lower(`spaceId`),
+                
+        FfiConverterString.lower(`spaceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -29036,7 +32148,9 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_remove_child_from_space(
                 uniffiHandle,
-                FfiConverterString.lower(`childId`),FfiConverterString.lower(`spaceId`),
+                
+        FfiConverterString.lower(`childId`),
+        FfiConverterString.lower(`spaceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -29090,7 +32204,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_space_room_list(
                 uniffiHandle,
-                FfiConverterString.lower(`spaceId`),
+                
+        FfiConverterString.lower(`spaceId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -29113,7 +32228,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_space_filters(
                 uniffiHandle,
-                FfiConverterTypeSpaceServiceSpaceFiltersListener.lower(`listener`),
+                
+        FfiConverterTypeSpaceServiceSpaceFiltersListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -29137,7 +32253,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_subscribe_to_top_level_joined_spaces(
                 uniffiHandle,
-                FfiConverterTypeSpaceServiceJoinedSpacesListener.lower(`listener`),
+                
+        FfiConverterTypeSpaceServiceJoinedSpacesListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -29147,6 +32264,45 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
         { FfiConverterTypeTaskHandle.lift(it) },
         // Error FFI converter
         UniffiNullRustCallStatusErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Returns the room IDs of the top-level joined space(s) that the given
+     * child room/space descends from, by walking the space graph upwards.
+     *
+     * A room/space can be the child of multiple spaces, so this might return
+     * multiple top-level spaces (in no order).
+     *
+     * A top-level space is its own only ancestor, which makes
+     * `top_level_ancestors_of(id) == [id]` a cheap top-level space check.
+     *
+     * Returns an empty vector if the room isn't part of the graph, which is
+     * notably the case for a room that was joined too recently for the graph
+     * to have been rebuilt.
+     *
+     * Note: Unlike [`Self::top_level_joined_spaces()`], this method does not
+     * recompute the space graph nor notify subscribers about changes.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `topLevelAncestorsOf`(`childId`: kotlin.String) : List<kotlin.String> {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_spaceservice_top_level_ancestors_of(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`childId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
     )
     }
 
@@ -29375,7 +32531,13 @@ open class Span: Disposable, AutoCloseable, SpanInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_span_new(
     
-        FfiConverterString.lower(`file`),FfiConverterOptionalUInt.lower(`line`),FfiConverterTypeLogLevel.lower(`level`),FfiConverterString.lower(`target`),FfiConverterString.lower(`name`),FfiConverterOptionalString.lower(`bridgeTraceId`),_status)
+        
+        FfiConverterString.lower(`file`),
+        FfiConverterOptionalUInt.lower(`line`),
+        FfiConverterTypeLogLevel.lower(`level`),
+        FfiConverterString.lower(`target`),
+        FfiConverterString.lower(`name`),
+        FfiConverterOptionalString.lower(`bridgeTraceId`),_status)
 }
     )
 
@@ -29384,6 +32546,11 @@ open class Span: Disposable, AutoCloseable, SpanInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -29516,7 +32683,9 @@ open class Span: Disposable, AutoCloseable, SpanInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_span_new_bridge_span(
     
-        FfiConverterString.lower(`target`),FfiConverterOptionalString.lower(`parentTraceId`),_status)
+        
+        FfiConverterString.lower(`target`),
+        FfiConverterOptionalString.lower(`parentTraceId`),_status)
 }
     )
     }
@@ -29668,6 +32837,26 @@ public interface SqliteStoreBuilderInterface {
     fun `cacheSize`(`cacheSize`: kotlin.UInt?): SqliteStoreBuilder
     
     /**
+     * Define the passphrase if the store is encoded, declaring that it was
+     * randomly generated rather than chosen by a human.
+     *
+     * Do NOT use this with human-chosen passphrases, as doing so would
+     * remove their brute-force protection.
+     *
+     * This migrates a passphrase-based store whose passphrase was created
+     * by base64-encoding a randomly generated key to a key-based
+     * setup.
+     *
+     * Once this function has been called,
+     * [`SqliteStoreBuilder::passphrase`] can no longer be used with
+     * the passphrase.
+     *
+     * [`SqliteStoreBuilder::key`] can be used with the original key,
+     * before it was base64-encoded.
+     */
+    fun `highEntropyPassphrase`(`passphrase`: kotlin.ByteArray?, `base64Variant`: Base64Variant): SqliteStoreBuilder
+    
+    /**
      * Set the size limit for the SQLite WAL files of stores.
      *
      * Each store uses the WAL journal mode. This method controls the size
@@ -29754,7 +32943,9 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_constructor_sqlitestorebuilder_new(
     
-        FfiConverterString.lower(`dataPath`),FfiConverterString.lower(`cachePath`),_status)
+        
+        FfiConverterString.lower(`dataPath`),
+        FfiConverterString.lower(`cachePath`),_status)
 }
     )
 
@@ -29763,6 +32954,11 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -29848,7 +33044,41 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_cache_size(
         it,
+        
         FfiConverterOptionalUInt.lower(`cacheSize`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Define the passphrase if the store is encoded, declaring that it was
+     * randomly generated rather than chosen by a human.
+     *
+     * Do NOT use this with human-chosen passphrases, as doing so would
+     * remove their brute-force protection.
+     *
+     * This migrates a passphrase-based store whose passphrase was created
+     * by base64-encoding a randomly generated key to a key-based
+     * setup.
+     *
+     * Once this function has been called,
+     * [`SqliteStoreBuilder::passphrase`] can no longer be used with
+     * the passphrase.
+     *
+     * [`SqliteStoreBuilder::key`] can be used with the original key,
+     * before it was base64-encoded.
+     */override fun `highEntropyPassphrase`(`passphrase`: kotlin.ByteArray?, `base64Variant`: Base64Variant): SqliteStoreBuilder {
+            return FfiConverterTypeSqliteStoreBuilder.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_high_entropy_passphrase(
+        it,
+        
+        FfiConverterOptionalByteArray.lower(`passphrase`),
+        FfiConverterTypeBase64Variant.lower(`base64Variant`),_status)
 }
     }
     )
@@ -29869,6 +33099,7 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_journal_size_limit(
         it,
+        
         FfiConverterOptionalUInt.lower(`limit`),_status)
 }
     }
@@ -29886,6 +33117,7 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_key(
         it,
+        
         FfiConverterOptionalByteArray.lower(`key`),_status)
 }
     }
@@ -29903,6 +33135,7 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_passphrase(
         it,
+        
         FfiConverterOptionalString.lower(`passphrase`),_status)
 }
     }
@@ -29926,6 +33159,7 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sqlitestorebuilder_pool_max_size(
         it,
+        
         FfiConverterOptionalUInt.lower(`poolMaxSize`),_status)
 }
     }
@@ -30142,6 +33376,11 @@ open class SsoHandler: Disposable, AutoCloseable, SsoHandlerInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -30218,7 +33457,8 @@ open class SsoHandler: Disposable, AutoCloseable, SsoHandlerInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_ssohandler_finish(
                 uniffiHandle,
-                FfiConverterString.lower(`callbackUrl`),
+                
+        FfiConverterString.lower(`callbackUrl`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -30437,6 +33677,11 @@ open class SyncService: Disposable, AutoCloseable, SyncServiceInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -30570,6 +33815,7 @@ open class SyncService: Disposable, AutoCloseable, SyncServiceInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservice_state(
         it,
+        
         FfiConverterTypeSyncServiceStateObserver.lower(`listener`),_status)
 }
     }
@@ -30800,6 +34046,11 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -30911,6 +34162,7 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_parent_span(
         it,
+        
         FfiConverterTypeSpan.lower(`span`),_status)
 }
     }
@@ -30932,6 +34184,7 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_connection_id(
         it,
+        
         FfiConverterString.lower(`connectionId`),_status)
 }
     }
@@ -30951,6 +34204,7 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_room_list_timeline_limit(
         it,
+        
         FfiConverterUInt.lower(`limit`),_status)
 }
     }
@@ -30964,6 +34218,7 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_syncservicebuilder_with_share_pos(
         it,
+        
         FfiConverterBoolean.lower(`enable`),_status)
 }
     }
@@ -31159,6 +34414,11 @@ open class TaskHandle: Disposable, AutoCloseable, TaskHandleInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -31489,6 +34749,11 @@ open class ThreadListService: Disposable, AutoCloseable, ThreadListServiceInterf
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -31654,6 +34919,7 @@ open class ThreadListService: Disposable, AutoCloseable, ThreadListServiceInterf
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_items_updates(
         it,
+        
         FfiConverterTypeThreadListEntriesListener.lower(`listener`),_status)
 }
     }
@@ -31674,6 +34940,7 @@ open class ThreadListService: Disposable, AutoCloseable, ThreadListServiceInterf
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_threadlistservice_subscribe_to_pagination_state_updates(
         it,
+        
         FfiConverterTypeThreadListPaginationStateListener.lower(`listener`),_status)
 }
     }
@@ -31854,6 +35121,11 @@ open class ThreadSummary: Disposable, AutoCloseable, ThreadSummaryInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -32311,6 +35583,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -32383,7 +35660,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_add_listener(
                 uniffiHandle,
-                FfiConverterTypeTimelineListener.lower(`listener`),
+                
+        FfiConverterTypeTimelineListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -32402,6 +35680,7 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(
         it,
+        
         FfiConverterTypeMessageType.lower(`msgType`),_status)
 }
     }
@@ -32417,7 +35696,11 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_create_poll(
                 uniffiHandle,
-                FfiConverterString.lower(`question`),FfiConverterSequenceString.lower(`answers`),FfiConverterUByte.lower(`maxSelections`),FfiConverterTypePollKind.lower(`pollKind`),
+                
+        FfiConverterString.lower(`question`),
+        FfiConverterSequenceString.lower(`answers`),
+        FfiConverterUByte.lower(`maxSelections`),
+        FfiConverterTypePollKind.lower(`pollKind`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32449,7 +35732,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_edit(
                 uniffiHandle,
-                FfiConverterTypeEventOrTransactionId.lower(`eventOrTransactionId`),FfiConverterTypeEditedContent.lower(`newContent`),
+                
+        FfiConverterTypeEventOrTransactionId.lower(`eventOrTransactionId`),
+        FfiConverterTypeEditedContent.lower(`newContent`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32478,7 +35763,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_edit_revisions(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -32499,7 +35785,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(
                 uniffiHandle,
-                FfiConverterString.lower(`pollStartEventId`),FfiConverterString.lower(`text`),
+                
+        FfiConverterString.lower(`pollStartEventId`),
+        FfiConverterString.lower(`text`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32521,7 +35809,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_fetch_details_for_event(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32574,7 +35863,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_get_event_timeline_item_by_event_id(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -32624,7 +35914,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_load_reply_details(
                 uniffiHandle,
-                FfiConverterString.lower(`eventIdStr`),
+                
+        FfiConverterString.lower(`eventIdStr`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -32662,7 +35953,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_mark_as_read(
                 uniffiHandle,
-                FfiConverterTypeReceiptType.lower(`receiptType`),
+                
+        FfiConverterTypeReceiptType.lower(`receiptType`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32689,7 +35981,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_backwards(
                 uniffiHandle,
-                FfiConverterUShort.lower(`numEvents`),
+                
+        FfiConverterUShort.lower(`numEvents`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -32715,7 +36008,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_paginate_forwards(
                 uniffiHandle,
-                FfiConverterUShort.lower(`numEvents`),
+                
+        FfiConverterUShort.lower(`numEvents`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -32743,7 +36037,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_pin_event(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -32775,7 +36070,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_redact_event(
                 uniffiHandle,
-                FfiConverterTypeEventOrTransactionId.lower(`eventOrTransactionId`),FfiConverterOptionalString.lower(`reason`),
+                
+        FfiConverterTypeEventOrTransactionId.lower(`eventOrTransactionId`),
+        FfiConverterOptionalString.lower(`reason`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32795,6 +36092,7 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(
         it,
+        
         FfiConverterSequenceString.lower(`sessionIds`),_status)
 }
     }
@@ -32816,7 +36114,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send(
                 uniffiHandle,
-                FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),
+                
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -32836,7 +36135,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(
         it,
-        FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),_status)
+        
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterTypeAudioInfo.lower(`audioInfo`),_status)
 }
     }
     )
@@ -32850,7 +36151,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_file(
         it,
-        FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeFileInfo.lower(`fileInfo`),_status)
+        
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterTypeFileInfo.lower(`fileInfo`),_status)
 }
     }
     )
@@ -32864,7 +36167,10 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_image(
         it,
-        FfiConverterTypeUploadParameters.lower(`params`),FfiConverterOptionalTypeUploadSource.lower(`thumbnailSource`),FfiConverterTypeImageInfo.lower(`imageInfo`),_status)
+        
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterOptionalTypeUploadSource.lower(`thumbnailSource`),
+        FfiConverterTypeImageInfo.lower(`imageInfo`),_status)
 }
     }
     )
@@ -32879,7 +36185,13 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_location(
                 uniffiHandle,
-                FfiConverterString.lower(`body`),FfiConverterString.lower(`geoUri`),FfiConverterOptionalString.lower(`description`),FfiConverterOptionalUByte.lower(`zoomLevel`),FfiConverterOptionalTypeAssetType.lower(`assetType`),FfiConverterOptionalString.lower(`repliedToEventId`),
+                
+        FfiConverterString.lower(`body`),
+        FfiConverterString.lower(`geoUri`),
+        FfiConverterOptionalString.lower(`description`),
+        FfiConverterOptionalUByte.lower(`zoomLevel`),
+        FfiConverterOptionalTypeAssetType.lower(`assetType`),
+        FfiConverterOptionalString.lower(`repliedToEventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32901,7 +36213,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_poll_response(
                 uniffiHandle,
-                FfiConverterString.lower(`pollStartEventId`),FfiConverterSequenceString.lower(`answers`),
+                
+        FfiConverterString.lower(`pollStartEventId`),
+        FfiConverterSequenceString.lower(`answers`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32923,7 +36237,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_read_receipt(
                 uniffiHandle,
-                FfiConverterTypeReceiptType.lower(`receiptType`),FfiConverterString.lower(`eventId`),
+                
+        FfiConverterTypeReceiptType.lower(`receiptType`),
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -32952,7 +36268,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_reply(
                 uniffiHandle,
-                FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterString.lower(`eventId`),
+                
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -32972,7 +36290,10 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_video(
         it,
-        FfiConverterTypeUploadParameters.lower(`params`),FfiConverterOptionalTypeUploadSource.lower(`thumbnailSource`),FfiConverterTypeVideoInfo.lower(`videoInfo`),_status)
+        
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterOptionalTypeUploadSource.lower(`thumbnailSource`),
+        FfiConverterTypeVideoInfo.lower(`videoInfo`),_status)
 }
     }
     )
@@ -32986,7 +36307,10 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_voice_message(
         it,
-        FfiConverterTypeUploadParameters.lower(`params`),FfiConverterTypeAudioInfo.lower(`audioInfo`),FfiConverterSequenceFloat.lower(`waveform`),_status)
+        
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterTypeAudioInfo.lower(`audioInfo`),
+        FfiConverterSequenceFloat.lower(`waveform`),_status)
 }
     }
     )
@@ -33005,7 +36329,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_with_extra_content(
                 uniffiHandle,
-                FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),FfiConverterOptionalString.lower(`extraContentJson`),
+                
+        FfiConverterTypeRoomMessageEventContentWithoutRelation.lower(`msg`),
+        FfiConverterOptionalString.lower(`extraContentJson`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -33026,7 +36352,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_subscribe_to_back_pagination_status(
                 uniffiHandle,
-                FfiConverterTypePaginationStatusListener.lower(`listener`),
+                
+        FfiConverterTypePaginationStatusListener.lower(`listener`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_u64(future, callback, continuation) },
@@ -33062,7 +36389,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction(
                 uniffiHandle,
-                FfiConverterTypeEventOrTransactionId.lower(`itemId`),FfiConverterString.lower(`key`),
+                
+        FfiConverterTypeEventOrTransactionId.lower(`itemId`),
+        FfiConverterString.lower(`key`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -33091,7 +36420,10 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_toggle_reaction_with_extra_content(
                 uniffiHandle,
-                FfiConverterTypeEventOrTransactionId.lower(`itemId`),FfiConverterString.lower(`key`),FfiConverterOptionalString.lower(`extraContentJson`),
+                
+        FfiConverterTypeEventOrTransactionId.lower(`itemId`),
+        FfiConverterString.lower(`key`),
+        FfiConverterOptionalString.lower(`extraContentJson`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -33119,7 +36451,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_unpin_event(
                 uniffiHandle,
-                FfiConverterString.lower(`eventId`),
+                
+        FfiConverterString.lower(`eventId`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -33139,7 +36472,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     uniffiRustCallWithError(RoomException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_gallery(
         it,
-        FfiConverterTypeGalleryUploadParameters.lower(`params`),FfiConverterSequenceTypeGalleryItemInfo.lower(`itemInfos`),_status)
+        
+        FfiConverterTypeGalleryUploadParameters.lower(`params`),
+        FfiConverterSequenceTypeGalleryItemInfo.lower(`itemInfos`),_status)
 }
     }
     )
@@ -33329,6 +36664,11 @@ open class TimelineEvent: Disposable, AutoCloseable, TimelineEventInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -33646,6 +36986,11 @@ open class TimelineItem: Disposable, AutoCloseable, TimelineItemInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -33941,6 +37286,11 @@ open class UnreadNotificationsCount: Disposable, AutoCloseable, UnreadNotificati
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -34279,6 +37629,11 @@ open class UserIdentity: Disposable, AutoCloseable, UserIdentityInterface
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -34667,6 +38022,11 @@ open class WidgetDriver: Disposable, AutoCloseable, WidgetDriverInterface
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
 
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
+
     override fun destroy() {
         // Only allow a single call to this method.
         // TODO: maybe we should log a warning if called more than once?
@@ -34739,7 +38099,9 @@ open class WidgetDriver: Disposable, AutoCloseable, WidgetDriverInterface
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_widgetdriver_run(
                 uniffiHandle,
-                FfiConverterTypeRoom.lower(`room`),FfiConverterTypeWidgetCapabilitiesProvider.lower(`capabilitiesProvider`),
+                
+        FfiConverterTypeRoom.lower(`room`),
+        FfiConverterTypeWidgetCapabilitiesProvider.lower(`capabilitiesProvider`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -34903,10 +38265,11 @@ public interface WidgetDriverHandleInterface {
     suspend fun `recv`(): kotlin.String?
     
     /**
+     * Send a message from the widget to the widget driver.
      *
      * Returns `false` if the widget driver is no longer running.
      */
-    suspend fun `send`(`msg`: kotlin.String): kotlin.Boolean
+    fun `send`(`msg`: kotlin.String): kotlin.Boolean
     
     companion object
 }
@@ -34945,6 +38308,11 @@ open class WidgetDriverHandle: Disposable, AutoCloseable, WidgetDriverHandleInte
 
     private val wasDestroyed = AtomicBoolean(false)
     private val callCounter = AtomicLong(1)
+
+    /**
+     * Whether the current object has been destroyed and its reference is gone in the Rust side.
+     */
+    val uniffiIsDestroyed: Boolean get() = wasDestroyed.get()
 
     override fun destroy() {
         // Only allow a single call to this method.
@@ -35040,27 +38408,22 @@ open class WidgetDriverHandle: Disposable, AutoCloseable, WidgetDriverHandleInte
 
     
     /**
+     * Send a message from the widget to the widget driver.
      *
      * Returns `false` if the widget driver is no longer running.
-     */
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `send`(`msg`: kotlin.String) : kotlin.Boolean {
-        return uniffiRustCallAsync(
-        callWithHandle { uniffiHandle ->
-            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(
-                uniffiHandle,
-                FfiConverterString.lower(`msg`),
-            )
-        },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
-        // lift function
-        { FfiConverterBoolean.lift(it) },
-        // Error FFI converter
-        UniffiNullRustCallStatusErrorHandler,
+     */override fun `send`(`msg`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_widgetdriverhandle_send(
+        it,
+        
+        FfiConverterString.lower(`msg`),_status)
+}
+    }
     )
     }
+    
 
     
 
@@ -35864,6 +39227,89 @@ public object FfiConverterTypeEmoteMessageContent: FfiConverterRustBuffer<EmoteM
 
 
 
+/**
+ * The encryption data of an event that was sent encrypted (and which we
+ * managed to decrypt).
+ */
+data class EventEncryptionInfo (
+    /**
+     * The user id this event is cryptographically attested to come from.
+     *
+     * For a to-device message this is what should be trusted, rather than the
+     * `sender` claimed in the event JSON.
+     */
+    var `senderId`: kotlin.String
+    , 
+    /**
+     * The device the event was sent from, as claimed by the sender.
+     */
+    var `senderDeviceId`: kotlin.String?
+    , 
+    /**
+     * The curve25519 key of the device that sent the event.
+     */
+    var `senderCurve25519Key`: kotlin.String?
+    , 
+    /**
+     * The megolm session the event was sent in, if it was sent with megolm.
+     */
+    var `sessionId`: kotlin.String?
+    , 
+    /**
+     * The shield to show for this event, lax interpretation.
+     */
+    var `shieldState`: ShieldState
+    , 
+    /**
+     * The shield to show for this event, strict interpretation.
+     */
+    var `shieldStateStrict`: ShieldState
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeEventEncryptionInfo: FfiConverterRustBuffer<EventEncryptionInfo> {
+    override fun read(buf: ByteBuffer): EventEncryptionInfo {
+        return EventEncryptionInfo(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterTypeShieldState.read(buf),
+            FfiConverterTypeShieldState.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: EventEncryptionInfo) = (
+            FfiConverterString.allocationSize(value.`senderId`) +
+            FfiConverterOptionalString.allocationSize(value.`senderDeviceId`) +
+            FfiConverterOptionalString.allocationSize(value.`senderCurve25519Key`) +
+            FfiConverterOptionalString.allocationSize(value.`sessionId`) +
+            FfiConverterTypeShieldState.allocationSize(value.`shieldState`) +
+            FfiConverterTypeShieldState.allocationSize(value.`shieldStateStrict`)
+    )
+
+    override fun write(value: EventEncryptionInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`senderId`, buf)
+            FfiConverterOptionalString.write(value.`senderDeviceId`, buf)
+            FfiConverterOptionalString.write(value.`senderCurve25519Key`, buf)
+            FfiConverterOptionalString.write(value.`sessionId`, buf)
+            FfiConverterTypeShieldState.write(value.`shieldState`, buf)
+            FfiConverterTypeShieldState.write(value.`shieldStateStrict`, buf)
+    }
+}
+
+
+
 data class EventTimelineItem (
     /**
      * Indicates that an event is remote.
@@ -35885,6 +39331,8 @@ data class EventTimelineItem (
     var `isEditable`: kotlin.Boolean
     , 
     var `content`: TimelineItemContent
+    , 
+    var `reactions`: List<Reaction>
     , 
     /**
      * The raw Matrix event type string (e.g. `"m.room.message"`), or `None`
@@ -35925,6 +39373,7 @@ data class EventTimelineItem (
         this.`isOwn`,
         this.`isEditable`,
         this.`content`,
+        this.`reactions`,
         this.`eventTypeRaw`,
         this.`timestamp`,
         this.`localSendState`,
@@ -35954,6 +39403,7 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterBoolean.read(buf),
             FfiConverterBoolean.read(buf),
             FfiConverterTypeTimelineItemContent.read(buf),
+            FfiConverterSequenceTypeReaction.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeTimestamp.read(buf),
             FfiConverterOptionalTypeEventSendState.read(buf),
@@ -35975,6 +39425,7 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterBoolean.allocationSize(value.`isOwn`) +
             FfiConverterBoolean.allocationSize(value.`isEditable`) +
             FfiConverterTypeTimelineItemContent.allocationSize(value.`content`) +
+            FfiConverterSequenceTypeReaction.allocationSize(value.`reactions`) +
             FfiConverterOptionalString.allocationSize(value.`eventTypeRaw`) +
             FfiConverterTypeTimestamp.allocationSize(value.`timestamp`) +
             FfiConverterOptionalTypeEventSendState.allocationSize(value.`localSendState`) +
@@ -35995,6 +39446,7 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterBoolean.write(value.`isOwn`, buf)
             FfiConverterBoolean.write(value.`isEditable`, buf)
             FfiConverterTypeTimelineItemContent.write(value.`content`, buf)
+            FfiConverterSequenceTypeReaction.write(value.`reactions`, buf)
             FfiConverterOptionalString.write(value.`eventTypeRaw`, buf)
             FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
             FfiConverterOptionalTypeEventSendState.write(value.`localSendState`, buf)
@@ -37511,13 +40963,10 @@ public object FfiConverterTypeMessageSearchResult: FfiConverterRustBuffer<Messag
 
 /**
  * A special kind of [`super::TimelineItemContent`] that groups together
- * different room message types with their respective reactions and thread
- * information.
+ * different room message types with their thread information.
  */
 data class MsgLikeContent (
     var `kind`: MsgLikeKind
-    , 
-    var `reactions`: List<Reaction>
     , 
     /**
      * The event this message is replying to, if any.
@@ -37545,7 +40994,6 @@ data class MsgLikeContent (
         
     Disposable.destroy(
         this.`kind`,
-        this.`reactions`,
         this.`inReplyTo`,
         this.`threadRoot`,
         this.`threadSummary`
@@ -37562,7 +41010,6 @@ public object FfiConverterTypeMsgLikeContent: FfiConverterRustBuffer<MsgLikeCont
     override fun read(buf: ByteBuffer): MsgLikeContent {
         return MsgLikeContent(
             FfiConverterTypeMsgLikeKind.read(buf),
-            FfiConverterSequenceTypeReaction.read(buf),
             FfiConverterOptionalTypeInReplyToDetails.read(buf),
             FfiConverterOptionalString.read(buf),
             FfiConverterOptionalTypeThreadSummary.read(buf),
@@ -37571,7 +41018,6 @@ public object FfiConverterTypeMsgLikeContent: FfiConverterRustBuffer<MsgLikeCont
 
     override fun allocationSize(value: MsgLikeContent) = (
             FfiConverterTypeMsgLikeKind.allocationSize(value.`kind`) +
-            FfiConverterSequenceTypeReaction.allocationSize(value.`reactions`) +
             FfiConverterOptionalTypeInReplyToDetails.allocationSize(value.`inReplyTo`) +
             FfiConverterOptionalString.allocationSize(value.`threadRoot`) +
             FfiConverterOptionalTypeThreadSummary.allocationSize(value.`threadSummary`)
@@ -37579,7 +41025,6 @@ public object FfiConverterTypeMsgLikeContent: FfiConverterRustBuffer<MsgLikeCont
 
     override fun write(value: MsgLikeContent, buf: ByteBuffer) {
             FfiConverterTypeMsgLikeKind.write(value.`kind`, buf)
-            FfiConverterSequenceTypeReaction.write(value.`reactions`, buf)
             FfiConverterOptionalTypeInReplyToDetails.write(value.`inReplyTo`, buf)
             FfiConverterOptionalString.write(value.`threadRoot`, buf)
             FfiConverterOptionalTypeThreadSummary.write(value.`threadSummary`, buf)
@@ -37621,6 +41066,96 @@ public object FfiConverterTypeNoticeMessageContent: FfiConverterRustBuffer<Notic
     override fun write(value: NoticeMessageContent, buf: ByteBuffer) {
             FfiConverterString.write(value.`body`, buf)
             FfiConverterOptionalTypeFormattedBody.write(value.`formatted`, buf)
+    }
+}
+
+
+
+/**
+ * Timeouts applied by a `NotificationClient` while fetching the content of
+ * notifications.
+ */
+data class NotificationClientTimeouts (
+    /**
+     * Long-poll timeout of the sliding sync request retrieving the notified
+     * events, i.e. how long the homeserver waits for the events to be
+     * available before answering.
+     */
+    var `syncPollTimeout`: java.time.Duration
+    , 
+    /**
+     * Extra time allowed for the network round trip of the sliding sync
+     * request retrieving the notified events, on top of `sync_poll_timeout`.
+     */
+    var `syncNetworkTimeout`: java.time.Duration
+    , 
+    /**
+     * Maximum time spent waiting for a missing room key, when an event in a
+     * notification can't be decrypted.
+     *
+     * This bounds both the encryption sync the notification client runs
+     * itself, after a minimum number of iterations, and the wait for the app's
+     * own encryption sync to receive the key when that sync is already running
+     * in the same process. In both cases the wait ends as soon as the event
+     * can be decrypted, and the event is returned undecrypted once the
+     * deadline has passed.
+     */
+    var `decryptionDeadline`: java.time.Duration
+    , 
+    /**
+     * Long-poll timeout of each request of the encryption sync run to obtain a
+     * missing room key, i.e. how long the homeserver waits for a to-device
+     * message to arrive before answering.
+     *
+     * Together with `decryption_deadline`, this determines how many
+     * iterations are run when the homeserver has nothing to return.
+     */
+    var `encryptionSyncPollTimeout`: java.time.Duration
+    , 
+    /**
+     * Extra time allowed for the network round trip of each request of the
+     * encryption sync, on top of `encryption_sync_poll_timeout`. This is an
+     * upper bound on how long a request may take.
+     */
+    var `encryptionSyncNetworkTimeout`: java.time.Duration
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeNotificationClientTimeouts: FfiConverterRustBuffer<NotificationClientTimeouts> {
+    override fun read(buf: ByteBuffer): NotificationClientTimeouts {
+        return NotificationClientTimeouts(
+            FfiConverterDuration.read(buf),
+            FfiConverterDuration.read(buf),
+            FfiConverterDuration.read(buf),
+            FfiConverterDuration.read(buf),
+            FfiConverterDuration.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: NotificationClientTimeouts) = (
+            FfiConverterDuration.allocationSize(value.`syncPollTimeout`) +
+            FfiConverterDuration.allocationSize(value.`syncNetworkTimeout`) +
+            FfiConverterDuration.allocationSize(value.`decryptionDeadline`) +
+            FfiConverterDuration.allocationSize(value.`encryptionSyncPollTimeout`) +
+            FfiConverterDuration.allocationSize(value.`encryptionSyncNetworkTimeout`)
+    )
+
+    override fun write(value: NotificationClientTimeouts, buf: ByteBuffer) {
+            FfiConverterDuration.write(value.`syncPollTimeout`, buf)
+            FfiConverterDuration.write(value.`syncNetworkTimeout`, buf)
+            FfiConverterDuration.write(value.`decryptionDeadline`, buf)
+            FfiConverterDuration.write(value.`encryptionSyncPollTimeout`, buf)
+            FfiConverterDuration.write(value.`encryptionSyncNetworkTimeout`, buf)
     }
 }
 
@@ -39996,6 +43531,87 @@ public object FfiConverterTypeRoomPreviewInfo: FfiConverterRustBuffer<RoomPrevie
 
 
 /**
+ * A room state event, as exposed over FFI.
+ */
+data class RoomStateEvent (
+    /**
+     * The event type, e.g. `m.room.name`.
+     */
+    var `eventType`: StateEventType
+    , 
+    /**
+     * The state key this event is stored under.
+     */
+    var `stateKey`: kotlin.String
+    , 
+    /**
+     * The event sender.
+     */
+    var `sender`: kotlin.String
+    , 
+    /**
+     * The `content` of the event, as a JSON string.
+     */
+    var `contentJson`: kotlin.String
+    , 
+    /**
+     * The event id, or `None` for the stripped state of a room we are only
+     * invited to.
+     */
+    var `eventId`: kotlin.String?
+    , 
+    /**
+     * When the event was sent, in milliseconds since the Unix epoch, or `None`
+     * for the stripped state of a room we are only invited to.
+     */
+    var `timestamp`: kotlin.ULong?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRoomStateEvent: FfiConverterRustBuffer<RoomStateEvent> {
+    override fun read(buf: ByteBuffer): RoomStateEvent {
+        return RoomStateEvent(
+            FfiConverterTypeStateEventType.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RoomStateEvent) = (
+            FfiConverterTypeStateEventType.allocationSize(value.`eventType`) +
+            FfiConverterString.allocationSize(value.`stateKey`) +
+            FfiConverterString.allocationSize(value.`sender`) +
+            FfiConverterString.allocationSize(value.`contentJson`) +
+            FfiConverterOptionalString.allocationSize(value.`eventId`) +
+            FfiConverterOptionalULong.allocationSize(value.`timestamp`)
+    )
+
+    override fun write(value: RoomStateEvent, buf: ByteBuffer) {
+            FfiConverterTypeStateEventType.write(value.`eventType`, buf)
+            FfiConverterString.write(value.`stateKey`, buf)
+            FfiConverterString.write(value.`sender`, buf)
+            FfiConverterString.write(value.`contentJson`, buf)
+            FfiConverterOptionalString.write(value.`eventId`, buf)
+            FfiConverterOptionalULong.write(value.`timestamp`, buf)
+    }
+}
+
+
+
+/**
  * A push ruleset scopes a set of rules according to some criteria.
  */
 data class Ruleset (
@@ -40152,6 +43768,50 @@ public object FfiConverterTypeSecretStorageV1AesHmacSha2Properties: FfiConverter
     override fun write(value: SecretStorageV1AesHmacSha2Properties, buf: ByteBuffer) {
             FfiConverterOptionalString.write(value.`iv`, buf)
             FfiConverterOptionalString.write(value.`mac`, buf)
+    }
+}
+
+
+
+/**
+ * The outcome of a [`Client::send_encrypted_to_device_message`] call.
+ */
+data class SendToDeviceOutcome (
+    /**
+     * The devices that did not receive the message, as a `user id -> device
+     * ids` map.
+     *
+     * A device can end up in here because it is unknown to us, or because
+     * encrypting the message for it failed. An empty map means every
+     * recipient was served.
+     */
+    var `failures`: Map<kotlin.String, List<kotlin.String>>
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSendToDeviceOutcome: FfiConverterRustBuffer<SendToDeviceOutcome> {
+    override fun read(buf: ByteBuffer): SendToDeviceOutcome {
+        return SendToDeviceOutcome(
+            FfiConverterMapStringSequenceString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SendToDeviceOutcome) = (
+            FfiConverterMapStringSequenceString.allocationSize(value.`failures`)
+    )
+
+    override fun write(value: SendToDeviceOutcome, buf: ByteBuffer) {
+            FfiConverterMapStringSequenceString.write(value.`failures`, buf)
     }
 }
 
@@ -41438,6 +45098,74 @@ public object FfiConverterTypeTimelineUniqueId: FfiConverterRustBuffer<TimelineU
 
 
 
+/**
+ * A custom to-device message received by the client.
+ */
+data class ToDeviceMessage (
+    /**
+     * The type of the message.
+     */
+    var `eventType`: kotlin.String
+    , 
+    /**
+     * The user id that *claims* to have sent this message.
+     *
+     * This is unauthenticated. For an encrypted message, trust
+     * `encryption_info.sender_id` instead, which is cryptographically
+     * attested.
+     */
+    var `senderId`: kotlin.String
+    , 
+    /**
+     * The message content, as a JSON string.
+     */
+    var `content`: kotlin.String
+    , 
+    /**
+     * The encryption data of this message, or `None` if it arrived in the
+     * clear.
+     */
+    var `encryptionInfo`: EventEncryptionInfo?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeToDeviceMessage: FfiConverterRustBuffer<ToDeviceMessage> {
+    override fun read(buf: ByteBuffer): ToDeviceMessage {
+        return ToDeviceMessage(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeEventEncryptionInfo.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ToDeviceMessage) = (
+            FfiConverterString.allocationSize(value.`eventType`) +
+            FfiConverterString.allocationSize(value.`senderId`) +
+            FfiConverterString.allocationSize(value.`content`) +
+            FfiConverterOptionalTypeEventEncryptionInfo.allocationSize(value.`encryptionInfo`)
+    )
+
+    override fun write(value: ToDeviceMessage, buf: ByteBuffer) {
+            FfiConverterString.write(value.`eventType`, buf)
+            FfiConverterString.write(value.`senderId`, buf)
+            FfiConverterString.write(value.`content`, buf)
+            FfiConverterOptionalTypeEventEncryptionInfo.write(value.`encryptionInfo`, buf)
+    }
+}
+
+
+
 data class TracingConfiguration (
     /**
      * The desired log level.
@@ -42660,7 +46388,7 @@ public object FfiConverterTypeAccountDataEvent : FfiConverterRustBuffer<AccountD
         }
     }
 
-    override fun allocationSize(value: AccountDataEvent) = when(value) {
+    override fun allocationSize(value: AccountDataEvent): ULong = when(value) {
         is AccountDataEvent.Direct -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -42826,7 +46554,7 @@ public object FfiConverterTypeAccountDataEventType : FfiConverterRustBuffer<Acco
         }
     }
 
-    override fun allocationSize(value: AccountDataEventType) = when(value) {
+    override fun allocationSize(value: AccountDataEventType): ULong = when(value) {
         is AccountDataEventType.Direct -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -42963,7 +46691,7 @@ public object FfiConverterTypeAccountManagementAction : FfiConverterRustBuffer<A
         }
     }
 
-    override fun allocationSize(value: AccountManagementAction) = when(value) {
+    override fun allocationSize(value: AccountManagementAction): ULong = when(value) {
         is AccountManagementAction.Profile -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -43087,7 +46815,7 @@ public object FfiConverterTypeAction : FfiConverterRustBuffer<Action>{
         }
     }
 
-    override fun allocationSize(value: Action) = when(value) {
+    override fun allocationSize(value: Action): ULong = when(value) {
         is Action.Notify -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -43179,7 +46907,7 @@ public object FfiConverterTypeAllowRule : FfiConverterRustBuffer<AllowRule>{
         }
     }
 
-    override fun allocationSize(value: AllowRule) = when(value) {
+    override fun allocationSize(value: AllowRule): ULong = when(value) {
         is AllowRule.RoomMembership -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -43288,7 +47016,7 @@ public object FfiConverterTypeAuthData : FfiConverterRustBuffer<AuthData>{
         }
     }
 
-    override fun allocationSize(value: AuthData) = when(value) {
+    override fun allocationSize(value: AuthData): ULong = when(value) {
         is AuthData.Password -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -43400,7 +47128,7 @@ public object FfiConverterTypeBackupUploadState : FfiConverterRustBuffer<BackupU
         }
     }
 
-    override fun allocationSize(value: BackupUploadState) = when(value) {
+    override fun allocationSize(value: BackupUploadState): ULong = when(value) {
         is BackupUploadState.Waiting -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -43532,7 +47260,7 @@ public object FfiConverterTypeBatchNotificationResult : FfiConverterRustBuffer<B
         }
     }
 
-    override fun allocationSize(value: BatchNotificationResult) = when(value) {
+    override fun allocationSize(value: BatchNotificationResult): ULong = when(value) {
         is BatchNotificationResult.Ok -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -43772,8 +47500,6 @@ sealed class ClientBuildException(message: String): kotlin.Exception(message) {
         
         class EventCache(message: String) : ClientBuildException(message)
         
-        class InvalidRawKey(message: String) : ClientBuildException(message)
-        
         class Generic(message: String) : ClientBuildException(message)
         
 
@@ -43798,8 +47524,7 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
             7 -> ClientBuildException.SlidingSyncVersion(FfiConverterString.read(buf))
             8 -> ClientBuildException.Sdk(FfiConverterString.read(buf))
             9 -> ClientBuildException.EventCache(FfiConverterString.read(buf))
-            10 -> ClientBuildException.InvalidRawKey(FfiConverterString.read(buf))
-            11 -> ClientBuildException.Generic(FfiConverterString.read(buf))
+            10 -> ClientBuildException.Generic(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -43847,12 +47572,8 @@ public object FfiConverterTypeClientBuildError : FfiConverterRustBuffer<ClientBu
                 buf.putInt(9)
                 Unit
             }
-            is ClientBuildException.InvalidRawKey -> {
-                buf.putInt(10)
-                Unit
-            }
             is ClientBuildException.Generic -> {
-                buf.putInt(11)
+                buf.putInt(10)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -44111,7 +47832,7 @@ public object FfiConverterTypeComposerDraftType : FfiConverterRustBuffer<Compose
         }
     }
 
-    override fun allocationSize(value: ComposerDraftType) = when(value) {
+    override fun allocationSize(value: ComposerDraftType): ULong = when(value) {
         is ComposerDraftType.NewMessage -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -44209,7 +47930,7 @@ public object FfiConverterTypeCrossProcessLockConfig : FfiConverterRustBuffer<Cr
         }
     }
 
-    override fun allocationSize(value: CrossProcessLockConfig) = when(value) {
+    override fun allocationSize(value: CrossProcessLockConfig): ULong = when(value) {
         is CrossProcessLockConfig.MultiProcess -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -44289,7 +48010,7 @@ public object FfiConverterTypeCrossSigningResetAuthType : FfiConverterRustBuffer
         }
     }
 
-    override fun allocationSize(value: CrossSigningResetAuthType) = when(value) {
+    override fun allocationSize(value: CrossSigningResetAuthType): ULong = when(value) {
         is CrossSigningResetAuthType.Uiaa -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -44594,7 +48315,7 @@ public object FfiConverterTypeDehydratedDeviceEvent : FfiConverterRustBuffer<Deh
         }
     }
 
-    override fun allocationSize(value: DehydratedDeviceEvent) = when(value) {
+    override fun allocationSize(value: DehydratedDeviceEvent): ULong = when(value) {
         is DehydratedDeviceEvent.Created -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -44894,7 +48615,7 @@ public object FfiConverterTypeDraftAttachment : FfiConverterRustBuffer<DraftAtta
         }
     }
 
-    override fun allocationSize(value: DraftAttachment) = when(value) {
+    override fun allocationSize(value: DraftAttachment): ULong = when(value) {
         is DraftAttachment.Audio -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -45058,7 +48779,7 @@ public object FfiConverterTypeEditedContent : FfiConverterRustBuffer<EditedConte
         }
     }
 
-    override fun allocationSize(value: EditedContent) = when(value) {
+    override fun allocationSize(value: EditedContent): ULong = when(value) {
         is EditedContent.RoomMessage -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -45201,7 +48922,7 @@ public object FfiConverterTypeEmbeddedEventDetails : FfiConverterRustBuffer<Embe
         }
     }
 
-    override fun allocationSize(value: EmbeddedEventDetails) = when(value) {
+    override fun allocationSize(value: EmbeddedEventDetails): ULong = when(value) {
         is EmbeddedEventDetails.Unavailable -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -45330,7 +49051,7 @@ public object FfiConverterTypeEnableRecoveryProgress : FfiConverterRustBuffer<En
         }
     }
 
-    override fun allocationSize(value: EnableRecoveryProgress) = when(value) {
+    override fun allocationSize(value: EnableRecoveryProgress): ULong = when(value) {
         is EnableRecoveryProgress.Starting -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -45471,7 +49192,7 @@ public object FfiConverterTypeEncryptedMessage : FfiConverterRustBuffer<Encrypte
         }
     }
 
-    override fun allocationSize(value: EncryptedMessage) = when(value) {
+    override fun allocationSize(value: EncryptedMessage): ULong = when(value) {
         is EncryptedMessage.OlmV1Curve25519AesSha2 -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -46137,7 +49858,7 @@ public object FfiConverterTypeErrorKind : FfiConverterRustBuffer<ErrorKind>{
         }
     }
 
-    override fun allocationSize(value: ErrorKind) = when(value) {
+    override fun allocationSize(value: ErrorKind): ULong = when(value) {
         is ErrorKind.BadAlias -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -46696,7 +50417,7 @@ public object FfiConverterTypeEventOrTransactionId : FfiConverterRustBuffer<Even
         }
     }
 
-    override fun allocationSize(value: EventOrTransactionId) = when(value) {
+    override fun allocationSize(value: EventOrTransactionId): ULong = when(value) {
         is EventOrTransactionId.EventId -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -46820,7 +50541,7 @@ public object FfiConverterTypeEventSendState : FfiConverterRustBuffer<EventSendS
         }
     }
 
-    override fun allocationSize(value: EventSendState) = when(value) {
+    override fun allocationSize(value: EventSendState): ULong = when(value) {
         is EventSendState.NotSentYet -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -46891,6 +50612,7 @@ sealed class FfiTimelineEventType {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeFfiTimelineEventType.lower(this),
+        
         FfiConverterTypeFfiTimelineEventType.lower(`other`),_status)
 }
     )
@@ -46923,6 +50645,7 @@ sealed class FfiTimelineEventType {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeFfiTimelineEventType.lower(this),
+        
         FfiConverterTypeFfiTimelineEventType.lower(`other`),_status)
 }
     )
@@ -46951,6 +50674,7 @@ sealed class FfiTimelineEventType {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_ffitimelineeventtype_uniffi_trait_eq_eq(FfiConverterTypeFfiTimelineEventType.lower(this),
+        
         FfiConverterTypeFfiTimelineEventType.lower(`other`),_status)
 }
     )
@@ -46984,7 +50708,7 @@ public object FfiConverterTypeFfiTimelineEventType : FfiConverterRustBuffer<FfiT
         }
     }
 
-    override fun allocationSize(value: FfiTimelineEventType) = when(value) {
+    override fun allocationSize(value: FfiTimelineEventType): ULong = when(value) {
         is FfiTimelineEventType.MessageLike -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -47276,7 +51000,7 @@ public object FfiConverterTypeGalleryItemInfo : FfiConverterRustBuffer<GalleryIt
         }
     }
 
-    override fun allocationSize(value: GalleryItemInfo) = when(value) {
+    override fun allocationSize(value: GalleryItemInfo): ULong = when(value) {
         is GalleryItemInfo.Audio -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -47491,7 +51215,7 @@ public object FfiConverterTypeGalleryItemType : FfiConverterRustBuffer<GalleryIt
         }
     }
 
-    override fun allocationSize(value: GalleryItemType) = when(value) {
+    override fun allocationSize(value: GalleryItemType): ULong = when(value) {
         is GalleryItemType.Image -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -47695,7 +51419,7 @@ public object FfiConverterTypeGeneratedQrLoginProgress : FfiConverterRustBuffer<
         }
     }
 
-    override fun allocationSize(value: GeneratedQrLoginProgress) = when(value) {
+    override fun allocationSize(value: GeneratedQrLoginProgress): ULong = when(value) {
         is GeneratedQrLoginProgress.Starting -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -47916,7 +51640,7 @@ public object FfiConverterTypeGrantGeneratedQrLoginProgress : FfiConverterRustBu
         }
     }
 
-    override fun allocationSize(value: GrantGeneratedQrLoginProgress) = when(value) {
+    override fun allocationSize(value: GrantGeneratedQrLoginProgress): ULong = when(value) {
         is GrantGeneratedQrLoginProgress.Starting -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -48126,7 +51850,7 @@ public object FfiConverterTypeGrantQrLoginProgress : FfiConverterRustBuffer<Gran
         }
     }
 
-    override fun allocationSize(value: GrantQrLoginProgress) = when(value) {
+    override fun allocationSize(value: GrantQrLoginProgress): ULong = when(value) {
         is GrantQrLoginProgress.Starting -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -48277,7 +52001,7 @@ public object FfiConverterTypeHistoryVisibility : FfiConverterRustBuffer<History
         }
     }
 
-    override fun allocationSize(value: HistoryVisibility) = when(value) {
+    override fun allocationSize(value: HistoryVisibility): ULong = when(value) {
         is HistoryVisibility.Invited -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -48967,7 +52691,7 @@ public object FfiConverterTypeJoinRule : FfiConverterRustBuffer<JoinRule>{
         }
     }
 
-    override fun allocationSize(value: JoinRule) = when(value) {
+    override fun allocationSize(value: JoinRule): ULong = when(value) {
         is JoinRule.Public -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -49130,7 +52854,7 @@ public object FfiConverterTypeJsonValue : FfiConverterRustBuffer<JsonValue>{
         }
     }
 
-    override fun allocationSize(value: JsonValue) = when(value) {
+    override fun allocationSize(value: JsonValue): ULong = when(value) {
         is JsonValue.Null -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -49352,7 +53076,7 @@ public object FfiConverterTypeLatestEventValue : FfiConverterRustBuffer<LatestEv
         }
     }
 
-    override fun allocationSize(value: LatestEventValue) = when(value) {
+    override fun allocationSize(value: LatestEventValue): ULong = when(value) {
         is LatestEventValue.None -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -49656,7 +53380,7 @@ public object FfiConverterTypeLiveLocationShareUpdate : FfiConverterRustBuffer<L
         }
     }
 
-    override fun allocationSize(value: LiveLocationShareUpdate) = when(value) {
+    override fun allocationSize(value: LiveLocationShareUpdate): ULong = when(value) {
         is LiveLocationShareUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -49925,7 +53649,7 @@ public object FfiConverterTypeMatrixId : FfiConverterRustBuffer<MatrixId>{
         }
     }
 
-    override fun allocationSize(value: MatrixId) = when(value) {
+    override fun allocationSize(value: MatrixId): ULong = when(value) {
         is MatrixId.Room -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -50256,7 +53980,7 @@ public object FfiConverterTypeMembershipState : FfiConverterRustBuffer<Membershi
         }
     }
 
-    override fun allocationSize(value: MembershipState) = when(value) {
+    override fun allocationSize(value: MembershipState): ULong = when(value) {
         is MembershipState.Ban -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -50369,7 +54093,7 @@ public object FfiConverterTypeMessageFormat : FfiConverterRustBuffer<MessageForm
         }
     }
 
-    override fun allocationSize(value: MessageFormat) = when(value) {
+    override fun allocationSize(value: MessageFormat): ULong = when(value) {
         is MessageFormat.Html -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -50629,7 +54353,7 @@ public object FfiConverterTypeMessageLikeEventContent : FfiConverterRustBuffer<M
         }
     }
 
-    override fun allocationSize(value: MessageLikeEventContent) = when(value) {
+    override fun allocationSize(value: MessageLikeEventContent): ULong = when(value) {
         is MessageLikeEventContent.CallAnswer -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -51071,7 +54795,7 @@ public object FfiConverterTypeMessageType : FfiConverterRustBuffer<MessageType>{
         }
     }
 
-    override fun allocationSize(value: MessageType) = when(value) {
+    override fun allocationSize(value: MessageType): ULong = when(value) {
         is MessageType.Emote -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -51402,7 +55126,7 @@ public object FfiConverterTypeMsgLikeKind : FfiConverterRustBuffer<MsgLikeKind>{
         }
     }
 
-    override fun allocationSize(value: MsgLikeKind) = when(value) {
+    override fun allocationSize(value: MsgLikeKind): ULong = when(value) {
         is MsgLikeKind.Message -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -51579,7 +55303,7 @@ public object FfiConverterTypeNotificationEvent : FfiConverterRustBuffer<Notific
         }
     }
 
-    override fun allocationSize(value: NotificationEvent) = when(value) {
+    override fun allocationSize(value: NotificationEvent): ULong = when(value) {
         is NotificationEvent.Timeline -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -51669,7 +55393,7 @@ public object FfiConverterTypeNotificationProcessSetup : FfiConverterRustBuffer<
         }
     }
 
-    override fun allocationSize(value: NotificationProcessSetup) = when(value) {
+    override fun allocationSize(value: NotificationProcessSetup): ULong = when(value) {
         is NotificationProcessSetup.MultipleProcesses -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -51989,7 +55713,7 @@ public object FfiConverterTypeNotificationStatus : FfiConverterRustBuffer<Notifi
         }
     }
 
-    override fun allocationSize(value: NotificationStatus) = when(value) {
+    override fun allocationSize(value: NotificationStatus): ULong = when(value) {
         is NotificationStatus.Event -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -52177,7 +55901,7 @@ public object FfiConverterTypeOAuthPrompt : FfiConverterRustBuffer<OAuthPrompt>{
         }
     }
 
-    override fun allocationSize(value: OAuthPrompt) = when(value) {
+    override fun allocationSize(value: OAuthPrompt): ULong = when(value) {
         is OAuthPrompt.Create -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -52424,7 +56148,7 @@ public object FfiConverterTypeOtherState : FfiConverterRustBuffer<OtherState>{
         }
     }
 
-    override fun allocationSize(value: OtherState) = when(value) {
+    override fun allocationSize(value: OtherState): ULong = when(value) {
         is OtherState.PolicyRuleRoom -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -52997,7 +56721,7 @@ public object FfiConverterTypePowerLevel : FfiConverterRustBuffer<PowerLevel>{
         }
     }
 
-    override fun allocationSize(value: PowerLevel) = when(value) {
+    override fun allocationSize(value: PowerLevel): ULong = when(value) {
         is PowerLevel.Infinite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -53129,7 +56853,7 @@ public object FfiConverterTypeProfileDetails : FfiConverterRustBuffer<ProfileDet
         }
     }
 
-    override fun allocationSize(value: ProfileDetails) = when(value) {
+    override fun allocationSize(value: ProfileDetails): ULong = when(value) {
         is ProfileDetails.Unavailable -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -53380,7 +57104,7 @@ public object FfiConverterTypePushCondition : FfiConverterRustBuffer<PushConditi
         }
     }
 
-    override fun allocationSize(value: PushCondition) = when(value) {
+    override fun allocationSize(value: PushCondition): ULong = when(value) {
         is PushCondition.EventMatch -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -53542,7 +57266,7 @@ public object FfiConverterTypePusherKind : FfiConverterRustBuffer<PusherKind>{
         }
     }
 
-    override fun allocationSize(value: PusherKind) = when(value) {
+    override fun allocationSize(value: PusherKind): ULong = when(value) {
         is PusherKind.Http -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -53711,7 +57435,7 @@ public object FfiConverterTypeQrLoginProgress : FfiConverterRustBuffer<QrLoginPr
         }
     }
 
-    override fun allocationSize(value: QrLoginProgress) = when(value) {
+    override fun allocationSize(value: QrLoginProgress): ULong = when(value) {
         is QrLoginProgress.Starting -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -53895,7 +57619,7 @@ public object FfiConverterTypeQueueWedgeError : FfiConverterRustBuffer<QueueWedg
         }
     }
 
-    override fun allocationSize(value: QueueWedgeError) = when(value) {
+    override fun allocationSize(value: QueueWedgeError): ULong = when(value) {
         is QueueWedgeError.InsecureDevices -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -54033,7 +57757,7 @@ public object FfiConverterTypeReceiptThread : FfiConverterRustBuffer<ReceiptThre
         }
     }
 
-    override fun allocationSize(value: ReceiptThread) = when(value) {
+    override fun allocationSize(value: ReceiptThread): ULong = when(value) {
         is ReceiptThread.Unthreaded -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -54431,7 +58155,7 @@ public object FfiConverterTypeRoomAccountDataEvent : FfiConverterRustBuffer<Room
         }
     }
 
-    override fun allocationSize(value: RoomAccountDataEvent) = when(value) {
+    override fun allocationSize(value: RoomAccountDataEvent): ULong = when(value) {
         is RoomAccountDataEvent.FullyReadEvent -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -54626,7 +58350,7 @@ public object FfiConverterTypeRoomDirectorySearchEntryUpdate : FfiConverterRustB
         }
     }
 
-    override fun allocationSize(value: RoomDirectorySearchEntryUpdate) = when(value) {
+    override fun allocationSize(value: RoomDirectorySearchEntryUpdate): ULong = when(value) {
         is RoomDirectorySearchEntryUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -54930,7 +58654,7 @@ public object FfiConverterTypeRoomHistoryVisibility : FfiConverterRustBuffer<Roo
         }
     }
 
-    override fun allocationSize(value: RoomHistoryVisibility) = when(value) {
+    override fun allocationSize(value: RoomHistoryVisibility): ULong = when(value) {
         is RoomHistoryVisibility.Invited -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -55145,7 +58869,7 @@ public object FfiConverterTypeRoomListEntriesDynamicFilterKind : FfiConverterRus
         }
     }
 
-    override fun allocationSize(value: RoomListEntriesDynamicFilterKind) = when(value) {
+    override fun allocationSize(value: RoomListEntriesDynamicFilterKind): ULong = when(value) {
         is RoomListEntriesDynamicFilterKind.All -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -55556,7 +59280,7 @@ public object FfiConverterTypeRoomListEntriesUpdate : FfiConverterRustBuffer<Roo
         }
     }
 
-    override fun allocationSize(value: RoomListEntriesUpdate) = when(value) {
+    override fun allocationSize(value: RoomListEntriesUpdate): ULong = when(value) {
         is RoomListEntriesUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -55924,7 +59648,7 @@ public object FfiConverterTypeRoomListLoadingState : FfiConverterRustBuffer<Room
         }
     }
 
-    override fun allocationSize(value: RoomListLoadingState) = when(value) {
+    override fun allocationSize(value: RoomListLoadingState): ULong = when(value) {
         is RoomListLoadingState.NotLoaded -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -56087,7 +59811,7 @@ public object FfiConverterTypeRoomLoadSettings : FfiConverterRustBuffer<RoomLoad
         }
     }
 
-    override fun allocationSize(value: RoomLoadSettings) = when(value) {
+    override fun allocationSize(value: RoomLoadSettings): ULong = when(value) {
         is RoomLoadSettings.All -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -56516,7 +60240,7 @@ public object FfiConverterTypeRoomSendQueueUpdate : FfiConverterRustBuffer<RoomS
         }
     }
 
-    override fun allocationSize(value: RoomSendQueueUpdate) = when(value) {
+    override fun allocationSize(value: RoomSendQueueUpdate): ULong = when(value) {
         is RoomSendQueueUpdate.NewLocalEvent -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -56679,7 +60403,7 @@ public object FfiConverterTypeRoomType : FfiConverterRustBuffer<RoomType>{
         }
     }
 
-    override fun allocationSize(value: RoomType) = when(value) {
+    override fun allocationSize(value: RoomType): ULong = when(value) {
         is RoomType.Room -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -56775,7 +60499,7 @@ public object FfiConverterTypeRoomVisibility : FfiConverterRustBuffer<RoomVisibi
         }
     }
 
-    override fun allocationSize(value: RoomVisibility) = when(value) {
+    override fun allocationSize(value: RoomVisibility): ULong = when(value) {
         is RoomVisibility.Public -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -56908,7 +60632,7 @@ public object FfiConverterTypeRtcCallIntentConsensus : FfiConverterRustBuffer<Rt
         }
     }
 
-    override fun allocationSize(value: RtcCallIntentConsensus) = when(value) {
+    override fun allocationSize(value: RtcCallIntentConsensus): ULong = when(value) {
         is RtcCallIntentConsensus.Full -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -57062,7 +60786,7 @@ public object FfiConverterTypeRuleKind : FfiConverterRustBuffer<RuleKind>{
         }
     }
 
-    override fun allocationSize(value: RuleKind) = when(value) {
+    override fun allocationSize(value: RuleKind): ULong = when(value) {
         is RuleKind.Override -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -57193,7 +60917,7 @@ public object FfiConverterTypeSearchServiceResult : FfiConverterRustBuffer<Searc
         }
     }
 
-    override fun allocationSize(value: SearchServiceResult) = when(value) {
+    override fun allocationSize(value: SearchServiceResult): ULong = when(value) {
         is SearchServiceResult.Message -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -57424,7 +61148,7 @@ public object FfiConverterTypeSearchServiceResultsUpdate : FfiConverterRustBuffe
         }
     }
 
-    override fun allocationSize(value: SearchServiceResultsUpdate) = when(value) {
+    override fun allocationSize(value: SearchServiceResultsUpdate): ULong = when(value) {
         is SearchServiceResultsUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -57610,7 +61334,7 @@ public object FfiConverterTypeSecretStorageEncryptionAlgorithm : FfiConverterRus
         }
     }
 
-    override fun allocationSize(value: SecretStorageEncryptionAlgorithm) = when(value) {
+    override fun allocationSize(value: SecretStorageEncryptionAlgorithm): ULong = when(value) {
         is SecretStorageEncryptionAlgorithm.V1AesHmacSha2 -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -57704,7 +61428,7 @@ public object FfiConverterTypeSessionVerificationData : FfiConverterRustBuffer<S
         }
     }
 
-    override fun allocationSize(value: SessionVerificationData) = when(value) {
+    override fun allocationSize(value: SessionVerificationData): ULong = when(value) {
         is SessionVerificationData.Emojis -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -57808,7 +61532,7 @@ public object FfiConverterTypeShieldState : FfiConverterRustBuffer<ShieldState>{
         }
     }
 
-    override fun allocationSize(value: ShieldState) = when(value) {
+    override fun allocationSize(value: ShieldState): ULong = when(value) {
         is ShieldState.Red -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -58058,7 +61782,7 @@ public object FfiConverterTypeSpaceFilterUpdate : FfiConverterRustBuffer<SpaceFi
         }
     }
 
-    override fun allocationSize(value: SpaceFilterUpdate) = when(value) {
+    override fun allocationSize(value: SpaceFilterUpdate): ULong = when(value) {
         is SpaceFilterUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -58335,7 +62059,7 @@ public object FfiConverterTypeSpaceListUpdate : FfiConverterRustBuffer<SpaceList
         }
     }
 
-    override fun allocationSize(value: SpaceListUpdate) = when(value) {
+    override fun allocationSize(value: SpaceListUpdate): ULong = when(value) {
         is SpaceListUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -58658,7 +62382,7 @@ public object FfiConverterTypeStateEventContent : FfiConverterRustBuffer<StateEv
         }
     }
 
-    override fun allocationSize(value: StateEventContent) = when(value) {
+    override fun allocationSize(value: StateEventContent): ULong = when(value) {
         is StateEventContent.PolicyRuleRoom -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -59019,6 +62743,7 @@ sealed class TagName {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(FfiConverterTypeTagName.lower(this),
+        
         FfiConverterTypeTagName.lower(`other`),_status)
 }
     )
@@ -59047,6 +62772,7 @@ sealed class TagName {
         return FfiConverterBoolean.lift(
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_method_tagname_uniffi_trait_eq_eq(FfiConverterTypeTagName.lower(this),
+        
         FfiConverterTypeTagName.lower(`other`),_status)
 }
     )
@@ -59080,7 +62806,7 @@ public object FfiConverterTypeTagName : FfiConverterRustBuffer<TagName>{
         }
     }
 
-    override fun allocationSize(value: TagName) = when(value) {
+    override fun allocationSize(value: TagName): ULong = when(value) {
         is TagName.Favorite -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -59377,7 +63103,7 @@ public object FfiConverterTypeThreadListUpdate : FfiConverterRustBuffer<ThreadLi
         }
     }
 
-    override fun allocationSize(value: ThreadListUpdate) = when(value) {
+    override fun allocationSize(value: ThreadListUpdate): ULong = when(value) {
         is ThreadListUpdate.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -59724,7 +63450,7 @@ public object FfiConverterTypeTimelineDiff : FfiConverterRustBuffer<TimelineDiff
         }
     }
 
-    override fun allocationSize(value: TimelineDiff) = when(value) {
+    override fun allocationSize(value: TimelineDiff): ULong = when(value) {
         is TimelineDiff.Append -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -59933,7 +63659,7 @@ public object FfiConverterTypeTimelineEventContent : FfiConverterRustBuffer<Time
         }
     }
 
-    override fun allocationSize(value: TimelineEventContent) = when(value) {
+    override fun allocationSize(value: TimelineEventContent): ULong = when(value) {
         is TimelineEventContent.MessageLike -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -60033,7 +63759,7 @@ public object FfiConverterTypeTimelineFilter : FfiConverterRustBuffer<TimelineFi
         }
     }
 
-    override fun allocationSize(value: TimelineFilter) = when(value) {
+    override fun allocationSize(value: TimelineFilter): ULong = when(value) {
         is TimelineFilter.All -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -60162,7 +63888,7 @@ public object FfiConverterTypeTimelineFocus : FfiConverterRustBuffer<TimelineFoc
         }
     }
 
-    override fun allocationSize(value: TimelineFocus) = when(value) {
+    override fun allocationSize(value: TimelineFocus): ULong = when(value) {
         is TimelineFocus.Live -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -60434,7 +64160,7 @@ public object FfiConverterTypeTimelineItemContent : FfiConverterRustBuffer<Timel
         }
     }
 
-    override fun allocationSize(value: TimelineItemContent) = when(value) {
+    override fun allocationSize(value: TimelineItemContent): ULong = when(value) {
         is TimelineItemContent.MsgLike -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -60716,7 +64442,7 @@ public object FfiConverterTypeTweak : FfiConverterRustBuffer<Tweak>{
         }
     }
 
-    override fun allocationSize(value: Tweak) = when(value) {
+    override fun allocationSize(value: Tweak): ULong = when(value) {
         is Tweak.Sound -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -60833,7 +64559,7 @@ public object FfiConverterTypeUploadSource : FfiConverterRustBuffer<UploadSource
         }
     }
 
-    override fun allocationSize(value: UploadSource) = when(value) {
+    override fun allocationSize(value: UploadSource): ULong = when(value) {
         is UploadSource.File -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -60966,7 +64692,7 @@ public object FfiConverterTypeVirtualTimelineItem : FfiConverterRustBuffer<Virtu
         }
     }
 
-    override fun allocationSize(value: VirtualTimelineItem) = when(value) {
+    override fun allocationSize(value: VirtualTimelineItem): ULong = when(value) {
         is VirtualTimelineItem.DateDivider -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -61113,7 +64839,7 @@ public object FfiConverterTypeWidgetEventFilter : FfiConverterRustBuffer<WidgetE
         }
     }
 
-    override fun allocationSize(value: WidgetEventFilter) = when(value) {
+    override fun allocationSize(value: WidgetEventFilter): ULong = when(value) {
         is WidgetEventFilter.MessageLikeWithType -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
@@ -63143,6 +66869,70 @@ public object FfiConverterTypeRoomListServiceSyncIndicatorListener: FfiConverter
 
 
 
+/**
+ * A listener for the room state events of a single type, registered with
+ * [`Room::subscribe_to_state_events`].
+ */
+public interface RoomStateEventsListener {
+    
+    fun `onUpdate`(`events`: List<RoomStateEvent>)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceRoomStateEventsListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceRoomStateEventsListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`events`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeRoomStateEventsListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterSequenceTypeRoomStateEvent.lift(`events`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeRoomStateEventsListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeRoomStateEventsListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceRoomStateEventsListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomstateeventslistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeRoomStateEventsListener: FfiConverterCallbackInterface<RoomStateEventsListener>()
+
+
+
+
+
 public interface SearchServicePaginationStateListener {
     
     fun `onUpdate`(`paginationState`: SearchServicePaginationState)
@@ -64295,6 +68085,70 @@ public object FfiConverterTypeTimelineListener: FfiConverterCallbackInterface<Ti
 
 
 
+/**
+ * A listener for incoming to-device messages, registered with
+ * [`Client::subscribe_to_custom_to_device_messages`].
+ */
+public interface ToDeviceMessageListener {
+    
+    fun `onMessage`(`message`: ToDeviceMessage)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceToDeviceMessageListener {
+    internal object `onMessage`: UniffiCallbackInterfaceToDeviceMessageListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`message`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeToDeviceMessageListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onMessage`(
+                    FfiConverterTypeToDeviceMessage.lift(`message`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeToDeviceMessageListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeToDeviceMessageListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceToDeviceMessageListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onMessage`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_todevicemessagelistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeToDeviceMessageListener: FfiConverterCallbackInterface<ToDeviceMessageListener>()
+
+
+
+
+
 public interface TypingNotificationsListener {
     
     fun `call`(`typingUserIds`: List<kotlin.String>)
@@ -64477,7 +68331,7 @@ public object FfiConverterTypeVerificationStateListener: FfiConverterCallbackInt
 
 public interface WidgetCapabilitiesProvider {
     
-    fun `acquireCapabilities`(`capabilities`: WidgetCapabilities): WidgetCapabilities
+    suspend fun `acquireCapabilities`(`capabilities`: WidgetCapabilities): WidgetCapabilities
     
     companion object
 }
@@ -64487,15 +68341,36 @@ public interface WidgetCapabilitiesProvider {
 // Put the implementation in an object so we don't pollute the top-level namespace
 internal object uniffiCallbackInterfaceWidgetCapabilitiesProvider {
     internal object `acquireCapabilities`: UniffiCallbackInterfaceWidgetCapabilitiesProviderMethod0 {
-        override fun callback(`uniffiHandle`: Long,`capabilities`: RustBuffer.ByValue,`uniffiOutReturn`: RustBuffer,uniffiCallStatus: UniffiRustCallStatus,) {
+        override fun callback(`uniffiHandle`: Long,`capabilities`: RustBuffer.ByValue,`uniffiFutureCallback`: UniffiForeignFutureCompleteRustBuffer,`uniffiCallbackData`: Long,`uniffiOutDroppedCallback`: UniffiForeignFutureDroppedCallbackStruct,) {
             val uniffiObj = FfiConverterTypeWidgetCapabilitiesProvider.handleMap.get(uniffiHandle)
-            val makeCall = { ->
+            val makeCall = suspend { ->
                 uniffiObj.`acquireCapabilities`(
                     FfiConverterTypeWidgetCapabilities.lift(`capabilities`),
                 )
             }
-            val writeReturn = { value: WidgetCapabilities -> uniffiOutReturn.setValue(FfiConverterTypeWidgetCapabilities.lower(value)) }
-            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+            val uniffiHandleSuccess = { returnValue: WidgetCapabilities ->
+                val uniffiResult = UniffiForeignFutureResultRustBuffer.UniffiByValue(
+                    FfiConverterTypeWidgetCapabilities.lower(returnValue),
+                    UniffiRustCallStatus.ByValue()
+                )
+                uniffiResult.write()
+                uniffiFutureCallback.callback(uniffiCallbackData, uniffiResult)
+            }
+            val uniffiHandleError = { callStatus: UniffiRustCallStatus.ByValue ->
+                uniffiFutureCallback.callback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureResultRustBuffer.UniffiByValue(
+                        RustBuffer.ByValue(),
+                        callStatus,
+                    ),
+                )
+            }
+            uniffiTraitInterfaceCallAsync(
+                makeCall,
+                uniffiHandleSuccess,
+                uniffiHandleError,
+                uniffiOutDroppedCallback
+            )
         }
     }
 
@@ -65359,6 +69234,38 @@ public object FfiConverterOptionalTypeDuplicateOneTimeKeyErrorMessage: FfiConver
         } else {
             buf.put(1)
             FfiConverterTypeDuplicateOneTimeKeyErrorMessage.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeEventEncryptionInfo: FfiConverterRustBuffer<EventEncryptionInfo?> {
+    override fun read(buf: ByteBuffer): EventEncryptionInfo? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeEventEncryptionInfo.read(buf)
+    }
+
+    override fun allocationSize(value: EventEncryptionInfo?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeEventEncryptionInfo.allocationSize(value)
+        }
+    }
+
+    override fun write(value: EventEncryptionInfo?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeEventEncryptionInfo.write(value, buf)
         }
     }
 }
@@ -68121,6 +72028,34 @@ public object FfiConverterSequenceTypeRoomMember: FfiConverterRustBuffer<List<Ro
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeRoomStateEvent: FfiConverterRustBuffer<List<RoomStateEvent>> {
+    override fun read(buf: ByteBuffer): List<RoomStateEvent> {
+        val len = buf.getInt()
+        return List<RoomStateEvent>(len) {
+            FfiConverterTypeRoomStateEvent.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RoomStateEvent>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRoomStateEvent.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RoomStateEvent>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRoomStateEvent.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeSimplePushRule: FfiConverterRustBuffer<List<SimplePushRule>> {
     override fun read(buf: ByteBuffer): List<SimplePushRule> {
         val len = buf.getInt()
@@ -69308,13 +73243,10 @@ public object FfiConverterMapTypeTagNameTypeTagInfo: FfiConverterRustBuffer<Map<
 
 
 
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- * It's also what we have an external type that references a custom type.
- */
 public typealias Timestamp = kotlin.ULong
 public typealias FfiConverterTypeTimestamp = FfiConverterULong
+
+
 
 
 
@@ -69422,7 +73354,10 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
      suspend fun `databaseContainsSecretsBundle`(`databasePath`: kotlin.String, `passphrase`: kotlin.String?, `backupInfo`: kotlin.String?) : DetectedSecretsBundle {
         return uniffiRustCallAsync(
-        UniffiLib.uniffi_matrix_sdk_ffi_fn_func_database_contains_secrets_bundle(FfiConverterString.lower(`databasePath`),FfiConverterOptionalString.lower(`passphrase`),FfiConverterOptionalString.lower(`backupInfo`),),
+        UniffiLib.uniffi_matrix_sdk_ffi_fn_func_database_contains_secrets_bundle(
+        FfiConverterString.lower(`databasePath`),
+        FfiConverterOptionalString.lower(`passphrase`),
+        FfiConverterOptionalString.lower(`backupInfo`),),
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
         { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
@@ -69441,7 +73376,9 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_json_string_contains_secrets_bundle(
     
-        FfiConverterString.lower(`bundle`),FfiConverterOptionalString.lower(`backupInfo`),_status)
+        
+        FfiConverterString.lower(`bundle`),
+        FfiConverterOptionalString.lower(`backupInfo`),_status)
 }
     )
     }
@@ -69455,6 +73392,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_enable_sentry_logging(
     
+        
         FfiConverterBoolean.lower(`enabled`),_status)
 }
     
@@ -69473,7 +73411,9 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_init_platform(
     
-        FfiConverterTypeTracingConfiguration.lower(`config`),FfiConverterBoolean.lower(`useLightweightTokioRuntime`),_status)
+        
+        FfiConverterTypeTracingConfiguration.lower(`config`),
+        FfiConverterBoolean.lower(`useLightweightTokioRuntime`),_status)
 }
     
     
@@ -69490,6 +73430,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_reload_tracing_file_writer(
     
+        
         FfiConverterTypeTracingFileConfiguration.lower(`configuration`),_status)
 }
     
@@ -69513,7 +73454,12 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_log_event(
     
-        FfiConverterString.lower(`file`),FfiConverterOptionalUInt.lower(`line`),FfiConverterTypeLogLevel.lower(`level`),FfiConverterString.lower(`target`),FfiConverterString.lower(`message`),_status)
+        
+        FfiConverterString.lower(`file`),
+        FfiConverterOptionalUInt.lower(`line`),
+        FfiConverterTypeLogLevel.lower(`level`),
+        FfiConverterString.lower(`target`),
+        FfiConverterString.lower(`message`),_status)
 }
     
     
@@ -69526,6 +73472,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_matrix_to_room_alias_permalink(
     
+        
         FfiConverterString.lower(`roomAlias`),_status)
 }
     )
@@ -69543,6 +73490,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_is_room_alias_format_valid(
     
+        
         FfiConverterString.lower(`alias`),_status)
 }
     )
@@ -69556,6 +73504,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_room_alias_name_from_room_display_name(
     
+        
         FfiConverterString.lower(`roomName`),_status)
 }
     )
@@ -69570,6 +73519,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_matrix_to_user_permalink(
     
+        
         FfiConverterString.lower(`userId`),_status)
 }
     )
@@ -69586,6 +73536,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_suggested_power_level_for_role(
     
+        
         FfiConverterTypeRoomMemberRole.lower(`role`),_status)
 }
     )
@@ -69603,6 +73554,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_suggested_role_for_power_level(
     
+        
         FfiConverterTypePowerLevel.lower(`powerLevel`),_status)
 }
     )
@@ -69618,6 +73570,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_content_without_relation_from_message(
     
+        
         FfiConverterTypeMessageContent.lower(`message`),_status)
 }
     )
@@ -69628,7 +73581,9 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html(
     
-        FfiConverterString.lower(`body`),FfiConverterString.lower(`htmlBody`),_status)
+        
+        FfiConverterString.lower(`body`),
+        FfiConverterString.lower(`htmlBody`),_status)
 }
     )
     }
@@ -69638,7 +73593,9 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_html_as_emote(
     
-        FfiConverterString.lower(`body`),FfiConverterString.lower(`htmlBody`),_status)
+        
+        FfiConverterString.lower(`body`),
+        FfiConverterString.lower(`htmlBody`),_status)
 }
     )
     }
@@ -69648,6 +73605,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown(
     
+        
         FfiConverterString.lower(`md`),_status)
 }
     )
@@ -69658,6 +73616,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_message_event_content_from_markdown_as_emote(
     
+        
         FfiConverterString.lower(`md`),_status)
 }
     )
@@ -69669,6 +73628,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_message_event_content_new(
     
+        
         FfiConverterTypeMessageType.lower(`msgtype`),_status)
 }
     )
@@ -69683,6 +73643,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_parse_matrix_entity_from(
     
+        
         FfiConverterString.lower(`uri`),_status)
 }
     )
@@ -69699,7 +73660,10 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_create_caption_edit(
     
-        FfiConverterOptionalString.lower(`caption`),FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),FfiConverterOptionalTypeMentions.lower(`mentions`),_status)
+        
+        FfiConverterOptionalString.lower(`caption`),
+        FfiConverterOptionalTypeFormattedBody.lower(`formattedCaption`),
+        FfiConverterOptionalTypeMentions.lower(`mentions`),_status)
 }
     )
     }
@@ -69716,6 +73680,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ClientException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_server_name_from_user_id(
     
+        
         FfiConverterString.lower(`userId`),_status)
 }
     )
@@ -69736,7 +73701,10 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
      suspend fun `generateWebviewUrl`(`widgetSettings`: WidgetSettings, `room`: Room, `props`: ClientProperties) : kotlin.String {
         return uniffiRustCallAsync(
-        UniffiLib.uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(FfiConverterTypeWidgetSettings.lower(`widgetSettings`),FfiConverterTypeRoom.lower(`room`),FfiConverterTypeClientProperties.lower(`props`),),
+        UniffiLib.uniffi_matrix_sdk_ffi_fn_func_generate_webview_url(
+        FfiConverterTypeWidgetSettings.lower(`widgetSettings`),
+        FfiConverterTypeRoom.lower(`room`),
+        FfiConverterTypeClientProperties.lower(`props`),),
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
         { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
@@ -69765,7 +73733,9 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCall() { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_get_element_call_required_permissions(
     
-        FfiConverterString.lower(`ownUserId`),FfiConverterString.lower(`ownDeviceId`),_status)
+        
+        FfiConverterString.lower(`ownUserId`),
+        FfiConverterString.lower(`ownDeviceId`),_status)
 }
     )
     }
@@ -69776,6 +73746,7 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ParseException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_make_widget_driver(
     
+        
         FfiConverterTypeWidgetSettings.lower(`settings`),_status)
 }
     )
@@ -69802,7 +73773,9 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     uniffiRustCallWithError(ParseException) { _status ->
     UniffiLib.uniffi_matrix_sdk_ffi_fn_func_new_virtual_element_call_widget(
     
-        FfiConverterTypeVirtualElementCallWidgetProperties.lower(`props`),FfiConverterTypeVirtualElementCallWidgetConfig.lower(`config`),_status)
+        
+        FfiConverterTypeVirtualElementCallWidgetProperties.lower(`props`),
+        FfiConverterTypeVirtualElementCallWidgetConfig.lower(`config`),_status)
 }
     )
     }

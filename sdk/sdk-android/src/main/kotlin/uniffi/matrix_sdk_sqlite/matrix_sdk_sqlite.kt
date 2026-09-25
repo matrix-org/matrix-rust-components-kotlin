@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.matrix_sdk_contentscanner
+package uniffi.matrix_sdk_sqlite
 
 // Common helper code.
 //
@@ -58,7 +58,7 @@ open class RustBuffer : Structure() {
     companion object {
         internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
             // Note: need to convert the size to a `Long` value to make this work with JVM.
-            UniffiLib.ffi_matrix_sdk_contentscanner_rustbuffer_alloc(size.toLong(), status)
+            UniffiLib.ffi_matrix_sdk_sqlite_rustbuffer_alloc(size.toLong(), status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -74,7 +74,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
-            UniffiLib.ffi_matrix_sdk_contentscanner_rustbuffer_free(buf, status)
+            UniffiLib.ffi_matrix_sdk_sqlite_rustbuffer_free(buf, status)
         }
     }
 
@@ -668,11 +668,11 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 // We now use JNA's "direct mapping" - unclear if same considerations apply exactly.
 internal object IntegrityCheckingUniffiLib {
     init {
-        Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_contentscanner"))
+        Native.register(IntegrityCheckingUniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_sqlite"))
         uniffiCheckContractApiVersion(this)
         uniffiCheckApiChecksums(this)
     }
-    external fun ffi_matrix_sdk_contentscanner_uniffi_contract_version(
+    external fun ffi_matrix_sdk_sqlite_uniffi_contract_version(
     ): Int
 
         
@@ -682,112 +682,112 @@ internal object UniffiLib {
     
 
     init {
-        Native.register(UniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_contentscanner"))
+        Native.register(UniffiLib::class.java, findLibraryName(componentName = "matrix_sdk_sqlite"))
         
     }
-    external fun ffi_matrix_sdk_contentscanner_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_contentscanner_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_contentscanner_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u8(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_u8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u8(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_u8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i8(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_i8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i8(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_i8(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u16(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_u16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u16(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_u16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i16(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_i16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i16(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_i16(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u32(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_u32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u32(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_u32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i32(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_i32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i32(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_i32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_u64(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_u64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_u64(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_u64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_i64(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_i64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_i64(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_i64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_f32(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_f32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_f32(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_f32(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Float
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_f64(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_f64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_f64(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_f64(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_rust_buffer(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_rust_buffer(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_rust_buffer(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    external fun ffi_matrix_sdk_contentscanner_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_cancel_void(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_cancel_void(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_free_void(`handle`: Long,
+    external fun ffi_matrix_sdk_sqlite_rust_future_free_void(`handle`: Long,
     ): Unit
-    external fun ffi_matrix_sdk_contentscanner_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    external fun ffi_matrix_sdk_sqlite_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
 
         
@@ -797,7 +797,7 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     // Get the bindings contract version from our ComponentInterface
     val bindings_contract_version = 30
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_matrix_sdk_contentscanner_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_matrix_sdk_sqlite_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
@@ -900,29 +900,6 @@ object NoHandle
 /**
  * @suppress
  */
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
-    override fun lift(value: Byte): Boolean {
-        return value.toInt() != 0
-    }
-
-    override fun read(buf: ByteBuffer): Boolean {
-        return lift(buf.get())
-    }
-
-    override fun lower(value: Boolean): Byte {
-        return if (value) 1.toByte() else 0.toByte()
-    }
-
-    override fun allocationSize(value: Boolean) = 1UL
-
-    override fun write(value: Boolean, buf: ByteBuffer) {
-        buf.put(lower(value))
-    }
-}
-
-/**
- * @suppress
- */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -980,99 +957,23 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 /**
- * A media scan response containing the result of the scan.
- * Spec: <https://github.com/element-hq/matrix-content-scanner-python/blob/main/docs/api.md#get-_matrixmedia_proxyunstablescanservernamemediaid>
- */
-data class MediaScanResponse (
-    /**
-     * Whether the media is clean or contained something dangerous.
-     */
-    var `clean`: kotlin.Boolean
-    , 
-    /**
-     * Extra information about the scan.
-     */
-    var `info`: kotlin.String
-    
-){
-    
-
-    
-
-    
-    companion object
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeMediaScanResponse: FfiConverterRustBuffer<MediaScanResponse> {
-    override fun read(buf: ByteBuffer): MediaScanResponse {
-        return MediaScanResponse(
-            FfiConverterBoolean.read(buf),
-            FfiConverterString.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: MediaScanResponse) = (
-            FfiConverterBoolean.allocationSize(value.`clean`) +
-            FfiConverterString.allocationSize(value.`info`)
-    )
-
-    override fun write(value: MediaScanResponse, buf: ByteBuffer) {
-            FfiConverterBoolean.write(value.`clean`, buf)
-            FfiConverterString.write(value.`info`, buf)
-    }
-}
-
-
-
-/**
- * The reason for the content scanner error.
+ * Enum controlling how the high-entropy passphrase used to be created on the
+ * client side.
+ *
+ * This allows us to replicate how a random key was converted into a passphrase
+ * to migrate from said passphrase to the plain key.
  */
 
-enum class ErrorReason {
+enum class Base64Variant {
     
     /**
-     * The JSON file is malformed.
+     * Unpadded base64 was used to create the high-entropy passphrase.
      */
-    MCS_MALFORMED_JSON,
+    UNPADDED,
     /**
-     * The media could not be decrypted.
+     * Standard padded base64 was used to create the high-entropy passphrase.
      */
-    MCS_MEDIA_FAILED_TO_DECRYPT,
-    /**
-     * No access token was provided.
-     */
-    M_MISSING_TOKEN,
-    /**
-     * The access token provided is invalid.
-     */
-    M_UNKNOWN_TOKEN,
-    /**
-     * The media was not found.
-     */
-    M_NOT_FOUND,
-    /**
-     * The media has some potentially dangerous content.
-     */
-    MCS_MEDIA_NOT_CLEAN,
-    /**
-     * The media has been blocked by the server because of its mime type.
-     */
-    MCS_MIME_TYPE_FORBIDDEN,
-    /**
-     * The used public key is wrong.
-     */
-    MCS_BAD_DECRYPTION,
-    /**
-     * An unknown error occurred.
-     */
-    M_UNKNOWN,
-    /**
-     * The server failed to request media from the media repo.
-     */
-    MCS_MEDIA_REQUEST_FAILED;
+    PADDED;
 
     
 
@@ -1084,16 +985,16 @@ enum class ErrorReason {
 /**
  * @suppress
  */
-public object FfiConverterTypeErrorReason: FfiConverterRustBuffer<ErrorReason> {
+public object FfiConverterTypeBase64Variant: FfiConverterRustBuffer<Base64Variant> {
     override fun read(buf: ByteBuffer) = try {
-        ErrorReason.values()[buf.getInt() - 1]
+        Base64Variant.values()[buf.getInt() - 1]
     } catch (e: IndexOutOfBoundsException) {
         throw RuntimeException("invalid enum value, something is very wrong!!", e)
     }
 
-    override fun allocationSize(value: ErrorReason) = 4UL
+    override fun allocationSize(value: Base64Variant) = 4UL
 
-    override fun write(value: ErrorReason, buf: ByteBuffer) {
+    override fun write(value: Base64Variant, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
