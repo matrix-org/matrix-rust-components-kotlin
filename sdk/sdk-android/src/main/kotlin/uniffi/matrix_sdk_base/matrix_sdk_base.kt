@@ -1056,16 +1056,15 @@ data class MediaRetentionPolicy (
      *
      * If it is set, media content bigger than the maximum size will not be
      * cached. If the maximum size changed after media content that exceeds the
-     * new value was cached, the corresponding content will be removed
-     * during a cleanup.
+     * new value was cached, the corresponding content will be removed during a
+     * cleanup.
      *
      * Defaults to 20 MiB.
      */
     var `maxFileSize`: kotlin.ULong?
     , 
     /**
-     * The duration after which unaccessed media content is considered
-     * expired.
+     * The duration after which unaccessed media content is considered expired.
      *
      * If this is set, media content whose last access is older than this
      * duration will be removed from the media cache during a cleanup.
@@ -1077,8 +1076,8 @@ data class MediaRetentionPolicy (
     /**
      * The duration between two automatic media cache cleanups.
      *
-     * If this is set, a cleanup will be triggered after the given duration
-     * is elapsed, at the next call to the media cache API. If this is set to
+     * If this is set, a cleanup will be triggered after the given duration is
+     * elapsed, at the next call to the media cache API. If this is set to
      * zero, each call to the media cache API will trigger a cleanup. If this
      * is `None`, cleanups will only occur if they are triggered manually.
      *
@@ -1210,6 +1209,54 @@ public object FfiConverterTypeEncryptionState: FfiConverterRustBuffer<Encryption
     override fun allocationSize(value: EncryptionState) = 4UL
 
     override fun write(value: EncryptionState, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * Why a sticky event disappeared from the map of a room.
+ */
+
+enum class RemovalReason {
+    
+    /**
+     * The event stopped being sticky.
+     */
+    EXPIRED,
+    /**
+     * A newer event with the same key and an empty content (a removal, in
+     * MSC4354 terms) replaced it.
+     */
+    REPLACED,
+    /**
+     * We left the room.
+     */
+    ROOM_LEFT;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRemovalReason: FfiConverterRustBuffer<RemovalReason> {
+    override fun read(buf: ByteBuffer) = try {
+        RemovalReason.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: RemovalReason) = 4UL
+
+    override fun write(value: RemovalReason, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

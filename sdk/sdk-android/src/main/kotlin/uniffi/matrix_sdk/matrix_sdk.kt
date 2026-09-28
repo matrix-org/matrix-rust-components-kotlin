@@ -1377,8 +1377,8 @@ public object FfiConverterTypeOAuthAuthorizationData: FfiConverter<OAuthAuthoriz
 
 /**
  * A set of common power levels required for various operations within a room,
- * that can be applied as a single operation. When updating these
- * settings, any levels that are `None` will remain unchanged.
+ * that can be applied as a single operation. When updating these settings, any
+ * levels that are `None` will remain unchanged.
  */
 data class RoomPowerLevelChanges (
     /**
@@ -1605,18 +1605,18 @@ public object FfiConverterTypeTileServerInfo: FfiConverterRustBuffer<TileServerI
  * Configuration parameters, to create a new virtual Element Call widget.
  *
  * If `intent` is provided the appropriate default values for all other
- * parameters will be used by element call.
- * In most cases its enough to only set the intent. Use the other properties
- * only if you want to deviate from the `intent` defaults.
+ * parameters will be used by element call. In most cases its enough to only
+ * set the intent. Use the other properties only if you want to deviate from
+ * the `intent` defaults.
  *
- * Set [`docs/url-params.md`](https://github.com/element-hq/element-call/blob/livekit/docs/url-params.md)
+ * Set
+ * [`docs/url-params.md`](https://github.com/element-hq/element-call/blob/livekit/docs/url-params.md)
  * to find out more about the parameters and their defaults.
  */
 data class VirtualElementCallWidgetConfig (
     /**
-     * The intent of showing the call.
-     * If the user wants to start a call or join an existing one.
-     * Controls if the lobby is skipped or not.
+     * The intent of showing the call. If the user wants to start a call or
+     * join an existing one. Controls if the lobby is skipped or not.
      */
     var `intent`: Intent?
     , 
@@ -1641,8 +1641,8 @@ data class VirtualElementCallWidgetConfig (
     var `hideHeader`: kotlin.Boolean? = null 
     , 
     /**
-     * If set, the lobby will be skipped and the widget will join the
-     * call on the `io.element.join` action.
+     * If set, the lobby will be skipped and the widget will join the call on
+     * the `io.element.join` action.
      *
      * Default: `false`
      */
@@ -1740,9 +1740,9 @@ public object FfiConverterTypeVirtualElementCallWidgetConfig: FfiConverterRustBu
 /**
  * Properties to create a new virtual Element Call widget.
  *
- * All these are required to start the widget in the first place.
- * This is different from the `VirtualElementCallWidgetConfiguration` which
- * configures the widgets behavior.
+ * All these are required to start the widget in the first place. This is
+ * different from the `VirtualElementCallWidgetConfiguration` which configures
+ * the widgets behavior.
  */
 data class VirtualElementCallWidgetProperties (
     /**
@@ -1758,16 +1758,16 @@ data class VirtualElementCallWidgetProperties (
     var `widgetId`: kotlin.String
     , 
     /**
-     * The url that is used as the target for the PostMessages sent
-     * by the widget (to the client).
+     * The url that is used as the target for the PostMessages sent by the
+     * widget (to the client).
      *
      * For a web app client this is the client url. In case of using other
-     * platforms the client most likely is setup up to listen to
-     * postmessages in the same webview the widget is hosted. In this case
-     * the `parent_url` is set to the url of the webview with the widget. Be
-     * aware that this means that the widget will receive its own postmessage
-     * messages. The `matrix-widget-api` (js) ignores those so this works but
-     * it might break custom implementations.
+     * platforms the client most likely is setup up to listen to postmessages
+     * in the same webview the widget is hosted. In this case the `parent_url`
+     * is set to the url of the webview with the widget. Be aware that this
+     * means that the widget will receive its own postmessage messages. The
+     * `matrix-widget-api` (js) ignores those so this works but it might break
+     * custom implementations.
      *
      * Defaults to `element_call_url` for the non-iframe (dedicated webview)
      * usecase.
@@ -1799,20 +1799,20 @@ data class VirtualElementCallWidgetProperties (
     var `posthogUserId`: kotlin.String? = null 
     , 
     /**
-     * The host of the posthog api.
-     * This is only used by the embedded package of Element Call.
+     * The host of the posthog api. This is only used by the embedded package
+     * of Element Call.
      */
     var `posthogApiHost`: kotlin.String? = null 
     , 
     /**
-     * The key for the posthog api.
-     * This is only used by the embedded package of Element Call.
+     * The key for the posthog api. This is only used by the embedded package
+     * of Element Call.
      */
     var `posthogApiKey`: kotlin.String? = null 
     , 
     /**
-     * The url to use for submitting rageshakes.
-     * This is only used by the embedded package of Element Call.
+     * The url to use for submitting rageshakes. This is only used by the
+     * embedded package of Element Call.
      */
     var `rageshakeSubmitUrl`: kotlin.String? = null 
     , 
@@ -1823,8 +1823,9 @@ data class VirtualElementCallWidgetProperties (
     var `sentryDsn`: kotlin.String? = null 
     , 
     /**
-     * Sentry [environment](https://docs.sentry.io/concepts/key-terms/key-terms/)
-     * This is only used by the embedded package of Element Call.
+     * Sentry
+     * [environment](https://docs.sentry.io/concepts/key-terms/key-terms/) This
+     * is only used by the embedded package of Element Call.
      */
     var `sentryEnvironment`: kotlin.String? = null 
     
@@ -1965,15 +1966,13 @@ sealed class EncryptionSystem {
     
     
     /**
-     * Equivalent to the element call url parameters:
-     * `perParticipantE2EE=true`
+     * Equivalent to the element call url parameters: `perParticipantE2EE=true`
      */
     object PerParticipantKeys : EncryptionSystem()
     
     
     /**
-     * Equivalent to the element call url parameters:
-     * `password={secret}`
+     * Equivalent to the element call url parameters: `password={secret}`
      */
     data class SharedSecret(
         /**
@@ -2134,8 +2133,8 @@ enum class Intent {
      */
     START_CALL_DM_VOICE,
     /**
-     * The user wants to join an existing  voice call that is a "Direct
-     * Message" (DM) room.
+     * The user wants to join an existing voice call that is a "Direct Message"
+     * (DM) room.
      */
     JOIN_EXISTING_DM_VOICE;
 
@@ -2220,8 +2219,8 @@ sealed class PaginationStatus {
      */
     data class Idle(
         /**
-         * Have we hit the start of the timeline, i.e. paginating wouldn't
-         * have any effect?
+         * Have we hit the start of the timeline, i.e. paginating wouldn't have
+         * any effect?
          */
         val `hitTimelineStart`: kotlin.Boolean) : PaginationStatus()
         
@@ -2555,6 +2554,51 @@ public object FfiConverterTypeRoomMemberRole: FfiConverterRustBuffer<RoomMemberR
     override fun allocationSize(value: RoomMemberRole) = 4UL
 
     override fun write(value: RoomMemberRole, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * How aggressively a search backfill runs.
+ */
+
+enum class SearchBackfillStrategy {
+    
+    /**
+     * The app is in the foreground: pause between paginations so this doesn't
+     * compete with interactive traffic.
+     */
+    FOREGROUND,
+    /**
+     * A time-boxed background task (e.g. iOS `BGAppRefreshTask`) where there's
+     * no interactive traffic to protect.
+     */
+    BACKGROUND;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSearchBackfillStrategy: FfiConverterRustBuffer<SearchBackfillStrategy> {
+    override fun read(buf: ByteBuffer) = try {
+        SearchBackfillStrategy.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: SearchBackfillStrategy) = 4UL
+
+    override fun write(value: SearchBackfillStrategy, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }

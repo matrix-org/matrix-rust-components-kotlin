@@ -1918,20 +1918,19 @@ enum class CollectStrategy {
      */
     ALL_DEVICES,
     /**
-     * Share with all devices, except errors for *verified* users cause sharing
+     * Share with all devices, except errors for _verified_ users cause sharing
      * to fail with an error.
      *
-     * In this strategy, if a verified user has an unsigned device,
-     * key sharing will fail with a
-     * [`SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`].
-     * If a verified user has replaced their identity, key
-     * sharing will fail with a
+     * In this strategy, if a verified user has an unsigned device, key sharing
+     * will fail with a
+     * [`SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`]. If a
+     * verified user has replaced their identity, key sharing will fail with a
      * [`SessionRecipientCollectionError::VerifiedUserChangedIdentity`].
      *
      * Otherwise, keys are shared with unsigned devices as normal.
      *
-     * Once the problematic devices are blacklisted or whitelisted the
-     * caller can retry to share a second time.
+     * Once the problematic devices are blacklisted or whitelisted the caller
+     * can retry to share a second time.
      *
      * Not recommended, per the guidance of [MSC4153].
      *
@@ -1940,8 +1939,8 @@ enum class CollectStrategy {
     ERROR_ON_VERIFIED_USER_PROBLEM,
     /**
      * Share based on identity. Only distribute to devices signed by their
-     * owner. If a user has no published identity he will not receive
-     * any room keys.
+     * owner. If a user has no published identity he will not receive any room
+     * keys.
      *
      * This is the recommended strategy: it is compliant with the guidance of
      * [MSC4153].
@@ -2011,15 +2010,15 @@ enum class IdentityState {
     VERIFIED,
     /**
      * Either this is the first identity we have seen for this user, or the
-     * user has acknowledged a change of identity explicitly e.g. by
-     * clicking OK on a notification.
+     * user has acknowledged a change of identity explicitly e.g. by clicking
+     * OK on a notification.
      */
     PINNED,
     /**
      * The user's identity has changed since it was pinned. The user should be
-     * notified about this and given the opportunity to acknowledge the
-     * change, which will make the new identity pinned.
-     * When the user acknowledges the change, the app should call
+     * notified about this and given the opportunity to acknowledge the change,
+     * which will make the new identity pinned. When the user acknowledges the
+     * change, the app should call
      * [`crate::OtherUserIdentity::pin_current_master_key`].
      */
     PIN_VIOLATION,
@@ -2133,8 +2132,8 @@ sealed class LoginQrCodeDecodeException(message: String): kotlin.Exception(messa
         class UrlParse(message: String) : LoginQrCodeDecodeException(message)
         
     /**
-     * The QR code data contains an invalid intent, we expect the login
-     * intent or the reciprocate intent.
+     * The QR code data contains an invalid intent, we expect the login intent
+     * or the reciprocate intent.
      */
         class InvalidIntent(message: String) : LoginQrCodeDecodeException(message)
         
@@ -2325,8 +2324,7 @@ public object FfiConverterTypeSignatureState: FfiConverterRustBuffer<SignatureSt
 
 
 /**
- * The trust level in the sender's device that is required to decrypt an
- * event.
+ * The trust level in the sender's device that is required to decrypt an event.
  */
 
 enum class TrustRequirement {
@@ -2417,9 +2415,9 @@ enum class UtdCause {
      * signed by its owner, and we were unable to securely find the device.
      *
      * This could be because the device has since been deleted, because we
-     * haven't yet downloaded it from the server, or because the session
-     * data was obtained from an insecure source (imported from a file,
-     * obtained from a legacy (asymmetric) backup, unsafe key forward, etc.)
+     * haven't yet downloaded it from the server, or because the session data
+     * was obtained from an insecure source (imported from a file, obtained
+     * from a legacy (asymmetric) backup, unsafe key forward, etc.)
      */
     UNKNOWN_DEVICE,
     /**
@@ -2429,9 +2427,8 @@ enum class UtdCause {
      *
      * Device-historical means that the message was sent before the current
      * device existed (but the current user was probably a member of the room
-     * at the time the message was sent). Not to
-     * be confused with pre-join or pre-invite messages (see
-     * [`UtdCause::SentBeforeWeJoined`] for that).
+     * at the time the message was sent). Not to be confused with pre-join or
+     * pre-invite messages (see [`UtdCause::SentBeforeWeJoined`] for that).
      *
      * Expected message to user: "History is not available on this device".
      */
@@ -2445,10 +2442,10 @@ enum class UtdCause {
     WITHHELD_FOR_UNVERIFIED_OR_INSECURE_DEVICE,
     /**
      * The keys for this event are missing, likely because the sender was
-     * unable to share them (e.g., failure to establish an Olm 1:1
-     * channel). Alternatively, the sender may have deliberately excluded
-     * this device by cherry-picking and blocking it, in which case, no action
-     * can be taken on our side.
+     * unable to share them (e.g., failure to establish an Olm 1:1 channel).
+     * Alternatively, the sender may have deliberately excluded this device by
+     * cherry-picking and blocking it, in which case, no action can be taken on
+     * our side.
      */
     WITHHELD_BY_SENDER,
     /**
@@ -2458,9 +2455,8 @@ enum class UtdCause {
      *
      * Device-historical means that the message was sent before the current
      * device existed (but the current user was probably a member of the room
-     * at the time the message was sent). Not to
-     * be confused with pre-join or pre-invite messages (see
-     * [`UtdCause::SentBeforeWeJoined`] for that).
+     * at the time the message was sent). Not to be confused with pre-join or
+     * pre-invite messages (see [`UtdCause::SentBeforeWeJoined`] for that).
      *
      * Expected message to user: "You need to verify this device".
      */
@@ -2497,8 +2493,7 @@ public object FfiConverterTypeUtdCause: FfiConverterRustBuffer<UtdCause> {
 /**
  * The algorithm that was used to construct the signature.
  *
- * This might be extended in future, but for now we only support
- * RsaPssSha512.
+ * This might be extended in future, but for now we only support RsaPssSha512.
  */
 
 enum class X509SignatureScheme {

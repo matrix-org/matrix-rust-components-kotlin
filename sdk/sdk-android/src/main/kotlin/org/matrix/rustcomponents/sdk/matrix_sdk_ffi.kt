@@ -46,6 +46,7 @@ import uniffi.matrix_sdk.FfiConverterTypeOAuthAuthorizationData
 import uniffi.matrix_sdk.FfiConverterTypePaginationStatus
 import uniffi.matrix_sdk.FfiConverterTypeRoomMemberRole
 import uniffi.matrix_sdk.FfiConverterTypeRoomPowerLevelChanges
+import uniffi.matrix_sdk.FfiConverterTypeSearchBackfillStrategy
 import uniffi.matrix_sdk.FfiConverterTypeServerVendorInfo
 import uniffi.matrix_sdk.FfiConverterTypeTileServerInfo
 import uniffi.matrix_sdk.FfiConverterTypeVirtualElementCallWidgetConfig
@@ -54,6 +55,7 @@ import uniffi.matrix_sdk.OAuthAuthorizationData
 import uniffi.matrix_sdk.PaginationStatus
 import uniffi.matrix_sdk.RoomMemberRole
 import uniffi.matrix_sdk.RoomPowerLevelChanges
+import uniffi.matrix_sdk.SearchBackfillStrategy
 import uniffi.matrix_sdk.ServerVendorInfo
 import uniffi.matrix_sdk.TileServerInfo
 import uniffi.matrix_sdk.VirtualElementCallWidgetConfig
@@ -63,7 +65,9 @@ import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeDmRoomDefinition
 import uniffi.matrix_sdk_base.FfiConverterTypeEncryptionState
 import uniffi.matrix_sdk_base.FfiConverterTypeMediaRetentionPolicy
+import uniffi.matrix_sdk_base.FfiConverterTypeRemovalReason
 import uniffi.matrix_sdk_base.MediaRetentionPolicy
+import uniffi.matrix_sdk_base.RemovalReason
 import uniffi.matrix_sdk_common.BackgroundTaskFailureReason
 import uniffi.matrix_sdk_common.FfiConverterTypeBackgroundTaskFailureReason
 import uniffi.matrix_sdk_contentscanner.ErrorReason
@@ -119,6 +123,7 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferOAuthAuthorizationData
 import uniffi.matrix_sdk.RustBuffer as RustBufferPaginationStatus
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomMemberRole
 import uniffi.matrix_sdk.RustBuffer as RustBufferRoomPowerLevelChanges
+import uniffi.matrix_sdk.RustBuffer as RustBufferSearchBackfillStrategy
 import uniffi.matrix_sdk.RustBuffer as RustBufferServerVendorInfo
 import uniffi.matrix_sdk.RustBuffer as RustBufferTileServerInfo
 import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetConfig
@@ -126,6 +131,7 @@ import uniffi.matrix_sdk.RustBuffer as RustBufferVirtualElementCallWidgetPropert
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferDmRoomDefinition
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferEncryptionState
 import uniffi.matrix_sdk_base.RustBuffer as RustBufferMediaRetentionPolicy
+import uniffi.matrix_sdk_base.RustBuffer as RustBufferRemovalReason
 import uniffi.matrix_sdk_common.RustBuffer as RustBufferBackgroundTaskFailureReason
 import uniffi.matrix_sdk_contentscanner.RustBuffer as RustBufferErrorReason
 import uniffi.matrix_sdk_contentscanner.RustBuffer as RustBufferMediaScanResponse
@@ -875,6 +881,9 @@ internal interface UniffiCallbackInterfaceSendQueueListenerMethod0 : com.sun.jna
 internal interface UniffiCallbackInterfaceTypingNotificationsListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`typingUserIds`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
+internal interface UniffiCallbackInterfaceStickyEventsListenerMethod0 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
 internal interface UniffiCallbackInterfaceRoomDirectorySearchEntriesListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`roomEntriesUpdate`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
@@ -1599,6 +1608,25 @@ internal open class UniffiVTableCallbackInterfaceTypingNotificationsListener(
 
 }
 @Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
+internal open class UniffiVTableCallbackInterfaceStickyEventsListener(
+    @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+    @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+    @JvmField internal var `onUpdate`: UniffiCallbackInterfaceStickyEventsListenerMethod0? = null,
+) : Structure() {
+    class UniffiByValue(
+        `uniffiFree`: UniffiCallbackInterfaceFree? = null,
+        `uniffiClone`: UniffiCallbackInterfaceClone? = null,
+        `onUpdate`: UniffiCallbackInterfaceStickyEventsListenerMethod0? = null,
+    ): UniffiVTableCallbackInterfaceStickyEventsListener(`uniffiFree`,`uniffiClone`,`onUpdate`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceStickyEventsListener) {
+        `uniffiFree` = other.`uniffiFree`
+        `uniffiClone` = other.`uniffiClone`
+        `onUpdate` = other.`onUpdate`
+    }
+
+}
+@Structure.FieldOrder("uniffiFree", "uniffiClone", "onUpdate")
 internal open class UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener(
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
     @JvmField internal var `uniffiClone`: UniffiCallbackInterfaceClone? = null,
@@ -2185,6 +2213,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_disable_well_known_lookup(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_discover_rtc_transports(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_display_name(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_enable_all_send_queues(
@@ -2253,6 +2283,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_sticky_events_supported(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_is_user_status_supported(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id(
@@ -2310,6 +2342,8 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_room_directory_search(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_rooms(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_run_search_backfill(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_users(
     ): Int
@@ -2887,6 +2921,12 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_sticky_raw(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_sticky_events(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_sticky_events(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_next_chunk(
@@ -3013,9 +3053,13 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_cancel_info(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_sas_cancel_info(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate(
     ): Int
@@ -3129,6 +3173,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_sendhandle_try_resend(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_abort_send(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_create_message_content(
@@ -3138,6 +3184,8 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_with_attachment(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll(
     ): Int
@@ -3163,7 +3211,11 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_send(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_attachment(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio(
     ): Int
@@ -3331,6 +3383,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_stickyeventslistener_on_update(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_roomlistentrieslistener_on_update(
@@ -3446,6 +3500,7 @@ internal object UniffiLib {
         uniffiCallbackInterfaceSpaceRoomListSpaceListener.register(this)
         uniffiCallbackInterfaceSpaceServiceJoinedSpacesListener.register(this)
         uniffiCallbackInterfaceSpaceServiceSpaceFiltersListener.register(this)
+        uniffiCallbackInterfaceStickyEventsListener.register(this)
         uniffiCallbackInterfaceSyncListenerV2.register(this)
         uniffiCallbackInterfaceSyncNotificationListener.register(this)
         uniffiCallbackInterfaceSyncServiceStateObserver.register(this)
@@ -3535,6 +3590,8 @@ internal object UniffiLib {
     ): RustBuffer.ByValue
     external fun uniffi_matrix_sdk_ffi_fn_method_client_disable_well_known_lookup(`ptr`: Long,`disable`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_discover_rtc_transports(`ptr`: Long,
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_display_name(`ptr`: Long,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_enable_all_send_queues(`ptr`: Long,`enable`: Byte,
@@ -3603,6 +3660,8 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_is_room_alias_available(`ptr`: Long,`alias`: RustBuffer.ByValue,
     ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_is_sticky_events_supported(`ptr`: Long,
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_is_user_status_supported(`ptr`: Long,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_join_room_by_id(`ptr`: Long,`roomId`: RustBuffer.ByValue,
@@ -3661,6 +3720,8 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_run_search_backfill(`ptr`: Long,`strategy`: RustBufferSearchBackfillStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_search_users(`ptr`: Long,`searchTerm`: RustBuffer.ByValue,`limit`: Long,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_send_encrypted_to_device_message(`ptr`: Long,`eventType`: RustBuffer.ByValue,`recipients`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
@@ -4355,6 +4416,12 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Long,`userIds`: RustBuffer.ByValue,`sendHandle`: Long,
     ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`durationMs`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_sticky_events(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_sticky_events(`ptr`: Long,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_clone_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_free_roommembersiterator(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4533,10 +4600,14 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_decline_verification(`ptr`: Long,
     ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_cancel_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_device_verification(`ptr`: Long,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_user_verification(`ptr`: Long,`userId`: RustBuffer.ByValue,
     ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_sas_cancel_info(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_set_delegate(`ptr`: Long,`delegate`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     external fun uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_start_sas_verification(`ptr`: Long,
@@ -4699,6 +4770,8 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_free_timeline(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_abort_send(`ptr`: Long,`itemId`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_add_listener(`ptr`: Long,`listener`: Long,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_create_message_content(`ptr`: Long,`msgType`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -4708,6 +4781,8 @@ internal object UniffiLib {
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit(`ptr`: Long,`eventOrTransactionId`: RustBuffer.ByValue,`newContent`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit_revisions(`ptr`: Long,`eventId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_edit_with_attachment(`ptr`: Long,`eventId`: RustBuffer.ByValue,`params`: RustBuffer.ByValue,`attachment`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_end_poll(`ptr`: Long,`pollStartEventId`: RustBuffer.ByValue,`text`: RustBuffer.ByValue,
     ): Long
@@ -4733,7 +4808,11 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_decryption(`ptr`: Long,`sessionIds`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_retry_send(`ptr`: Long,`itemId`: RustBuffer.ByValue,`target`: RustBuffer.ByValue,
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send(`ptr`: Long,`msg`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_attachment(`ptr`: Long,`params`: RustBuffer.ByValue,`attachment`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_timeline_send_audio(`ptr`: Long,`params`: RustBuffer.ByValue,`audioInfo`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -4896,6 +4975,8 @@ internal object UniffiLib {
     external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_sendqueuelistener(`vtable`: UniffiVTableCallbackInterfaceSendQueueListener,
     ): Unit
     external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_typingnotificationslistener(`vtable`: UniffiVTableCallbackInterfaceTypingNotificationsListener,
+    ): Unit
+    external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_stickyeventslistener(`vtable`: UniffiVTableCallbackInterfaceStickyEventsListener,
     ): Unit
     external fun uniffi_matrix_sdk_ffi_fn_init_callback_vtable_roomdirectorysearchentrieslistener(`vtable`: UniffiVTableCallbackInterfaceRoomDirectorySearchEntriesListener,
     ): Unit
@@ -5184,7 +5265,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_func_message_event_content_new() and 0xFFFF) != 60397) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() and 0xFFFF) != 47063) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_parse_matrix_entity_from() and 0xFFFF) != 41615) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_func_create_caption_edit() and 0xFFFF) != 45966) {
@@ -5193,7 +5274,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_func_server_name_from_user_id() and 0xFFFF) != 45296) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() and 0xFFFF) != 44877) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_generate_webview_url() and 0xFFFF) != 21892) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_func_get_element_call_required_permissions() and 0xFFFF) != 65024) {
@@ -5202,7 +5283,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_func_make_widget_driver() and 0xFFFF) != 34266) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() and 0xFFFF) != 51000) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_func_new_virtual_element_call_widget() and 0xFFFF) != 14288) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roommessageeventcontentwithoutrelation_with_mentions() and 0xFFFF) != 23475) {
@@ -5229,7 +5310,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_finish() and 0xFFFF) != 52093) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url() and 0xFFFF) != 38378) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_ssohandler_url() and 0xFFFF) != 9818) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_abort_oauth_auth() and 0xFFFF) != 7594) {
@@ -5253,10 +5334,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_cached_avatar_url() and 0xFFFF) != 30350) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account() and 0xFFFF) != 12377) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_can_deactivate_account() and 0xFFFF) != 46985) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches() and 0xFFFF) != 18813) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_caches() and 0xFFFF) != 12078) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_clear_user_status() and 0xFFFF) != 10577) {
@@ -5268,10 +5349,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_create_room() and 0xFFFF) != 3492) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt() and 0xFFFF) != 56228) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_custom_login_with_jwt() and 0xFFFF) != 58183) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account() and 0xFFFF) != 50064) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_deactivate_account() and 0xFFFF) != 53834) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_delete_pusher() and 0xFFFF) != 29493) {
@@ -5281,6 +5362,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_disable_well_known_lookup() and 0xFFFF) != 38090) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_discover_rtc_transports() and 0xFFFF) != 38965) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_display_name() and 0xFFFF) != 13626) {
@@ -5307,7 +5391,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_dm_rooms() and 0xFFFF) != 26367) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_invite_avatars_display_policy() and 0xFFFF) != 48202) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_invite_avatars_display_policy() and 0xFFFF) != 15140) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_max_media_upload_size() and 0xFFFF) != 31461) {
@@ -5319,7 +5403,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_file() and 0xFFFF) != 46613) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_preview_display_policy() and 0xFFFF) != 56154) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_preview_display_policy() and 0xFFFF) != 54801) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_media_thumbnail() and 0xFFFF) != 29416) {
@@ -5334,13 +5418,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_recently_visited_rooms() and 0xFFFF) != 31275) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room() and 0xFFFF) != 21053) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room() and 0xFFFF) != 19167) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_alias() and 0xFFFF) != 1624) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id() and 0xFFFF) != 32950) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_room_preview_from_room_id() and 0xFFFF) != 61718) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_session_verification_controller() and 0xFFFF) != 58138) {
@@ -5352,7 +5436,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_url() and 0xFFFF) != 18890) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview() and 0xFFFF) != 13590) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview() and 0xFFFF) != 44378) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_homeserver() and 0xFFFF) != 42423) {
@@ -5382,7 +5466,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_report_room_api_supported() and 0xFFFF) != 26132) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() and 0xFFFF) != 29606) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_room_alias_available() and 0xFFFF) != 16005) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_sticky_events_supported() and 0xFFFF) != 6866) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_user_status_supported() and 0xFFFF) != 49650) {
@@ -5391,7 +5478,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id() and 0xFFFF) != 56087) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias() and 0xFFFF) != 36531) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_join_room_by_id_or_alias() and 0xFFFF) != 36557) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_knock() and 0xFFFF) != 32237) {
@@ -5409,13 +5496,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_logout() and 0xFFFF) != 12942) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_mark_all_rooms_as_read() and 0xFFFF) != 20882) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_mark_all_rooms_as_read() and 0xFFFF) != 2022) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_grant_login_with_qr_code_handler() and 0xFFFF) != 23786) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler() and 0xFFFF) != 2903) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_new_login_with_qr_code_handler() and 0xFFFF) != 14560) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_notification_client() and 0xFFFF) != 20149) {
@@ -5433,10 +5520,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_optimize_stores() and 0xFFFF) != 24510) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_pause() and 0xFFFF) != 15854) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_pause() and 0xFFFF) != 8061) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler() and 0xFFFF) != 47738) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_register_notification_handler() and 0xFFFF) != 19168) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_remove_avatar() and 0xFFFF) != 31550) {
@@ -5448,7 +5535,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_supported_versions() and 0xFFFF) != 61164) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known() and 0xFFFF) != 52326) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_reset_well_known() and 0xFFFF) != 35371) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_resolve_room_alias() and 0xFFFF) != 40715) {
@@ -5472,16 +5559,19 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_rooms() and 0xFFFF) != 64941) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_run_search_backfill() and 0xFFFF) != 14130) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_search_users() and 0xFFFF) != 51156) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_send_encrypted_to_device_message() and 0xFFFF) != 36432) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_send_encrypted_to_device_message() and 0xFFFF) != 23656) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_server() and 0xFFFF) != 53378) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_server() and 0xFFFF) != 55051) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info() and 0xFFFF) != 11469) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_server_vendor_info() and 0xFFFF) != 22941) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_session() and 0xFFFF) != 13261) {
@@ -5517,7 +5607,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_pusher() and 0xFFFF) != 23660) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_user_status() and 0xFFFF) != 4862) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_user_status() and 0xFFFF) != 23) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_set_utd_delegate() and 0xFFFF) != 58546) {
@@ -5532,7 +5622,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_start_sso_login() and 0xFFFF) != 26018) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_custom_to_device_messages() and 0xFFFF) != 60226) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_custom_to_device_messages() and 0xFFFF) != 50580) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_duplicate_key_upload_errors() and 0xFFFF) != 61081) {
@@ -5550,22 +5640,22 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_own_profile() and 0xFFFF) != 44633) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_room_info() and 0xFFFF) != 42276) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_room_info() and 0xFFFF) != 7474) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_status() and 0xFFFF) != 3015) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates() and 0xFFFF) != 25278) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_subscribe_to_send_queue_updates() and 0xFFFF) != 24108) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_once_v2() and 0xFFFF) != 36079) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_once_v2() and 0xFFFF) != 26789) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_service() and 0xFFFF) != 3217) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2() and 0xFFFF) != 34947) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_sync_v2() and 0xFFFF) != 10162) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_tile_server() and 0xFFFF) != 12042) {
@@ -5586,7 +5676,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_media() and 0xFFFF) != 27840) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oauth() and 0xFFFF) != 14390) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_url_for_oauth() and 0xFFFF) != 57377) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_user_id() and 0xFFFF) != 42220) {
@@ -5652,7 +5742,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_auto_enable_cross_signing() and 0xFFFF) != 30673) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download_strategy() and 0xFFFF) != 45874) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_backup_download_strategy() and 0xFFFF) != 20957) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_build() and 0xFFFF) != 26704) {
@@ -5709,7 +5799,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_server_name_or_homeserver_url() and 0xFFFF) != 27197) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths() and 0xFFFF) != 40724) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_session_paths() and 0xFFFF) != 12862) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_set_session_delegate() and 0xFFFF) != 12605) {
@@ -5721,7 +5811,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_sqlite_store() and 0xFFFF) != 59413) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() and 0xFFFF) != 41143) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_system_is_memory_constrained() and 0xFFFF) != 59608) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_clientbuilder_threads_enabled() and 0xFFFF) != 10730) {
@@ -5742,7 +5832,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_contentscanner_scan() and 0xFFFF) != 55879) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server() and 0xFFFF) != 29875) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_exists_on_server() and 0xFFFF) != 21920) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_backup_state() and 0xFFFF) != 17664) {
@@ -5757,10 +5847,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_curve25519_key() and 0xFFFF) != 31520) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_dehydrated_device_event_listener() and 0xFFFF) != 50887) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_dehydrated_device_event_listener() and 0xFFFF) != 32461) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_delete_dehydrated_device() and 0xFFFF) != 30488) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_delete_dehydrated_device() and 0xFFFF) != 50855) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_disable_recovery() and 0xFFFF) != 40334) {
@@ -5778,10 +5868,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_has_devices_to_verify_against() and 0xFFFF) != 53568) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_import_secrets_bundle() and 0xFFFF) != 63785) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_import_secrets_bundle() and 0xFFFF) != 51946) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_dehydrated_device_supported() and 0xFFFF) != 63170) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_dehydrated_device_supported() and 0xFFFF) != 45636) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_is_last_device() and 0xFFFF) != 24421) {
@@ -5790,7 +5880,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover() and 0xFFFF) != 50803) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_fix_backup() and 0xFFFF) != 61212) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_fix_backup() and 0xFFFF) != 34956) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_recover_and_reset() and 0xFFFF) != 2527) {
@@ -5811,13 +5901,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_reset_recovery_key() and 0xFFFF) != 28581) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_start_dehydrated_devices() and 0xFFFF) != 49831) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_start_dehydrated_devices() and 0xFFFF) != 2412) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_stop_dehydrated_devices() and 0xFFFF) != 4775) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_stop_dehydrated_devices() and 0xFFFF) != 55485) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity() and 0xFFFF) != 37690) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_user_identity() and 0xFFFF) != 18228) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_encryption_verification_state() and 0xFFFF) != 53401) {
@@ -5838,10 +5928,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_cancel() and 0xFFFF) != 20914) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset() and 0xFFFF) != 3385) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_identityresethandle_reset() and 0xFFFF) != 37724) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_secretsbundlewithuserid_contains_backup_key() and 0xFFFF) != 21861) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_secretsbundlewithuserid_contains_backup_key() and 0xFFFF) != 13305) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_has_verification_violation() and 0xFFFF) != 7724) {
@@ -5853,7 +5943,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_master_key() and 0xFFFF) != 30981) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin() and 0xFFFF) != 40348) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_pin() and 0xFFFF) != 54763) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_useridentity_was_previously_verified() and 0xFFFF) != 37423) {
@@ -5877,7 +5967,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timelineevent_timestamp() and 0xFFFF) != 4201) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationsobserver_subscribe() and 0xFFFF) != 8714) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationsobserver_subscribe() and 0xFFFF) != 22247) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationclient_get_notification() and 0xFFFF) != 64274) {
@@ -5901,13 +5991,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_contains_keywords_rules() and 0xFFFF) != 47887) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode() and 0xFFFF) != 49990) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_default_room_notification_mode() and 0xFFFF) != 33692) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_raw_push_rules() and 0xFFFF) != 59675) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings() and 0xFFFF) != 14192) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_room_notification_settings() and 0xFFFF) != 54808) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_get_rooms_with_user_defined_rules() and 0xFFFF) != 65190) {
@@ -5937,7 +6027,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_custom_push_rule() and 0xFFFF) != 26829) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode() and 0xFFFF) != 29556) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_default_room_notification_mode() and 0xFFFF) != 8601) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_delegate() and 0xFFFF) != 25839) {
@@ -5955,7 +6045,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_set_user_mention_enabled() and 0xFFFF) != 49801) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() and 0xFFFF) != 64791) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettings_unmute_room() and 0xFFFF) != 59659) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_passwordstrengthestimator_estimate() and 0xFFFF) != 43415) {
@@ -5982,16 +6072,16 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_continuationmessagesender_confirm() and 0xFFFF) != 18414) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate() and 0xFFFF) != 61870) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_generate() and 0xFFFF) != 13750) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan() and 0xFFFF) != 47395) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_grantloginwithqrcodehandler_scan() and 0xFFFF) != 18329) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate() and 0xFFFF) != 15861) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_generate() and 0xFFFF) != 50776) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan() and 0xFFFF) != 40418) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_loginwithqrcodehandler_scan() and 0xFFFF) != 27479) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_base_url() and 0xFFFF) != 20926) {
@@ -6000,7 +6090,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_intent() and 0xFFFF) != 42531) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name() and 0xFFFF) != 17844) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_server_name() and 0xFFFF) != 40553) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_qrcodedata_to_bytes() and 0xFFFF) != 34533) {
@@ -6048,7 +6138,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_clear_composer_draft() and 0xFFFF) != 56827) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_decline_call() and 0xFFFF) != 40439) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_decline_call() and 0xFFFF) != 64142) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_discard_room_key() and 0xFFFF) != 26947) {
@@ -6090,7 +6180,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_id() and 0xFFFF) != 28686) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend() and 0xFFFF) != 33031) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_device_trust_and_resend() and 0xFFFF) != 38639) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_ignore_user() and 0xFFFF) != 10201) {
@@ -6150,10 +6240,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_or_fetch_event_with_relations() and 0xFFFF) != 5676) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_user_receipt() and 0xFFFF) != 24376) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_load_user_receipt() and 0xFFFF) != 49162) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked() and 0xFFFF) != 40862) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_fully_read_unchecked() and 0xFFFF) != 59574) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_mark_as_read() and 0xFFFF) != 21259) {
@@ -6195,25 +6285,25 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_preview_room() and 0xFFFF) != 10129) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory() and 0xFFFF) != 45260) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_publish_room_alias_in_room_directory() and 0xFFFF) != 227) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_raw_name() and 0xFFFF) != 61864) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_redact() and 0xFFFF) != 51147) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_redact() and 0xFFFF) != 34543) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_avatar() and 0xFFFF) != 49932) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_room_alias_from_room_directory() and 0xFFFF) != 23464) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_remove_room_alias_from_room_directory() and 0xFFFF) != 37712) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_content() and 0xFFFF) != 18600) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_content() and 0xFFFF) != 64920) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_room() and 0xFFFF) != 57822) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_report_room() and 0xFFFF) != 57804) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_reset_power_levels() and 0xFFFF) != 61300) {
@@ -6231,13 +6321,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location() and 0xFFFF) != 29293) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() and 0xFFFF) != 33452) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() and 0xFFFF) != 29137) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_single_receipt() and 0xFFFF) != 54263) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_single_receipt() and 0xFFFF) != 44071) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw() and 0xFFFF) != 1352) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw() and 0xFFFF) != 54069) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite() and 0xFFFF) != 17735) {
@@ -6252,7 +6342,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_own_member_display_name() and 0xFFFF) != 47962) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() and 0xFFFF) != 16350) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_thread_subscription() and 0xFFFF) != 32594) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_topic() and 0xFFFF) != 5022) {
@@ -6264,28 +6354,28 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_start_live_location_share() and 0xFFFF) != 14892) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_state_events() and 0xFFFF) != 9090) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_state_events() and 0xFFFF) != 37294) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_stop_live_location_share() and 0xFFFF) != 49334) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events() and 0xFFFF) != 19237) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_call_decline_events() and 0xFFFF) != 41573) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_identity_status_changes() and 0xFFFF) != 7209) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests() and 0xFFFF) != 28083) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_knock_requests() and 0xFFFF) != 30200) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_room_info_updates() and 0xFFFF) != 21243) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates() and 0xFFFF) != 14598) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_send_queue_updates() and 0xFFFF) != 56695) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_state_events() and 0xFFFF) != 49220) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_state_events() and 0xFFFF) != 6661) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_typing_notifications() and 0xFFFF) != 60113) {
@@ -6330,10 +6420,19 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_update_room_visibility() and 0xFFFF) != 27925) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() and 0xFFFF) != 25508) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar() and 0xFFFF) != 40573) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend() and 0xFFFF) != 20291) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend() and 0xFFFF) != 56581) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_sticky_raw() and 0xFFFF) != 20102) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_sticky_events() and 0xFFFF) != 3124) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_sticky_events() and 0xFFFF) != 17106) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roommembersiterator_len() and 0xFFFF) != 36990) {
@@ -6384,7 +6483,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_other() and 0xFFFF) != 42584) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_own() and 0xFFFF) != 59071) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_redact_own() and 0xFFFF) != 60530) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roompowerlevels_can_user_send_message() and 0xFFFF) != 331) {
@@ -6417,7 +6516,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_results() and 0xFFFF) != 42287) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() and 0xFFFF) != 56447) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearch_search() and 0xFFFF) != 33671) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomlist_entries_with_dynamic_adapters() and 0xFFFF) != 15118) {
@@ -6501,7 +6600,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_pagination_state() and 0xFFFF) != 21986) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_set_query() and 0xFFFF) != 2525) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_set_query() and 0xFFFF) != 44250) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_searchservice_subscribe_to_pagination_state_updates() and 0xFFFF) != 41707) {
@@ -6513,7 +6612,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_accept_verification_request() and 0xFFFF) != 63394) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request() and 0xFFFF) != 18373) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_acknowledge_verification_request() and 0xFFFF) != 28973) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_approve_verification() and 0xFFFF) != 26159) {
@@ -6525,10 +6624,16 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_decline_verification() and 0xFFFF) != 61574) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_cancel_info() and 0xFFFF) != 4040) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_device_verification() and 0xFFFF) != 1050) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_request_user_verification() and 0xFFFF) != 35126) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_sas_cancel_info() and 0xFFFF) != 34680) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontroller_set_delegate() and 0xFFFF) != 49952) {
@@ -6555,7 +6660,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_pagination_state() and 0xFFFF) != 18118) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_reset() and 0xFFFF) != 22706) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_reset() and 0xFFFF) != 23197) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceroomlist_rooms() and 0xFFFF) != 44616) {
@@ -6582,7 +6687,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_get_space_room() and 0xFFFF) != 27486) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parent_ids_of_child() and 0xFFFF) != 8766) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parent_ids_of_child() and 0xFFFF) != 27836) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_joined_parents_of_child() and 0xFFFF) != 36617) {
@@ -6594,7 +6699,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_remove_child_from_space() and 0xFFFF) != 20772) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_filters() and 0xFFFF) != 38445) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_filters() and 0xFFFF) != 58798) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_space_room_list() and 0xFFFF) != 21044) {
@@ -6609,13 +6714,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_ancestors_of() and 0xFFFF) != 61938) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_joined_spaces() and 0xFFFF) != 60660) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_spaceservice_top_level_joined_spaces() and 0xFFFF) != 25974) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_cache_size() and 0xFFFF) != 51603) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_high_entropy_passphrase() and 0xFFFF) != 44330) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_high_entropy_passphrase() and 0xFFFF) != 27261) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_journal_size_limit() and 0xFFFF) != 48797) {
@@ -6630,10 +6735,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_pool_max_size() and 0xFFFF) != 11712) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained() and 0xFFFF) != 21398) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sqlitestorebuilder_system_is_memory_constrained() and 0xFFFF) != 13762) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions() and 0xFFFF) != 59217) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_expire_sessions() and 0xFFFF) != 7864) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservice_room_list_service() and 0xFFFF) != 1335) {
@@ -6657,7 +6762,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_parent_span() and 0xFFFF) != 61147) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id() and 0xFFFF) != 56899) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_connection_id() and 0xFFFF) != 16274) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_syncservicebuilder_with_room_list_timeline_limit() and 0xFFFF) != 21875) {
@@ -6693,10 +6798,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendattachmentjoinhandle_join() and 0xFFFF) != 61070) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort() and 0xFFFF) != 49988) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_abort() and 0xFFFF) != 29352) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_try_resend() and 0xFFFF) != 14844) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sendhandle_try_resend() and 0xFFFF) != 26565) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_abort_send() and 0xFFFF) != 54321) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_add_listener() and 0xFFFF) != 65368) {
@@ -6708,10 +6816,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_create_poll() and 0xFFFF) != 47147) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() and 0xFFFF) != 45899) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit() and 0xFFFF) != 6714) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions() and 0xFFFF) != 40262) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_revisions() and 0xFFFF) != 1208) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_edit_with_attachment() and 0xFFFF) != 28721) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_end_poll() and 0xFFFF) != 8036) {
@@ -6723,7 +6834,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_fetch_members() and 0xFFFF) != 39770) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() and 0xFFFF) != 49000) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_get_event_timeline_item_by_event_id() and 0xFFFF) != 43047) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_latest_event_id() and 0xFFFF) != 55615) {
@@ -6732,7 +6843,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_load_reply_details() and 0xFFFF) != 8357) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read() and 0xFFFF) != 26178) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_mark_as_read() and 0xFFFF) != 4509) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_paginate_backwards() and 0xFFFF) != 27830) {
@@ -6744,22 +6855,28 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_pin_event() and 0xFFFF) != 2293) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event() and 0xFFFF) != 46975) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_redact_event() and 0xFFFF) != 13285) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_decryption() and 0xFFFF) != 4954) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send() and 0xFFFF) != 19080) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_retry_send() and 0xFFFF) != 10265) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() and 0xFFFF) != 48107) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send() and 0xFFFF) != 58715) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() and 0xFFFF) != 1749) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_attachment() and 0xFFFF) != 21735) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() and 0xFFFF) != 27766) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_audio() and 0xFFFF) != 45499) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_file() and 0xFFFF) != 44250) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_image() and 0xFFFF) != 50294) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_location() and 0xFFFF) != 39599) {
@@ -6771,16 +6888,16 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_read_receipt() and 0xFFFF) != 10485) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply() and 0xFFFF) != 64045) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_reply() and 0xFFFF) != 37856) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() and 0xFFFF) != 5467) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_video() and 0xFFFF) != 46403) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() and 0xFFFF) != 62779) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_voice_message() and 0xFFFF) != 7232) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_content() and 0xFFFF) != 14666) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_send_with_extra_content() and 0xFFFF) != 5571) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_timeline_subscribe_to_back_pagination_status() and 0xFFFF) != 61171) {
@@ -6870,7 +6987,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_new() and 0xFFFF) != 13036) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_modern_defaults2025() and 0xFFFF) != 41863) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_modern_defaults2025() and 0xFFFF) != 63712) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_passwordstrengthestimator_with_zxcvbn_defaults() and 0xFFFF) != 29936) {
@@ -6879,10 +6996,10 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_current() and 0xFFFF) != 54655) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new() and 0xFFFF) != 8416) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new() and 0xFFFF) != 62951) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new_bridge_span() and 0xFFFF) != 11047) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_span_new_bridge_span() and 0xFFFF) != 56477) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_constructor_qrcodedata_from_bytes() and 0xFFFF) != 49339) {
@@ -6963,7 +7080,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_verificationstatelistener_on_update() and 0xFFFF) != 65323) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationslistener_on_update() and 0xFFFF) != 7495) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_livelocationslistener_on_update() and 0xFFFF) != 53525) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_notificationsettingsdelegate_settings_did_change() and 0xFFFF) != 63508) {
@@ -7000,6 +7117,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_typingnotificationslistener_call() and 0xFFFF) != 39527) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_stickyeventslistener_on_update() and 0xFFFF) != 8844) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_roomdirectorysearchentrieslistener_on_update() and 0xFFFF) != 58189) {
@@ -8169,8 +8289,8 @@ public interface ClientInterface {
     suspend fun `cachedAvatarUrl`(): kotlin.String?
     
     /**
-     * Lets the user know whether this is an `m.login.password` based
-     * auth and if the account can actually be deactivated
+     * Lets the user know whether this is an `m.login.password` based auth and
+     * if the account can actually be deactivated
      */
     fun `canDeactivateAccount`(): kotlin.Boolean
     
@@ -8182,15 +8302,15 @@ public interface ClientInterface {
      * calling it.
      *
      * In particular, if a [`SyncService`] is running, it must be passed here
-     * as a parameter, or stopped before calling this method. Ideally, the
-     * send queues should have been disabled and must all be inactive (i.e.
-     * not sending events); this method will disable them, but it might not
-     * be enough if the queues are still processing events.
+     * as a parameter, or stopped before calling this method. Ideally, the send
+     * queues should have been disabled and must all be inactive (i.e. not
+     * sending events); this method will disable them, but it might not be
+     * enough if the queues are still processing events.
      *
-     * After the method returns, the Client will be in an unstable
-     * state, and it is required that the caller reinstantiates a new
-     * Client instance, be it via dropping the previous and re-creating it,
-     * restarting their application, or any other similar means.
+     * After the method returns, the Client will be in an unstable state, and
+     * it is required that the caller reinstantiates a new Client instance, be
+     * it via dropping the previous and re-creating it, restarting their
+     * application, or any other similar means.
      *
      * - This will get rid of the backing state store file, if provided.
      * - This will empty all the room's persisted event caches, so all rooms
@@ -8217,20 +8337,21 @@ public interface ClientInterface {
     suspend fun `createRoom`(`request`: CreateRoomParameters): kotlin.String
     
     /**
-     * Login using JWT
-     * This is an implementation of the custom_login https://docs.rs/matrix-sdk/latest/matrix_sdk/matrix_auth/struct.MatrixAuth.html#method.login_custom
-     * For more information on logging in with JWT: https://element-hq.github.io/synapse/latest/jwt.html
+     * Login using JWT This is an implementation of the custom_login
+     * https://docs.rs/matrix-sdk/latest/matrix_sdk/matrix_auth/struct.MatrixAuth.html#method.login_custom
+     * For more information on logging in with JWT:
+     * https://element-hq.github.io/synapse/latest/jwt.html
      */
     suspend fun `customLoginWithJwt`(`jwt`: kotlin.String, `initialDeviceName`: kotlin.String?, `deviceId`: kotlin.String?)
     
     /**
-     * Deactivate this account definitively.
-     * Similarly to `encryption::reset_identity` this
-     * will only work with password-based authentication (`m.login.password`)
+     * Deactivate this account definitively. Similarly to
+     * `encryption::reset_identity` this will only work with password-based
+     * authentication (`m.login.password`)
      *
      * # Arguments
      *
-     * * `auth_data` - This request uses the [User-Interactive Authentication
+     * - `auth_data` - This request uses the [User-Interactive Authentication
      * API][uiaa]. The first request needs to set this to `None` and will
      * always fail and the same request needs to be made but this time with
      * some `auth_data` provided.
@@ -8255,6 +8376,22 @@ public interface ClientInterface {
      * `m.rtc_foci`, relying only on the MSC4143 discovery endpoint.
      */
     fun `disableWellKnownLookup`(`disable`: kotlin.Boolean)
+    
+    /**
+     * Discover the RTC transports advertised by the homeserver.
+     *
+     * The transports are first looked up through the authenticated
+     * `GET /_matrix/client/v1/rtc/transports` endpoint (MSC4143). If the
+     * homeserver doesn't implement that endpoint, this falls back to the
+     * `m.rtc_foci` field of the well-known, unless well-known discovery was
+     * disabled with [`ClientBuilder::disable_well_known_lookup`] or
+     * [`Client::disable_well_known_lookup`].
+     *
+     * Returns `None` if neither source could provide transports, which is kept
+     * distinct from an empty list, i.e. a homeserver that advertises no
+     * transports at all.
+     */
+    suspend fun `discoverRtcTransports`(): List<RtcTransport>?
     
     suspend fun `displayName`(): kotlin.String
     
@@ -8299,8 +8436,8 @@ public interface ClientInterface {
     fun `getDmRooms`(`userId`: kotlin.String): List<Room>
     
     /**
-     * Get the invite request avatars display policy
-     * currently stored in the cache.
+     * Get the invite request avatars display policy currently stored in the
+     * cache.
      */
     suspend fun `getInviteAvatarsDisplayPolicy`(): InviteAvatars?
     
@@ -8320,8 +8457,8 @@ public interface ClientInterface {
     suspend fun `getMediaFile`(`mediaSource`: MediaSource, `filename`: kotlin.String?, `mimeType`: kotlin.String, `useCache`: kotlin.Boolean, `tempDir`: kotlin.String?): MediaFileHandle
     
     /**
-     * Get the media previews timeline display policy
-     * currently stored in the cache.
+     * Get the media previews timeline display policy currently stored in the
+     * cache.
      */
     suspend fun `getMediaPreviewDisplayPolicy`(): MediaPreviews?
     
@@ -8338,13 +8475,12 @@ public interface ClientInterface {
      *
      * # Arguments
      *
-     * * `room_id` - The ID of the room to get.
+     * - `room_id` - The ID of the room to get.
      *
      * # Returns
      *
-     * A `Result` containing an optional room, or a `ClientError`.
-     * This method will not initialize the room's timeline or populate it with
-     * events.
+     * A `Result` containing an optional room, or a `ClientError`. This method
+     * will not initialize the room's timeline or populate it with events.
      */
     fun `getRoom`(`roomId`: kotlin.String): Room?
     
@@ -8356,9 +8492,9 @@ public interface ClientInterface {
     /**
      * Given a room id, get the preview of a room, to interact with it.
      *
-     * The list of `via_servers` must be a list of servers that know
-     * about the room and can resolve it, and that may appear as a `via`
-     * parameter in e.g. a permalink URL. This list can be empty.
+     * The list of `via_servers` must be a list of servers that know about the
+     * room and can resolve it, and that may appear as a `via` parameter in
+     * e.g. a permalink URL. This list can be empty.
      */
     suspend fun `getRoomPreviewFromRoomId`(`roomId`: kotlin.String, `viaServers`: List<kotlin.String>): RoomPreview
     
@@ -8386,9 +8522,8 @@ public interface ClientInterface {
      *
      * # Arguments
      *
-     * * `url` - The URL to generate a preview for.
-     *
-     * * `ts` - The preferred point in time to return a preview for, as a Unix
+     * - `url` - The URL to generate a preview for.
+     * - `ts` - The preferred point in time to return a preview for, as a Unix
      * timestamp in milliseconds. Deprecated since Matrix 1.11; pass `None`.
      */
     suspend fun `getUrlPreview`(`url`: kotlin.String, `ts`: kotlin.ULong?): kotlin.String?
@@ -8440,12 +8575,21 @@ public interface ClientInterface {
      * Checks if a room alias is not in use yet.
      *
      * Returns:
+     *
      * - `Ok(true)` if the room alias is available.
      * - `Ok(false)` if it's not (the resolve alias request returned a `404`
      * status code).
      * - An `Err` otherwise.
      */
     suspend fun `isRoomAliasAvailable`(`alias`: kotlin.String): kotlin.Boolean
+    
+    /**
+     * Checks if the server supports sticky events.
+     *
+     * This is async and fallible as it may use the network to retrieve the
+     * server supported features, if they aren't cached already.
+     */
+    suspend fun `isStickyEventsSupported`(): kotlin.Boolean
     
     /**
      * Checks if the server supports user status.
@@ -8465,9 +8609,9 @@ public interface ClientInterface {
      * Join a room by its ID or alias.
      *
      * When supplying the room's ID, you can also supply a list of server names
-     * for the homeserver to find the room. Typically these server names
-     * come from a permalink's `via` parameters, or from resolving a room's
-     * alias into an ID.
+     * for the homeserver to find the room. Typically these server names come
+     * from a permalink's `via` parameters, or from resolving a room's alias
+     * into an ID.
      */
     suspend fun `joinRoomByIdOrAlias`(`roomIdOrAlias`: kotlin.String, `serverNames`: List<kotlin.String>): Room
     
@@ -8501,8 +8645,8 @@ public interface ClientInterface {
      * receipts on each room's latest event.
      *
      * This is a best-effort operation — per-room errors are logged and
-     * skipped. Receipts are sent unthreaded, which per the Matrix spec
-     * covers all events in a room including those inside threads.
+     * skipped. Receipts are sent unthreaded, which per the Matrix spec covers
+     * all events in a room including those inside threads.
      *
      * This is useful to mitigate backend led wrong iOS app badges and work
      * around https://github.com/element-hq/element-x-ios/issues/3151
@@ -8521,7 +8665,7 @@ public interface ClientInterface {
      *
      * # Arguments
      *
-     * * `oauth_configuration` - The data to restore or register the client
+     * - `oauth_configuration` - The data to restore or register the client
      * with the server.
      */
     fun `newLoginWithQrCodeHandler`(`oauthConfiguration`: OAuthConfiguration): LoginWithQrCodeHandler
@@ -8570,6 +8714,7 @@ public interface ClientInterface {
      * Pause the client for background suspension.
      *
      * This method:
+     *
      * 1. Disables all send queues (prevents new message sends).
      * 2. Pauses all database stores, waiting for in-flight operations and
      * releasing all connections and file locks.
@@ -8581,7 +8726,7 @@ public interface ClientInterface {
      * Call this before the app is suspended to avoid `0xdead10cc` kills.
      * Typically called from
      * [`applicationDidEnterBackground`](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationdidenterbackground(_:))
-     * or an equivalent SwiftUI lifecycle event, *after* stopping the
+     * or an equivalent SwiftUI lifecycle event, _after_ stopping the
      * `matrix_sdk_ui::sync_service::SyncService`.
      */
     suspend fun `pause`()
@@ -8589,10 +8734,11 @@ public interface ClientInterface {
     /**
      * Register a handler for notifications generated from sync responses.
      *
-     * The handler will be called during sync for each event that triggers
-     * a notification based on the user's push rules.
+     * The handler will be called during sync for each event that triggers a
+     * notification based on the user's push rules.
      *
      * The handler receives:
+     *
      * - The notification with push actions and event data
      * - The room ID where the notification occurred
      *
@@ -8617,9 +8763,8 @@ public interface ClientInterface {
     /**
      * Empty the well-known cache.
      *
-     * Since the SDK caches the well-known, it's possible to have a stale
-     * entry in the cache. This functions makes it possible to force reset
-     * it.
+     * Since the SDK caches the well-known, it's possible to have a stale entry
+     * in the cache. This functions makes it possible to force reset it.
      */
     suspend fun `resetWellKnown`()
     
@@ -8666,6 +8811,18 @@ public interface ClientInterface {
     
     fun `rooms`(): List<Room>
     
+    /**
+     * Start a search backfill sweep in the background.
+     *
+     * Back-paginates message history for every room, down to a ~3-month floor,
+     * front-loaded by recency (the last week for all rooms first, then the
+     * previous week, and so on), to populate the search index.
+     *
+     * Requires `ClientBuilder::enable_automatic_back_pagination` to have been
+     * enabled, otherwise this no-ops.
+     */
+    fun `runSearchBackfill`(`strategy`: SearchBackfillStrategy): TaskHandle
+    
     suspend fun `searchUsers`(`searchTerm`: kotlin.String, `limit`: kotlin.ULong): SearchUsersResults
     
     /**
@@ -8674,13 +8831,12 @@ public interface ClientInterface {
      *
      * # Arguments
      *
-     * * `event_type` - The type of the to-device event to send.
-     *
-     * * `recipients` - The devices to send the message to, as a `user id ->
+     * - `event_type` - The type of the to-device event to send.
+     * - `recipients` - The devices to send the message to, as a `user id ->
      * device ids` map. The special device id `"*"` targets every device of
      * that user we know about.
      *
-     * * `content` - The content of the to-device event, as a JSON string,
+     * - `content` - The content of the to-device event, as a JSON string,
      * encrypted for and sent to every recipient.
      *
      * The returned value contains details of any recipients that did not
@@ -8691,13 +8847,13 @@ public interface ClientInterface {
     /**
      * The URL of the server.
      *
-     * Not to be confused with the `Self::homeserver`. `server` is usually
-     * the server part in a user ID, e.g. with `@mnt_io:matrix.org`, here
+     * Not to be confused with the `Self::homeserver`. `server` is usually the
+     * server part in a user ID, e.g. with `@mnt_io:matrix.org`, here
      * `matrix.org` is the server, whilst `matrix-client.matrix.org` is the
      * homeserver (at the time of writing — 2024-08-28).
      *
-     * This value is optional depending on how the `Client` has been built.
-     * If it's been built from a homeserver URL directly, we don't know the
+     * This value is optional depending on how the `Client` has been built. If
+     * it's been built from a homeserver URL directly, we don't know the
      * server. However, if the `Client` has been built from a server URL or
      * name, then the homeserver has been discovered, and we know both.
      */
@@ -8706,8 +8862,8 @@ public interface ClientInterface {
     /**
      * Get server vendor information from the federation API.
      *
-     * This method retrieves information about the server's name and version
-     * by calling the `/_matrix/federation/v1/version` endpoint.
+     * This method retrieves information about the server's name and version by
+     * calling the `/_matrix/federation/v1/version` endpoint.
      */
     suspend fun `serverVendorInfo`(): ServerVendorInfo
     
@@ -8772,8 +8928,8 @@ public interface ClientInterface {
     /**
      * Set the current user's status (MSC4426 `m.status` profile field).
      *
-     * Replaces any existing status. Use [`Self::clear_user_status`] to
-     * remove it.
+     * Replaces any existing status. Use [`Self::clear_user_status`] to remove
+     * it.
      */
     suspend fun `setUserStatus`(`status`: UserStatus)
     
@@ -8798,10 +8954,10 @@ public interface ClientInterface {
     /**
      * Subscribe to the custom to-device messages received by this client.
      *
-     * The listener is called with every to-device message whose type is one
-     * of `event_types`, or with every custom to-device message if
-     * `event_types` is empty. A message that was sent encrypted is delivered
-     * decrypted, along with its encryption info.
+     * The listener is called with every to-device message whose type is one of
+     * `event_types`, or with every custom to-device message if `event_types`
+     * is empty. A message that was sent encrypted is delivered decrypted,
+     * along with its encryption info.
      *
      * The to-device traffic the SDK uses for its own crypto machinery and the
      * messages it could not decrypt are never delivered.
@@ -8850,9 +9006,9 @@ public interface ClientInterface {
      * are processed.
      *
      * Note this method should be used sparingly since using callback
-     * interfaces is expensive, as well as keeping them alive for a long
-     * time. Usages of this method should be short-lived and dropped as
-     * soon as possible.
+     * interfaces is expensive, as well as keeping them alive for a long time.
+     * Usages of this method should be short-lived and dropped as soon as
+     * possible.
      */
     suspend fun `subscribeToRoomInfo`(`roomId`: kotlin.String, `listener`: RoomInfoListener): TaskHandle
     
@@ -8866,20 +9022,20 @@ public interface ClientInterface {
     fun `subscribeToSendQueueStatus`(`listener`: SendQueueRoomErrorListener): TaskHandle
     
     /**
-     * Subscribe to the global send queue update reporter, at the
-     * client-wide level.
+     * Subscribe to the global send queue update reporter, at the client-wide
+     * level.
      *
      * The given listener will be immediately called with
-     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
-     * the queue.
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in the
+     * queue.
      */
     suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueRoomUpdateListener): TaskHandle
     
     /**
      * Perform a single sync v2 call.
      *
-     * This is useful for performing an initial sync or a one-shot sync
-     * without entering a continuous loop.
+     * This is useful for performing an initial sync or a one-shot sync without
+     * entering a continuous loop.
      */
     suspend fun `syncOnceV2`(`settings`: SyncSettingsV2): SyncResponseV2
     
@@ -8889,11 +9045,11 @@ public interface ClientInterface {
      * Start a sync v2 loop.
      *
      * This is an alternative to [`Client::sync_service`] (which uses Sliding
-     * Sync / MSC4186). It works with any homeserver, including older
-     * Synapse versions that do not support Sliding Sync.
+     * Sync / MSC4186). It works with any homeserver, including older Synapse
+     * versions that do not support Sliding Sync.
      *
-     * Returns a `TaskHandle` that can be used to cancel the sync loop.
-     * The listener is called after each successful sync response.
+     * Returns a `TaskHandle` that can be used to cancel the sync loop. The
+     * listener is called after each successful sync response.
      */
     fun `syncV2`(`settings`: SyncSettingsV2, `listener`: SyncListenerV2): TaskHandle
     
@@ -8929,29 +9085,31 @@ public interface ClientInterface {
      *
      * # Arguments
      *
-     * * `oauth_configuration` - The configuration used to load the credentials
+     * - `oauth_configuration` - The configuration used to load the credentials
      * of the client if it is already registered with the authorization
      * server, or register the client and store its credentials if it isn't.
      *
-     * * `prompt` - The desired user experience in the web UI. No value means
+     * - `prompt` - The desired user experience in the web UI. No value means
      * that the user wishes to login into an existing account, and a value of
      * `Create` means that the user wishes to register a new account.
      *
-     * * `login_hint` - A generic login hint that an identity provider can use
+     * - `login_hint` - A generic login hint that an identity provider can use
      * to pre-fill the login form. The format of this hint is not restricted
-     * by the spec as external providers all have their own way to handle the hint.
-     * However, it should be noted that when providing a user ID as a hint
-     * for MAS (with no upstream provider), then the format to use is defined
-     * by [MSC4198]: https://github.com/matrix-org/matrix-spec-proposals/pull/4198
+     * by the spec as external providers all have their own way to handle the
+     * hint. However, it should be noted that when providing a user ID as a
+     * hint for MAS (with no upstream provider), then the format to use is
+     * defined by [MSC4198]:
+     * https://github.com/matrix-org/matrix-spec-proposals/pull/4198
      *
-     * * `device_id` - The unique ID that will be associated with the session.
+     * - `device_id` - The unique ID that will be associated with the session.
      * If not set, a random one will be generated. It can be an existing
      * device ID from a previous login call. Note that this should be done
      * only if the client also holds the corresponding encryption keys.
      *
-     * * `additional_scopes` - Additional scopes to request from the
-     * authorization server, e.g. "urn:matrix:client:com.example.msc9999.foo".
-     * The scopes for API access and the device ID according to the
+     * - `additional_scopes` - Additional scopes to request from the
+     * authorization server, e.g.
+     * "urn:matrix:client:com.example.msc9999.foo". The scopes for API access
+     * and the device ID according to the
      * [specification](https://spec.matrix.org/v1.15/client-server-api/#allocated-scope-tokens)
      * are always requested.
      */
@@ -9275,8 +9433,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Lets the user know whether this is an `m.login.password` based
-     * auth and if the account can actually be deactivated
+     * Lets the user know whether this is an `m.login.password` based auth and
+     * if the account can actually be deactivated
      */override fun `canDeactivateAccount`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithHandle {
@@ -9299,15 +9457,15 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * calling it.
      *
      * In particular, if a [`SyncService`] is running, it must be passed here
-     * as a parameter, or stopped before calling this method. Ideally, the
-     * send queues should have been disabled and must all be inactive (i.e.
-     * not sending events); this method will disable them, but it might not
-     * be enough if the queues are still processing events.
+     * as a parameter, or stopped before calling this method. Ideally, the send
+     * queues should have been disabled and must all be inactive (i.e. not
+     * sending events); this method will disable them, but it might not be
+     * enough if the queues are still processing events.
      *
-     * After the method returns, the Client will be in an unstable
-     * state, and it is required that the caller reinstantiates a new
-     * Client instance, be it via dropping the previous and re-creating it,
-     * restarting their application, or any other similar means.
+     * After the method returns, the Client will be in an unstable state, and
+     * it is required that the caller reinstantiates a new Client instance, be
+     * it via dropping the previous and re-creating it, restarting their
+     * application, or any other similar means.
      *
      * - This will get rid of the backing state store file, if provided.
      * - This will empty all the room's persisted event caches, so all rooms
@@ -9413,9 +9571,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Login using JWT
-     * This is an implementation of the custom_login https://docs.rs/matrix-sdk/latest/matrix_sdk/matrix_auth/struct.MatrixAuth.html#method.login_custom
-     * For more information on logging in with JWT: https://element-hq.github.io/synapse/latest/jwt.html
+     * Login using JWT This is an implementation of the custom_login
+     * https://docs.rs/matrix-sdk/latest/matrix_sdk/matrix_auth/struct.MatrixAuth.html#method.login_custom
+     * For more information on logging in with JWT:
+     * https://element-hq.github.io/synapse/latest/jwt.html
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -9443,13 +9602,13 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Deactivate this account definitively.
-     * Similarly to `encryption::reset_identity` this
-     * will only work with password-based authentication (`m.login.password`)
+     * Deactivate this account definitively. Similarly to
+     * `encryption::reset_identity` this will only work with password-based
+     * authentication (`m.login.password`)
      *
      * # Arguments
      *
-     * * `auth_data` - This request uses the [User-Interactive Authentication
+     * - `auth_data` - This request uses the [User-Interactive Authentication
      * API][uiaa]. The first request needs to set this to `None` and will
      * always fail and the same request needs to be made but this time with
      * some `auth_data` provided.
@@ -9539,6 +9698,41 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     }
     
     
+
+    
+    /**
+     * Discover the RTC transports advertised by the homeserver.
+     *
+     * The transports are first looked up through the authenticated
+     * `GET /_matrix/client/v1/rtc/transports` endpoint (MSC4143). If the
+     * homeserver doesn't implement that endpoint, this falls back to the
+     * `m.rtc_foci` field of the well-known, unless well-known discovery was
+     * disabled with [`ClientBuilder::disable_well_known_lookup`] or
+     * [`Client::disable_well_known_lookup`].
+     *
+     * Returns `None` if neither source could provide transports, which is kept
+     * distinct from an empty list, i.e. a homeserver that advertises no
+     * transports at all.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `discoverRtcTransports`() : List<RtcTransport>? {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_discover_rtc_transports(
+                uniffiHandle,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalSequenceTypeRtcTransport.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     @Throws(ClientException::class)
@@ -9701,8 +9895,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Get the invite request avatars display policy
-     * currently stored in the cache.
+     * Get the invite request avatars display policy currently stored in the
+     * cache.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -9804,8 +9998,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Get the media previews timeline display policy
-     * currently stored in the cache.
+     * Get the media previews timeline display policy currently stored in the
+     * cache.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -9920,13 +10114,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * # Arguments
      *
-     * * `room_id` - The ID of the room to get.
+     * - `room_id` - The ID of the room to get.
      *
      * # Returns
      *
-     * A `Result` containing an optional room, or a `ClientError`.
-     * This method will not initialize the room's timeline or populate it with
-     * events.
+     * A `Result` containing an optional room, or a `ClientError`. This method
+     * will not initialize the room's timeline or populate it with events.
      */
     @Throws(ClientException::class)override fun `getRoom`(`roomId`: kotlin.String): Room? {
             return FfiConverterOptionalTypeRoom.lift(
@@ -9971,9 +10164,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Given a room id, get the preview of a room, to interact with it.
      *
-     * The list of `via_servers` must be a list of servers that know
-     * about the room and can resolve it, and that may appear as a `via`
-     * parameter in e.g. a permalink URL. This list can be empty.
+     * The list of `via_servers` must be a list of servers that know about the
+     * room and can resolve it, and that may appear as a `via` parameter in
+     * e.g. a permalink URL. This list can be empty.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -10080,9 +10273,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * # Arguments
      *
-     * * `url` - The URL to generate a preview for.
-     *
-     * * `ts` - The preferred point in time to return a preview for, as a Unix
+     * - `url` - The URL to generate a preview for.
+     * - `ts` - The preferred point in time to return a preview for, as a Unix
      * timestamp in milliseconds. Deprecated since Matrix 1.11; pass `None`.
      */
     @Throws(ClientException::class)
@@ -10311,6 +10503,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * Checks if a room alias is not in use yet.
      *
      * Returns:
+     *
      * - `Ok(true)` if the room alias is available.
      * - `Ok(false)` if it's not (the resolve alias request returned a `404`
      * status code).
@@ -10325,6 +10518,33 @@ open class Client: Disposable, AutoCloseable, ClientInterface
                 uniffiHandle,
                 
         FfiConverterString.lower(`alias`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Checks if the server supports sticky events.
+     *
+     * This is async and fallible as it may use the network to retrieve the
+     * server supported features, if they aren't cached already.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `isStickyEventsSupported`() : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_is_sticky_events_supported(
+                uniffiHandle,
+                
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
@@ -10395,9 +10615,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * Join a room by its ID or alias.
      *
      * When supplying the room's ID, you can also supply a list of server names
-     * for the homeserver to find the room. Typically these server names
-     * come from a permalink's `via` parameters, or from resolving a room's
-     * alias into an ID.
+     * for the homeserver to find the room. Typically these server names come
+     * from a permalink's `via` parameters, or from resolving a room's alias
+     * into an ID.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -10563,8 +10783,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * receipts on each room's latest event.
      *
      * This is a best-effort operation — per-room errors are logged and
-     * skipped. Receipts are sent unthreaded, which per the Matrix spec
-     * covers all events in a room including those inside threads.
+     * skipped. Receipts are sent unthreaded, which per the Matrix spec covers
+     * all events in a room including those inside threads.
      *
      * This is useful to mitigate backend led wrong iOS app badges and work
      * around https://github.com/element-hq/element-x-ios/issues/3151
@@ -10614,7 +10834,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * # Arguments
      *
-     * * `oauth_configuration` - The data to restore or register the client
+     * - `oauth_configuration` - The data to restore or register the client
      * with the server.
      */override fun `newLoginWithQrCodeHandler`(`oauthConfiguration`: OAuthConfiguration): LoginWithQrCodeHandler {
             return FfiConverterTypeLoginWithQrCodeHandler.lift(
@@ -10764,6 +10984,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * Pause the client for background suspension.
      *
      * This method:
+     *
      * 1. Disables all send queues (prevents new message sends).
      * 2. Pauses all database stores, waiting for in-flight operations and
      * releasing all connections and file locks.
@@ -10775,7 +10996,7 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * Call this before the app is suspended to avoid `0xdead10cc` kills.
      * Typically called from
      * [`applicationDidEnterBackground`](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationdidenterbackground(_:))
-     * or an equivalent SwiftUI lifecycle event, *after* stopping the
+     * or an equivalent SwiftUI lifecycle event, _after_ stopping the
      * `matrix_sdk_ui::sync_service::SyncService`.
      */
     @Throws(ClientException::class)
@@ -10803,10 +11024,11 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Register a handler for notifications generated from sync responses.
      *
-     * The handler will be called during sync for each event that triggers
-     * a notification based on the user's push rules.
+     * The handler will be called during sync for each event that triggers a
+     * notification based on the user's push rules.
      *
      * The handler receives:
+     *
      * - The notification with push actions and event data
      * - The room ID where the notification occurred
      *
@@ -10910,9 +11132,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Empty the well-known cache.
      *
-     * Since the SDK caches the well-known, it's possible to have a stale
-     * entry in the cache. This functions makes it possible to force reset
-     * it.
+     * Since the SDK caches the well-known, it's possible to have a stale entry
+     * in the cache. This functions makes it possible to force reset it.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11104,6 +11325,30 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     
 
     
+    /**
+     * Start a search backfill sweep in the background.
+     *
+     * Back-paginates message history for every room, down to a ~3-month floor,
+     * front-loaded by recency (the last week for all rooms first, then the
+     * previous week, and so on), to populate the search index.
+     *
+     * Requires `ClientBuilder::enable_automatic_back_pagination` to have been
+     * enabled, otherwise this no-ops.
+     */override fun `runSearchBackfill`(`strategy`: SearchBackfillStrategy): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_run_search_backfill(
+        it,
+        
+        FfiConverterTypeSearchBackfillStrategy.lower(`strategy`),_status)
+}
+    }
+    )
+    }
+    
+
+    
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `searchUsers`(`searchTerm`: kotlin.String, `limit`: kotlin.ULong) : SearchUsersResults {
@@ -11133,13 +11378,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * # Arguments
      *
-     * * `event_type` - The type of the to-device event to send.
-     *
-     * * `recipients` - The devices to send the message to, as a `user id ->
+     * - `event_type` - The type of the to-device event to send.
+     * - `recipients` - The devices to send the message to, as a `user id ->
      * device ids` map. The special device id `"*"` targets every device of
      * that user we know about.
      *
-     * * `content` - The content of the to-device event, as a JSON string,
+     * - `content` - The content of the to-device event, as a JSON string,
      * encrypted for and sent to every recipient.
      *
      * The returned value contains details of any recipients that did not
@@ -11172,13 +11416,13 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * The URL of the server.
      *
-     * Not to be confused with the `Self::homeserver`. `server` is usually
-     * the server part in a user ID, e.g. with `@mnt_io:matrix.org`, here
+     * Not to be confused with the `Self::homeserver`. `server` is usually the
+     * server part in a user ID, e.g. with `@mnt_io:matrix.org`, here
      * `matrix.org` is the server, whilst `matrix-client.matrix.org` is the
      * homeserver (at the time of writing — 2024-08-28).
      *
-     * This value is optional depending on how the `Client` has been built.
-     * If it's been built from a homeserver URL directly, we don't know the
+     * This value is optional depending on how the `Client` has been built. If
+     * it's been built from a homeserver URL directly, we don't know the
      * server. However, if the `Client` has been built from a server URL or
      * name, then the homeserver has been discovered, and we know both.
      */override fun `server`(): kotlin.String? {
@@ -11198,8 +11442,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Get server vendor information from the federation API.
      *
-     * This method retrieves information about the server's name and version
-     * by calling the `/_matrix/federation/v1/version` endpoint.
+     * This method retrieves information about the server's name and version by
+     * calling the `/_matrix/federation/v1/version` endpoint.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11504,8 +11748,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Set the current user's status (MSC4426 `m.status` profile field).
      *
-     * Replaces any existing status. Use [`Self::clear_user_status`] to
-     * remove it.
+     * Replaces any existing status. Use [`Self::clear_user_status`] to remove
+     * it.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11622,10 +11866,10 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Subscribe to the custom to-device messages received by this client.
      *
-     * The listener is called with every to-device message whose type is one
-     * of `event_types`, or with every custom to-device message if
-     * `event_types` is empty. A message that was sent encrypted is delivered
-     * decrypted, along with its encryption info.
+     * The listener is called with every to-device message whose type is one of
+     * `event_types`, or with every custom to-device message if `event_types`
+     * is empty. A message that was sent encrypted is delivered decrypted,
+     * along with its encryption info.
      *
      * The to-device traffic the SDK uses for its own crypto machinery and the
      * messages it could not decrypt are never delivered.
@@ -11757,9 +12001,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * are processed.
      *
      * Note this method should be used sparingly since using callback
-     * interfaces is expensive, as well as keeping them alive for a long
-     * time. Usages of this method should be short-lived and dropped as
-     * soon as possible.
+     * interfaces is expensive, as well as keeping them alive for a long time.
+     * Usages of this method should be short-lived and dropped as soon as
+     * possible.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11806,12 +12050,12 @@ open class Client: Disposable, AutoCloseable, ClientInterface
 
     
     /**
-     * Subscribe to the global send queue update reporter, at the
-     * client-wide level.
+     * Subscribe to the global send queue update reporter, at the client-wide
+     * level.
      *
      * The given listener will be immediately called with
-     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
-     * the queue.
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in the
+     * queue.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11838,8 +12082,8 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     /**
      * Perform a single sync v2 call.
      *
-     * This is useful for performing an initial sync or a one-shot sync
-     * without entering a continuous loop.
+     * This is useful for performing an initial sync or a one-shot sync without
+     * entering a continuous loop.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11880,11 +12124,11 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * Start a sync v2 loop.
      *
      * This is an alternative to [`Client::sync_service`] (which uses Sliding
-     * Sync / MSC4186). It works with any homeserver, including older
-     * Synapse versions that do not support Sliding Sync.
+     * Sync / MSC4186). It works with any homeserver, including older Synapse
+     * versions that do not support Sliding Sync.
      *
-     * Returns a `TaskHandle` that can be used to cancel the sync loop.
-     * The listener is called after each successful sync response.
+     * Returns a `TaskHandle` that can be used to cancel the sync loop. The
+     * listener is called after each successful sync response.
      */override fun `syncV2`(`settings`: SyncSettingsV2, `listener`: SyncListenerV2): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
     callWithHandle {
@@ -12048,29 +12292,31 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      *
      * # Arguments
      *
-     * * `oauth_configuration` - The configuration used to load the credentials
+     * - `oauth_configuration` - The configuration used to load the credentials
      * of the client if it is already registered with the authorization
      * server, or register the client and store its credentials if it isn't.
      *
-     * * `prompt` - The desired user experience in the web UI. No value means
+     * - `prompt` - The desired user experience in the web UI. No value means
      * that the user wishes to login into an existing account, and a value of
      * `Create` means that the user wishes to register a new account.
      *
-     * * `login_hint` - A generic login hint that an identity provider can use
+     * - `login_hint` - A generic login hint that an identity provider can use
      * to pre-fill the login form. The format of this hint is not restricted
-     * by the spec as external providers all have their own way to handle the hint.
-     * However, it should be noted that when providing a user ID as a hint
-     * for MAS (with no upstream provider), then the format to use is defined
-     * by [MSC4198]: https://github.com/matrix-org/matrix-spec-proposals/pull/4198
+     * by the spec as external providers all have their own way to handle the
+     * hint. However, it should be noted that when providing a user ID as a
+     * hint for MAS (with no upstream provider), then the format to use is
+     * defined by [MSC4198]:
+     * https://github.com/matrix-org/matrix-spec-proposals/pull/4198
      *
-     * * `device_id` - The unique ID that will be associated with the session.
+     * - `device_id` - The unique ID that will be associated with the session.
      * If not set, a random one will be generated. It can be an existing
      * device ID from a previous login call. Note that this should be done
      * only if the client also holds the corresponding encryption keys.
      *
-     * * `additional_scopes` - Additional scopes to request from the
-     * authorization server, e.g. "urn:matrix:client:com.example.msc9999.foo".
-     * The scopes for API access and the device ID according to the
+     * - `additional_scopes` - Additional scopes to request from the
+     * authorization server, e.g.
+     * "urn:matrix:client:com.example.msc9999.foo". The scopes for API access
+     * and the device ID according to the
      * [specification](https://spec.matrix.org/v1.15/client-server-api/#allocated-scope-tokens)
      * are always requested.
      */
@@ -12349,8 +12595,8 @@ public interface ClientBuilderInterface {
     fun `autoEnableCrossSigning`(`autoEnableCrossSigning`: kotlin.Boolean): ClientBuilder
     
     /**
-     * Select a strategy to download room keys from the backup. By default
-     * we download after a decryption failure.
+     * Select a strategy to download room keys from the backup. By default we
+     * download after a decryption failure.
      *
      * Take a look at the [`BackupDownloadStrategy`] enum for more options.
      */
@@ -12504,9 +12750,9 @@ public interface ClientBuilderInterface {
      * Sets the paths that the client will use to store its data and caches
      * with SQLite.
      *
-     * Both paths **must** be unique per session as the SDK
-     * stores aren't capable of handling multiple users, however it is
-     * valid to use the same path for both stores on a single session.
+     * Both paths **must** be unique per session as the SDK stores aren't
+     * capable of handling multiple users, however it is valid to use the same
+     * path for both stores on a single session.
      */
     fun `sessionPaths`(`dataPath`: kotlin.String, `cachePath`: kotlin.String): ClientBuilder
     
@@ -12525,8 +12771,7 @@ public interface ClientBuilderInterface {
      *
      * So far, at the time of writing (2025-04-07), it changes the defaults of
      * `matrix_sdk::SqliteStoreConfig` (if the `sqlite` feature is enabled).
-     * Please check
-     * `matrix_sdk::SqliteStoreConfig::with_low_memory_config`.
+     * Please check `matrix_sdk::SqliteStoreConfig::with_low_memory_config`.
      */
     fun `systemIsMemoryConstrained`(): ClientBuilder
     
@@ -12716,8 +12961,8 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
 
     
     /**
-     * Select a strategy to download room keys from the backup. By default
-     * we download after a decryption failure.
+     * Select a strategy to download room keys from the backup. By default we
+     * download after a decryption failure.
      *
      * Take a look at the [`BackupDownloadStrategy`] enum for more options.
      */override fun `backupDownloadStrategy`(`backupDownloadStrategy`: BackupDownloadStrategy): ClientBuilder {
@@ -13102,9 +13347,9 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
      * Sets the paths that the client will use to store its data and caches
      * with SQLite.
      *
-     * Both paths **must** be unique per session as the SDK
-     * stores aren't capable of handling multiple users, however it is
-     * valid to use the same path for both stores on a single session.
+     * Both paths **must** be unique per session as the SDK stores aren't
+     * capable of handling multiple users, however it is valid to use the same
+     * path for both stores on a single session.
      */override fun `sessionPaths`(`dataPath`: kotlin.String, `cachePath`: kotlin.String): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
@@ -13172,8 +13417,7 @@ open class ClientBuilder: Disposable, AutoCloseable, ClientBuilderInterface
      *
      * So far, at the time of writing (2025-04-07), it changes the defaults of
      * `matrix_sdk::SqliteStoreConfig` (if the `sqlite` feature is enabled).
-     * Please check
-     * `matrix_sdk::SqliteStoreConfig::with_low_memory_config`.
+     * Please check `matrix_sdk::SqliteStoreConfig::with_low_memory_config`.
      */override fun `systemIsMemoryConstrained`(): ClientBuilder {
             return FfiConverterTypeClientBuilder.lift(
     callWithHandle {
@@ -14011,9 +14255,9 @@ public interface EncryptionInterface {
      * Does a backup exist on the server?
      *
      * Because the homeserver doesn't notify us about changes to the backup
-     * version, the [`BackupState`] and its listener are a bit crippled.
-     * The `BackupState::Unknown` state might mean there is no backup at all or
-     * a backup exists but we don't have access to it.
+     * version, the [`BackupState`] and its listener are a bit crippled. The
+     * `BackupState::Unknown` state might mean there is no backup at all or a
+     * backup exists but we don't have access to it.
      *
      * Therefore it is necessary to poll the server for an answer every time
      * you want to differentiate between those two states.
@@ -14041,15 +14285,15 @@ public interface EncryptionInterface {
     suspend fun `curve25519Key`(): kotlin.String?
     
     /**
-     * Subscribe to lifecycle events emitted by the dehydrated-device
-     * manager. The returned [`TaskHandle`] keeps the listener alive; drop
-     * it to unsubscribe.
+     * Subscribe to lifecycle events emitted by the dehydrated-device manager.
+     * The returned [`TaskHandle`] keeps the listener alive; drop it to
+     * unsubscribe.
      */
     fun `dehydratedDeviceEventListener`(`listener`: DehydratedDeviceEventListener): TaskHandle
     
     /**
-     * Delete the current dehydrated device, if one exists. Silent if no
-     * device is on the server or the server does not implement MSC3814.
+     * Delete the current dehydrated device, if one exists. Silent if no device
+     * is on the server or the server does not implement MSC3814.
      */
     suspend fun `deleteDehydratedDevice`()
     
@@ -14075,8 +14319,8 @@ public interface EncryptionInterface {
     suspend fun `hasDevicesToVerifyAgainst`(): kotlin.Boolean
     
     /**
-     * This method will import all the private cross-signing keys and
-     * the private part of a backup key and its accompanying version into the
+     * This method will import all the private cross-signing keys and the
+     * private part of a backup key and its accompanying version into the
      * store.
      *
      * Importing all the secrets will mark the device as verified and enable
@@ -14091,8 +14335,8 @@ public interface EncryptionInterface {
     suspend fun `importSecretsBundle`(`secretsBundle`: SecretsBundleWithUserId)
     
     /**
-     * Return whether the homeserver advertises support for MSC3814
-     * dehydrated devices.
+     * Return whether the homeserver advertises support for MSC3814 dehydrated
+     * devices.
      */
     suspend fun `isDehydratedDeviceSupported`(): kotlin.Boolean
     
@@ -14109,9 +14353,9 @@ public interface EncryptionInterface {
      *
      * This will create a new key backup if:
      *
-     * * Key backup is enabled and the backup decryption key is missing from
+     * - Key backup is enabled and the backup decryption key is missing from
      * Recovery, or
-     * * Key backup is enabled and the backup decryption key does not match the
+     * - Key backup is enabled and the backup decryption key does not match the
      * public key
      */
     suspend fun `recoverAndFixBackup`(`recoveryKey`: kotlin.String)
@@ -14139,20 +14383,20 @@ public interface EncryptionInterface {
     suspend fun `resetRecoveryKey`(): kotlin.String
     
     /**
-     * Start using dehydrated devices for this client, resolving the pickle
-     * key through Secret Storage and scheduling weekly rotation.
+     * Start using dehydrated devices for this client, resolving the pickle key
+     * through Secret Storage and scheduling weekly rotation.
      *
-     * The Rust-side copy of the recovery key is zeroized after Secret
-     * Storage has been unlocked; the caller keeps responsibility for the
-     * string it passed in.
+     * The Rust-side copy of the recovery key is zeroized after Secret Storage
+     * has been unlocked; the caller keeps responsibility for the string it
+     * passed in.
      */
     suspend fun `startDehydratedDevices`(`recoveryKey`: kotlin.String, `settings`: StartDehydratedDevicesSettings)
     
     /**
      * Stop the scheduled dehydrated-device rotation.
      *
-     * Has no effect when no rotation is scheduled. Existing dehydrated
-     * devices on the server are left in place; pair with
+     * Has no effect when no rotation is scheduled. Existing dehydrated devices
+     * on the server are left in place; pair with
      * [`Encryption::delete_dehydrated_device`] to remove them.
      */
     fun `stopDehydratedDevices`()
@@ -14161,19 +14405,18 @@ public interface EncryptionInterface {
      * Get the E2EE identity of a user.
      *
      * This method always tries to fetch the identity from the store, which we
-     * only have if the user is tracked, meaning that we are both members
-     * of the same encrypted room. If no user is found locally, a request will
-     * be made to the homeserver unless `fallback_to_server` is set to `false`.
+     * only have if the user is tracked, meaning that we are both members of
+     * the same encrypted room. If no user is found locally, a request will be
+     * made to the homeserver unless `fallback_to_server` is set to `false`.
      *
      * # Arguments
      *
-     * * `user_id` - The ID of the user that the identity belongs to.
-     * * `fallback_to_server` - Should we request the user identity from the
+     * - `user_id` - The ID of the user that the identity belongs to.
+     * - `fallback_to_server` - Should we request the user identity from the
      * homeserver if one isn't found locally.
      *
-     * Returns a `UserIdentity` if one is found. Returns an error if there
-     * was an issue with the crypto store or with the request to the
-     * homeserver.
+     * Returns a `UserIdentity` if one is found. Returns an error if there was
+     * an issue with the crypto store or with the request to the homeserver.
      *
      * This will always return `None` if the client hasn't been logged in.
      */
@@ -14300,9 +14543,9 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
      * Does a backup exist on the server?
      *
      * Because the homeserver doesn't notify us about changes to the backup
-     * version, the [`BackupState`] and its listener are a bit crippled.
-     * The `BackupState::Unknown` state might mean there is no backup at all or
-     * a backup exists but we don't have access to it.
+     * version, the [`BackupState`] and its listener are a bit crippled. The
+     * `BackupState::Unknown` state might mean there is no backup at all or a
+     * backup exists but we don't have access to it.
      *
      * Therefore it is necessary to poll the server for an answer every time
      * you want to differentiate between those two states.
@@ -14411,9 +14654,9 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
-     * Subscribe to lifecycle events emitted by the dehydrated-device
-     * manager. The returned [`TaskHandle`] keeps the listener alive; drop
-     * it to unsubscribe.
+     * Subscribe to lifecycle events emitted by the dehydrated-device manager.
+     * The returned [`TaskHandle`] keeps the listener alive; drop it to
+     * unsubscribe.
      */override fun `dehydratedDeviceEventListener`(`listener`: DehydratedDeviceEventListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
     callWithHandle {
@@ -14430,8 +14673,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
-     * Delete the current dehydrated device, if one exists. Silent if no
-     * device is on the server or the server does not implement MSC3814.
+     * Delete the current dehydrated device, if one exists. Silent if no device
+     * is on the server or the server does not implement MSC3814.
      */
     @Throws(DehydratedDeviceException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -14576,8 +14819,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
-     * This method will import all the private cross-signing keys and
-     * the private part of a backup key and its accompanying version into the
+     * This method will import all the private cross-signing keys and the
+     * private part of a backup key and its accompanying version into the
      * store.
      *
      * Importing all the secrets will mark the device as verified and enable
@@ -14613,8 +14856,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
-     * Return whether the homeserver advertises support for MSC3814
-     * dehydrated devices.
+     * Return whether the homeserver advertises support for MSC3814 dehydrated
+     * devices.
      */
     @Throws(DehydratedDeviceException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -14690,9 +14933,9 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
      *
      * This will create a new key backup if:
      *
-     * * Key backup is enabled and the backup decryption key is missing from
+     * - Key backup is enabled and the backup decryption key is missing from
      * Recovery, or
-     * * Key backup is enabled and the backup decryption key does not match the
+     * - Key backup is enabled and the backup decryption key does not match the
      * public key
      */
     @Throws(RecoveryException::class)
@@ -14842,12 +15085,12 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
 
     
     /**
-     * Start using dehydrated devices for this client, resolving the pickle
-     * key through Secret Storage and scheduling weekly rotation.
+     * Start using dehydrated devices for this client, resolving the pickle key
+     * through Secret Storage and scheduling weekly rotation.
      *
-     * The Rust-side copy of the recovery key is zeroized after Secret
-     * Storage has been unlocked; the caller keeps responsibility for the
-     * string it passed in.
+     * The Rust-side copy of the recovery key is zeroized after Secret Storage
+     * has been unlocked; the caller keeps responsibility for the string it
+     * passed in.
      */
     @Throws(DehydratedDeviceException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -14876,8 +15119,8 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
     /**
      * Stop the scheduled dehydrated-device rotation.
      *
-     * Has no effect when no rotation is scheduled. Existing dehydrated
-     * devices on the server are left in place; pair with
+     * Has no effect when no rotation is scheduled. Existing dehydrated devices
+     * on the server are left in place; pair with
      * [`Encryption::delete_dehydrated_device`] to remove them.
      */override fun `stopDehydratedDevices`()
         = 
@@ -14896,19 +15139,18 @@ open class Encryption: Disposable, AutoCloseable, EncryptionInterface
      * Get the E2EE identity of a user.
      *
      * This method always tries to fetch the identity from the store, which we
-     * only have if the user is tracked, meaning that we are both members
-     * of the same encrypted room. If no user is found locally, a request will
-     * be made to the homeserver unless `fallback_to_server` is set to `false`.
+     * only have if the user is tracked, meaning that we are both members of
+     * the same encrypted room. If no user is found locally, a request will be
+     * made to the homeserver unless `fallback_to_server` is set to `false`.
      *
      * # Arguments
      *
-     * * `user_id` - The ID of the user that the identity belongs to.
-     * * `fallback_to_server` - Should we request the user identity from the
+     * - `user_id` - The ID of the user that the identity belongs to.
+     * - `fallback_to_server` - Should we request the user identity from the
      * homeserver if one isn't found locally.
      *
-     * Returns a `UserIdentity` if one is found. Returns an error if there
-     * was an issue with the crypto store or with the request to the
-     * homeserver.
+     * Returns a `UserIdentity` if one is found. Returns an error if there was
+     * an issue with the crypto store or with the request to the homeserver.
      *
      * This will always return `None` if the client hasn't been logged in.
      */
@@ -15154,15 +15396,15 @@ public interface GrantLoginWithQrCodeHandlerInterface {
      * This device needs to call this method and handle its progress updates to
      * generate a QR code which the new device can scan to log in.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
-     * For the reverse flow where the existing device generates the QR code
-     * for this device to scan, use [`GrantLoginWithQrCodeHandler::scan`].
+     * For the reverse flow where the existing device generates the QR code for
+     * this device to scan, use [`GrantLoginWithQrCodeHandler::scan`].
      *
      * # Arguments
      *
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `progress_listener` - A progress listener that must also be used to
      * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -15172,20 +15414,19 @@ public interface GrantLoginWithQrCodeHandlerInterface {
     /**
      * This method allows you to grant login with a scanned QR code.
      *
-     * The new device needs to display the QR code which this device can
-     * scan, call this method and handle its progress updates to grant the
-     * login.
+     * The new device needs to display the QR code which this device can scan,
+     * call this method and handle its progress updates to grant the login.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
      * For the reverse flow where this device generates the QR code for the
      * existing device to scan, use [`GrantLoginWithQrCodeHandler::generate`].
      *
      * # Arguments
      *
-     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * - `progress_listener` - A progress listener that must also be used to
      * transfer the [`CheckCode`] to the new device.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -15306,15 +15547,15 @@ open class GrantLoginWithQrCodeHandler: Disposable, AutoCloseable, GrantLoginWit
      * This device needs to call this method and handle its progress updates to
      * generate a QR code which the new device can scan to log in.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
-     * For the reverse flow where the existing device generates the QR code
-     * for this device to scan, use [`GrantLoginWithQrCodeHandler::scan`].
+     * For the reverse flow where the existing device generates the QR code for
+     * this device to scan, use [`GrantLoginWithQrCodeHandler::scan`].
      *
      * # Arguments
      *
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `progress_listener` - A progress listener that must also be used to
      * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -15345,20 +15586,19 @@ open class GrantLoginWithQrCodeHandler: Disposable, AutoCloseable, GrantLoginWit
     /**
      * This method allows you to grant login with a scanned QR code.
      *
-     * The new device needs to display the QR code which this device can
-     * scan, call this method and handle its progress updates to grant the
-     * login.
+     * The new device needs to display the QR code which this device can scan,
+     * call this method and handle its progress updates to grant the login.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
      * For the reverse flow where this device generates the QR code for the
      * existing device to scan, use [`GrantLoginWithQrCodeHandler::generate`].
      *
      * # Arguments
      *
-     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * - `progress_listener` - A progress listener that must also be used to
      * transfer the [`CheckCode`] to the new device.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -16324,8 +16564,8 @@ public interface IdentityResetHandleInterface {
     suspend fun `cancel`()
     
     /**
-     * This method starts the identity reset process and
-     * will go through the following steps:
+     * This method starts the identity reset process and will go through the
+     * following steps:
      *
      * 1. Disable backing up room keys and delete the active backup
      * 2. Disable recovery and delete secret storage
@@ -16478,8 +16718,8 @@ open class IdentityResetHandle: Disposable, AutoCloseable, IdentityResetHandleIn
 
     
     /**
-     * This method starts the identity reset process and
-     * will go through the following steps:
+     * This method starts the identity reset process and will go through the
+     * following steps:
      *
      * 1. Disable backing up room keys and delete the active backup
      * 2. Disable recovery and delete secret storage
@@ -17968,8 +18208,8 @@ public interface LiveLocationsObserverInterface {
      * current snapshot (if non-empty), then calls it again for every
      * subsequent change that arrives from sync.
      *
-     * Returns a [`TaskHandle`] that, when dropped, stops the listener.
-     * The event handlers remain registered for as long as this
+     * Returns a [`TaskHandle`] that, when dropped, stops the listener. The
+     * event handlers remain registered for as long as this
      * [`LiveLocationsObserver`] object is alive.
      */
     fun `subscribe`(`listener`: LiveLocationsListener): TaskHandle
@@ -18093,8 +18333,8 @@ open class LiveLocationsObserver: Disposable, AutoCloseable, LiveLocationsObserv
      * current snapshot (if non-empty), then calls it again for every
      * subsequent change that arrives from sync.
      *
-     * Returns a [`TaskHandle`] that, when dropped, stops the listener.
-     * The event handlers remain registered for as long as this
+     * Returns a [`TaskHandle`] that, when dropped, stops the listener. The
+     * event handlers remain registered for as long as this
      * [`LiveLocationsObserver`] object is alive.
      */override fun `subscribe`(`listener`: LiveLocationsListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -18253,18 +18493,18 @@ public interface LoginWithQrCodeHandlerInterface {
      * This method allows you to log in by generating a QR code.
      *
      * This device needs to call this method and handle its progress updates to
-     * generate a QR code which the existing device can scan and grant the
-     * log in.
+     * generate a QR code which the existing device can scan and grant the log
+     * in.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
-     * For the reverse flow where the existing device generates the QR code
-     * for this device to scan, use [`LoginWithQrCodeHandler::scan`].
+     * For the reverse flow where the existing device generates the QR code for
+     * this device to scan, use [`LoginWithQrCodeHandler::scan`].
      *
      * # Arguments
      *
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `progress_listener` - A progress listener that must also be used to
      * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -18281,16 +18521,16 @@ public interface LoginWithQrCodeHandlerInterface {
      * [`LoginWithQrCodeHandler`] must have been built with
      * [`QrCodeData::server_name`] as the server name.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
      * For the reverse flow where this device generates the QR code for the
      * existing device to scan, use [`LoginWithQrCodeHandler::generate`].
      *
      * # Arguments
      *
-     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * - `progress_listener` - A progress listener that must also be used to
      * transfer the [`CheckCode`] to the existing device.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -18409,18 +18649,18 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
      * This method allows you to log in by generating a QR code.
      *
      * This device needs to call this method and handle its progress updates to
-     * generate a QR code which the existing device can scan and grant the
-     * log in.
+     * generate a QR code which the existing device can scan and grant the log
+     * in.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
-     * For the reverse flow where the existing device generates the QR code
-     * for this device to scan, use [`LoginWithQrCodeHandler::scan`].
+     * For the reverse flow where the existing device generates the QR code for
+     * this device to scan, use [`LoginWithQrCodeHandler::scan`].
      *
      * # Arguments
      *
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `progress_listener` - A progress listener that must also be used to
      * obtain the [`QrCodeData`] and collect the [`CheckCode`] from the user.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -18458,16 +18698,16 @@ open class LoginWithQrCodeHandler: Disposable, AutoCloseable, LoginWithQrCodeHan
      * [`LoginWithQrCodeHandler`] must have been built with
      * [`QrCodeData::server_name`] as the server name.
      *
-     * This method uses the login mechanism described in [MSC4108]. As such,
-     * it requires OAuth 2.0 support.
+     * This method uses the login mechanism described in [MSC4108]. As such, it
+     * requires OAuth 2.0 support.
      *
      * For the reverse flow where this device generates the QR code for the
      * existing device to scan, use [`LoginWithQrCodeHandler::generate`].
      *
      * # Arguments
      *
-     * * `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
-     * * `progress_listener` - A progress listener that must also be used to
+     * - `qr_code_data` - The [`QrCodeData`] scanned from the QR code.
+     * - `progress_listener` - A progress listener that must also be used to
      * transfer the [`CheckCode`] to the existing device.
      *
      * [MSC4108]: https://github.com/matrix-org/matrix-spec-proposals/pull/4108
@@ -19616,8 +19856,8 @@ public interface NotificationSettingsInterface {
      *
      * # Arguments
      *
-     * * `is_encrypted` - whether the room is encrypted
-     * * `is_one_to_one` - whether the room is a direct chats involving two
+     * - `is_encrypted` - whether the room is encrypted
+     * - `is_one_to_one` - whether the room is a direct chats involving two
      * people
      */
     suspend fun `getDefaultRoomNotificationMode`(`isEncrypted`: kotlin.Boolean, `isOneToOne`: kotlin.Boolean): RoomNotificationMode
@@ -19632,9 +19872,9 @@ public interface NotificationSettingsInterface {
      *
      * # Arguments
      *
-     * * `room_id` - the room ID
-     * * `is_encrypted` - whether the room is encrypted
-     * * `is_one_to_one` - whether the room is a direct chat involving two
+     * - `room_id` - the room ID
+     * - `is_encrypted` - whether the room is encrypted
+     * - `is_one_to_one` - whether the room is a direct chat involving two
      * people
      */
     suspend fun `getRoomNotificationSettings`(`roomId`: kotlin.String, `isEncrypted`: kotlin.Boolean, `isOneToOne`: kotlin.Boolean): RoomNotificationSettings
@@ -19689,10 +19929,10 @@ public interface NotificationSettingsInterface {
      *
      * # Arguments
      *
-     * * `is_encrypted` - whether the mode is for encrypted rooms
-     * * `is_one_to_one` - whether the mode is for direct chats involving two
+     * - `is_encrypted` - whether the mode is for encrypted rooms
+     * - `is_one_to_one` - whether the mode is for direct chats involving two
      * people
-     * * `mode` - the new default mode
+     * - `mode` - the new default mode
      */
     suspend fun `setDefaultRoomNotificationMode`(`isEncrypted`: kotlin.Boolean, `isOneToOne`: kotlin.Boolean, `mode`: RoomNotificationMode)
     
@@ -19723,9 +19963,9 @@ public interface NotificationSettingsInterface {
      *
      * # Arguments
      *
-     * * `room_id` - the room to unmute
-     * * `is_encrypted` - whether the room is encrypted
-     * * `is_one_to_one` - whether the room is a direct chat involving two
+     * - `room_id` - the room to unmute
+     * - `is_encrypted` - whether the room is encrypted
+     * - `is_one_to_one` - whether the room is a direct chat involving two
      * people
      */
     suspend fun `unmuteRoom`(`roomId`: kotlin.String, `isEncrypted`: kotlin.Boolean, `isOneToOne`: kotlin.Boolean)
@@ -19916,8 +20156,8 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
      *
      * # Arguments
      *
-     * * `is_encrypted` - whether the room is encrypted
-     * * `is_one_to_one` - whether the room is a direct chats involving two
+     * - `is_encrypted` - whether the room is encrypted
+     * - `is_one_to_one` - whether the room is a direct chats involving two
      * people
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -19971,9 +20211,9 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
      *
      * # Arguments
      *
-     * * `room_id` - the room ID
-     * * `is_encrypted` - whether the room is encrypted
-     * * `is_one_to_one` - whether the room is a direct chat involving two
+     * - `room_id` - the room ID
+     * - `is_encrypted` - whether the room is encrypted
+     * - `is_one_to_one` - whether the room is a direct chat involving two
      * people
      */
     @Throws(NotificationSettingsException::class)
@@ -20231,10 +20471,10 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
      *
      * # Arguments
      *
-     * * `is_encrypted` - whether the mode is for encrypted rooms
-     * * `is_one_to_one` - whether the mode is for direct chats involving two
+     * - `is_encrypted` - whether the mode is for encrypted rooms
+     * - `is_one_to_one` - whether the mode is for direct chats involving two
      * people
-     * * `mode` - the new default mode
+     * - `mode` - the new default mode
      */
     @Throws(NotificationSettingsException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -20384,9 +20624,9 @@ open class NotificationSettings: Disposable, AutoCloseable, NotificationSettings
      *
      * # Arguments
      *
-     * * `room_id` - the room to unmute
-     * * `is_encrypted` - whether the room is encrypted
-     * * `is_one_to_one` - whether the room is a direct chat involving two
+     * - `room_id` - the room to unmute
+     * - `is_encrypted` - whether the room is encrypted
+     * - `is_one_to_one` - whether the room is a direct chat involving two
      * people
      */
     @Throws(NotificationSettingsException::class)
@@ -20744,7 +20984,8 @@ open class PasswordStrengthEstimator: Disposable, AutoCloseable, PasswordStrengt
         
     /**
      * Creates an estimator using thresholds tuned for modern hardware (2025).
-     * Values derived from determining entropy from the chart at https://www.hivesystems.com/blog/are-your-passwords-in-the-green
+     * Values derived from determining entropy from the chart at
+     * https://www.hivesystems.com/blog/are-your-passwords-in-the-green
      */ fun `withModernDefaults2025`(): PasswordStrengthEstimator {
             return FfiConverterTypePasswordStrengthEstimator.lift(
     uniffiRustCall() { _status ->
@@ -20924,8 +21165,8 @@ public interface QrCodeDataInterface {
      * The server name contained within the scanned QR code data.
      *
      * Note: This value is only present when scanning a QR code that belongs to
-     * a logged in client. The mode where the new client shows the QR code
-     * will return `None`.
+     * a logged in client. The mode where the new client shows the QR code will
+     * return `None`.
      */
     fun `serverName`(): kotlin.String?
     
@@ -21089,8 +21330,8 @@ open class QrCodeData: Disposable, AutoCloseable, QrCodeDataInterface
      * The server name contained within the scanned QR code data.
      *
      * Note: This value is only present when scanning a QR code that belongs to
-     * a logged in client. The mode where the new client shows the QR code
-     * will return `None`.
+     * a logged in client. The mode where the new client shows the QR code will
+     * return `None`.
      */override fun `serverName`(): kotlin.String? {
             return FfiConverterOptionalString.lift(
     callWithHandle {
@@ -22035,7 +22276,7 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `rtc_notification_event_id` - the event id of the m.rtc.notification
+     * - `rtc_notification_event_id` - the event id of the m.rtc.notification
      * event.
      */
     suspend fun `declineCall`(`rtcNotificationEventId`: kotlin.String)
@@ -22121,15 +22362,16 @@ public interface RoomInterface {
     fun `id`(): kotlin.String
     
     /**
-     * Set the local trust for the given devices to `LocalTrust::Ignored`
-     * and resend messages that failed to send because said devices are
-     * unverified (in response to
+     * Set the local trust for the given devices to `LocalTrust::Ignored` and
+     * resend messages that failed to send because said devices are unverified
+     * (in response to
      * `SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`).
+     *
      * # Arguments
      *
-     * * `devices` - The map of users identifiers to device identifiers
+     * - `devices` - The map of users identifiers to device identifiers
      * received in the error
-     * * `transaction_id` - The send queue transaction identifier of the local
+     * - `transaction_id` - The send queue transaction identifier of the local
      * echo the send error applies to
      */
     suspend fun `ignoreDeviceTrustAndResend`(`devices`: Map<kotlin.String, List<kotlin.String>>, `sendHandle`: SendHandle)
@@ -22236,11 +22478,11 @@ public interface RoomInterface {
      * optionally scoped to a thread.
      *
      * The receipt is read from the local store, which is fed by sync, so it
-     * also reflects receipts sent by the user's other devices. Returns
-     * `None` if the user has no matching receipt in this room.
+     * also reflects receipts sent by the user's other devices. Returns `None`
+     * if the user has no matching receipt in this room.
      *
-     * Note: [`ReceiptType::FullyRead`] is a marker, not an event receipt,
-     * and is rejected.
+     * Note: [`ReceiptType::FullyRead`] is a marker, not an event receipt, and
+     * is rejected.
      */
     suspend fun `loadUserReceipt`(`receiptType`: ReceiptType, `thread`: ReceiptThread, `userId`: kotlin.String): UserReceipt?
     
@@ -22251,9 +22493,8 @@ public interface RoomInterface {
      * **Warning:** using this method is **NOT** recommended, as providing the
      * latest event id can cause incorrect read receipts. This method won't
      * check if sending the read receipt is necessary or valid. It should
-     * *only* be used when some constraint prevents you from instantiating a
-     * [`Timeline`]. For any other case use [`Timeline::mark_as_read`]
-     * instead.
+     * _only_ be used when some constraint prevents you from instantiating a
+     * [`Timeline`]. For any other case use [`Timeline::mark_as_read`] instead.
      */
     suspend fun `markAsFullyReadUnchecked`(`eventId`: kotlin.String)
     
@@ -22324,6 +22565,7 @@ public interface RoomInterface {
      * Publish a new room alias for this room in the room directory.
      *
      * Returns:
+     *
      * - `true` if the room alias didn't exist and it's now published.
      * - `false` if the room alias was already present so it couldn't be
      * published.
@@ -22340,9 +22582,8 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `event_id` - The ID of the event to redact
-     *
-     * * `reason` - The reason for the event being redacted (optional). its
+     * - `event_id` - The ID of the event to redact
+     * - `reason` - The reason for the event being redacted (optional). its
      * transaction ID (optional). If not given one is created.
      */
     suspend fun `redact`(`eventId`: kotlin.String, `reason`: kotlin.String?)
@@ -22356,6 +22597,7 @@ public interface RoomInterface {
      * Remove an existing room alias for this room in the room directory.
      *
      * Returns:
+     *
      * - `true` if the room alias was present and it's now removed from the
      * room directory.
      * - `false` if the room alias didn't exist so it couldn't be removed.
@@ -22367,22 +22609,20 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `event_id` - The ID of the event to report
-     *
-     * * `reason` - The reason for the event being reported (optional).
-     *
-     * * `score` - The score to rate this content as where -100 is most
+     * - `event_id` - The ID of the event to report
+     * - `reason` - The reason for the event being reported (optional).
+     * - `score` - The score to rate this content as where -100 is most
      * offensive and 0 is inoffensive (optional).
      */
     suspend fun `reportContent`(`eventId`: kotlin.String, `reason`: kotlin.String?)
     
     /**
-     * Reports a room as inappropriate to the server.
-     * The caller is not required to be joined to the room to report it.
+     * Reports a room as inappropriate to the server. The caller is not
+     * required to be joined to the room to report it.
      *
      * # Arguments
      *
-     * * `reason` - The reason the room is being reported.
+     * - `reason` - The reason the room is being reported.
      *
      * # Errors
      *
@@ -22419,19 +22659,20 @@ public interface RoomInterface {
      * * `event_type` - The type of the event to send.
      *
      * * `content` - The content of the event to send encoded as JSON string.
+     *
+     * Returns the event ID of the newly sent event.
      */
-    suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String)
+    suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String): kotlin.String
     
     /**
      * Send a single receipt of the given type for the given event, optionally
      * scoped to a thread.
      *
      * This allows sending receipts for events without instantiating the
-     * [`Timeline`] they belong to, e.g. marking a thread as read from its
-     * root and latest event ids. Note that this won't check whether sending
-     * the receipt is necessary or valid (i.e. it can move a receipt
-     * backwards); prefer [`Timeline::send_single_receipt`] when a timeline
-     * is available.
+     * [`Timeline`] they belong to, e.g. marking a thread as read from its root
+     * and latest event ids. Note that this won't check whether sending the
+     * receipt is necessary or valid (i.e. it can move a receipt backwards);
+     * prefer [`Timeline::send_single_receipt`] when a timeline is available.
      */
     suspend fun `sendSingleReceipt`(`receiptType`: ReceiptType, `thread`: ReceiptThread, `eventId`: kotlin.String)
     
@@ -22440,13 +22681,13 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `event_type` - The type of the state event to send (e.g.
+     * - `event_type` - The type of the state event to send (e.g.
      * `"m.room.name"` or a custom type).
      *
-     * * `state_key` - A unique key which defines the overwriting semantics for
+     * - `state_key` - A unique key which defines the overwriting semantics for
      * this piece of room state. This is often an empty string.
      *
-     * * `content` - The content of the state event encoded as a JSON string.
+     * - `content` - The content of the state event encoded as a JSON string.
      *
      * Returns the event ID of the newly created state event.
      */
@@ -22468,8 +22709,8 @@ public interface RoomInterface {
      * root event id.
      *
      * If `subscribed` is `true`, it will subscribe to the thread, with a
-     * precision that the subscription was manually requested by the user
-     * (i.e. not automatic).
+     * precision that the subscription was manually requested by the user (i.e.
+     * not automatic).
      *
      * If the thread was already subscribed to (resp. unsubscribed from), while
      * trying to subscribe to it (resp. unsubscribe from it), it will do
@@ -22499,7 +22740,7 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `event_type` - The type of the state events to read. For a type that
+     * - `event_type` - The type of the state events to read. For a type that
      * has no variant of its own, build one from its string representation
      * with `stateEventTypeFromString("com.example.custom")`.
      *
@@ -22518,8 +22759,8 @@ public interface RoomInterface {
      * Subscribes to call decline for a currently ringing call, using a
      * `listener` to be notified when someone declines.
      *
-     * Will error if `rtc_notification_event_id` is not a valid event id.
-     * Use the [`TaskHandle`] to cancel the subscription.
+     * Will error if `rtc_notification_event_id` is not a valid event id. Use
+     * the [`TaskHandle`] to cancel the subscription.
      */
     fun `subscribeToCallDeclineEvents`(`rtcNotificationEventId`: kotlin.String, `listener`: CallDeclineListener): TaskHandle
     
@@ -22529,9 +22770,8 @@ public interface RoomInterface {
      * Subscribes to requests to join this room (knock member events), using a
      * `listener` to be notified of the changes.
      *
-     * The current requests to join the room will be emitted immediately
-     * when subscribing, along with a [`TaskHandle`] to cancel the
-     * subscription.
+     * The current requests to join the room will be emitted immediately when
+     * subscribing, along with a [`TaskHandle`] to cancel the subscription.
      */
     suspend fun `subscribeToKnockRequests`(`listener`: KnockRequestsListener): TaskHandle
     
@@ -22541,8 +22781,8 @@ public interface RoomInterface {
      * Subscribe to all send queue updates in this room.
      *
      * The given listener will be immediately called with
-     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
-     * the queue.
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in the
+     * queue.
      */
     suspend fun `subscribeToSendQueueUpdates`(`listener`: SendQueueListener): TaskHandle
     
@@ -22550,15 +22790,15 @@ public interface RoomInterface {
      * Subscribe to the room state events of the given type.
      *
      * The listener is called with the full current list of state events of
-     * that type, one per state key, immediately and then after every sync
-     * that changed any of them. All the changes of one sync are reported as a
+     * that type, one per state key, immediately and then after every sync that
+     * changed any of them. All the changes of one sync are reported as a
      * single snapshot.
      *
      * Use the returned [`TaskHandle`] to cancel the subscription.
      *
      * # Arguments
      *
-     * * `event_type` - The type of the state events to listen to. For a type
+     * - `event_type` - The type of the state events to listen to. For a type
      * that has no variant of its own, build one from its string
      * representation with `stateEventTypeFromString("com.example.custom")`.
      */
@@ -22640,27 +22880,64 @@ public interface RoomInterface {
      *
      * # Arguments
      *
-     * * `mime_type` - The mime description of the avatar, for example
+     * - `mime_type` - The mime description of the avatar, for example
      * image/jpeg
-     * * `data` - The raw data that will be uploaded to the homeserver's
+     * - `data` - The raw data that will be uploaded to the homeserver's
      * content repository
-     * * `media_info` - The media info used as avatar image info.
+     * - `media_info` - The media info used as avatar image info.
      */
     suspend fun `uploadAvatar`(`mimeType`: kotlin.String, `data`: kotlin.ByteArray, `mediaInfo`: ImageInfo?)
     
     /**
-     * Remove verification requirements for the given users and
-     * resend messages that failed to send because their identities were no
-     * longer verified (in response to
+     * Remove verification requirements for the given users and resend messages
+     * that failed to send because their identities were no longer verified (in
+     * response to
      * `SessionRecipientCollectionError::VerifiedUserChangedIdentity`)
      *
      * # Arguments
      *
-     * * `user_ids` - The list of users identifiers received in the error
-     * * `transaction_id` - The send queue transaction identifier of the local
+     * - `user_ids` - The list of users identifiers received in the error
+     * - `transaction_id` - The send queue transaction identifier of the local
      * echo the send error applies to
      */
     suspend fun `withdrawVerificationAndResend`(`userIds`: List<kotlin.String>, `sendHandle`: SendHandle)
+    
+    /**
+     * Send a sticky event to this room.
+     * Note that if the homeserver doesn't support sticky events, it will
+     * ignore the duration and send the event unsticky. Server support can
+     * be checked with [`Client::is_sticky_events_supported`].
+     *
+     * # Arguments
+     *
+     * - `event_type` - The type of the event to send.
+     * - `content` - The content of the event to send encoded as JSON string.
+     * - `duration_ms` - How long the event stays sticky for, in milliseconds,
+     * clamped to one hour.
+     *
+     * # Returns
+     *
+     * The event ID of the newly sent event.
+     *
+     * [`Client::is_sticky_events_supported`]: crate::client::Client::is_sticky_events_supported
+     */
+    suspend fun `sendStickyRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `durationMs`: kotlin.ULong): kotlin.String
+    
+    /**
+     * The sticky events that are currently live in this room.
+     */
+    fun `stickyEvents`(): List<StickyEvent>
+    
+    /**
+     * Subscribe to the sticky events of this room.
+     *
+     * The listener first receives a [`StickyEventsUpdate::Reset`] with the
+     * sticky events that are currently live, then a
+     * [`StickyEventsUpdate::Changes`] for every change. Should it fall behind
+     * and miss changes, it receives another [`StickyEventsUpdate::Reset`] to
+     * catch up with.
+     */
+    fun `subscribeToStickyEvents`(`listener`: StickyEventsListener): TaskHandle
     
     companion object
 }
@@ -22971,7 +23248,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * # Arguments
      *
-     * * `rtc_notification_event_id` - the event id of the m.rtc.notification
+     * - `rtc_notification_event_id` - the event id of the m.rtc.notification
      * event.
      */
     @Throws(ClientException::class)
@@ -23291,15 +23568,16 @@ open class Room: Disposable, AutoCloseable, RoomInterface
 
     
     /**
-     * Set the local trust for the given devices to `LocalTrust::Ignored`
-     * and resend messages that failed to send because said devices are
-     * unverified (in response to
+     * Set the local trust for the given devices to `LocalTrust::Ignored` and
+     * resend messages that failed to send because said devices are unverified
+     * (in response to
      * `SessionRecipientCollectionError::VerifiedUserHasUnsignedDevice`).
+     *
      * # Arguments
      *
-     * * `devices` - The map of users identifiers to device identifiers
+     * - `devices` - The map of users identifiers to device identifiers
      * received in the error
-     * * `transaction_id` - The send queue transaction identifier of the local
+     * - `transaction_id` - The send queue transaction identifier of the local
      * echo the send error applies to
      */
     @Throws(ClientException::class)
@@ -23758,11 +24036,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * optionally scoped to a thread.
      *
      * The receipt is read from the local store, which is fed by sync, so it
-     * also reflects receipts sent by the user's other devices. Returns
-     * `None` if the user has no matching receipt in this room.
+     * also reflects receipts sent by the user's other devices. Returns `None`
+     * if the user has no matching receipt in this room.
      *
-     * Note: [`ReceiptType::FullyRead`] is a marker, not an event receipt,
-     * and is rejected.
+     * Note: [`ReceiptType::FullyRead`] is a marker, not an event receipt, and
+     * is rejected.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -23795,9 +24073,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * **Warning:** using this method is **NOT** recommended, as providing the
      * latest event id can cause incorrect read receipts. This method won't
      * check if sending the read receipt is necessary or valid. It should
-     * *only* be used when some constraint prevents you from instantiating a
-     * [`Timeline`]. For any other case use [`Timeline::mark_as_read`]
-     * instead.
+     * _only_ be used when some constraint prevents you from instantiating a
+     * [`Timeline`]. For any other case use [`Timeline::mark_as_read`] instead.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -24120,6 +24397,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * Publish a new room alias for this room in the room directory.
      *
      * Returns:
+     *
      * - `true` if the room alias didn't exist and it's now published.
      * - `false` if the room alias was already present so it couldn't be
      * published.
@@ -24167,9 +24445,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * # Arguments
      *
-     * * `event_id` - The ID of the event to redact
-     *
-     * * `reason` - The reason for the event being redacted (optional). its
+     * - `event_id` - The ID of the event to redact
+     * - `reason` - The reason for the event being redacted (optional). its
      * transaction ID (optional). If not given one is created.
      */
     @Throws(ClientException::class)
@@ -24225,6 +24502,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * Remove an existing room alias for this room in the room directory.
      *
      * Returns:
+     *
      * - `true` if the room alias was present and it's now removed from the
      * room directory.
      * - `false` if the room alias didn't exist so it couldn't be removed.
@@ -24256,11 +24534,9 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * # Arguments
      *
-     * * `event_id` - The ID of the event to report
-     *
-     * * `reason` - The reason for the event being reported (optional).
-     *
-     * * `score` - The score to rate this content as where -100 is most
+     * - `event_id` - The ID of the event to report
+     * - `reason` - The reason for the event being reported (optional).
+     * - `score` - The score to rate this content as where -100 is most
      * offensive and 0 is inoffensive (optional).
      */
     @Throws(ClientException::class)
@@ -24288,12 +24564,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface
 
     
     /**
-     * Reports a room as inappropriate to the server.
-     * The caller is not required to be joined to the room to report it.
+     * Reports a room as inappropriate to the server. The caller is not
+     * required to be joined to the room to report it.
      *
      * # Arguments
      *
-     * * `reason` - The reason the room is being reported.
+     * - `reason` - The reason the room is being reported.
      *
      * # Errors
      *
@@ -24451,10 +24727,12 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * * `event_type` - The type of the event to send.
      *
      * * `content` - The content of the event to send encoded as JSON string.
+     *
+     * Returns the event ID of the newly sent event.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String) {
+    override suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String) : kotlin.String {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_raw(
@@ -24464,12 +24742,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         FfiConverterString.lower(`content`),
             )
         },
-        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
-        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
-        { Unit },
-        
+        { FfiConverterString.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -24481,11 +24758,10 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * scoped to a thread.
      *
      * This allows sending receipts for events without instantiating the
-     * [`Timeline`] they belong to, e.g. marking a thread as read from its
-     * root and latest event ids. Note that this won't check whether sending
-     * the receipt is necessary or valid (i.e. it can move a receipt
-     * backwards); prefer [`Timeline::send_single_receipt`] when a timeline
-     * is available.
+     * [`Timeline`] they belong to, e.g. marking a thread as read from its root
+     * and latest event ids. Note that this won't check whether sending the
+     * receipt is necessary or valid (i.e. it can move a receipt backwards);
+     * prefer [`Timeline::send_single_receipt`] when a timeline is available.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -24517,13 +24793,13 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * # Arguments
      *
-     * * `event_type` - The type of the state event to send (e.g.
+     * - `event_type` - The type of the state event to send (e.g.
      * `"m.room.name"` or a custom type).
      *
-     * * `state_key` - A unique key which defines the overwriting semantics for
+     * - `state_key` - A unique key which defines the overwriting semantics for
      * this piece of room state. This is often an empty string.
      *
-     * * `content` - The content of the state event encoded as a JSON string.
+     * - `content` - The content of the state event encoded as a JSON string.
      *
      * Returns the event ID of the newly created state event.
      */
@@ -24653,8 +24929,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * root event id.
      *
      * If `subscribed` is `true`, it will subscribe to the thread, with a
-     * precision that the subscription was manually requested by the user
-     * (i.e. not automatic).
+     * precision that the subscription was manually requested by the user (i.e.
+     * not automatic).
      *
      * If the thread was already subscribed to (resp. unsubscribed from), while
      * trying to subscribe to it (resp. unsubscribe from it), it will do
@@ -24768,7 +25044,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * # Arguments
      *
-     * * `event_type` - The type of the state events to read. For a type that
+     * - `event_type` - The type of the state events to read. For a type that
      * has no variant of its own, build one from its string representation
      * with `stateEventTypeFromString("com.example.custom")`.
      *
@@ -24827,8 +25103,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * Subscribes to call decline for a currently ringing call, using a
      * `listener` to be notified when someone declines.
      *
-     * Will error if `rtc_notification_event_id` is not a valid event id.
-     * Use the [`TaskHandle`] to cancel the subscription.
+     * Will error if `rtc_notification_event_id` is not a valid event id. Use
+     * the [`TaskHandle`] to cancel the subscription.
      */
     @Throws(ClientException::class)override fun `subscribeToCallDeclineEvents`(`rtcNotificationEventId`: kotlin.String, `listener`: CallDeclineListener): TaskHandle {
             return FfiConverterTypeTaskHandle.lift(
@@ -24872,9 +25148,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * Subscribes to requests to join this room (knock member events), using a
      * `listener` to be notified of the changes.
      *
-     * The current requests to join the room will be emitted immediately
-     * when subscribing, along with a [`TaskHandle`] to cancel the
-     * subscription.
+     * The current requests to join the room will be emitted immediately when
+     * subscribing, along with a [`TaskHandle`] to cancel the subscription.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -24916,8 +25191,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * Subscribe to all send queue updates in this room.
      *
      * The given listener will be immediately called with
-     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in
-     * the queue.
+     * `RoomSendQueueUpdate::NewLocalEvent` for each local echo existing in the
+     * queue.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -24945,15 +25220,15 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * Subscribe to the room state events of the given type.
      *
      * The listener is called with the full current list of state events of
-     * that type, one per state key, immediately and then after every sync
-     * that changed any of them. All the changes of one sync are reported as a
+     * that type, one per state key, immediately and then after every sync that
+     * changed any of them. All the changes of one sync are reported as a
      * single snapshot.
      *
      * Use the returned [`TaskHandle`] to cancel the subscription.
      *
      * # Arguments
      *
-     * * `event_type` - The type of the state events to listen to. For a type
+     * - `event_type` - The type of the state events to listen to. For a type
      * that has no variant of its own, build one from its string
      * representation with `stateEventTypeFromString("com.example.custom")`.
      */override fun `subscribeToStateEvents`(`eventType`: StateEventType, `listener`: RoomStateEventsListener): TaskHandle {
@@ -25301,11 +25576,11 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * # Arguments
      *
-     * * `mime_type` - The mime description of the avatar, for example
+     * - `mime_type` - The mime description of the avatar, for example
      * image/jpeg
-     * * `data` - The raw data that will be uploaded to the homeserver's
+     * - `data` - The raw data that will be uploaded to the homeserver's
      * content repository
-     * * `media_info` - The media info used as avatar image info.
+     * - `media_info` - The media info used as avatar image info.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -25333,15 +25608,15 @@ open class Room: Disposable, AutoCloseable, RoomInterface
 
     
     /**
-     * Remove verification requirements for the given users and
-     * resend messages that failed to send because their identities were no
-     * longer verified (in response to
+     * Remove verification requirements for the given users and resend messages
+     * that failed to send because their identities were no longer verified (in
+     * response to
      * `SessionRecipientCollectionError::VerifiedUserChangedIdentity`)
      *
      * # Arguments
      *
-     * * `user_ids` - The list of users identifiers received in the error
-     * * `transaction_id` - The send queue transaction identifier of the local
+     * - `user_ids` - The list of users identifiers received in the error
+     * - `transaction_id` - The send queue transaction identifier of the local
      * echo the send error applies to
      */
     @Throws(ClientException::class)
@@ -25366,6 +25641,88 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Send a sticky event to this room.
+     * Note that if the homeserver doesn't support sticky events, it will
+     * ignore the duration and send the event unsticky. Server support can
+     * be checked with [`Client::is_sticky_events_supported`].
+     *
+     * # Arguments
+     *
+     * - `event_type` - The type of the event to send.
+     * - `content` - The content of the event to send encoded as JSON string.
+     * - `duration_ms` - How long the event stays sticky for, in milliseconds,
+     * clamped to one hour.
+     *
+     * # Returns
+     *
+     * The event ID of the newly sent event.
+     *
+     * [`Client::is_sticky_events_supported`]: crate::client::Client::is_sticky_events_supported
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendStickyRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `durationMs`: kotlin.ULong) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_raw(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`content`),
+        FfiConverterULong.lower(`durationMs`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * The sticky events that are currently live in this room.
+     */override fun `stickyEvents`(): List<StickyEvent> {
+            return FfiConverterSequenceTypeStickyEvent.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_sticky_events(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Subscribe to the sticky events of this room.
+     *
+     * The listener first receives a [`StickyEventsUpdate::Reset`] with the
+     * sticky events that are currently live, then a
+     * [`StickyEventsUpdate::Changes`] for every change. Should it fall behind
+     * and miss changes, it receives another [`StickyEventsUpdate::Reset`] to
+     * catch up with.
+     */override fun `subscribeToStickyEvents`(`listener`: StickyEventsListener): TaskHandle {
+            return FfiConverterTypeTaskHandle.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_sticky_events(
+        it,
+        
+        FfiConverterTypeStickyEventsListener.lower(`listener`),_status)
+}
+    }
+    )
+    }
+    
 
     
 
@@ -25502,8 +25859,8 @@ public object FfiConverterTypeRoom: FfiConverter<Room, Long> {
 
 
 /**
- * A helper for performing room searches in the room directory.
- * The way this is intended to be used is:
+ * A helper for performing room searches in the room directory. The way this is
+ * intended to be used is:
  *
  * 1. Register a callback using [`RoomDirectorySearch::results`].
  * 2. Start the room search with [`RoomDirectorySearch::search`].
@@ -25535,9 +25892,9 @@ public interface RoomDirectorySearchInterface {
     /**
      * Starts a filtered search for the server.
      *
-     * If the `filter` is not provided it will search for all the rooms.
-     * You can specify a `batch_size` to control the number of rooms to fetch
-     * per request.
+     * If the `filter` is not provided it will search for all the rooms. You
+     * can specify a `batch_size` to control the number of rooms to fetch per
+     * request.
      *
      * If the `via_server` is not provided it will search in the current
      * homeserver by default.
@@ -25550,8 +25907,8 @@ public interface RoomDirectorySearchInterface {
 }
 
 /**
- * A helper for performing room searches in the room directory.
- * The way this is intended to be used is:
+ * A helper for performing room searches in the room directory. The way this is
+ * intended to be used is:
  *
  * 1. Register a callback using [`RoomDirectorySearch::results`].
  * 2. Start the room search with [`RoomDirectorySearch::search`].
@@ -25760,9 +26117,9 @@ open class RoomDirectorySearch: Disposable, AutoCloseable, RoomDirectorySearchIn
     /**
      * Starts a filtered search for the server.
      *
-     * If the `filter` is not provided it will search for all the rooms.
-     * You can specify a `batch_size` to control the number of rooms to fetch
-     * per request.
+     * If the `filter` is not provided it will search for all the rooms. You
+     * can specify a `batch_size` to control the number of rooms to fetch per
+     * request.
      *
      * If the `via_server` is not provided it will search in the current
      * homeserver by default.
@@ -27773,8 +28130,8 @@ public interface RoomPowerLevelsInterface {
     fun `canUserRedactOther`(`userId`: kotlin.String): kotlin.Boolean
     
     /**
-     * Returns true if the user with the given user_id is able to redact
-     * their own messages in the room.
+     * Returns true if the user with the given user_id is able to redact their
+     * own messages in the room.
      *
      * The call may fail if there is an error in getting the power levels.
      */
@@ -28177,8 +28534,8 @@ open class RoomPowerLevels: Disposable, AutoCloseable, RoomPowerLevelsInterface
 
     
     /**
-     * Returns true if the user with the given user_id is able to redact
-     * their own messages in the room.
+     * Returns true if the user with the given user_id is able to redact their
+     * own messages in the room.
      *
      * The call may fail if there is an error in getting the power levels.
      */
@@ -28852,9 +29209,9 @@ public interface SearchServiceInterface {
     fun `paginationState`(): SearchServicePaginationState
     
     /**
-     * Set (or update) the search query.
-     * Clears the current results, restarts pagination from scratch and loads
-     * the first page. Call [`Self::paginate`] to load any further pages.
+     * Set (or update) the search query. Clears the current results, restarts
+     * pagination from scratch and loads the first page. Call
+     * [`Self::paginate`] to load any further pages.
      */
     suspend fun `setQuery`(`query`: kotlin.String)
     
@@ -29019,9 +29376,9 @@ open class SearchService: Disposable, AutoCloseable, SearchServiceInterface
 
     
     /**
-     * Set (or update) the search query.
-     * Clears the current results, restarts pagination from scratch and loads
-     * the first page. Call [`Self::paginate`] to load any further pages.
+     * Set (or update) the search query. Clears the current results, restarts
+     * pagination from scratch and loads the first page. Call
+     * [`Self::paginate`] to load any further pages.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -29230,8 +29587,8 @@ public interface SecretsBundleWithUserIdInterface {
      * Does the bundle contain a backup key.
      *
      * Since enabling a backup is optional, the backup key might be missing
-     * from the bundle. Returns `false` if the backup key is missing,
-     * otherwise `true`.
+     * from the bundle. Returns `false` if the backup key is missing, otherwise
+     * `true`.
      */
     fun `containsBackupKey`(): kotlin.Boolean
     
@@ -29348,8 +29705,8 @@ open class SecretsBundleWithUserId: Disposable, AutoCloseable, SecretsBundleWith
      * Does the bundle contain a backup key.
      *
      * Since enabling a backup is optional, the backup key might be missing
-     * from the bundle. Returns `false` if the backup key is missing,
-     * otherwise `true`.
+     * from the bundle. Returns `false` if the backup key is missing, otherwise
+     * `true`.
      */override fun `containsBackupKey`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithHandle {
@@ -30145,8 +30502,8 @@ public object FfiConverterTypeSendGalleryJoinHandle: FfiConverter<SendGalleryJoi
 public interface SendHandleInterface {
     
     /**
-     * Try to abort the sending of the current event, with an optional
-     * `reason` applied to the redaction when the event went out anyway.
+     * Try to abort the sending of the current event, with an optional `reason`
+     * applied to the redaction when the event went out anyway.
      *
      * If this returns `true`, then the sending could be aborted, because the
      * event hasn't been sent yet. Otherwise, if this returns `false`, the
@@ -30163,12 +30520,12 @@ public interface SendHandleInterface {
      *
      * This is useful for example, when there's a
      * `SessionRecipientCollectionError::VerifiedUserChangedIdentity` error;
-     * the user may have re-verified on a different device and would now
-     * like to send the failed message that's waiting on this device.
+     * the user may have re-verified on a different device and would now like
+     * to send the failed message that's waiting on this device.
      *
      * # Arguments
      *
-     * * `transaction_id` - The send queue transaction identifier of the local
+     * - `transaction_id` - The send queue transaction identifier of the local
      * echo that should be unwedged.
      */
     suspend fun `tryResend`()
@@ -30282,8 +30639,8 @@ open class SendHandle: Disposable, AutoCloseable, SendHandleInterface
 
     
     /**
-     * Try to abort the sending of the current event, with an optional
-     * `reason` applied to the redaction when the event went out anyway.
+     * Try to abort the sending of the current event, with an optional `reason`
+     * applied to the redaction when the event went out anyway.
      *
      * If this returns `true`, then the sending could be aborted, because the
      * event hasn't been sent yet. Otherwise, if this returns `false`, the
@@ -30320,12 +30677,12 @@ open class SendHandle: Disposable, AutoCloseable, SendHandleInterface
      *
      * This is useful for example, when there's a
      * `SessionRecipientCollectionError::VerifiedUserChangedIdentity` error;
-     * the user may have re-verified on a different device and would now
-     * like to send the failed message that's waiting on this device.
+     * the user may have re-verified on a different device and would now like
+     * to send the failed message that's waiting on this device.
      *
      * # Arguments
      *
-     * * `transaction_id` - The send queue transaction identifier of the local
+     * - `transaction_id` - The send queue transaction identifier of the local
      * echo that should be unwedged.
      */
     @Throws(ClientException::class)
@@ -30493,8 +30850,9 @@ public interface SessionVerificationControllerInterface {
     /**
      * Set this particular request as the currently active one and register for
      * events pertaining it.
-     * * `sender_id` - The user requesting verification.
-     * * `flow_id` - - The ID that uniquely identifies the verification flow.
+     *
+     * - `sender_id` - The user requesting verification.
+     * - `flow_id` - - The ID that uniquely identifies the verification flow.
      */
     suspend fun `acknowledgeVerificationRequest`(`senderId`: kotlin.String, `flowId`: kotlin.String)
     
@@ -30514,6 +30872,11 @@ public interface SessionVerificationControllerInterface {
     suspend fun `declineVerification`()
     
     /**
+     * Get the cancel info for the verification request, if it was cancelled
+     */
+    fun `requestCancelInfo`(): SessionVerificationCancelInfo?
+    
+    /**
      * Request verification for the current device
      */
     suspend fun `requestDeviceVerification`()
@@ -30522,6 +30885,11 @@ public interface SessionVerificationControllerInterface {
      * Request verification for the given user
      */
     suspend fun `requestUserVerification`(`userId`: kotlin.String)
+    
+    /**
+     * Get the cancel info for the SAS verification, if it was cancelled
+     */
+    fun `sasCancelInfo`(): SessionVerificationCancelInfo?
     
     fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)
     
@@ -30664,8 +31032,9 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
     /**
      * Set this particular request as the currently active one and register for
      * events pertaining it.
-     * * `sender_id` - The user requesting verification.
-     * * `flow_id` - - The ID that uniquely identifies the verification flow.
+     *
+     * - `sender_id` - The user requesting verification.
+     * - `flow_id` - - The ID that uniquely identifies the verification flow.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -30767,6 +31136,22 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
 
     
     /**
+     * Get the cancel info for the verification request, if it was cancelled
+     */override fun `requestCancelInfo`(): SessionVerificationCancelInfo? {
+            return FfiConverterOptionalTypeSessionVerificationCancelInfo.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_request_cancel_info(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
      * Request verification for the current device
      */
     @Throws(ClientException::class)
@@ -30815,6 +31200,22 @@ open class SessionVerificationController: Disposable, AutoCloseable, SessionVeri
         ClientException.ErrorHandler,
     )
     }
+
+    
+    /**
+     * Get the cancel info for the SAS verification, if it was cancelled
+     */override fun `sasCancelInfo`(): SessionVerificationCancelInfo? {
+            return FfiConverterOptionalTypeSessionVerificationCancelInfo.lift(
+    callWithHandle {
+    uniffiRustCall() { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_sessionverificationcontroller_sas_cancel_info(
+        it,
+        _status)
+}
+    }
+    )
+    }
+    
 
     override fun `setDelegate`(`delegate`: SessionVerificationControllerDelegate?)
         = 
@@ -31260,15 +31661,15 @@ public object FfiConverterTypeSessionVerificationEmoji: FfiConverter<SessionVeri
 
 
 /**
- * The `SpaceRoomList` represents a paginated list of direct rooms
- * that belong to a particular space.
+ * The `SpaceRoomList` represents a paginated list of direct rooms that belong
+ * to a particular space.
  *
  * It can be used to paginate through the list (and have live updates on the
  * pagination state) as well as subscribe to changes as rooms are joined or
  * left.
  *
- * The `SpaceRoomList` also automatically subscribes to client room changes
- * and updates the list accordingly as rooms are joined or left.
+ * The `SpaceRoomList` also automatically subscribes to client room changes and
+ * updates the list accordingly as rooms are joined or left.
  */
 public interface SpaceRoomListInterface {
     
@@ -31289,9 +31690,9 @@ public interface SpaceRoomListInterface {
      * called.
      *
      * This is useful when you've added or removed children from the space as
-     * the list is based on a cached state that lives server-side, meaning
-     * the /hierarchy request needs to be restarted from scratch to pick up
-     * the changes.
+     * the list is based on a cached state that lives server-side, meaning the
+     * /hierarchy request needs to be restarted from scratch to pick up the
+     * changes.
      */
     suspend fun `reset`()
     
@@ -31324,15 +31725,15 @@ public interface SpaceRoomListInterface {
 }
 
 /**
- * The `SpaceRoomList` represents a paginated list of direct rooms
- * that belong to a particular space.
+ * The `SpaceRoomList` represents a paginated list of direct rooms that belong
+ * to a particular space.
  *
  * It can be used to paginate through the list (and have live updates on the
  * pagination state) as well as subscribe to changes as rooms are joined or
  * left.
  *
- * The `SpaceRoomList` also automatically subscribes to client room changes
- * and updates the list accordingly as rooms are joined or left.
+ * The `SpaceRoomList` also automatically subscribes to client room changes and
+ * updates the list accordingly as rooms are joined or left.
  */
 open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
 {
@@ -31484,9 +31885,9 @@ open class SpaceRoomList: Disposable, AutoCloseable, SpaceRoomListInterface
      * called.
      *
      * This is useful when you've added or removed children from the space as
-     * the list is based on a cached state that lives server-side, meaning
-     * the /hierarchy request needs to be restarted from scratch to pick up
-     * the changes.
+     * the list is based on a cached state that lives server-side, meaning the
+     * /hierarchy request needs to be restarted from scratch to pick up the
+     * changes.
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `reset`() {
@@ -31770,15 +32171,14 @@ public interface SpaceServiceInterface {
      * space or room.
      *
      * This is a much cheaper version of [`Self::joined_parents_of_child()`]
-     * that doesn't build any `SpaceRoom` instances, it only reads the
-     * existing space graph.
+     * that doesn't build any `SpaceRoom` instances, it only reads the existing
+     * space graph.
      *
      * The returned IDs are always joined spaces, as that's all the space graph
      * includes. Note that an empty result either means that the child is a
      * top-level space (which has no direct parents) or the child isn't part of
-     * the space graph at all.
-     * See [`Self::top_level_ancestors_of()`] if you need that particular level
-     * of detail.
+     * the space graph at all. See [`Self::top_level_ancestors_of()`] if you
+     * need that particular level of detail.
      *
      * Note: Unlike [`Self::top_level_joined_spaces()`], this method does not
      * recompute the space graph nor notify subscribers about changes.
@@ -31805,8 +32205,8 @@ public interface SpaceServiceInterface {
     
     /**
      * Space filters provide access to a custom subset of the space graph that
-     * can be used in tandem with the [`crate::RoomListService`] to narrow
-     * down the presented rooms.
+     * can be used in tandem with the [`crate::RoomListService`] to narrow down
+     * the presented rooms.
      *
      * They are limited to the first 2 levels of the graph, with the first
      * level only containing direct descendants while the second holds the rest
@@ -31851,8 +32251,8 @@ public interface SpaceServiceInterface {
     
     /**
      * Returns a list of all the top-level joined spaces. It will eagerly
-     * compute the latest version and also notify subscribers if there were
-     * any changes.
+     * compute the latest version and also notify subscribers if there were any
+     * changes.
      */
     suspend fun `topLevelJoinedSpaces`(): List<SpaceRoom>
     
@@ -32050,15 +32450,14 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
      * space or room.
      *
      * This is a much cheaper version of [`Self::joined_parents_of_child()`]
-     * that doesn't build any `SpaceRoom` instances, it only reads the
-     * existing space graph.
+     * that doesn't build any `SpaceRoom` instances, it only reads the existing
+     * space graph.
      *
      * The returned IDs are always joined spaces, as that's all the space graph
      * includes. Note that an empty result either means that the child is a
      * top-level space (which has no direct parents) or the child isn't part of
-     * the space graph at all.
-     * See [`Self::top_level_ancestors_of()`] if you need that particular level
-     * of detail.
+     * the space graph at all. See [`Self::top_level_ancestors_of()`] if you
+     * need that particular level of detail.
      *
      * Note: Unlike [`Self::top_level_joined_spaces()`], this method does not
      * recompute the space graph nor notify subscribers about changes.
@@ -32167,8 +32566,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
     
     /**
      * Space filters provide access to a custom subset of the space graph that
-     * can be used in tandem with the [`crate::RoomListService`] to narrow
-     * down the presented rooms.
+     * can be used in tandem with the [`crate::RoomListService`] to narrow down
+     * the presented rooms.
      *
      * They are limited to the first 2 levels of the graph, with the first
      * level only containing direct descendants while the second holds the rest
@@ -32309,8 +32708,8 @@ open class SpaceService: Disposable, AutoCloseable, SpaceServiceInterface
     
     /**
      * Returns a list of all the top-level joined spaces. It will eagerly
-     * compute the latest version and also notify subscribers if there were
-     * any changes.
+     * compute the latest version and also notify subscribers if there were any
+     * changes.
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `topLevelJoinedSpaces`() : List<SpaceRoom> {
@@ -32504,11 +32903,11 @@ open class Span: Disposable, AutoCloseable, SpanInterface
      * Create a span originating at the given callsite (file, line and column).
      *
      * The target should be something like a module path, and can be referenced
-     * in the filter string given to `setup_tracing`. `level` and `target`
-     * for a callsite are fixed at the first creation of a span for that
-     * callsite and can not be changed afterwards, i.e. the level and
-     * target passed for second and following creation of a span with the same
-     * callsite will be ignored.
+     * in the filter string given to `setup_tracing`. `level` and `target` for
+     * a callsite are fixed at the first creation of a span for that callsite
+     * and can not be changed afterwards, i.e. the level and target passed for
+     * second and following creation of a span with the same callsite will be
+     * ignored.
      *
      * This function leaks a little bit of memory for each unique (file +
      * line + level + target + name) it is called with. Please make sure that
@@ -32523,7 +32922,7 @@ open class Span: Disposable, AutoCloseable, SpanInterface
      * work, exiting a span must be done on the same thread where it was
      * entered. It is possible to enter a span on multiple threads, in which
      * case it should also be exited on all of them individually; that is,
-     * unless you *want* the span to be attached to all further events created
+     * unless you _want_ the span to be attached to all further events created
      * on that thread.
      */
     constructor(`file`: kotlin.String, `line`: kotlin.UInt?, `level`: LogLevel, `target`: kotlin.String, `name`: kotlin.String, `bridgeTraceId`: kotlin.String?) :
@@ -32675,9 +33074,9 @@ open class Span: Disposable, AutoCloseable, SpanInterface
         
     /**
      * Creates a [`Span`] that acts as a bridge between the client spans and
-     * the SDK ones, allowing them to be joined in Sentry. This function
-     * will only return a valid span if the `sentry` feature is enabled,
-     * otherwise it will return a noop span.
+     * the SDK ones, allowing them to be joined in Sentry. This function will
+     * only return a valid span if the `sentry` feature is enabled, otherwise
+     * it will return a noop span.
      */ fun `newBridgeSpan`(`target`: kotlin.String, `parentTraceId`: kotlin.String?): Span {
             return FfiConverterTypeSpan.lift(
     uniffiRustCall() { _status ->
@@ -32844,12 +33243,11 @@ public interface SqliteStoreBuilderInterface {
      * remove their brute-force protection.
      *
      * This migrates a passphrase-based store whose passphrase was created
-     * by base64-encoding a randomly generated key to a key-based
-     * setup.
+     * by base64-encoding a randomly generated key to a key-based setup.
      *
      * Once this function has been called,
-     * [`SqliteStoreBuilder::passphrase`] can no longer be used with
-     * the passphrase.
+     * [`SqliteStoreBuilder::passphrase`] can no longer be used with the
+     * passphrase.
      *
      * [`SqliteStoreBuilder::key`] can be used with the original key,
      * before it was base64-encoded.
@@ -32894,8 +33292,8 @@ public interface SqliteStoreBuilderInterface {
      * Tell the client that the system is memory constrained, like in a
      * push notification process for example.
      *
-     * So far, at the time of writing (2025-04-07), it changes
-     * the defaults of [`SqliteStoreConfig`]. Please check
+     * So far, at the time of writing (2025-04-07), it changes the defaults
+     * of [`SqliteStoreConfig`]. Please check
      * [`SqliteStoreConfig::with_low_memory_config`].
      */
     fun `systemIsMemoryConstrained`(): SqliteStoreBuilder
@@ -33061,12 +33459,11 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
      * remove their brute-force protection.
      *
      * This migrates a passphrase-based store whose passphrase was created
-     * by base64-encoding a randomly generated key to a key-based
-     * setup.
+     * by base64-encoding a randomly generated key to a key-based setup.
      *
      * Once this function has been called,
-     * [`SqliteStoreBuilder::passphrase`] can no longer be used with
-     * the passphrase.
+     * [`SqliteStoreBuilder::passphrase`] can no longer be used with the
+     * passphrase.
      *
      * [`SqliteStoreBuilder::key`] can be used with the original key,
      * before it was base64-encoded.
@@ -33172,8 +33569,8 @@ open class SqliteStoreBuilder: Disposable, AutoCloseable, SqliteStoreBuilderInte
      * Tell the client that the system is memory constrained, like in a
      * push notification process for example.
      *
-     * So far, at the time of writing (2025-04-07), it changes
-     * the defaults of [`SqliteStoreConfig`]. Please check
+     * So far, at the time of writing (2025-04-07), it changes the defaults
+     * of [`SqliteStoreConfig`]. Please check
      * [`SqliteStoreConfig::with_low_memory_config`].
      */override fun `systemIsMemoryConstrained`(): SqliteStoreBuilder {
             return FfiConverterTypeSqliteStoreBuilder.lift(
@@ -33334,8 +33731,8 @@ public interface SsoHandlerInterface {
     
     /**
      * Returns the URL for starting SSO authentication. The URL should be
-     * opened in a web view. Once the web view succeeds, call `finish` with
-     * the callback URL.
+     * opened in a web view. Once the web view succeeds, call `finish` with the
+     * callback URL.
      */
     fun `url`(): kotlin.String
     
@@ -33475,8 +33872,8 @@ open class SsoHandler: Disposable, AutoCloseable, SsoHandlerInterface
     
     /**
      * Returns the URL for starting SSO authentication. The URL should be
-     * opened in a web view. Once the web view succeeds, call `finish` with
-     * the callback URL.
+     * opened in a web view. Once the web view succeeds, call `finish` with the
+     * callback URL.
      */override fun `url`(): kotlin.String {
             return FfiConverterString.lift(
     callWithHandle {
@@ -33630,8 +34027,8 @@ public interface SyncServiceInterface {
      * Force expiring both sliding sync sessions.
      *
      * This ensures that the sync service is stopped before expiring both
-     * sessions. It should be used sparingly, as it will cause a restart of
-     * the sessions on the server as well.
+     * sessions. It should be used sparingly, as it will cause a restart of the
+     * sessions on the server as well.
      */
     suspend fun `expireSessions`()
     
@@ -33752,8 +34149,8 @@ open class SyncService: Disposable, AutoCloseable, SyncServiceInterface
      * Force expiring both sliding sync sessions.
      *
      * This ensures that the sync service is stopped before expiring both
-     * sessions. It should be used sparingly, as it will cause a restart of
-     * the sessions on the server as well.
+     * sessions. It should be used sparingly, as it will cause a restart of the
+     * sessions on the server as well.
      */
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `expireSessions`() {
@@ -33996,9 +34393,8 @@ public interface SyncServiceBuilderInterface {
      * Set a custom Sliding Sync connection ID for the room list service.
      *
      * By default [`matrix_sdk_ui::room_list_service::DEFAULT_CONNECTION_ID`]
-     * is used. Set a different value for secondary processes such as iOS
-     * Share Extensions that are not meant to reuse the main app's
-     * connection.
+     * is used. Set a different value for secondary processes such as iOS Share
+     * Extensions that are not meant to reuse the main app's connection.
      */
     fun `withRoomListConnectionId`(`connectionId`: kotlin.String): SyncServiceBuilder
     
@@ -34175,9 +34571,8 @@ open class SyncServiceBuilder: Disposable, AutoCloseable, SyncServiceBuilderInte
      * Set a custom Sliding Sync connection ID for the room list service.
      *
      * By default [`matrix_sdk_ui::room_list_service::DEFAULT_CONNECTION_ID`]
-     * is used. Set a different value for secondary processes such as iOS
-     * Share Extensions that are not meant to reuse the main app's
-     * connection.
+     * is used. Set a different value for secondary processes such as iOS Share
+     * Extensions that are not meant to reuse the main app's connection.
      */override fun `withRoomListConnectionId`(`connectionId`: kotlin.String): SyncServiceBuilder {
             return FfiConverterTypeSyncServiceBuilder.lift(
     callWithHandle {
@@ -34652,9 +35047,9 @@ public object FfiConverterTypeTaskHandle: FfiConverter<TaskHandle, Long> {
  *
  * `ThreadListService` is the FFI-facing wrapper around
  * [`matrix_sdk_ui::timeline::thread_list_service::ThreadListService`]. It
- * maintains an observable list of [`ThreadListItem`]s and exposes a
- * pagination state publisher, making it straightforward to build reactive UIs
- * on top of the thread list.
+ * maintains an observable list of [`ThreadListItem`]s and exposes a pagination
+ * state publisher, making it straightforward to build reactive UIs on top of
+ * the thread list.
  *
  * Obtain an instance via [`Room::thread_list_service`].
  */
@@ -34712,9 +35107,9 @@ public interface ThreadListServiceInterface {
  *
  * `ThreadListService` is the FFI-facing wrapper around
  * [`matrix_sdk_ui::timeline::thread_list_service::ThreadListService`]. It
- * maintains an observable list of [`ThreadListItem`]s and exposes a
- * pagination state publisher, making it straightforward to build reactive UIs
- * on top of the thread list.
+ * maintains an observable list of [`ThreadListItem`]s and exposes a pagination
+ * state publisher, making it straightforward to build reactive UIs on top of
+ * the thread list.
  *
  * Obtain an instance via [`Room::thread_list_service`].
  */
@@ -35354,6 +35749,15 @@ public object FfiConverterTypeThreadSummary: FfiConverter<ThreadSummary, Long> {
 
 public interface TimelineInterface {
     
+    /**
+     * Abort sending something on this item that hasn't gone out yet, see
+     * [`SendTarget`].
+     *
+     * Returns `false` if there was nothing of that kind left to abort, e.g.
+     * because it went out in the meantime.
+     */
+    suspend fun `abortSend`(`itemId`: EventOrTransactionId, `target`: SendTarget): kotlin.Boolean
+    
     suspend fun `addListener`(`listener`: TimelineListener): TaskHandle
     
     fun `createMessageContent`(`msgType`: MessageType): RoomMessageEventContentWithoutRelation?
@@ -35363,23 +35767,31 @@ public interface TimelineInterface {
     /**
      * Edits an event from the timeline.
      *
-     * If it was a local event, this will *try* to edit it, if it was not
-     * being sent already. If the event was a remote event, then it will be
-     * redacted by sending an edit request to the server.
+     * If it was a local event, this will _try_ to edit it, if it was not being
+     * sent already. If the event was a remote event, then it will be redacted
+     * by sending an edit request to the server.
      *
-     * Returns whether the edit did happen. It can only return false for
-     * local events that are being processed.
+     * Returns whether the edit did happen. It can only return false for local
+     * events that are being processed.
      */
     suspend fun `edit`(`eventOrTransactionId`: EventOrTransactionId, `newContent`: EditedContent)
     
     /**
      * Get the edit history for the given event.
      *
-     * Returns all revisions of the event, in chronological order.
-     * The first entry is the original event content, followed by each
-     * edit in the order they were applied.
+     * Returns all revisions of the event, in chronological order. The first
+     * entry is the original event content, followed by each edit in the order
+     * they were applied.
      */
     suspend fun `editRevisions`(`eventId`: kotlin.String): List<EditRevisionRecord>
+    
+    /**
+     * Edits a message the current user sent into one with the given
+     * attachment, replacing its attachment if it had one. The caption in
+     * `params` is the whole new text: nothing of the original content is
+     * kept, and `in_reply_to` is ignored.
+     */
+    suspend fun `editWithAttachment`(`eventId`: kotlin.String, `params`: UploadParameters, `attachment`: AttachmentKind)
     
     suspend fun `endPoll`(`pollStartEventId`: kotlin.String, `text`: kotlin.String)
     
@@ -35390,7 +35802,7 @@ public interface TimelineInterface {
     /**
      * Get the current timeline item for the given event ID, if any.
      *
-     * Will return a remote event, *or* a local echo that has been sent but not
+     * Will return a remote event, _or_ a local echo that has been sent but not
      * yet replaced by a remote echo.
      *
      * It's preferable to store the timeline items in the model for your UI, if
@@ -35417,13 +35829,13 @@ public interface TimelineInterface {
      * latest visible event.
      *
      * The latest visible event is determined from the timeline's focus kind
-     * and whether or not it hides threaded events. If no latest event can
-     * be determined and the timeline is live, the room's unread marker is
-     * unset instead.
+     * and whether or not it hides threaded events. If no latest event can be
+     * determined and the timeline is live, the room's unread marker is unset
+     * instead.
      *
      * # Arguments
      *
-     * * `receipt_type` - The type of receipt to send. When using
+     * - `receipt_type` - The type of receipt to send. When using
      * [`ReceiptType::FullyRead`], an unthreaded receipt will be sent. This
      * works even if the latest event belongs to a thread, as a threaded
      * reply also belongs to the unthreaded timeline. Otherwise the receipt
@@ -35459,7 +35871,7 @@ public interface TimelineInterface {
      *
      * Only works for events that exist as timeline items.
      *
-     * If it was a local event, this will *try* to cancel it, if it was not
+     * If it was a local event, this will _try_ to cancel it, if it was not
      * being sent already. If the event was a remote event, then it will be
      * redacted by sending a redaction request to the server.
      *
@@ -35470,18 +35882,44 @@ public interface TimelineInterface {
     fun `retryDecryption`(`sessionIds`: List<kotlin.String>)
     
     /**
-     * Queues an event in the room's send queue so it's processed for
-     * sending later.
+     * Retry sending something on this item that failed, see [`SendTarget`].
+     *
+     * Only needed after an unrecoverable failure, which parks the request
+     * until it's retried or aborted; a recoverable one goes out again when the
+     * room's send queue is re-enabled.
+     *
+     * Returns `false` if there was nothing of that kind left to retry, e.g.
+     * because it went out in the meantime.
+     */
+    suspend fun `retrySend`(`itemId`: EventOrTransactionId, `target`: SendTarget): kotlin.Boolean
+    
+    /**
+     * Queues an event in the room's send queue so it's processed for sending
+     * later.
      *
      * Returns an abort handle that allows to abort sending, if it hasn't
      * happened yet.
      */
     suspend fun `send`(`msg`: RoomMessageEventContentWithoutRelation): SendHandle
     
+    /**
+     * Sends an attachment, uploaded through the send queue.
+     */
+    fun `sendAttachment`(`params`: UploadParameters, `attachment`: AttachmentKind): SendAttachmentJoinHandle
+    
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Audio`.
+     */
     fun `sendAudio`(`params`: UploadParameters, `audioInfo`: AudioInfo): SendAttachmentJoinHandle
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::File`.
+     */
     fun `sendFile`(`params`: UploadParameters, `fileInfo`: FileInfo): SendAttachmentJoinHandle
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Image`.
+     */
     fun `sendImage`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `imageInfo`: ImageInfo): SendAttachmentJoinHandle
     
     suspend fun `sendLocation`(`body`: kotlin.String, `geoUri`: kotlin.String, `description`: kotlin.String?, `zoomLevel`: kotlin.UByte?, `assetType`: AssetType?, `repliedToEventId`: kotlin.String?)
@@ -35494,18 +35932,24 @@ public interface TimelineInterface {
      * Send a reply.
      *
      * If the replied to event has a thread relation, it is forwarded on the
-     * reply so that clients that support threads can render the reply
-     * inside the thread. Returns a handle to abort the pending send.
+     * reply so that clients that support threads can render the reply inside
+     * the thread. Returns a handle to abort the pending send.
      */
     suspend fun `sendReply`(`msg`: RoomMessageEventContentWithoutRelation, `eventId`: kotlin.String): SendHandle
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Video`.
+     */
     fun `sendVideo`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `videoInfo`: VideoInfo): SendAttachmentJoinHandle
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Voice`.
+     */
     fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.Float>): SendAttachmentJoinHandle
     
     /**
-     * Like [`Self::send`], but merges the given additional top-level fields
-     * (a JSON object, encoded as a string) into the outgoing event's content.
+     * Like [`Self::send`], but merges the given additional top-level fields (a
+     * JSON object, encoded as a string) into the outgoing event's content.
      */
     suspend fun `sendWithExtraContent`(`msg`: RoomMessageEventContentWithoutRelation, `extraContentJson`: kotlin.String?): SendHandle
     
@@ -35654,6 +36098,36 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     }
 
     
+    /**
+     * Abort sending something on this item that hasn't gone out yet, see
+     * [`SendTarget`].
+     *
+     * Returns `false` if there was nothing of that kind left to abort, e.g.
+     * because it went out in the meantime.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `abortSend`(`itemId`: EventOrTransactionId, `target`: SendTarget) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_abort_send(
+                uniffiHandle,
+                
+        FfiConverterTypeEventOrTransactionId.lower(`itemId`),
+        FfiConverterTypeSendTarget.lower(`target`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `addListener`(`listener`: TimelineListener) : TaskHandle {
         return uniffiRustCallAsync(
@@ -35718,12 +36192,12 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     /**
      * Edits an event from the timeline.
      *
-     * If it was a local event, this will *try* to edit it, if it was not
-     * being sent already. If the event was a remote event, then it will be
-     * redacted by sending an edit request to the server.
+     * If it was a local event, this will _try_ to edit it, if it was not being
+     * sent already. If the event was a remote event, then it will be redacted
+     * by sending an edit request to the server.
      *
-     * Returns whether the edit did happen. It can only return false for
-     * local events that are being processed.
+     * Returns whether the edit did happen. It can only return false for local
+     * events that are being processed.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -35752,9 +36226,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     /**
      * Get the edit history for the given event.
      *
-     * Returns all revisions of the event, in chronological order.
-     * The first entry is the original event content, followed by each
-     * edit in the order they were applied.
+     * Returns all revisions of the event, in chronological order. The first
+     * entry is the original event content, followed by each edit in the order
+     * they were applied.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -35772,6 +36246,37 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterSequenceTypeEditRevisionRecord.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Edits a message the current user sent into one with the given
+     * attachment, replacing its attachment if it had one. The caption in
+     * `params` is the whole new text: nothing of the original content is
+     * kept, and `in_reply_to` is ignored.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `editWithAttachment`(`eventId`: kotlin.String, `params`: UploadParameters, `attachment`: AttachmentKind) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_edit_with_attachment(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`eventId`),
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterTypeAttachmentKind.lower(`attachment`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -35849,7 +36354,7 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     /**
      * Get the current timeline item for the given event ID, if any.
      *
-     * Will return a remote event, *or* a local echo that has been sent but not
+     * Will return a remote event, _or_ a local echo that has been sent but not
      * yet replaced by a remote echo.
      *
      * It's preferable to store the timeline items in the model for your UI, if
@@ -35934,13 +36439,13 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
      * latest visible event.
      *
      * The latest visible event is determined from the timeline's focus kind
-     * and whether or not it hides threaded events. If no latest event can
-     * be determined and the timeline is live, the room's unread marker is
-     * unset instead.
+     * and whether or not it hides threaded events. If no latest event can be
+     * determined and the timeline is live, the room's unread marker is unset
+     * instead.
      *
      * # Arguments
      *
-     * * `receipt_type` - The type of receipt to send. When using
+     * - `receipt_type` - The type of receipt to send. When using
      * [`ReceiptType::FullyRead`], an unthreaded receipt will be sent. This
      * works even if the latest event belongs to a thread, as a threaded
      * reply also belongs to the unthreaded timeline. Otherwise the receipt
@@ -36057,7 +36562,7 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
      *
      * Only works for events that exist as timeline items.
      *
-     * If it was a local event, this will *try* to cancel it, if it was not
+     * If it was a local event, this will _try_ to cancel it, if it was not
      * being sent already. If the event was a remote event, then it will be
      * redacted by sending a redaction request to the server.
      *
@@ -36101,8 +36606,41 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
 
     
     /**
-     * Queues an event in the room's send queue so it's processed for
-     * sending later.
+     * Retry sending something on this item that failed, see [`SendTarget`].
+     *
+     * Only needed after an unrecoverable failure, which parks the request
+     * until it's retried or aborted; a recoverable one goes out again when the
+     * room's send queue is re-enabled.
+     *
+     * Returns `false` if there was nothing of that kind left to retry, e.g.
+     * because it went out in the meantime.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `retrySend`(`itemId`: EventOrTransactionId, `target`: SendTarget) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_retry_send(
+                uniffiHandle,
+                
+        FfiConverterTypeEventOrTransactionId.lower(`itemId`),
+        FfiConverterTypeSendTarget.lower(`target`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Queues an event in the room's send queue so it's processed for sending
+     * later.
      *
      * Returns an abort handle that allows to abort sending, if it hasn't
      * happened yet.
@@ -36129,6 +36667,28 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     }
 
     
+    /**
+     * Sends an attachment, uploaded through the send queue.
+     */
+    @Throws(RoomException::class)override fun `sendAttachment`(`params`: UploadParameters, `attachment`: AttachmentKind): SendAttachmentJoinHandle {
+            return FfiConverterTypeSendAttachmentJoinHandle.lift(
+    callWithHandle {
+    uniffiRustCallWithError(RoomException) { _status ->
+    UniffiLib.uniffi_matrix_sdk_ffi_fn_method_timeline_send_attachment(
+        it,
+        
+        FfiConverterTypeUploadParameters.lower(`params`),
+        FfiConverterTypeAttachmentKind.lower(`attachment`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Audio`.
+     */
     @Throws(RoomException::class)override fun `sendAudio`(`params`: UploadParameters, `audioInfo`: AudioInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithHandle {
@@ -36145,6 +36705,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     
 
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::File`.
+     */
     @Throws(RoomException::class)override fun `sendFile`(`params`: UploadParameters, `fileInfo`: FileInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithHandle {
@@ -36161,6 +36724,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     
 
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Image`.
+     */
     @Throws(RoomException::class)override fun `sendImage`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `imageInfo`: ImageInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithHandle {
@@ -36258,8 +36824,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
      * Send a reply.
      *
      * If the replied to event has a thread relation, it is forwarded on the
-     * reply so that clients that support threads can render the reply
-     * inside the thread. Returns a handle to abort the pending send.
+     * reply so that clients that support threads can render the reply inside
+     * the thread. Returns a handle to abort the pending send.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -36284,6 +36850,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     }
 
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Video`.
+     */
     @Throws(RoomException::class)override fun `sendVideo`(`params`: UploadParameters, `thumbnailSource`: UploadSource?, `videoInfo`: VideoInfo): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithHandle {
@@ -36301,6 +36870,9 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
     
 
     
+    /**
+     * Deprecated: use [`Self::send_attachment`] with `AttachmentKind::Voice`.
+     */
     @Throws(RoomException::class)override fun `sendVoiceMessage`(`params`: UploadParameters, `audioInfo`: AudioInfo, `waveform`: List<kotlin.Float>): SendAttachmentJoinHandle {
             return FfiConverterTypeSendAttachmentJoinHandle.lift(
     callWithHandle {
@@ -36319,8 +36891,8 @@ open class Timeline: Disposable, AutoCloseable, TimelineInterface
 
     
     /**
-     * Like [`Self::send`], but merges the given additional top-level fields
-     * (a JSON object, encoded as a string) into the outgoing event's content.
+     * Like [`Self::send`], but merges the given additional top-level fields (a
+     * JSON object, encoded as a string) into the outgoing event's content.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -37567,9 +38139,9 @@ public interface UserIdentityInterface {
      * action "pinning".
      *
      * If the identity presented for the user changes later on, the newly
-     * presented identity is considered to be in "pin violation". This
-     * method explicitly accepts the new identity, allowing it to replace
-     * the previously pinned one and bringing it out of pin violation.
+     * presented identity is considered to be in "pin violation". This method
+     * explicitly accepts the new identity, allowing it to replace the
+     * previously pinned one and bringing it out of pin violation.
      *
      * UIs should display a warning to the user when encountering an identity
      * which is not verified and is in pin violation.
@@ -37766,9 +38338,9 @@ open class UserIdentity: Disposable, AutoCloseable, UserIdentityInterface
      * action "pinning".
      *
      * If the identity presented for the user changes later on, the newly
-     * presented identity is considered to be in "pin violation". This
-     * method explicitly accepts the new identity, allowing it to replace
-     * the previously pinned one and bringing it out of pin violation.
+     * presented identity is considered to be in "pin violation". This method
+     * explicitly accepts the new identity, allowing it to replace the
+     * previously pinned one and bringing it out of pin violation.
      *
      * UIs should display a warning to the user when encountering an identity
      * which is not verified and is in pin violation.
@@ -38468,8 +39040,8 @@ public object FfiConverterTypeWidgetDriverHandle: FfiConverter<WidgetDriverHandl
 /**
  * Progress of an operation in abstract units.
  *
- * Contrary to [`TransmissionProgress`], this allows tracking the progress
- * of sending or receiving a payload in estimated pseudo units representing a
+ * Contrary to [`TransmissionProgress`], this allows tracking the progress of
+ * sending or receiving a payload in estimated pseudo units representing a
  * percentage. This is helpful in cases where the exact progress in bytes isn't
  * known, for instance, because encryption (which changes the size) happens on
  * the fly.
@@ -38690,8 +39262,8 @@ public object FfiConverterTypeAuthDataPasswordDetails: FfiConverterRustBuffer<Au
  */
 data class BeaconInfo (
     /**
-     * The geo URI carrying the user's coordinates
-     * (e.g. `"geo:51.5008,0.1247;u=35"`).
+     * The geo URI carrying the user's coordinates (e.g.
+     * `"geo:51.5008,0.1247;u=35"`).
      */
     var `geoUri`: kotlin.String
     , 
@@ -39344,6 +39916,16 @@ data class EventTimelineItem (
     , 
     var `localSendState`: EventSendState?
     , 
+    /**
+     * Send state of our pending edit of this event, if any.
+     */
+    var `editSendState`: EventSendState?
+    , 
+    /**
+     * Send state of our pending redaction of this event, if any.
+     */
+    var `redactionSendState`: EventSendState?
+    , 
     var `localCreatedAt`: kotlin.ULong?
     , 
     var `readReceipts`: Map<kotlin.String, Receipt>
@@ -39377,6 +39959,8 @@ data class EventTimelineItem (
         this.`eventTypeRaw`,
         this.`timestamp`,
         this.`localSendState`,
+        this.`editSendState`,
+        this.`redactionSendState`,
         this.`localCreatedAt`,
         this.`readReceipts`,
         this.`origin`,
@@ -39407,6 +39991,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterOptionalString.read(buf),
             FfiConverterTypeTimestamp.read(buf),
             FfiConverterOptionalTypeEventSendState.read(buf),
+            FfiConverterOptionalTypeEventSendState.read(buf),
+            FfiConverterOptionalTypeEventSendState.read(buf),
             FfiConverterOptionalULong.read(buf),
             FfiConverterMapStringTypeReceipt.read(buf),
             FfiConverterOptionalTypeEventItemOrigin.read(buf),
@@ -39429,6 +40015,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterOptionalString.allocationSize(value.`eventTypeRaw`) +
             FfiConverterTypeTimestamp.allocationSize(value.`timestamp`) +
             FfiConverterOptionalTypeEventSendState.allocationSize(value.`localSendState`) +
+            FfiConverterOptionalTypeEventSendState.allocationSize(value.`editSendState`) +
+            FfiConverterOptionalTypeEventSendState.allocationSize(value.`redactionSendState`) +
             FfiConverterOptionalULong.allocationSize(value.`localCreatedAt`) +
             FfiConverterMapStringTypeReceipt.allocationSize(value.`readReceipts`) +
             FfiConverterOptionalTypeEventItemOrigin.allocationSize(value.`origin`) +
@@ -39450,6 +40038,8 @@ public object FfiConverterTypeEventTimelineItem: FfiConverterRustBuffer<EventTim
             FfiConverterOptionalString.write(value.`eventTypeRaw`, buf)
             FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
             FfiConverterOptionalTypeEventSendState.write(value.`localSendState`, buf)
+            FfiConverterOptionalTypeEventSendState.write(value.`editSendState`, buf)
+            FfiConverterOptionalTypeEventSendState.write(value.`redactionSendState`, buf)
             FfiConverterOptionalULong.write(value.`localCreatedAt`, buf)
             FfiConverterMapStringTypeReceipt.write(value.`readReceipts`, buf)
             FfiConverterOptionalTypeEventItemOrigin.write(value.`origin`, buf)
@@ -40453,11 +41043,11 @@ data class LiveLocationContent (
     var `isLive`: kotlin.Boolean
     , 
     /**
-     * The timestamp when this live location sharing session started
-     * (from the `org.matrix.msc3488.ts` field of the originating
-     * `beacon_info` state event).
+     * The timestamp when this live location sharing session started (from the
+     * `org.matrix.msc3488.ts` field of the originating `beacon_info` state
+     * event).
      *
-     * This marks the *beginning* of the session. The session expires at
+     * This marks the _beginning_ of the session. The session expires at
      * `ts + timeout_ms`.
      */
     var `ts`: Timestamp
@@ -40473,8 +41063,8 @@ data class LiveLocationContent (
     var `timeoutMs`: kotlin.ULong
     , 
     /**
-     * The asset type of the beacon (e.g. `Sender` for the user's own
-     * location, `Pin` for a fixed point of interest).
+     * The asset type of the beacon (e.g. `Sender` for the user's own location,
+     * `Pin` for a fixed point of interest).
      */
     var `assetType`: AssetType
     , 
@@ -40548,8 +41138,8 @@ data class LiveLocationShare (
     var `startTs`: kotlin.ULong
     , 
     /**
-     * The duration that the location sharing will be live.
-     * Meaning that the location will stop being shared at ts + timeout.
+     * The duration that the location sharing will be live. Meaning that the
+     * location will stop being shared at ts + timeout.
      */
     var `timeout`: kotlin.ULong
     , 
@@ -40751,15 +41341,14 @@ public object FfiConverterTypeMediaPreviewConfig: FfiConverterRustBuffer<MediaPr
  */
 data class MediaUploadProgress (
     /**
-     * The index of the media within the transaction. A file and its
-     * thumbnail share the same index. Will always be 0 for non-gallery
-     * media uploads.
+     * The index of the media within the transaction. A file and its thumbnail
+     * share the same index. Will always be 0 for non-gallery media uploads.
      */
     var `index`: kotlin.ULong
     , 
     /**
-     * The current combined upload progress for both the file and,
-     * if it exists, its thumbnail.
+     * The current combined upload progress for both the file and, if it
+     * exists, its thumbnail.
      */
     var `progress`: AbstractProgress
     
@@ -41107,8 +41696,8 @@ data class NotificationClientTimeouts (
      * missing room key, i.e. how long the homeserver waits for a to-device
      * message to arrive before answering.
      *
-     * Together with `decryption_deadline`, this determines how many
-     * iterations are run when the homeserver has nothing to return.
+     * Together with `decryption_deadline`, this determines how many iterations
+     * are run when the homeserver has nothing to return.
      */
     var `encryptionSyncPollTimeout`: java.time.Duration
     , 
@@ -41174,9 +41763,9 @@ data class NotificationItem (
     var `roomInfo`: NotificationRoomInfo
     , 
     /**
-     * Is the notification supposed to be at the "noisy" level?
-     * Can be `None` if we couldn't determine this, because we lacked
-     * information to create a push context.
+     * Is the notification supposed to be at the "noisy" level? Can be `None`
+     * if we couldn't determine this, because we lacked information to create a
+     * push context.
      */
     var `isNoisy`: kotlin.Boolean?
     , 
@@ -41718,15 +42307,15 @@ data class PasswordStrengthEstimate (
     var `guesses`: kotlin.ULong
     , 
     /**
-     * A numeric score derived from the order of magnitude of `guesses`
-     * (i.e. log base 10).
+     * A numeric score derived from the order of magnitude of `guesses` (i.e.
+     * log base 10).
      */
     var `score`: kotlin.Double
     , 
     /**
      * A normalized score from 0 to 1.0 derived from `score` and the
-     * estimator's `very_strong` threshold (`score / very_strong`).
-     * Scores above the `VeryStrong` threshold *can* exceed 1.0.
+     * estimator's `very_strong` threshold (`score / very_strong`). Scores
+     * above the `VeryStrong` threshold _can_ exceed 1.0.
      */
     var `normalScore`: kotlin.Double
     , 
@@ -42322,6 +42911,11 @@ data class ReactionSenderData (
     var `senderId`: kotlin.String
     , 
     var `timestamp`: Timestamp
+    , 
+    /**
+     * Send state of the reaction when it's ours and pending, `None` otherwise.
+     */
+    var `sendState`: EventSendState?
     
 ){
     
@@ -42340,17 +42934,20 @@ public object FfiConverterTypeReactionSenderData: FfiConverterRustBuffer<Reactio
         return ReactionSenderData(
             FfiConverterString.read(buf),
             FfiConverterTypeTimestamp.read(buf),
+            FfiConverterOptionalTypeEventSendState.read(buf),
         )
     }
 
     override fun allocationSize(value: ReactionSenderData) = (
             FfiConverterString.allocationSize(value.`senderId`) +
-            FfiConverterTypeTimestamp.allocationSize(value.`timestamp`)
+            FfiConverterTypeTimestamp.allocationSize(value.`timestamp`) +
+            FfiConverterOptionalTypeEventSendState.allocationSize(value.`sendState`)
     )
 
     override fun write(value: ReactionSenderData, buf: ByteBuffer) {
             FfiConverterString.write(value.`senderId`, buf)
             FfiConverterTypeTimestamp.write(value.`timestamp`, buf)
+            FfiConverterOptionalTypeEventSendState.write(value.`sendState`, buf)
     }
 }
 
@@ -42781,8 +43378,8 @@ data class RoomInfo (
     var `numUnreadMessages`: kotlin.ULong
     , 
     /**
-     * Events that will notify the user, according to their
-     * notification settings.
+     * Events that will notify the user, according to their notification
+     * settings.
      */
     var `numUnreadNotifications`: kotlin.ULong
     , 
@@ -43778,12 +44375,12 @@ public object FfiConverterTypeSecretStorageV1AesHmacSha2Properties: FfiConverter
  */
 data class SendToDeviceOutcome (
     /**
-     * The devices that did not receive the message, as a `user id -> device
-     * ids` map.
+     * The devices that did not receive the message, as a
+     * `user id -> device ids` map.
      *
      * A device can end up in here because it is unknown to us, or because
-     * encrypting the message for it failed. An empty map means every
-     * recipient was served.
+     * encrypting the message for it failed. An empty map means every recipient
+     * was served.
      */
     var `failures`: Map<kotlin.String, List<kotlin.String>>
     
@@ -43948,6 +44545,52 @@ public object FfiConverterTypeSession: FfiConverterRustBuffer<Session> {
 
 
 /**
+ * Information about why a verification was cancelled
+ */
+data class SessionVerificationCancelInfo (
+    var `reason`: kotlin.String
+    , 
+    var `cancelCode`: kotlin.String
+    , 
+    var `cancelledByUs`: kotlin.Boolean
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSessionVerificationCancelInfo: FfiConverterRustBuffer<SessionVerificationCancelInfo> {
+    override fun read(buf: ByteBuffer): SessionVerificationCancelInfo {
+        return SessionVerificationCancelInfo(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: SessionVerificationCancelInfo) = (
+            FfiConverterString.allocationSize(value.`reason`) +
+            FfiConverterString.allocationSize(value.`cancelCode`) +
+            FfiConverterBoolean.allocationSize(value.`cancelledByUs`)
+    )
+
+    override fun write(value: SessionVerificationCancelInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`reason`, buf)
+            FfiConverterString.write(value.`cancelCode`, buf)
+            FfiConverterBoolean.write(value.`cancelledByUs`, buf)
+    }
+}
+
+
+
+/**
  * Details about the incoming verification request
  */
 data class SessionVerificationRequestDetails (
@@ -44081,15 +44724,15 @@ data class SpaceFilter (
     var `spaceRoom`: SpaceRoom
     , 
     /**
-     * The level of the space filter in the tree/hierarchy.
-     * At this point in time the filters are limited to the first 2 levels.
+     * The level of the space filter in the tree/hierarchy. At this point in
+     * time the filters are limited to the first 2 levels.
      */
     var `level`: kotlin.UByte
     , 
     /**
-     * The room identifiers of the descendants of this space.
-     * For top level spaces (level 0) these will be direct descendants while
-     * for first level spaces they will be all other descendants, recursively.
+     * The room identifiers of the descendants of this space. For top level
+     * spaces (level 0) these will be direct descendants while for first level
+     * spaces they will be all other descendants, recursively.
      */
     var `descendants`: List<kotlin.String>
     
@@ -44130,8 +44773,8 @@ public object FfiConverterTypeSpaceFilter: FfiConverterRustBuffer<SpaceFilter> {
 
 
 /**
- * Structure representing a room in a space and aggregated information
- * relevant to the UI layer.
+ * Structure representing a room in a space and aggregated information relevant
+ * to the UI layer.
  */
 data class SpaceRoom (
     /**
@@ -44193,8 +44836,8 @@ data class SpaceRoom (
     /**
      * Whether this room is a direct room.
      *
-     * Only set if the room is known to the client otherwise we
-     * assume DMs shouldn't be exposed publicly in spaces.
+     * Only set if the room is known to the client otherwise we assume DMs
+     * shouldn't be exposed publicly in spaces.
      */
     var `isDirect`: kotlin.Boolean?
     , 
@@ -44219,9 +44862,8 @@ data class SpaceRoom (
     var `via`: List<kotlin.String>
     , 
     /**
-     * Whether this room is a DM, if known.
-     * Note this value can be calculated following some assumptions and is not
-     * guaranteed to be accurate.
+     * Whether this room is a DM, if known. Note this value can be calculated
+     * following some assumptions and is not guaranteed to be accurate.
      */
     var `isDm`: kotlin.Boolean?
     
@@ -44308,14 +44950,14 @@ public object FfiConverterTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom> {
  */
 data class StartDehydratedDevicesSettings (
     /**
-     * Force generation of a fresh random pickle key on start, replacing
-     * any existing entry in Secret Storage and the local cache.
+     * Force generation of a fresh random pickle key on start, replacing any
+     * existing entry in Secret Storage and the local cache.
      */
     var `createNewKey`: kotlin.Boolean = false 
     , 
     /**
-     * Whether to attempt to rehydrate the existing dehydrated device, if
-     * any, before creating the next one.
+     * Whether to attempt to rehydrate the existing dehydrated device, if any,
+     * before creating the next one.
      */
     var `rehydrate`: kotlin.Boolean = true 
     , 
@@ -44356,6 +44998,181 @@ public object FfiConverterTypeStartDehydratedDevicesSettings: FfiConverterRustBu
             FfiConverterBoolean.write(value.`createNewKey`, buf)
             FfiConverterBoolean.write(value.`rehydrate`, buf)
             FfiConverterBoolean.write(value.`onlyIfKeyCached`, buf)
+    }
+}
+
+
+
+/**
+ * A sticky event that is currently live in a room.
+ */
+data class StickyEvent (
+    /**
+     * The key under which the event is tracked.
+     */
+    var `key`: StickyKey
+    , 
+    /**
+     * The event ID.
+     */
+    var `eventId`: kotlin.String
+    , 
+    /**
+     * When the event stops being sticky, in milliseconds since the Unix epoch.
+     */
+    var `expiresAtMs`: kotlin.ULong
+    , 
+    /**
+     * The event as a JSON string, decrypted if it was encrypted.
+     */
+    var `eventJson`: kotlin.String
+    , 
+    /**
+     * The encryption info of the event, if it was encrypted.
+     */
+    var `encryptionInfo`: EventEncryptionInfo?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeStickyEvent: FfiConverterRustBuffer<StickyEvent> {
+    override fun read(buf: ByteBuffer): StickyEvent {
+        return StickyEvent(
+            FfiConverterTypeStickyKey.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeEventEncryptionInfo.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: StickyEvent) = (
+            FfiConverterTypeStickyKey.allocationSize(value.`key`) +
+            FfiConverterString.allocationSize(value.`eventId`) +
+            FfiConverterULong.allocationSize(value.`expiresAtMs`) +
+            FfiConverterString.allocationSize(value.`eventJson`) +
+            FfiConverterOptionalTypeEventEncryptionInfo.allocationSize(value.`encryptionInfo`)
+    )
+
+    override fun write(value: StickyEvent, buf: ByteBuffer) {
+            FfiConverterTypeStickyKey.write(value.`key`, buf)
+            FfiConverterString.write(value.`eventId`, buf)
+            FfiConverterULong.write(value.`expiresAtMs`, buf)
+            FfiConverterString.write(value.`eventJson`, buf)
+            FfiConverterOptionalTypeEventEncryptionInfo.write(value.`encryptionInfo`, buf)
+    }
+}
+
+
+
+/**
+ * A sticky event that is no longer live in a room.
+ */
+data class StickyEventRemoval (
+    /**
+     * The key the event was tracked under.
+     */
+    var `key`: StickyKey
+    , 
+    /**
+     * Why it is no longer live.
+     */
+    var `reason`: RemovalReason
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeStickyEventRemoval: FfiConverterRustBuffer<StickyEventRemoval> {
+    override fun read(buf: ByteBuffer): StickyEventRemoval {
+        return StickyEventRemoval(
+            FfiConverterTypeStickyKey.read(buf),
+            FfiConverterTypeRemovalReason.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: StickyEventRemoval) = (
+            FfiConverterTypeStickyKey.allocationSize(value.`key`) +
+            FfiConverterTypeRemovalReason.allocationSize(value.`reason`)
+    )
+
+    override fun write(value: StickyEventRemoval, buf: ByteBuffer) {
+            FfiConverterTypeStickyKey.write(value.`key`, buf)
+            FfiConverterTypeRemovalReason.write(value.`reason`, buf)
+    }
+}
+
+
+
+/**
+ * The key under which a sticky event is tracked in a room.
+ *
+ * A room holds at most one live sticky event per key.
+ */
+data class StickyKey (
+    /**
+     * The sender of the event.
+     */
+    var `sender`: kotlin.String
+    , 
+    /**
+     * The type of the event, e.g. `m.rtc.member`.
+     */
+    var `eventType`: kotlin.String
+    , 
+    /**
+     * The `content.sticky_key` of the event.
+     */
+    var `stickyKey`: kotlin.String
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeStickyKey: FfiConverterRustBuffer<StickyKey> {
+    override fun read(buf: ByteBuffer): StickyKey {
+        return StickyKey(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: StickyKey) = (
+            FfiConverterString.allocationSize(value.`sender`) +
+            FfiConverterString.allocationSize(value.`eventType`) +
+            FfiConverterString.allocationSize(value.`stickyKey`)
+    )
+
+    override fun write(value: StickyKey, buf: ByteBuffer) {
+            FfiConverterString.write(value.`sender`, buf)
+            FfiConverterString.write(value.`eventType`, buf)
+            FfiConverterString.write(value.`stickyKey`, buf)
     }
 }
 
@@ -44594,8 +45411,8 @@ public object FfiConverterTypeSyncResponseV2: FfiConverterRustBuffer<SyncRespons
  */
 data class SyncSettingsV2 (
     /**
-     * Timeout in milliseconds for the server long-poll.
-     * If not set, defaults to 30 seconds.
+     * Timeout in milliseconds for the server long-poll. If not set, defaults
+     * to 30 seconds.
      */
     var `timeoutMs`: kotlin.ULong? = null 
     , 
@@ -44739,16 +45556,16 @@ data class ThreadListItem (
      * The latest event in the thread (i.e. the most recent reply), if
      * available.
      *
-     * Initially populated from the server's bundled thread summary and
-     * updated in real time as new events arrive via sync or back-pagination.
+     * Initially populated from the server's bundled thread summary and updated
+     * in real time as new events arrive via sync or back-pagination.
      */
     var `latestEvent`: ThreadListItemEvent?
     , 
     /**
      * The number of replies in this thread (excluding the root event).
      *
-     * Initially populated from the server's bundled thread summary and
-     * updated in real time as new events arrive via sync.
+     * Initially populated from the server's bundled thread summary and updated
+     * in real time as new events arrive via sync.
      */
     var `numReplies`: kotlin.UInt
     
@@ -44994,9 +45811,9 @@ data class TimelineConfiguration (
     var `filter`: TimelineFilter
     , 
     /**
-     * An optional String that will be prepended to
-     * all the timeline item's internal IDs, making it possible to
-     * distinguish different timeline instances from each other.
+     * An optional String that will be prepended to all the timeline item's
+     * internal IDs, making it possible to distinguish different timeline
+     * instances from each other.
      */
     var `internalIdPrefix`: kotlin.String?
     , 
@@ -45108,7 +45925,7 @@ data class ToDeviceMessage (
     var `eventType`: kotlin.String
     , 
     /**
-     * The user id that *claims* to have sent this message.
+     * The user id that _claims_ to have sent this message.
      *
      * This is unauthenticated. For an encrypted message, trust
      * `encryption_info.sender_id` instead, which is cryptographically
@@ -45271,8 +46088,8 @@ data class TracingFileConfiguration (
      * Maximum total size of all log files combined in bytes.
      *
      * When the total size of all log files with the configured prefix and
-     * suffix exceeds this limit, the oldest files will be removed until
-     * the total is below the limit.
+     * suffix exceeds this limit, the oldest files will be removed until the
+     * total is below the limit.
      *
      * This is useful to prevent log files from consuming too much disk space
      * over time, even with multiple rotated files.
@@ -45285,8 +46102,8 @@ data class TracingFileConfiguration (
      * Maximum age of log files in seconds.
      *
      * Log files older than this age will be automatically removed during
-     * cleanup. This is checked when the writer is created and during
-     * rotation operations.
+     * cleanup. This is checked when the writer is created and during rotation
+     * operations.
      *
      * Default: 1 week (7 * 24 * 60 * 60 seconds) if not specified.
      */
@@ -45380,9 +46197,9 @@ data class UnableToDecryptInfo (
     , 
     /**
      * If the event could be decrypted late (that is, the event was encrypted
-     * at first, but could be decrypted later on), then this indicates the
-     * time it took to decrypt the event. If it is not set, this is
-     * considered a definite UTD.
+     * at first, but could be decrypted later on), then this indicates the time
+     * it took to decrypt the event. If it is not set, this is considered a
+     * definite UTD.
      *
      * If set, this is in milliseconds.
      */
@@ -45397,7 +46214,7 @@ data class UnableToDecryptInfo (
     /**
      * The difference between the event creation time (`origin_server_ts`) and
      * the time our device was created. If negative, this event was sent
-     * *before* our device was created.
+     * _before_ our device was created.
      */
     var `eventLocalAgeMillis`: kotlin.Long
     , 
@@ -45559,8 +46376,8 @@ data class UploadParameters (
     var `inReplyTo`: kotlin.String?
     , 
     /**
-     * Optional additional top-level fields for the media event's content,
-     * as a serialized JSON object.
+     * Optional additional top-level fields for the media event's content, as a
+     * serialized JSON object.
      */
     var `extraContentJson`: kotlin.String? = null 
     
@@ -45710,8 +46527,9 @@ data class UserProfile (
     /**
      * Set when the user is in a call (MSC4426 `m.call` profile field).
      *
-     * `None` means the user is not in a call. `Some(UserCall { call_joined_ts:
-     * None })` means the user is in a call but the join time wasn't recorded.
+     * `None` means the user is not in a call.
+     * `Some(UserCall { call_joined_ts: None })` means the user is in a call
+     * but the join time wasn't recorded.
      */
     var `call`: UserCall?
     
@@ -46182,21 +47000,21 @@ data class WidgetSettings (
     , 
     /**
      * Whether or not the widget should be initialized on load message
-     * (`ContentLoad` message), or upon creation/attaching of the widget to
-     * the SDK's state machine that drives the API.
+     * (`ContentLoad` message), or upon creation/attaching of the widget to the
+     * SDK's state machine that drives the API.
      */
     var `initAfterContentLoad`: kotlin.Boolean
     , 
     /**
-     * This contains the url from the widget state event.
-     * In this url placeholders can be used to pass information from the client
-     * to the widget. Possible values are: `$widgetId`, `$parentUrl`,
-     * `$userId`, `$lang`, `$fontScale`, `$analyticsID`.
+     * This contains the url from the widget state event. In this url
+     * placeholders can be used to pass information from the client to the
+     * widget. Possible values are: `$widgetId`, `$parentUrl`, `$userId`,
+     * `$lang`, `$fontScale`, `$analyticsID`.
      *
      * # Examples
      *
-     * e.g `http://widget.domain?username=$userId`
-     * will become: `http://widget.domain?username=@user_matrix_id:server.domain`.
+     * e.g `http://widget.domain?username=$userId` will become:
+     * `http://widget.domain?username=@user_matrix_id:server.domain`.
      */
     var `rawUrl`: kotlin.String
     
@@ -46972,6 +47790,221 @@ public object FfiConverterTypeAssetType: FfiConverterRustBuffer<AssetType> {
 
     override fun write(value: AssetType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * What kind of attachment is being sent or edited in, with the metadata that
+ * kind needs.
+ */
+sealed class AttachmentKind: Disposable  {
+    
+    data class Image(
+        val `imageInfo`: org.matrix.rustcomponents.sdk.ImageInfo, 
+        val `thumbnailSource`: org.matrix.rustcomponents.sdk.UploadSource?) : AttachmentKind()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Video(
+        val `videoInfo`: org.matrix.rustcomponents.sdk.VideoInfo, 
+        val `thumbnailSource`: org.matrix.rustcomponents.sdk.UploadSource?) : AttachmentKind()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Audio(
+        val `audioInfo`: org.matrix.rustcomponents.sdk.AudioInfo) : AttachmentKind()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class Voice(
+        val `audioInfo`: org.matrix.rustcomponents.sdk.AudioInfo, 
+        val `waveform`: List<kotlin.Float>) : AttachmentKind()
+        
+    {
+        
+
+        companion object
+    }
+    
+    data class File(
+        val `fileInfo`: org.matrix.rustcomponents.sdk.FileInfo) : AttachmentKind()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+    @Suppress("UNNECESSARY_SAFE_CALL") // codegen is much simpler if we unconditionally emit safe calls here
+    override fun destroy() {
+        when(this) {
+            is AttachmentKind.Image -> {
+                
+    Disposable.destroy(
+        this.`imageInfo`,
+        this.`thumbnailSource`
+    )
+                
+            }
+            is AttachmentKind.Video -> {
+                
+    Disposable.destroy(
+        this.`videoInfo`,
+        this.`thumbnailSource`
+    )
+                
+            }
+            is AttachmentKind.Audio -> {
+                
+    Disposable.destroy(
+        this.`audioInfo`
+    )
+                
+            }
+            is AttachmentKind.Voice -> {
+                
+    Disposable.destroy(
+        this.`audioInfo`,
+        this.`waveform`
+    )
+                
+            }
+            is AttachmentKind.File -> {
+                
+    Disposable.destroy(
+        this.`fileInfo`
+    )
+                
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAttachmentKind : FfiConverterRustBuffer<AttachmentKind>{
+    override fun read(buf: ByteBuffer): AttachmentKind {
+        return when(buf.getInt()) {
+            1 -> AttachmentKind.Image(
+                FfiConverterTypeImageInfo.read(buf),
+                FfiConverterOptionalTypeUploadSource.read(buf),
+                )
+            2 -> AttachmentKind.Video(
+                FfiConverterTypeVideoInfo.read(buf),
+                FfiConverterOptionalTypeUploadSource.read(buf),
+                )
+            3 -> AttachmentKind.Audio(
+                FfiConverterTypeAudioInfo.read(buf),
+                )
+            4 -> AttachmentKind.Voice(
+                FfiConverterTypeAudioInfo.read(buf),
+                FfiConverterSequenceFloat.read(buf),
+                )
+            5 -> AttachmentKind.File(
+                FfiConverterTypeFileInfo.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: AttachmentKind): ULong = when(value) {
+        is AttachmentKind.Image -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeImageInfo.allocationSize(value.`imageInfo`)
+                + FfiConverterOptionalTypeUploadSource.allocationSize(value.`thumbnailSource`)
+            )
+        }
+        is AttachmentKind.Video -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeVideoInfo.allocationSize(value.`videoInfo`)
+                + FfiConverterOptionalTypeUploadSource.allocationSize(value.`thumbnailSource`)
+            )
+        }
+        is AttachmentKind.Audio -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeAudioInfo.allocationSize(value.`audioInfo`)
+            )
+        }
+        is AttachmentKind.Voice -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeAudioInfo.allocationSize(value.`audioInfo`)
+                + FfiConverterSequenceFloat.allocationSize(value.`waveform`)
+            )
+        }
+        is AttachmentKind.File -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeFileInfo.allocationSize(value.`fileInfo`)
+            )
+        }
+    }
+
+    override fun write(value: AttachmentKind, buf: ByteBuffer) {
+        when(value) {
+            is AttachmentKind.Image -> {
+                buf.putInt(1)
+                FfiConverterTypeImageInfo.write(value.`imageInfo`, buf)
+                FfiConverterOptionalTypeUploadSource.write(value.`thumbnailSource`, buf)
+                Unit
+            }
+            is AttachmentKind.Video -> {
+                buf.putInt(2)
+                FfiConverterTypeVideoInfo.write(value.`videoInfo`, buf)
+                FfiConverterOptionalTypeUploadSource.write(value.`thumbnailSource`, buf)
+                Unit
+            }
+            is AttachmentKind.Audio -> {
+                buf.putInt(3)
+                FfiConverterTypeAudioInfo.write(value.`audioInfo`, buf)
+                Unit
+            }
+            is AttachmentKind.Voice -> {
+                buf.putInt(4)
+                FfiConverterTypeAudioInfo.write(value.`audioInfo`, buf)
+                FfiConverterSequenceFloat.write(value.`waveform`, buf)
+                Unit
+            }
+            is AttachmentKind.File -> {
+                buf.putInt(5)
+                FfiConverterTypeFileInfo.write(value.`fileInfo`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -49361,8 +50394,7 @@ sealed class ErrorKind {
      * `M_EXCLUSIVE`
      *
      * The resource being requested is reserved by an application service, or
-     * the application service making the request has not created the
-     * resource.
+     * the application service making the request has not created the resource.
      */
     object Exclusive : ErrorKind()
     
@@ -49501,9 +50533,9 @@ sealed class ErrorKind {
      * `M_RESOURCE_LIMIT_EXCEEDED`
      *
      * The request cannot be completed because the homeserver has reached a
-     * resource limit imposed on it. For example, a homeserver held in a
-     * shared hosting environment may reach a resource limit if it starts
-     * using too much memory or disk space.
+     * resource limit imposed on it. For example, a homeserver held in a shared
+     * hosting environment may reach a resource limit if it starts using too
+     * much memory or disk space.
      */
     data class ResourceLimitExceeded(
         /**
@@ -49552,8 +50584,8 @@ sealed class ErrorKind {
      * `M_THREEPID_DENIED`
      *
      * The server does not permit this [third-party identifier]. This may
-     * happen if the server only permits, for example, email addresses from
-     * a particular domain.
+     * happen if the server only permits, for example, email addresses from a
+     * particular domain.
      *
      * [third-party identifier]: https://spec.matrix.org/latest/client-server-api/#adding-account-administrative-contact-information
      */
@@ -49603,8 +50635,8 @@ sealed class ErrorKind {
      * `M_UNABLE_TO_AUTHORISE_JOIN`
      *
      * The room is [restricted] and none of the conditions can be validated by
-     * the homeserver. This can happen if the homeserver does not know
-     * about any of the rooms listed as conditions, for example.
+     * the homeserver. This can happen if the homeserver does not know about
+     * any of the rooms listed as conditions, for example.
      *
      * [restricted]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
      */
@@ -49615,10 +50647,9 @@ sealed class ErrorKind {
      * `M_UNABLE_TO_GRANT_JOIN`
      *
      * A different server should be attempted for the join. This is typically
-     * because the resident server can see that the joining user satisfies
-     * one or more conditions, such as in the case of [restricted rooms],
-     * but the resident server would be unable to meet the authorization
-     * rules.
+     * because the resident server can see that the joining user satisfies one
+     * or more conditions, such as in the case of [restricted rooms], but the
+     * resident server would be unable to meet the authorization rules.
      *
      * [restricted rooms]: https://spec.matrix.org/latest/client-server-api/#restricted-rooms
      */
@@ -49652,8 +50683,8 @@ sealed class ErrorKind {
         /**
          * If this is `true`, the client is in a "[soft logout]" state, i.e.
          * the server requires re-authentication but the session is not
-         * invalidated. The client can acquire a new access token by
-         * specifying the device ID it is already using to the login API.
+         * invalidated. The client can acquire a new access token by specifying
+         * the device ID it is already using to the login API.
          *
          * [soft logout]: https://spec.matrix.org/latest/client-server-api/#soft-logout
          */
@@ -49671,8 +50702,8 @@ sealed class ErrorKind {
      * The server did not understand the request.
      *
      * This is expected to be returned with a 404 HTTP status code if the
-     * endpoint is not implemented or a 405 HTTP status code if the
-     * endpoint is implemented, but the incorrect HTTP method is used.
+     * endpoint is not implemented or a 405 HTTP status code if the endpoint is
+     * implemented, but the incorrect HTTP method is used.
      */
     object Unrecognized : ErrorKind()
     
@@ -50488,8 +51519,8 @@ sealed class EventSendState {
          * Whether the error is considered recoverable or not.
          *
          * An error that's recoverable will disable the room's send queue,
-         * while an unrecoverable error will be parked, until the user
-         * decides to cancel sending it.
+         * while an unrecoverable error will be parked, until it's retried or
+         * aborted.
          */
         val `isRecoverable`: kotlin.Boolean) : EventSendState()
         
@@ -51303,8 +52334,8 @@ sealed class GeneratedQrLoginProgress: Disposable  {
     
     
     /**
-     * We have established the secure channel and now need to display the
-     * QR code so that the existing device can scan it.
+     * We have established the secure channel and now need to display the QR
+     * code so that the existing device can scan it.
      */
     data class QrReady(
         val `qrCode`: org.matrix.rustcomponents.sdk.QrCodeData) : GeneratedQrLoginProgress()
@@ -51317,8 +52348,8 @@ sealed class GeneratedQrLoginProgress: Disposable  {
     
     /**
      * The existing device has scanned the QR code and is displaying the
-     * checkcode. We now need to ask the user to enter the checkcode so that
-     * we can verify that the channel is indeed secure.
+     * checkcode. We now need to ask the user to enter the checkcode so that we
+     * can verify that the channel is indeed secure.
      */
     data class QrScanned(
         val `checkCodeSender`: org.matrix.rustcomponents.sdk.CheckCodeSender) : GeneratedQrLoginProgress()
@@ -51499,8 +52530,8 @@ public object FfiConverterTypeGeneratedQrLoginProgress : FfiConverterRustBuffer<
 
 
 /**
- * Enum describing the progress of granting login by generating a QR code to
- * be scanned on the new device.
+ * Enum describing the progress of granting login by generating a QR code to be
+ * scanned on the new device.
  */
 sealed class GrantGeneratedQrLoginProgress: Disposable  {
     
@@ -51511,8 +52542,8 @@ sealed class GrantGeneratedQrLoginProgress: Disposable  {
     
     
     /**
-     * We have established the secure channel and now need to display the
-     * QR code so that the existing device can scan it.
+     * We have established the secure channel and now need to display the QR
+     * code so that the existing device can scan it.
      */
     data class QrReady(
         val `qrCode`: org.matrix.rustcomponents.sdk.QrCodeData) : GrantGeneratedQrLoginProgress()
@@ -51525,8 +52556,8 @@ sealed class GrantGeneratedQrLoginProgress: Disposable  {
     
     /**
      * The existing device has scanned the QR code and is displaying the
-     * checkcode. We now need to ask the user to enter the checkcode so that
-     * we can verify that the channel is indeed secure.
+     * checkcode. We now need to ask the user to enter the checkcode so that we
+     * can verify that the channel is indeed secure.
      */
     data class QrScanned(
         val `checkCodeSender`: org.matrix.rustcomponents.sdk.CheckCodeSender) : GrantGeneratedQrLoginProgress()
@@ -51744,8 +52775,8 @@ sealed class GrantQrLoginProgress: Disposable  {
         val `checkCode`: kotlin.UByte, 
         /**
          * The string representation of the check code, will be guaranteed to
-         * be 2 characters long, preserving the leading zero if the
-         * first digit is a zero.
+         * be 2 characters long, preserving the leading zero if the first digit
+         * is a zero.
          */
         val `checkCodeString`: kotlin.String) : GrantQrLoginProgress()
         
@@ -51927,17 +52958,16 @@ sealed class HistoryVisibility {
      * Previous events are accessible to newly joined members from the point
      * they were invited onwards.
      *
-     * Events stop being accessible when the member' state changes to
-     * something other than *invite* or *join*.
+     * Events stop being accessible when the member' state changes to something
+     * other than _invite_ or _join_.
      */
     object Invited : HistoryVisibility()
     
     
     /**
      * Previous events are accessible to newly joined members from the point
-     * they joined the room onwards.
-     * Events stop being accessible when the member' state changes to
-     * something other than *join*.
+     * they joined the room onwards. Events stop being accessible when the
+     * member' state changes to something other than _join_.
      */
     object Joined : HistoryVisibility()
     
@@ -52631,8 +53661,8 @@ sealed class JoinRule {
     
     /**
      * Users can join the room if they are invited, or if they meet any of the
-     * conditions described in a set of [`AllowRule`]s, or they can request
-     * an invite to the room.
+     * conditions described in a set of [`AllowRule`]s, or they can request an
+     * invite to the room.
      */
     data class KnockRestricted(
         val `rules`: List<org.matrix.rustcomponents.sdk.AllowRule>) : JoinRule()
@@ -55656,8 +56686,8 @@ sealed class NotificationStatus: Disposable  {
     
     /**
      * The event has been filtered out, either because of the user's push
-     * rules, or because the user which triggered it is ignored by the
-     * current user.
+     * rules, or because the user which triggered it is ignored by the current
+     * user.
      */
     object EventFilteredOut : NotificationStatus()
     
@@ -55844,7 +56874,8 @@ sealed class OAuthPrompt {
      * The Authorization Server should prompt the End-User to create a user
      * account.
      *
-     * Defined in [Initiating User Registration via OpenID Connect](https://openid.net/specs/openid-connect-prompt-create-1_0.html).
+     * Defined in
+     * [Initiating User Registration via OpenID Connect](https://openid.net/specs/openid-connect-prompt-create-1_0.html).
      */
     object Create : OAuthPrompt()
     
@@ -57003,8 +58034,7 @@ sealed class PushCondition {
     
     /**
      * Takes into account the current power levels in the room, ensuring the
-     * sender of the event has high enough power to trigger the
-     * notification.
+     * sender of the event has high enough power to trigger the notification.
      */
     data class SenderNotificationPermission(
         /**
@@ -57369,8 +58399,8 @@ sealed class QrLoginProgress {
         val `checkCode`: kotlin.UByte, 
         /**
          * The string representation of the check code, will be guaranteed to
-         * be 2 characters long, preserving the leading zero if the
-         * first digit is a zero.
+         * be 2 characters long, preserving the leading zero if the first digit
+         * is a zero.
          */
         val `checkCodeString`: kotlin.String) : QrLoginProgress()
         
@@ -58584,16 +59614,15 @@ sealed class RoomHistoryVisibility {
      * they were invited onwards.
      *
      * Events stop being accessible when the member's state changes to
-     * something other than *invite* or *join*.
+     * something other than _invite_ or _join_.
      */
     object Invited : RoomHistoryVisibility()
     
     
     /**
      * Previous events are accessible to newly joined members from the point
-     * they joined the room onwards.
-     * Events stop being accessible when the member's state changes to
-     * something other than *join*.
+     * they joined the room onwards. Events stop being accessible when the
+     * member's state changes to something other than _join_.
      */
     object Joined : RoomHistoryVisibility()
     
@@ -59772,8 +60801,8 @@ sealed class RoomLoadSettings {
     
     
     /**
-     * Load a single room from the `StateStore` into the in-memory state
-     * store `BaseStateStore`.
+     * Load a single room from the `StateStore` into the in-memory state store
+     * `BaseStateStore`.
      *
      * Please, be careful with this option. Read the documentation of
      * [`RoomLoadSettings`].
@@ -60038,8 +61067,8 @@ sealed class RoomSendQueueUpdate: Disposable  {
     /**
      * An error happened when an event was being sent.
      *
-     * The event has not been removed from the queue. All the send queues
-     * will be disabled after this happens, and must be manually re-enabled.
+     * The event has not been removed from the queue. All the send queues will
+     * be disabled after this happens, and must be manually re-enabled.
      */
     data class SendError(
         /**
@@ -60054,8 +61083,8 @@ sealed class RoomSendQueueUpdate: Disposable  {
          * Whether the error is considered recoverable or not.
          *
          * An error that's recoverable will disable the room's send queue,
-         * while an unrecoverable error will be parked, until the user
-         * decides to cancel sending it.
+         * while an unrecoverable error will be parked, until the user decides
+         * to cancel sending it.
          */
         val `isRecoverable`: kotlin.Boolean) : RoomSendQueueUpdate()
         
@@ -60717,6 +61746,113 @@ public object FfiConverterTypeRtcNotificationType: FfiConverterRustBuffer<RtcNot
 
 
 
+/**
+ * Information about a MatrixRTC transport advertised by the homeserver.
+ */
+sealed class RtcTransport {
+    
+    /**
+     * A LiveKit RTC transport.
+     */
+    data class LiveKit(
+        /**
+         * The URL of the LiveKit service.
+         */
+        val `serviceUrl`: kotlin.String) : RtcTransport()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * A transport type the SDK doesn't know about, up for interpretation by
+     * the consumer.
+     */
+    data class Custom(
+        /**
+         * The value of the `type` field of the transport.
+         */
+        val `transportType`: kotlin.String, 
+        /**
+         * The remaining transport data, as a serialized JSON object. It
+         * doesn't contain the `type` field.
+         */
+        val `data`: kotlin.String) : RtcTransport()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRtcTransport : FfiConverterRustBuffer<RtcTransport>{
+    override fun read(buf: ByteBuffer): RtcTransport {
+        return when(buf.getInt()) {
+            1 -> RtcTransport.LiveKit(
+                FfiConverterString.read(buf),
+                )
+            2 -> RtcTransport.Custom(
+                FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: RtcTransport): ULong = when(value) {
+        is RtcTransport.LiveKit -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`serviceUrl`)
+            )
+        }
+        is RtcTransport.Custom -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`transportType`)
+                + FfiConverterString.allocationSize(value.`data`)
+            )
+        }
+    }
+
+    override fun write(value: RtcTransport, buf: ByteBuffer) {
+        when(value) {
+            is RtcTransport.LiveKit -> {
+                buf.putInt(1)
+                FfiConverterString.write(value.`serviceUrl`, buf)
+                Unit
+            }
+            is RtcTransport.Custom -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`transportType`, buf)
+                FfiConverterString.write(value.`data`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 sealed class RuleKind {
     
     /**
@@ -61349,6 +62485,126 @@ public object FfiConverterTypeSecretStorageEncryptionAlgorithm : FfiConverterRus
             is SecretStorageEncryptionAlgorithm.V1AesHmacSha2 -> {
                 buf.putInt(1)
                 FfiConverterTypeSecretStorageV1AesHmacSha2Properties.write(value.`properties`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+/**
+ * Which pending send on an item [`Timeline::retry_send`] and
+ * [`Timeline::abort_send`] act on.
+ */
+sealed class SendTarget {
+    
+    /**
+     * The item itself, while it's a local echo.
+     *
+     * Note that aborting one that's already in flight queues a redaction for
+     * it, without a reason; use `SendHandle::abort` if one is needed.
+     */
+    object Event : SendTarget()
+    
+    
+    /**
+     * Our pending edit of the item.
+     */
+    object Edit : SendTarget()
+    
+    
+    /**
+     * Our pending redaction of the item.
+     */
+    object Redaction : SendTarget()
+    
+    
+    /**
+     * Our pending reaction to the item with this key.
+     */
+    data class Reaction(
+        val `key`: kotlin.String) : SendTarget()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeSendTarget : FfiConverterRustBuffer<SendTarget>{
+    override fun read(buf: ByteBuffer): SendTarget {
+        return when(buf.getInt()) {
+            1 -> SendTarget.Event
+            2 -> SendTarget.Edit
+            3 -> SendTarget.Redaction
+            4 -> SendTarget.Reaction(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: SendTarget): ULong = when(value) {
+        is SendTarget.Event -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SendTarget.Edit -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SendTarget.Redaction -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is SendTarget.Reaction -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`key`)
+            )
+        }
+    }
+
+    override fun write(value: SendTarget, buf: ByteBuffer) {
+        when(value) {
+            is SendTarget.Event -> {
+                buf.putInt(1)
+                Unit
+            }
+            is SendTarget.Edit -> {
+                buf.putInt(2)
+                Unit
+            }
+            is SendTarget.Redaction -> {
+                buf.putInt(3)
+                Unit
+            }
+            is SendTarget.Reaction -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.`key`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -62664,6 +63920,122 @@ public object FfiConverterTypeSteadyStateError : FfiConverterRustBuffer<SteadySt
     }
 
 }
+
+
+
+/**
+ * A change to the sticky events of a room, as delivered to a
+ * [`StickyEventsListener`].
+ *
+ * Consumers can use these updates to maintain a map of the live sticky events
+ * keyed by [`StickyKey`].
+ */
+sealed class StickyEventsUpdate {
+    
+    /**
+     * A full replacement of the map.
+     */
+    data class Reset(
+        /**
+         * Every sticky event that is currently live.
+         */
+        val `events`: List<org.matrix.rustcomponents.sdk.StickyEvent>) : StickyEventsUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+    /**
+     * An incremental change.
+     */
+    data class Changes(
+        /**
+         * Events that appeared under a key that had no live event.
+         */
+        val `added`: List<org.matrix.rustcomponents.sdk.StickyEvent>, 
+        /**
+         * Events that replaced the live event of their key.
+         */
+        val `updated`: List<org.matrix.rustcomponents.sdk.StickyEvent>, 
+        /**
+         * Keys whose live event disappeared.
+         */
+        val `removed`: List<org.matrix.rustcomponents.sdk.StickyEventRemoval>) : StickyEventsUpdate()
+        
+    {
+        
+
+        companion object
+    }
+    
+
+    
+
+    
+    
+
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeStickyEventsUpdate : FfiConverterRustBuffer<StickyEventsUpdate>{
+    override fun read(buf: ByteBuffer): StickyEventsUpdate {
+        return when(buf.getInt()) {
+            1 -> StickyEventsUpdate.Reset(
+                FfiConverterSequenceTypeStickyEvent.read(buf),
+                )
+            2 -> StickyEventsUpdate.Changes(
+                FfiConverterSequenceTypeStickyEvent.read(buf),
+                FfiConverterSequenceTypeStickyEvent.read(buf),
+                FfiConverterSequenceTypeStickyEventRemoval.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: StickyEventsUpdate): ULong = when(value) {
+        is StickyEventsUpdate.Reset -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeStickyEvent.allocationSize(value.`events`)
+            )
+        }
+        is StickyEventsUpdate.Changes -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterSequenceTypeStickyEvent.allocationSize(value.`added`)
+                + FfiConverterSequenceTypeStickyEvent.allocationSize(value.`updated`)
+                + FfiConverterSequenceTypeStickyEventRemoval.allocationSize(value.`removed`)
+            )
+        }
+    }
+
+    override fun write(value: StickyEventsUpdate, buf: ByteBuffer) {
+        when(value) {
+            is StickyEventsUpdate.Reset -> {
+                buf.putInt(1)
+                FfiConverterSequenceTypeStickyEvent.write(value.`events`, buf)
+                Unit
+            }
+            is StickyEventsUpdate.Changes -> {
+                buf.putInt(2)
+                FfiConverterSequenceTypeStickyEvent.write(value.`added`, buf)
+                FfiConverterSequenceTypeStickyEvent.write(value.`updated`, buf)
+                FfiConverterSequenceTypeStickyEventRemoval.write(value.`removed`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
 
 
 
@@ -64306,6 +65678,10 @@ enum class TraceLogPacks {
      * Enables all the logs relevant to the event cache.
      */
     EVENT_CACHE,
+    /**
+     * Enables all the logs relevant to the back-pagination queue.
+     */
+    BACK_PAGINATION,
     /**
      * Enables all the logs relevant to the send queue.
      */
@@ -65953,8 +67329,8 @@ public object FfiConverterTypeKnockRequestsListener: FfiConverterCallbackInterfa
 public interface LiveLocationsListener {
     
     /**
-     * Called with a batch of [`LiveLocationShareUpdate`]s whenever the list
-     * of active shares changes.
+     * Called with a batch of [`LiveLocationShareUpdate`]s whenever the list of
+     * active shares changes.
      */
     fun `onUpdate`(`updates`: List<LiveLocationShareUpdate>)
     
@@ -67701,6 +69077,69 @@ public object FfiConverterTypeSpaceServiceSpaceFiltersListener: FfiConverterCall
 
 
 /**
+ * A listener for the sticky events of a room.
+ */
+public interface StickyEventsListener {
+    
+    fun `onUpdate`(`update`: StickyEventsUpdate)
+    
+    companion object
+}
+
+
+
+// Put the implementation in an object so we don't pollute the top-level namespace
+internal object uniffiCallbackInterfaceStickyEventsListener {
+    internal object `onUpdate`: UniffiCallbackInterfaceStickyEventsListenerMethod0 {
+        override fun callback(`uniffiHandle`: Long,`update`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeStickyEventsListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onUpdate`(
+                    FfiConverterTypeStickyEventsUpdate.lift(`update`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+
+    internal object uniffiFree: UniffiCallbackInterfaceFree {
+        override fun callback(handle: Long) {
+            FfiConverterTypeStickyEventsListener.handleMap.remove(handle)
+        }
+    }
+
+    internal object uniffiClone: UniffiCallbackInterfaceClone {
+        override fun callback(handle: Long): Long {
+            return FfiConverterTypeStickyEventsListener.handleMap.clone(handle)
+        }
+    }
+
+    internal var vtable = UniffiVTableCallbackInterfaceStickyEventsListener.UniffiByValue(
+        uniffiFree,
+        uniffiClone,
+        `onUpdate`,
+    )
+
+    // Registers the foreign callback with the Rust side.
+    // This method is generated for each callback interface.
+    internal fun register(lib: UniffiLib) {
+        lib.uniffi_matrix_sdk_ffi_fn_init_callback_vtable_stickyeventslistener(vtable)
+    }
+}
+
+/**
+ * The ffiConverter which transforms the Callbacks in to handles to pass to Rust.
+ *
+ * @suppress
+ */
+public object FfiConverterTypeStickyEventsListener: FfiConverterCallbackInterface<StickyEventsListener>()
+
+
+
+
+
+/**
  * A listener for the sync loop.
  *
  * Called after each successful sync response when using
@@ -67772,8 +69211,8 @@ public object FfiConverterTypeSyncListenerV2: FfiConverterCallbackInterface<Sync
 /**
  * A listener for notifications generated from sync responses.
  *
- * This is called during sync for each event that triggers a notification
- * based on the user's push rules.
+ * This is called during sync for each event that triggers a notification based
+ * on the user's push rules.
  */
 public interface SyncNotificationListener {
     
@@ -69884,6 +71323,38 @@ public object FfiConverterOptionalTypeSentryConfig: FfiConverterRustBuffer<Sentr
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeSessionVerificationCancelInfo: FfiConverterRustBuffer<SessionVerificationCancelInfo?> {
+    override fun read(buf: ByteBuffer): SessionVerificationCancelInfo? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeSessionVerificationCancelInfo.read(buf)
+    }
+
+    override fun allocationSize(value: SessionVerificationCancelInfo?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeSessionVerificationCancelInfo.allocationSize(value)
+        }
+    }
+
+    override fun write(value: SessionVerificationCancelInfo?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeSessionVerificationCancelInfo.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeSpaceRoom: FfiConverterRustBuffer<SpaceRoom?> {
     override fun read(buf: ByteBuffer): SpaceRoom? {
         if (buf.get().toInt() == 0) {
@@ -71260,6 +72731,38 @@ public object FfiConverterOptionalSequenceTypeRelationType: FfiConverterRustBuff
 /**
  * @suppress
  */
+public object FfiConverterOptionalSequenceTypeRtcTransport: FfiConverterRustBuffer<List<RtcTransport>?> {
+    override fun read(buf: ByteBuffer): List<RtcTransport>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceTypeRtcTransport.read(buf)
+    }
+
+    override fun allocationSize(value: List<RtcTransport>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceTypeRtcTransport.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<RtcTransport>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceTypeRtcTransport.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalMapStringLong: FfiConverterRustBuffer<Map<kotlin.String, kotlin.Long>?> {
     override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.Long>? {
         if (buf.get().toInt() == 0) {
@@ -72140,6 +73643,62 @@ public object FfiConverterSequenceTypeSpaceRoom: FfiConverterRustBuffer<List<Spa
 /**
  * @suppress
  */
+public object FfiConverterSequenceTypeStickyEvent: FfiConverterRustBuffer<List<StickyEvent>> {
+    override fun read(buf: ByteBuffer): List<StickyEvent> {
+        val len = buf.getInt()
+        return List<StickyEvent>(len) {
+            FfiConverterTypeStickyEvent.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<StickyEvent>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeStickyEvent.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<StickyEvent>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeStickyEvent.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeStickyEventRemoval: FfiConverterRustBuffer<List<StickyEventRemoval>> {
+    override fun read(buf: ByteBuffer): List<StickyEventRemoval> {
+        val len = buf.getInt()
+        return List<StickyEventRemoval>(len) {
+            FfiConverterTypeStickyEventRemoval.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<StickyEventRemoval>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeStickyEventRemoval.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<StickyEventRemoval>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeStickyEventRemoval.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceTypeThreadListItem: FfiConverterRustBuffer<List<ThreadListItem>> {
     override fun read(buf: ByteBuffer): List<ThreadListItem> {
         val len = buf.getInt()
@@ -72634,6 +74193,34 @@ public object FfiConverterSequenceTypeRoomMessageEventMessageType: FfiConverterR
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeRoomMessageEventMessageType.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeRtcTransport: FfiConverterRustBuffer<List<RtcTransport>> {
+    override fun read(buf: ByteBuffer): List<RtcTransport> {
+        val len = buf.getInt()
+        return List<RtcTransport>(len) {
+            FfiConverterTypeRtcTransport.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RtcTransport>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeRtcTransport.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RtcTransport>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeRtcTransport.write(it, buf)
         }
     }
 }
@@ -73326,6 +74913,10 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
 
 
 
+
+
+
+
  fun `sdkGitSha`(): kotlin.String {
             return FfiConverterString.lift(
     uniffiRustCall() { _status ->
@@ -73636,8 +75227,8 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     
 
         /**
-         * Parse a matrix entity from a given URI, be it either
-         * a `matrix.to` link or a `matrix:` URI
+         * Parse a matrix entity from a given URI, be it either a `matrix.to` link or a
+         * `matrix:` URI
          */ fun `parseMatrixEntityFrom`(`uri`: kotlin.String): MatrixEntity? {
             return FfiConverterOptionalTypeMatrixEntity.lift(
     uniffiRustCall() { _status ->
@@ -73688,13 +75279,14 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     
 
         /**
-         * Create the actual url that can be used to setup the WebView or IFrame
-         * that contains the widget.
+         * Create the actual url that can be used to setup the WebView or IFrame that
+         * contains the widget.
          *
          * # Arguments
-         * * `widget_settings` - The widget settings to generate the url for.
-         * * `room` - A Matrix room which is used to query the logged in username
-         * * `props` - Properties from the client that can be used by a widget to adapt
+         *
+         * - `widget_settings` - The widget settings to generate the url for.
+         * - `room` - A Matrix room which is used to query the logged in username
+         * - `props` - Properties from the client that can be used by a widget to adapt
          * to the client. e.g. language, font-scale...
          */
     @Throws(ParseException::class)
@@ -73754,18 +75346,17 @@ public typealias FfiConverterTypeTimestamp = FfiConverterULong
     
 
         /**
-         * `WidgetSettings` are usually created from a state event.
-         * (currently unimplemented)
+         * `WidgetSettings` are usually created from a state event. (currently
+         * unimplemented)
          *
-         * In some cases the client wants to create custom `WidgetSettings`
-         * for specific rooms based on other conditions.
-         * This function returns a `WidgetSettings` object which can be used
-         * to setup a widget using `run_client_widget_api`
-         * and to generate the correct url for the widget.
+         * In some cases the client wants to create custom `WidgetSettings` for
+         * specific rooms based on other conditions. This function returns a
+         * `WidgetSettings` object which can be used to setup a widget using
+         * `run_client_widget_api` and to generate the correct url for the widget.
          *
          * # Arguments
          *
-         * * `props` - A struct containing the configuration parameters for a element
+         * - `props` - A struct containing the configuration parameters for a element
          * call widget.
          */
     @Throws(ParseException::class) fun `newVirtualElementCallWidget`(`props`: VirtualElementCallWidgetProperties, `config`: VirtualElementCallWidgetConfig): WidgetSettings {
