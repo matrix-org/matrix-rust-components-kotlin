@@ -61,12 +61,22 @@ WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
 
 gh auth setup-git
-gh repo clone "$REPOSITORY" "$WORKDIR/repo" -- --depth 1
+# A partial clone keeps the full history (needed to rebase) without downloading every blob, nor the LFS files.
+GIT_LFS_SKIP_SMUDGE=1 gh repo clone "$REPOSITORY" "$WORKDIR/repo" -- --filter=blob:none
 cd "$WORKDIR/repo"
+git config user.name "ElementBot"
+git config user.email "android@element.io"
 BASE_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
-# Always restart the branch from the current base branch: the PR only ever carries this one change.
-git checkout -b "$BRANCH"
+# Check out the branch of the existing PR if there is one, and rebase it on the base branch before adding
+# the version bump on top of it. Otherwise start a new branch from the base branch.
+if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+    git fetch --quiet origin "$BRANCH"
+    git checkout -B "$BRANCH" "origin/$BRANCH"
+    git rebase "origin/$BASE_BRANCH"
+else
+    git checkout -b "$BRANCH"
+fi
 
 if ! grep -qE 'module = "org\.matrix\.rustcomponents:sdk-android"' "$CATALOG"; then
     echo "error: could not find the matrix_sdk entry in $CATALOG" >&2
@@ -87,10 +97,9 @@ if [ "$DRY_RUN" = "yes" ]; then
     exit 0
 fi
 
-git config user.name "ElementBot"
-git config user.email "android@element.io"
 git commit -q -a -m "$TITLE"
-git push --force origin "$BRANCH"
+# Force is needed as the rebase rewrote the history of the existing branch
+git push --force-with-lease origin "$BRANCH"
 
 EXISTING="$(gh pr list --repo "$REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
 if [ -n "$EXISTING" ]; then
