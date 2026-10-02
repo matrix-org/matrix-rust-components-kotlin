@@ -39,6 +39,7 @@ REPOSITORY="${TARGET_REPOSITORY:-element-hq/element-x-android}"
 BRANCH="update-matrix-rust-sdk"
 CATALOG="gradle/libs.versions.toml"
 SOURCE_REPOSITORY="${GITHUB_REPOSITORY:-element-hq/matrix-rust-components-kotlin}"
+LABEL="PR-Dependencies"
 TITLE="Update Matrix Rust SDK to $VERSION"
 
 BODY="Bumps \`org.matrix.rustcomponents:sdk-android\` to [$VERSION](https://github.com/$SOURCE_REPOSITORY/releases/tag/$VERSION)."
@@ -93,8 +94,8 @@ git push --force origin "$BRANCH"
 
 EXISTING="$(gh pr list --repo "$REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
 if [ -n "$EXISTING" ]; then
-    gh pr edit "$EXISTING" --repo "$REPOSITORY" --title "$TITLE" --body "$BODY"
+    gh pr edit "$EXISTING" --repo "$REPOSITORY" --title "$TITLE" --body "$BODY" --add-label "$LABEL"
     echo "Updated pull request #$EXISTING"
 else
-    gh pr create --repo "$REPOSITORY" --base "$BASE_BRANCH" --head "$BRANCH" --title "$TITLE" --body "$BODY"
+    gh pr create --repo "$REPOSITORY" --base "$BASE_BRANCH" --head "$BRANCH" --title "$TITLE" --body "$BODY" --label "$LABEL"
 fi
