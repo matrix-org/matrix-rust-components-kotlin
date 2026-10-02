@@ -322,3 +322,28 @@ jobs:
 
       - name: Upload debuginfo to sentry
         run: sentry-cli debug-files upload debuginfo
+
+  update_element_x_android:
+    name: "Open or update the Element X Android PR"
+    needs: [prepare, build_targets, release_library]
+    runs-on: ubuntu-24.04
+    permissions: {}
+
+    concurrency:
+      group: update-element-x-android
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Open or update the pull request
+        run: ./scripts/update_element_x_android.sh "${VERSION}" --rust-ref "${RUST_REF}"
+        env:
+          # Needs a token with write access to element-hq/element-x-android (contents and pull requests),
+          # the default GITHUB_TOKEN is scoped to this repository only.
+          GH_TOKEN: ${{ secrets.ELEMENT_X_ANDROID_PR_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RUST_REF: ${{ needs.build_targets.outputs.linkable_ref }}
