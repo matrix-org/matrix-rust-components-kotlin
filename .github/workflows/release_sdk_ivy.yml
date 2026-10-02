@@ -1,0 +1,324 @@
+name: Release SDK Library as GitHub release (Ivy, nightly)
+
+on:
+  schedule:
+    # Nightly pre-release (Monday to Friday only), built from the rust sdk `main` branch.
+    - cron: '0 2 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      rust-checkout-ref:
+        description: 'The branch, tag or SHA to checkout on the rust sdk.'
+        required: true
+        default: 'main'
+      sdk-version:
+        description: 'The new version for the sdk library, also used as the git tag. If empty, a nightly version is used (yesterday as YY.MM.DD plus -nightly). A version ending in -nightly is published as a pre-release.'
+        required: false
+
+permissions: {}
+
+jobs:
+  prepare:
+    name: "Compute release parameters"
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.params.outputs.version }}
+      rust_ref: ${{ steps.params.outputs.rust_ref }}
+      nightly: ${{ steps.params.outputs.nightly }}
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Compute parameters
+        id: params
+        run: |
+          if [ -z "${GITHUB_EVENT_INPUTS_SDK_VERSION}" ]; then
+            # Nightly: the version is year.month.day, so use the day before, with a -nightly suffix
+            VERSION="$(date -u -d yesterday +%y.%m.%d)-nightly"
+          else
+            VERSION="${GITHUB_EVENT_INPUTS_SDK_VERSION}"
+          fi
+          RUST_REF="${GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF:-main}"
+          case "$VERSION" in *-nightly) NIGHTLY=true ;; *) NIGHTLY=false ;; esac
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "rust_ref=$RUST_REF" >> $GITHUB_OUTPUT
+          echo "nightly=$NIGHTLY" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION, rust ref: $RUST_REF, nightly: $NIGHTLY"
+        env:
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ github.event.inputs.sdk-version }}
+          GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF: ${{ github.event.inputs.rust-checkout-ref }}
+
+  build_targets:
+    needs: prepare
+    strategy:
+      matrix:
+        target: [ "aarch64-linux-android", "armv7-linux-androideabi", "i686-linux-android", "x86_64-linux-android" ]
+    name: "Build Rust target: ${{ matrix.target }}"
+    runs-on: ubuntu-24.04
+    env:
+      NDK_VERSION: 29.0.14206865
+      # This is a workaround needed to link .so libraries with stripped debug symbols to the extracted debug symbols
+      RUSTFLAGS: "-Clink-args=-Wl,--build-id"
+    outputs:
+      linkable_ref: ${{ steps.set_linkable_ref.outputs.linkable_ref }}
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.job }}-${{ matrix.target }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Configure git user
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' || github.ref == 'main' }}
+          cache-on-failure: true
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin' # See 'Supported distributions' for available options
+
+        # Note: the install android SDK step resets the `ANDROID_HOME` variable to a new folder with an update SDK but no NDK, 
+        # so we need to set this NDK_PATH before that happens
+      - name: Configure android ndk
+        run: |
+          NDK_PATH=$ANDROID_HOME/ndk/$NDK_VERSION
+          echo $NDK_PATH
+          if [ -d "$NDK_PATH" ]; then
+            echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+            echo "Using ndk $NDK_PATH"
+          else
+            echo "NDK_PATH not found, abort."
+            exit 1
+          fi
+
+      - name: Check objcopy is present
+        run: |
+          ls ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+          echo LLVM_OBJCOPY=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy >> $GITHUB_ENV
+
+      - name: Install android sdk
+        uses: malinskiy/action-android/install-sdk@fa103ef30331e95f266418a6a97e98f61f626887 # v0.1.7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Rust targets
+        run: |
+          rustup target add x86_64-linux-android
+          rustup target add aarch64-linux-android
+          rustup target add armv7-linux-androideabi
+          rustup target add i686-linux-android
+
+      - name: Install cargo-ndk
+        continue-on-error: true
+        run: cargo install cargo-ndk
+
+      - name: Set up Python 3
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install argparse
+          pip install requests
+
+      - name: Run build script
+        run: |
+          python3 ./scripts/build-rust-for-target.py --module SDK --version ${GITHUB_EVENT_INPUTS_SDK_VERSION} --ref ${GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF} --target ${{ matrix.target }}
+        env:
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+          GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF: ${{ needs.prepare.outputs.rust_ref }}
+
+      - name: Extract debug symbols
+        run: |
+          pushd ${RUST_SDK_PATH}/target/${{ matrix.target }}/small-release-stripped
+          echo "Original library with debug info:"
+          ls -lh libmatrix_sdk_ffi.so 
+          echo "Extracting debug symbols"
+          ${LLVM_OBJCOPY} --only-keep-debug libmatrix_sdk_ffi.so libmatrix_sdk_ffi.so.debug
+          ls -lh libmatrix_sdk_ffi.so.debug
+          echo "Stripping debug symbols from libmatrix_sdk_ffi.so"
+          ${LLVM_OBJCOPY} --strip-debug --strip-unneeded libmatrix_sdk_ffi.so
+          echo "Done stripping debug symbols"
+          ls -lh libmatrix_sdk_ffi.so
+          echo "Link debug symbols to stripped binary"
+          ${LLVM_OBJCOPY} --add-gnu-debuglink=libmatrix_sdk_ffi.so.debug libmatrix_sdk_ffi.so
+          popd
+          echo "Replacing built file with stripped one"
+          EXISTING_FILE=$(find sdk/sdk-android/src/main/jniLibs/ -name libmatrix_sdk_ffi.so)
+          cp ${RUST_SDK_PATH}/target/${{ matrix.target }}/small-release-stripped/libmatrix_sdk_ffi.so $EXISTING_FILE
+          ls -lh $EXISTING_FILE
+          mkdir -p debuginfo/${{ matrix.target }}
+          cp ${RUST_SDK_PATH}/target/${{ matrix.target }}/small-release-stripped/libmatrix_sdk_ffi.so.debug debuginfo/${{ matrix.target }}/
+
+      - name: Set linkable git ref
+        id: set_linkable_ref
+        run: |
+          pushd ${RUST_SDK_PATH}
+          COMMIT_HASH=$(git rev-parse --verify ${GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF}^{})
+          echo linkable_ref=$COMMIT_HASH >> $GITHUB_OUTPUT
+          echo "Using commit hash $COMMIT_HASH"
+          popd
+        env:
+          GITHUB_EVENT_INPUTS_RUST_CHECKOUT_REF: ${{ needs.prepare.outputs.rust_ref }}
+
+      - name: Upload target artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: targets-${{ matrix.target }}
+          if-no-files-found: error
+          path: ./sdk/sdk-android/src/main/jniLibs/*/libmatrix_sdk_ffi.so
+          retention-days: 7
+
+      - name: Upload debug info
+        if: success() || failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: debuginfo-${{ matrix.target }}
+          if-no-files-found: error
+          path: debuginfo/
+          retention-days: 1
+
+      - name: Upload FFI bindings
+        # The FFI bindings will be identical for the 4 architectures, so upload as artifact
+        # only once.
+        if: (success() || failure()) && matrix.target == 'x86_64-linux-android'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ffi-bindings
+          if-no-files-found: error
+          path: ./sdk/sdk-android/src/main/kotlin/
+          retention-days: 7
+
+  release_library:
+    name: "Create GitHub release"
+    needs: [prepare, build_targets]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # Needed for pushing the version bump and creating a release
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.job }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true # Needed to push the commit with the updated version
+
+      - name: Configure git user
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Download target artifacts to their right folders
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0@v7
+        with:
+          pattern: targets-*
+          merge-multiple: true
+          path: sdk/sdk-android/src/main/jniLibs/
+
+      - name: Download FFI bindings to their package
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0@v7
+        with:
+          name: ffi-bindings
+          path: sdk/sdk-android/src/main/kotlin/
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install android sdk
+        uses: malinskiy/action-android/install-sdk@fa103ef30331e95f266418a6a97e98f61f626887 # v0.1.7
+
+      - name: Check the tag doesn't exist yet
+        # Nightly releases are rolling: the previous one is replaced when creating the new one
+        if: needs.prepare.outputs.nightly != 'true'
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${GITHUB_EVENT_INPUTS_SDK_VERSION}" > /dev/null; then
+            echo "::error::Tag ${GITHUB_EVENT_INPUTS_SDK_VERSION} already exists."
+            exit 1
+          fi
+        env:
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+
+      - name: Build the release assets
+        run: ./scripts/release.sh "${GITHUB_EVENT_INPUTS_SDK_VERSION}"
+        env:
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+
+      - name: Commit and push the version bump
+        # Nightly builds don't commit anything
+        if: needs.prepare.outputs.nightly != 'true'
+        run: |
+          git add buildSrc/src/main/kotlin/BuildVersionsSDK.kt
+          git commit -m "Bump SDK version to ${GITHUB_EVENT_INPUTS_SDK_VERSION} (matrix-rust-sdk to ${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF})"
+          git pull --rebase origin main
+          git push origin HEAD:main
+        env:
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
+
+      - name: Create GitHub release
+        run: |
+          PRERELEASE_ARG=""
+          if [ "${NIGHTLY}" = "true" ]; then
+            PRERELEASE_ARG="--prerelease"
+            # Replace the previous nightly release and its tag, if any
+            gh release delete "${GITHUB_EVENT_INPUTS_SDK_VERSION}" --cleanup-tag --yes || true
+          fi
+          gh release create "${GITHUB_EVENT_INPUTS_SDK_VERSION}" build/release-assets/* \
+            --title "${GITHUB_EVENT_INPUTS_SDK_VERSION}" \
+            ${PRERELEASE_ARG} \
+            --notes "https://github.com/matrix-org/matrix-rust-sdk/tree/${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF}" \
+            --target "$(git rev-parse HEAD)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NIGHTLY: ${{ needs.prepare.outputs.nightly }}
+          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
+
+      - name: Download debug info
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0@v7
+        with:
+          pattern: debuginfo-*
+          merge-multiple: true
+          path: ./debuginfo
+
+      - name: Setup Sentry CLI
+        uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        with:
+          version: latest
+          url: https://sentry.tools.element.io
+          token: ${{ SECRETS.SENTRY_TOKEN }}
+          organization: element
+          project: 63 # the matrix sdk project
+
+      - name: Upload debuginfo to sentry
+        run: sentry-cli debug-files upload debuginfo

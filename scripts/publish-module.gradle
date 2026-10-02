@@ -5,6 +5,13 @@ group = PUBLISH_GROUP_ID
 
 afterEvaluate {
     publishing {
+        repositories {
+            // Local Maven layout used to build the assets of the GitHub release (see scripts/release.sh)
+            maven {
+                name = 'Dist'
+                url = rootProject.layout.buildDirectory.dir('dist')
+            }
+        }
         publications {
             release(MavenPublication) {
                 groupId PUBLISH_GROUP_ID
@@ -52,12 +59,15 @@ nexusPublishing {
     })
 }
 
-signing {
-    useInMemoryPgpKeys(
-            rootProject.ext["signing.keyId"],
-            rootProject.ext["signing.key"],
-            rootProject.ext["signing.password"],
-    )
-    sign publishing.publications
-    required { !PUBLISH_VERSION.endsWith("-SNAPSHOT") }
+// Signing is only configured when a key is available, so unsigned local/dist publications work too.
+if (rootProject.ext["signing.key"]) {
+    signing {
+        useInMemoryPgpKeys(
+                rootProject.ext["signing.keyId"],
+                rootProject.ext["signing.key"],
+                rootProject.ext["signing.password"],
+        )
+        sign publishing.publications
+        required { !PUBLISH_VERSION.endsWith("-SNAPSHOT") }
+    }
 }
