@@ -258,7 +258,7 @@ jobs:
         # Nightly releases are rolling: the previous one is replaced when creating the new one
         if: needs.prepare.outputs.nightly != 'true'
         run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/${GITHUB_EVENT_INPUTS_SDK_VERSION}" > /dev/null; then
+          if git ls-remote --exit-code --tags origin "refs/tags/sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" > /dev/null; then
             echo "::error::Tag ${GITHUB_EVENT_INPUTS_SDK_VERSION} already exists."
             exit 1
           fi
@@ -293,8 +293,8 @@ jobs:
             # Replace the previous nightly release and its tag, if any
             gh release delete "${GITHUB_EVENT_INPUTS_SDK_VERSION}" --cleanup-tag --yes || true
           fi
-          gh release create "${GITHUB_EVENT_INPUTS_SDK_VERSION}" build/release-assets/* \
-            --title "${GITHUB_EVENT_INPUTS_SDK_VERSION}" \
+          gh release create "sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" build/release-assets/* \
+            --title "sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" \
             ${PRERELEASE_ARG} \
             --notes "https://github.com/matrix-org/matrix-rust-sdk/tree/${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF}" \
             --target "$(git rev-parse HEAD)"
