@@ -87,8 +87,8 @@ if [ "$DRY_RUN" = "yes" ]; then
     exit 0
 fi
 
-git config user.name "github-actions"
-git config user.email "github-actions@github.com"
+git config user.name "ElementBot"
+git config user.email "android@element.io"
 git commit -q -a -m "$TITLE"
 git push --force origin "$BRANCH"
 
