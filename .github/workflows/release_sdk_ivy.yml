@@ -1,8 +1,8 @@
 name: Release SDK Library as GitHub release (Ivy, nightly)
 
 on:
-  # schedule:
-    # Nightly pre-release on Monday and Thursday only, built from the rust sdk `main` branch.
+  schedule:
+  # Nightly pre-release on Monday and Thursday only, built from the rust sdk `main` branch.
     - cron: '0 2 * * 1,4'
   workflow_dispatch:
     inputs:
