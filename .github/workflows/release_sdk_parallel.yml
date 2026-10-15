@@ -253,6 +253,14 @@ jobs:
           path: ./sdk/sdk-android/build/**/*.aar
           retention-days: 7
 
+  upload_debug_info:
+    name: "Upload debug info to Sentry"
+    # Runs last, in its own job, so a Sentry failure doesn't affect the release
+    needs: release_library
+    runs-on: ubuntu-24.04
+    permissions: {}
+
+    steps:
       - name: Download debug info
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0@v7
         with:
@@ -271,4 +279,3 @@ jobs:
 
       - name: Upload debuginfo to sentry
         run: sentry-cli debug-files upload debuginfo
-
