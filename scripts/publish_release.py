@@ -105,12 +105,13 @@ def create_github_release(
         asset_name: str,
 ):
     print(f"Create github release {tag_name}")
-    # Build release payload
+    # Build release payload. The release is created as a draft so the assets can be uploaded before
+    # it's published, as published releases are immutable and no assets can be added to them.
     payload = {
         "tag_name": tag_name,
         "name": release_name,
         "body": release_notes,
-        "draft": False,
+        "draft": True,
         "prerelease": False
     }
 
@@ -122,18 +123,27 @@ def create_github_release(
 
     # Send release request
     response = requests.post(f"{repo_url}/releases", headers=headers, json=payload)
-    if response.status_code == 201:
-        print("Release created successfully.")
-        release_data = response.json()
-        upload_url = release_data["upload_url"]
-        upload_asset_to_github_release(
-            github_token,
-            upload_url,
-            asset_path,
-            asset_name,
-        )
-    else:
+    if response.status_code != 201:
         print("Failed to create release.")
+        print("Response:")
+        print(response.json())
+        exit(1)
+
+    print("Draft release created successfully.")
+    release_data = response.json()
+    upload_asset_to_github_release(
+        github_token,
+        release_data["upload_url"],
+        asset_path,
+        asset_name,
+    )
+
+    # Publish the release now that it contains the assets
+    response = requests.patch(release_data["url"], headers=headers, json={"draft": False})
+    if response.status_code == 200:
+        print("Release published successfully.")
+    else:
+        print("Failed to publish release.")
         print("Response:")
         print(response.json())
         exit(1)
