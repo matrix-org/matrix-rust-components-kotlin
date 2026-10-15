@@ -2219,6 +2219,66 @@ public object FfiConverterTypeLoginQrCodeDecodeError : FfiConverterRustBuffer<Lo
 
 
 
+
+
+/**
+ * Error type for the creation of a new [`QrCodeData`] struct.
+ */
+sealed class QrCodeCreationException(message: String): kotlin.Exception(message) {
+        
+    /**
+     * The base URL of the homeserver needs to be at most [`u8::MAX`] bytes
+     * long, otherwise it doesn't fit into the QR code.
+     */
+        class TooLongBaseUrl(message: String) : QrCodeCreationException(message)
+        
+    /**
+     * The rendezvous ID of the channel needs to be at most [`u8::MAX`] bytes
+     * long, otherwise it doesn't fit into the QR code.
+     */
+        class TooLongRendezvousId(message: String) : QrCodeCreationException(message)
+        
+
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<QrCodeCreationException> {
+        override fun lift(error_buf: RustBuffer.ByValue): QrCodeCreationException = FfiConverterTypeQrCodeCreationError.lift(error_buf)
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeQrCodeCreationError : FfiConverterRustBuffer<QrCodeCreationException> {
+    override fun read(buf: ByteBuffer): QrCodeCreationException {
+        
+            return when(buf.getInt()) {
+            1 -> QrCodeCreationException.TooLongBaseUrl(FfiConverterString.read(buf))
+            2 -> QrCodeCreationException.TooLongRendezvousId(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: QrCodeCreationException): ULong {
+        return 4UL
+    }
+
+    override fun write(value: QrCodeCreationException, buf: ByteBuffer) {
+        when(value) {
+            is QrCodeCreationException.TooLongBaseUrl -> {
+                buf.putInt(1)
+                Unit
+            }
+            is QrCodeCreationException.TooLongRendezvousId -> {
+                buf.putInt(2)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
 /**
  * The intent of the device that generated/displayed the QR code.
  *
