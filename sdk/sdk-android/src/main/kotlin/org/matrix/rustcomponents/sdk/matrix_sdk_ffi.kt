@@ -7221,7 +7221,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_receive_verification_request() and 0xFFFF) != 4653) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() and 0xFFFF) != 61041) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_accept_verification_request() and 0xFFFF) != 14352) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_sessionverificationcontrollerdelegate_did_start_sas_verification() and 0xFFFF) != 12348) {
@@ -69734,6 +69734,9 @@ public interface SessionVerificationControllerDelegate {
     
     fun `didReceiveVerificationRequest`(`details`: SessionVerificationRequestDetails)
     
+    /**
+     * The other side accepted a verification request we sent.
+     */
     fun `didAcceptVerificationRequest`()
     
     fun `didStartSasVerification`()
