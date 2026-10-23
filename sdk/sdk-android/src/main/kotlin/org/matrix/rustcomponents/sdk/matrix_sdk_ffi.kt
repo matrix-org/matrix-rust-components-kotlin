@@ -2285,6 +2285,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_has_encrypted_rooms(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_homeserver_capabilities(
@@ -3675,6 +3677,8 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_get_url_preview(`ptr`: Long,`url`: RustBuffer.ByValue,`ts`: RustBuffer.ByValue,
     ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_has_encrypted_rooms(`ptr`: Long,`timeout`: RustBuffer.ByValue,
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_matrix_sdk_ffi_fn_method_client_homeserver_capabilities(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
@@ -4397,11 +4401,11 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_send_live_location(`ptr`: Long,`geoUri`: RustBuffer.ByValue,
     ): Long
-    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`requestConfigOverride`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_send_single_receipt(`ptr`: Long,`receiptType`: RustBuffer.ByValue,`thread`: RustBuffer.ByValue,`eventId`: RustBuffer.ByValue,
     ): Long
-    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`stateKey`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`stateKey`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`requestConfigOverride`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_set_is_favourite(`ptr`: Long,`isFavourite`: Byte,`tagOrder`: RustBuffer.ByValue,
     ): Long
@@ -4469,7 +4473,7 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_message_like_events(`ptr`: Long,`eventType`: RustBufferMessageLikeEventType.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`durationMs`: Long,
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_raw(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`durationMs`: Long,`requestConfigOverride`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_sticky_events(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -5496,6 +5500,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_get_url_preview() and 0xFFFF) != 44378) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_has_encrypted_rooms() and 0xFFFF) != 34305) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_homeserver() and 0xFFFF) != 42423) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -6390,13 +6397,13 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_live_location() and 0xFFFF) != 29293) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() and 0xFFFF) != 29137) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_raw() and 0xFFFF) != 31612) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_single_receipt() and 0xFFFF) != 44071) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw() and 0xFFFF) != 54069) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_state_event_raw() and 0xFFFF) != 50352) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_set_is_favourite() and 0xFFFF) != 17735) {
@@ -6498,7 +6505,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_message_like_events() and 0xFFFF) != 31308) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_sticky_raw() and 0xFFFF) != 20102) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_sticky_raw() and 0xFFFF) != 12025) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_sticky_events() and 0xFFFF) != 3124) {
@@ -8601,6 +8608,19 @@ public interface ClientInterface {
     suspend fun `getUrlPreview`(`url`: kotlin.String, `ts`: kotlin.ULong?): kotlin.String?
     
     /**
+     * Whether the user has joined at least one encrypted room, spaces
+     * excluded.
+     *
+     * The local cache is consulted first, falling back to asking the
+     * homeserver directly if no encrypted room is known. If the server
+     * does not answer in `timeout_ms` milliseconds, this returns an error.
+     *
+     * Clients should treat errors as "maybe encrypted", not as "not
+     * encrypted".
+     */
+    suspend fun `hasEncryptedRooms`(`timeout`: java.time.Duration): kotlin.Boolean
+    
+    /**
      * The homeserver this client is configured to use.
      */
     fun `homeserver`(): kotlin.String
@@ -10364,6 +10384,39 @@ open class Client: Disposable, AutoCloseable, ClientInterface
         { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
         // lift function
         { FfiConverterOptionalString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Whether the user has joined at least one encrypted room, spaces
+     * excluded.
+     *
+     * The local cache is consulted first, falling back to asking the
+     * homeserver directly if no encrypted room is known. If the server
+     * does not answer in `timeout_ms` milliseconds, this returns an error.
+     *
+     * Clients should treat errors as "maybe encrypted", not as "not
+     * encrypted".
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `hasEncryptedRooms`(`timeout`: java.time.Duration) : kotlin.Boolean {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_has_encrypted_rooms(
+                uniffiHandle,
+                
+        FfiConverterDuration.lower(`timeout`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_i8(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_i8(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_i8(future) },
+        // lift function
+        { FfiConverterBoolean.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -23406,9 +23459,12 @@ public interface RoomInterface {
      *
      * * `content` - The content of the event to send encoded as JSON string.
      *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
      * Returns the event ID of the newly sent event.
      */
-    suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String): kotlin.String
+    suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `requestConfigOverride`: RequestConfigOverride? = null): kotlin.String
     
     /**
      * Send a single receipt of the given type for the given event, optionally
@@ -23435,9 +23491,12 @@ public interface RoomInterface {
      *
      * - `content` - The content of the state event encoded as a JSON string.
      *
+     * - `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
      * Returns the event ID of the newly created state event.
      */
-    suspend fun `sendStateEventRaw`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String): kotlin.String
+    suspend fun `sendStateEventRaw`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String, `requestConfigOverride`: RequestConfigOverride? = null): kotlin.String
     
     suspend fun `setIsFavourite`(`isFavourite`: kotlin.Boolean, `tagOrder`: kotlin.Double?)
     
@@ -23681,6 +23740,8 @@ public interface RoomInterface {
      * - `content` - The content of the event to send encoded as JSON string.
      * - `duration_ms` - How long the event stays sticky for, in milliseconds,
      * clamped to one hour.
+     * - `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
      *
      * # Returns
      *
@@ -23688,7 +23749,7 @@ public interface RoomInterface {
      *
      * [`Client::is_sticky_events_supported`]: crate::client::Client::is_sticky_events_supported
      */
-    suspend fun `sendStickyRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `durationMs`: kotlin.ULong): kotlin.String
+    suspend fun `sendStickyRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `durationMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride? = null): kotlin.String
     
     /**
      * The sticky events that are currently live in this room.
@@ -25470,11 +25531,14 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * * `content` - The content of the event to send encoded as JSON string.
      *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
      * Returns the event ID of the newly sent event.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String) : kotlin.String {
+    override suspend fun `sendRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `requestConfigOverride`: RequestConfigOverride?) : kotlin.String {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_raw(
@@ -25482,6 +25546,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
                 
         FfiConverterString.lower(`eventType`),
         FfiConverterString.lower(`content`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -25543,11 +25608,14 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      *
      * - `content` - The content of the state event encoded as a JSON string.
      *
+     * - `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
      * Returns the event ID of the newly created state event.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendStateEventRaw`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String) : kotlin.String {
+    override suspend fun `sendStateEventRaw`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String, `requestConfigOverride`: RequestConfigOverride?) : kotlin.String {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_state_event_raw(
@@ -25556,6 +25624,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         FfiConverterString.lower(`eventType`),
         FfiConverterString.lower(`stateKey`),
         FfiConverterString.lower(`content`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -26431,6 +26500,8 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      * - `content` - The content of the event to send encoded as JSON string.
      * - `duration_ms` - How long the event stays sticky for, in milliseconds,
      * clamped to one hour.
+     * - `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
      *
      * # Returns
      *
@@ -26440,7 +26511,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `sendStickyRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `durationMs`: kotlin.ULong) : kotlin.String {
+    override suspend fun `sendStickyRaw`(`eventType`: kotlin.String, `content`: kotlin.String, `durationMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride?) : kotlin.String {
         return uniffiRustCallAsync(
         callWithHandle { uniffiHandle ->
             UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_raw(
@@ -26449,6 +26520,7 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         FfiConverterString.lower(`eventType`),
         FfiConverterString.lower(`content`),
         FfiConverterULong.lower(`durationMs`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -43905,6 +43977,55 @@ public object FfiConverterTypeRequestConfig: FfiConverterRustBuffer<RequestConfi
             FfiConverterOptionalULong.write(value.`timeout`, buf)
             FfiConverterOptionalULong.write(value.`maxConcurrentRequests`, buf)
             FfiConverterOptionalULong.write(value.`maxRetryTime`, buf)
+    }
+}
+
+
+
+/**
+ * Overrides of the client's request config for a single request.
+ *
+ * Fields that are not set keep the values of the client's request config.
+ */
+data class RequestConfigOverride (
+    /**
+     * Max number of retries. `0` disables retries.
+     */
+    var `retryLimit`: kotlin.ULong?
+    , 
+    /**
+     * Timeout for a single attempt of the request, in milliseconds.
+     */
+    var `timeout`: kotlin.ULong?
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRequestConfigOverride: FfiConverterRustBuffer<RequestConfigOverride> {
+    override fun read(buf: ByteBuffer): RequestConfigOverride {
+        return RequestConfigOverride(
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: RequestConfigOverride) = (
+            FfiConverterOptionalULong.allocationSize(value.`retryLimit`) +
+            FfiConverterOptionalULong.allocationSize(value.`timeout`)
+    )
+
+    override fun write(value: RequestConfigOverride, buf: ByteBuffer) {
+            FfiConverterOptionalULong.write(value.`retryLimit`, buf)
+            FfiConverterOptionalULong.write(value.`timeout`, buf)
     }
 }
 
@@ -72287,6 +72408,38 @@ public object FfiConverterOptionalTypePredecessorRoom: FfiConverterRustBuffer<Pr
         } else {
             buf.put(1)
             FfiConverterTypePredecessorRoom.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeRequestConfigOverride: FfiConverterRustBuffer<RequestConfigOverride?> {
+    override fun read(buf: ByteBuffer): RequestConfigOverride? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeRequestConfigOverride.read(buf)
+    }
+
+    override fun allocationSize(value: RequestConfigOverride?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeRequestConfigOverride.allocationSize(value)
+        }
+    }
+
+    override fun write(value: RequestConfigOverride?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeRequestConfigOverride.write(value, buf)
         }
     }
 }
