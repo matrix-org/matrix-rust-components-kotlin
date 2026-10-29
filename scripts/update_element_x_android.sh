@@ -78,11 +78,11 @@ else
     git checkout -b "$BRANCH"
 fi
 
-if ! grep -qE 'module = "org\.matrix\.rustcomponents:sdk-android"' "$CATALOG"; then
+if ! grep -qE '^matrix_sdk = "org\.matrix\.rustcomponents:sdk-android:[^"]*"' "$CATALOG"; then
     echo "error: could not find the matrix_sdk entry in $CATALOG" >&2
     exit 1
 fi
-sed -E '/module = "org\.matrix\.rustcomponents:sdk-android"/ s/(strictly = |version = )"[^"]*"/\1"'"$VERSION"'"/' \
+sed -E 's/^(matrix_sdk = "org\.matrix\.rustcomponents:sdk-android:)[^"]*"/\1'"$VERSION"'"/' \
     "$CATALOG" > "$CATALOG.tmp"
 mv "$CATALOG.tmp" "$CATALOG"
 
