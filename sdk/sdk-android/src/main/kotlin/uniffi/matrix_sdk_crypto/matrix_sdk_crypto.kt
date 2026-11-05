@@ -2520,7 +2520,11 @@ enum class UtdCause {
      *
      * Expected message to user: "You need to verify this device".
      */
-    HISTORICAL_MESSAGE_AND_DEVICE_IS_UNVERIFIED;
+    HISTORICAL_MESSAGE_AND_DEVICE_IS_UNVERIFIED,
+    /**
+     * This event is malformed in some way.
+     */
+    MALFORMED;
 
     
 
