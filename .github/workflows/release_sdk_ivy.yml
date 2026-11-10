@@ -197,7 +197,7 @@ jobs:
           name: debuginfo-${{ matrix.target }}
           if-no-files-found: error
           path: debuginfo/
-          retention-days: 1
+          retention-days: 7
 
       - name: Upload FFI bindings
         # The FFI bindings will be identical for the 4 architectures, so upload as artifact
