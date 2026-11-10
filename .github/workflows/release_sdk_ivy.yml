@@ -346,10 +346,12 @@ jobs:
 
       - name: Setup Sentry CLI
         uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        env:
+          SENTRY_LOG_LEVEL: info
         with:
           version: latest
           url: https://sentry.tools.element.io
-          token: ${{ SECRETS.SENTRY_TOKEN }}
+          token: ${{ secrets.SENTRY_TOKEN }}
           organization: element
           project: 63 # the matrix sdk project
 
