@@ -273,36 +273,36 @@ jobs:
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
-      - name: Commit and push the version bump
-        # Nightly builds don't commit anything
-        if: needs.prepare.outputs.nightly != 'true'
-        run: |
-          git add buildSrc/src/main/kotlin/BuildVersionsSDK.kt
-          git commit -m "Bump SDK version to ${GITHUB_EVENT_INPUTS_SDK_VERSION} (matrix-rust-sdk to ${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF})"
-          git pull --rebase origin main
-          git push origin HEAD:main
-        env:
-          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
-          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
-
-      - name: Create GitHub release
-        run: |
-          PRERELEASE_ARG=""
-          if [ "${NIGHTLY}" = "true" ]; then
-            PRERELEASE_ARG="--prerelease"
-            # Replace the previous nightly release and its tag, if any
-            gh release delete "${GITHUB_EVENT_INPUTS_SDK_VERSION}" --cleanup-tag --yes || true
-          fi
-          gh release create "sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" build/release-assets/* \
-            --title "sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" \
-            ${PRERELEASE_ARG} \
-            --notes "https://github.com/matrix-org/matrix-rust-sdk/tree/${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF}" \
-            --target "$(git rev-parse HEAD)"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NIGHTLY: ${{ needs.prepare.outputs.nightly }}
-          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
-          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
+#      - name: Commit and push the version bump
+#        # Nightly builds don't commit anything
+#        if: needs.prepare.outputs.nightly != 'true'
+#        run: |
+#          git add buildSrc/src/main/kotlin/BuildVersionsSDK.kt
+#          git commit -m "Bump SDK version to ${GITHUB_EVENT_INPUTS_SDK_VERSION} (matrix-rust-sdk to ${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF})"
+#          git pull --rebase origin main
+#          git push origin HEAD:main
+#        env:
+#          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+#          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
+#
+#      - name: Create GitHub release
+#        run: |
+#          PRERELEASE_ARG=""
+#          if [ "${NIGHTLY}" = "true" ]; then
+#            PRERELEASE_ARG="--prerelease"
+#            # Replace the previous nightly release and its tag, if any
+#            gh release delete "${GITHUB_EVENT_INPUTS_SDK_VERSION}" --cleanup-tag --yes || true
+#          fi
+#          gh release create "sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" build/release-assets/* \
+#            --title "sdk-${GITHUB_EVENT_INPUTS_SDK_VERSION}" \
+#            ${PRERELEASE_ARG} \
+#            --notes "https://github.com/matrix-org/matrix-rust-sdk/tree/${NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF}" \
+#            --target "$(git rev-parse HEAD)"
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          NIGHTLY: ${{ needs.prepare.outputs.nightly }}
+#          GITHUB_EVENT_INPUTS_SDK_VERSION: ${{ needs.prepare.outputs.version }}
+#          NEEDS_BUILD_TARGETS_OUTPUTS_LINKABLE_REF: ${{ needs.build_targets.outputs.linkable_ref }}
 
   update_element_x_android:
     name: "Open or update the Element X Android PR"
@@ -320,14 +320,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Open or update the pull request
-        run: ./scripts/update_element_x_android.sh "${VERSION}" --rust-ref "${RUST_REF}"
-        env:
-          # Needs a token with write access to element-hq/element-x-android (contents and pull requests),
-          # the default GITHUB_TOKEN is scoped to this repository only.
-          GH_TOKEN: ${{ secrets.ELEMENT_X_ANDROID_PR_TOKEN }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-          RUST_REF: ${{ needs.build_targets.outputs.linkable_ref }}
+#      - name: Open or update the pull request
+#        run: ./scripts/update_element_x_android.sh "${VERSION}" --rust-ref "${RUST_REF}"
+#        env:
+#          # Needs a token with write access to element-hq/element-x-android (contents and pull requests),
+#          # the default GITHUB_TOKEN is scoped to this repository only.
+#          GH_TOKEN: ${{ secrets.ELEMENT_X_ANDROID_PR_TOKEN }}
+#          VERSION: ${{ needs.prepare.outputs.version }}
+#          RUST_REF: ${{ needs.build_targets.outputs.linkable_ref }}
 
   upload_debug_info:
     name: "Upload debug info to Sentry"
@@ -346,6 +346,8 @@ jobs:
 
       - name: Setup Sentry CLI
         uses: matbour/setup-sentry-cli@3e938c54b3018bdd019973689ef984e033b0454b # v2.0.0
+        env:
+          SENTRY_LOG_LEVEL: debug
         with:
           version: latest
           url: https://sentry.tools.element.io
