@@ -2415,6 +2415,10 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_rooms(
     ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_rtc_livekit_delegate_delayed_leave(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_rtc_livekit_get_token(
+    ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_run_search_backfill(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_search_users(
@@ -2492,6 +2496,8 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_track_recently_visited_room(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_client_update_delayed_event(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar(
     ): Int
@@ -3008,6 +3014,12 @@ internal object IntegrityCheckingUniffiLib {
     external fun uniffi_matrix_sdk_ffi_checksum_method_room_upload_avatar(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_delayed_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_delayed_state_event(
+    ): Int
+    external fun uniffi_matrix_sdk_ffi_checksum_method_room_send_sticky_delayed_event(
     ): Int
     external fun uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_message_like_events(
     ): Int
@@ -3829,6 +3841,10 @@ internal object UniffiLib {
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_rooms(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_rtc_livekit_delegate_delayed_leave(`ptr`: Long,`url`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`slotId`: RustBuffer.ByValue,`memberId`: RustBuffer.ByValue,`delayId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_rtc_livekit_get_token(`ptr`: Long,`url`: RustBuffer.ByValue,`roomId`: RustBuffer.ByValue,`slotId`: RustBuffer.ByValue,`memberId`: RustBuffer.ByValue,`serverName`: RustBuffer.ByValue,
+    ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_run_search_backfill(`ptr`: Long,`strategy`: RustBufferSearchBackfillStrategy.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_search_users(`ptr`: Long,`searchTerm`: RustBuffer.ByValue,`limit`: Long,
@@ -3906,6 +3922,8 @@ internal object UniffiLib {
     external fun uniffi_matrix_sdk_ffi_fn_method_client_track_recently_visited_room(`ptr`: Long,`room`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_unignore_user(`ptr`: Long,`userId`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_client_update_delayed_event(`ptr`: Long,`delayId`: RustBuffer.ByValue,`action`: RustBuffer.ByValue,`requestConfigOverride`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_client_upload_avatar(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,
     ): Long
@@ -4556,6 +4574,12 @@ internal object UniffiLib {
     external fun uniffi_matrix_sdk_ffi_fn_method_room_upload_avatar(`ptr`: Long,`mimeType`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,`mediaInfo`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_withdraw_verification_and_resend(`ptr`: Long,`userIds`: RustBuffer.ByValue,`sendHandle`: Long,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_delayed_event(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`delayMs`: Long,`requestConfigOverride`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_delayed_state_event(`ptr`: Long,`eventType`: RustBuffer.ByValue,`stateKey`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`delayMs`: Long,`requestConfigOverride`: RustBuffer.ByValue,
+    ): Long
+    external fun uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_delayed_event(`ptr`: Long,`eventType`: RustBuffer.ByValue,`content`: RustBuffer.ByValue,`delayMs`: Long,`stickyDurationMs`: Long,`requestConfigOverride`: RustBuffer.ByValue,
     ): Long
     external fun uniffi_matrix_sdk_ffi_fn_method_room_subscribe_to_message_like_events(`ptr`: Long,`eventType`: RustBufferMessageLikeEventType.ByValue,`listener`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
@@ -5611,7 +5635,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_ignored_users() and 0xFFFF) != 60744) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_livekit_rtc_supported() and 0xFFFF) != 21068) {
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_livekit_rtc_supported() and 0xFFFF) != 60417) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_is_login_with_qr_code_supported() and 0xFFFF) != 48668) {
@@ -5717,6 +5741,12 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_rooms() and 0xFFFF) != 64941) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_rtc_livekit_delegate_delayed_leave() and 0xFFFF) != 64232) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_rtc_livekit_get_token() and 0xFFFF) != 18096) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_run_search_backfill() and 0xFFFF) != 15095) {
@@ -5834,6 +5864,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_unignore_user() and 0xFFFF) != 28367) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_update_delayed_event() and 0xFFFF) != 23725) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_client_upload_avatar() and 0xFFFF) != 20638) {
@@ -6608,6 +6641,15 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_withdraw_verification_and_resend() and 0xFFFF) != 56581) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_delayed_event() and 0xFFFF) != 7176) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_delayed_state_event() and 0xFFFF) != 26141) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_send_sticky_delayed_event() and 0xFFFF) != 20506) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if ((lib.uniffi_matrix_sdk_ffi_checksum_method_room_subscribe_to_message_like_events() and 0xFFFF) != 31308) {
@@ -8773,6 +8815,9 @@ public interface ClientInterface {
      * a fallback, unless well-known discovery was disabled with
      * [`ClientBuilder::disable_well_known_lookup`] or
      * [`Client::disable_well_known_lookup`].
+     *
+     * Both the `m.livekit` and the legacy `livekit` transport types count as
+     * LiveKit support.
      */
     suspend fun `isLivekitRtcSupported`(): kotlin.Boolean
     
@@ -9043,6 +9088,46 @@ public interface ClientInterface {
     fun `roomDirectorySearch`(): RoomDirectorySearch
     
     fun `rooms`(): List<Room>
+    
+    /**
+     * Hand the delayed leave event of a MatrixRTC session over to the
+     * homeserver, through its `/rtc/livekit/delegate_delayed_leave` endpoint
+     * (MSC4195).
+     *
+     * # Arguments
+     *
+     * * `url` - The WebSocket URL of the LiveKit SFU that the user has
+     * connected to.
+     * * `room_id` - The room where the `m.rtc.member` event is present.
+     * * `slot_id` - The slot ID from the `m.rtc.member` event.
+     * * `member_id` - The `member.id` property of the `m.rtc.member` event.
+     * * `delay_id` - The ID of the delayed `m.rtc.member` leave event to
+     * delegate.
+     *
+     * Homeservers that don't implement the endpoint respond with an
+     * `M_UNRECOGNIZED` error.
+     */
+    suspend fun `rtcLivekitDelegateDelayedLeave`(`url`: kotlin.String, `roomId`: kotlin.String, `slotId`: kotlin.String, `memberId`: kotlin.String, `delayId`: kotlin.String)
+    
+    /**
+     * Obtain a JWT to authenticate with a LiveKit SFU, through the
+     * homeserver's `/rtc/livekit/get_token` endpoint (MSC4195).
+     *
+     * # Arguments
+     *
+     * * `url` - The WebSocket URL of the LiveKit SFU to obtain a token for.
+     * * `room_id` - The room where the `m.rtc.member` event is present.
+     * * `slot_id` - The slot ID from the `m.rtc.member` event.
+     * * `member_id` - The `member.id` property of the user's own
+     * `m.rtc.member` event.
+     * * `server_name` - The server name of the sender of the `m.rtc.member`
+     * event that advertised the SFU. If `None`, the homeserver uses its own
+     * server name.
+     *
+     * Homeservers that don't implement the endpoint respond with an
+     * `M_UNRECOGNIZED` error.
+     */
+    suspend fun `rtcLivekitGetToken`(`url`: kotlin.String, `roomId`: kotlin.String, `slotId`: kotlin.String, `memberId`: kotlin.String, `serverName`: kotlin.String?): kotlin.String
     
     /**
      * Start a search backfill sweep in the background.
@@ -9316,6 +9401,26 @@ public interface ClientInterface {
     suspend fun `trackRecentlyVisitedRoom`(`room`: kotlin.String)
     
     suspend fun `unignoreUser`(`userId`: kotlin.String)
+    
+    /**
+     * Cancel, restart or immediately send a previously scheduled delayed
+     * event ([MSC4140]).
+     *
+     * # Arguments
+     *
+     * * `delay_id` - The identifier returned by [`Room::send_delayed_event`]
+     * or [`Room::send_delayed_state_event`].
+     *
+     * * `action` - What should happen to the delayed event.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     * [`Room::send_delayed_event`]: crate::room::Room::send_delayed_event
+     * [`Room::send_delayed_state_event`]: crate::room::Room::send_delayed_state_event
+     */
+    suspend fun `updateDelayedEvent`(`delayId`: kotlin.String, `action`: DelayedEventUpdateAction, `requestConfigOverride`: RequestConfigOverride? = null)
     
     suspend fun `uploadAvatar`(`mimeType`: kotlin.String, `data`: kotlin.ByteArray)
     
@@ -10706,6 +10811,9 @@ open class Client: Disposable, AutoCloseable, ClientInterface
      * a fallback, unless well-known discovery was disabled with
      * [`ClientBuilder::disable_well_known_lookup`] or
      * [`Client::disable_well_known_lookup`].
+     *
+     * Both the `m.livekit` and the legacy `livekit` transport types count as
+     * LiveKit support.
      */
     @Throws(ClientException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -11650,6 +11758,95 @@ open class Client: Disposable, AutoCloseable, ClientInterface
     )
     }
     
+
+    
+    /**
+     * Hand the delayed leave event of a MatrixRTC session over to the
+     * homeserver, through its `/rtc/livekit/delegate_delayed_leave` endpoint
+     * (MSC4195).
+     *
+     * # Arguments
+     *
+     * * `url` - The WebSocket URL of the LiveKit SFU that the user has
+     * connected to.
+     * * `room_id` - The room where the `m.rtc.member` event is present.
+     * * `slot_id` - The slot ID from the `m.rtc.member` event.
+     * * `member_id` - The `member.id` property of the `m.rtc.member` event.
+     * * `delay_id` - The ID of the delayed `m.rtc.member` leave event to
+     * delegate.
+     *
+     * Homeservers that don't implement the endpoint respond with an
+     * `M_UNRECOGNIZED` error.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `rtcLivekitDelegateDelayedLeave`(`url`: kotlin.String, `roomId`: kotlin.String, `slotId`: kotlin.String, `memberId`: kotlin.String, `delayId`: kotlin.String) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_rtc_livekit_delegate_delayed_leave(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`url`),
+        FfiConverterString.lower(`roomId`),
+        FfiConverterString.lower(`slotId`),
+        FfiConverterString.lower(`memberId`),
+        FfiConverterString.lower(`delayId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Obtain a JWT to authenticate with a LiveKit SFU, through the
+     * homeserver's `/rtc/livekit/get_token` endpoint (MSC4195).
+     *
+     * # Arguments
+     *
+     * * `url` - The WebSocket URL of the LiveKit SFU to obtain a token for.
+     * * `room_id` - The room where the `m.rtc.member` event is present.
+     * * `slot_id` - The slot ID from the `m.rtc.member` event.
+     * * `member_id` - The `member.id` property of the user's own
+     * `m.rtc.member` event.
+     * * `server_name` - The server name of the sender of the `m.rtc.member`
+     * event that advertised the SFU. If `None`, the homeserver uses its own
+     * server name.
+     *
+     * Homeservers that don't implement the endpoint respond with an
+     * `M_UNRECOGNIZED` error.
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `rtcLivekitGetToken`(`url`: kotlin.String, `roomId`: kotlin.String, `slotId`: kotlin.String, `memberId`: kotlin.String, `serverName`: kotlin.String?) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_rtc_livekit_get_token(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`url`),
+        FfiConverterString.lower(`roomId`),
+        FfiConverterString.lower(`slotId`),
+        FfiConverterString.lower(`memberId`),
+        FfiConverterOptionalString.lower(`serverName`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
 
     
     /**
@@ -12601,6 +12798,49 @@ open class Client: Disposable, AutoCloseable, ClientInterface
                 uniffiHandle,
                 
         FfiConverterString.lower(`userId`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_void(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_void(future) },
+        // lift function
+        { Unit },
+        
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Cancel, restart or immediately send a previously scheduled delayed
+     * event ([MSC4140]).
+     *
+     * # Arguments
+     *
+     * * `delay_id` - The identifier returned by [`Room::send_delayed_event`]
+     * or [`Room::send_delayed_state_event`].
+     *
+     * * `action` - What should happen to the delayed event.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     * [`Room::send_delayed_event`]: crate::room::Room::send_delayed_event
+     * [`Room::send_delayed_state_event`]: crate::room::Room::send_delayed_state_event
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `updateDelayedEvent`(`delayId`: kotlin.String, `action`: DelayedEventUpdateAction, `requestConfigOverride`: RequestConfigOverride?) {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_client_update_delayed_event(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`delayId`),
+        FfiConverterTypeDelayedEventUpdateAction.lower(`action`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
             )
         },
         { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_void(future, callback, continuation) },
@@ -24002,6 +24242,96 @@ public interface RoomInterface {
     suspend fun `withdrawVerificationAndResend`(`userIds`: List<kotlin.String>, `sendHandle`: SendHandle)
     
     /**
+     * Send a delayed message-like event to the room ([MSC4140]).
+     *
+     * The homeserver holds on to the event and only distributes it to the room
+     * once `delay_ms` has elapsed, unless the delayed event is updated
+     * beforehand with [`Client::update_delayed_event`].
+     *
+     * If the room is encrypted, the content is encrypted when the event is
+     * scheduled, like [`Room::send_raw`] does. A member joining the room
+     * before the delay elapses won't be able to decrypt it.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the event to send.
+     *
+     * * `content` - The content of the event to send encoded as a JSON string.
+     *
+     * * `delay_ms` - How long, in milliseconds, the homeserver should hold on
+     * to the event.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * Returns the `delay_id` identifying the scheduled event.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     * [`Client::update_delayed_event`]: crate::client::Client::update_delayed_event
+     */
+    suspend fun `sendDelayedEvent`(`eventType`: kotlin.String, `content`: kotlin.String, `delayMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride? = null): kotlin.String
+    
+    /**
+     * Send a delayed state event to the room ([MSC4140]).
+     *
+     * See [`Room::send_delayed_event`] for the semantics of delayed events.
+     * Unlike message-like events, state events can't be sticky.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state event to send.
+     *
+     * * `state_key` - A unique key which defines the overwriting semantics for
+     * this piece of room state. This is often an empty string.
+     *
+     * * `content` - The content of the event to send encoded as a JSON string.
+     *
+     * * `delay_ms` - How long, in milliseconds, the homeserver should hold on
+     * to the event.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * Returns the `delay_id` identifying the scheduled event.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     */
+    suspend fun `sendDelayedStateEvent`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String, `delayMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride? = null): kotlin.String
+    
+    /**
+     * Send a delayed message-like event to the room ([MSC4140]) that becomes
+     * sticky ([MSC4354]) once the homeserver sends it.
+     *
+     * See [`Room::send_delayed_event`] for the semantics of delayed events.
+     *
+     * Note that if the homeserver doesn't support sticky events, it will
+     * ignore the duration and send the event unsticky. Server support can be
+     * checked with [`Client::is_sticky_events_supported`].
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the event to send.
+     *
+     * * `content` - The content of the event to send encoded as a JSON string.
+     *
+     * * `delay_ms` - How long, in milliseconds, the homeserver should hold on
+     * to the event.
+     *
+     * * `sticky_duration_ms` - How long the event stays sticky for once it is
+     * sent, in milliseconds, clamped to one hour.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * Returns the `delay_id` identifying the scheduled event.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     * [MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
+     * [`Client::is_sticky_events_supported`]: crate::client::Client::is_sticky_events_supported
+     */
+    suspend fun `sendStickyDelayedEvent`(`eventType`: kotlin.String, `content`: kotlin.String, `delayMs`: kotlin.ULong, `stickyDurationMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride? = null): kotlin.String
+    
+    /**
      * Subscribe to the message-like events of the given type in this room.
      *
      * The listener is called with every event of that type that a sync brings
@@ -26768,6 +27098,167 @@ open class Room: Disposable, AutoCloseable, RoomInterface
         // lift function
         { Unit },
         
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Send a delayed message-like event to the room ([MSC4140]).
+     *
+     * The homeserver holds on to the event and only distributes it to the room
+     * once `delay_ms` has elapsed, unless the delayed event is updated
+     * beforehand with [`Client::update_delayed_event`].
+     *
+     * If the room is encrypted, the content is encrypted when the event is
+     * scheduled, like [`Room::send_raw`] does. A member joining the room
+     * before the delay elapses won't be able to decrypt it.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the event to send.
+     *
+     * * `content` - The content of the event to send encoded as a JSON string.
+     *
+     * * `delay_ms` - How long, in milliseconds, the homeserver should hold on
+     * to the event.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * Returns the `delay_id` identifying the scheduled event.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     * [`Client::update_delayed_event`]: crate::client::Client::update_delayed_event
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendDelayedEvent`(`eventType`: kotlin.String, `content`: kotlin.String, `delayMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride?) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_delayed_event(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`content`),
+        FfiConverterULong.lower(`delayMs`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Send a delayed state event to the room ([MSC4140]).
+     *
+     * See [`Room::send_delayed_event`] for the semantics of delayed events.
+     * Unlike message-like events, state events can't be sticky.
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the state event to send.
+     *
+     * * `state_key` - A unique key which defines the overwriting semantics for
+     * this piece of room state. This is often an empty string.
+     *
+     * * `content` - The content of the event to send encoded as a JSON string.
+     *
+     * * `delay_ms` - How long, in milliseconds, the homeserver should hold on
+     * to the event.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * Returns the `delay_id` identifying the scheduled event.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendDelayedStateEvent`(`eventType`: kotlin.String, `stateKey`: kotlin.String, `content`: kotlin.String, `delayMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride?) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_delayed_state_event(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`stateKey`),
+        FfiConverterString.lower(`content`),
+        FfiConverterULong.lower(`delayMs`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
+        // Error FFI converter
+        ClientException.ErrorHandler,
+    )
+    }
+
+    
+    /**
+     * Send a delayed message-like event to the room ([MSC4140]) that becomes
+     * sticky ([MSC4354]) once the homeserver sends it.
+     *
+     * See [`Room::send_delayed_event`] for the semantics of delayed events.
+     *
+     * Note that if the homeserver doesn't support sticky events, it will
+     * ignore the duration and send the event unsticky. Server support can be
+     * checked with [`Client::is_sticky_events_supported`].
+     *
+     * # Arguments
+     *
+     * * `event_type` - The type of the event to send.
+     *
+     * * `content` - The content of the event to send encoded as a JSON string.
+     *
+     * * `delay_ms` - How long, in milliseconds, the homeserver should hold on
+     * to the event.
+     *
+     * * `sticky_duration_ms` - How long the event stays sticky for once it is
+     * sent, in milliseconds, clamped to one hour.
+     *
+     * * `request_config_override` - Overrides the client's request config for
+     * this request. Fields that are not set keep the client's values.
+     *
+     * Returns the `delay_id` identifying the scheduled event.
+     *
+     * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+     * [MSC4354]: https://github.com/matrix-org/matrix-spec-proposals/pull/4354
+     * [`Client::is_sticky_events_supported`]: crate::client::Client::is_sticky_events_supported
+     */
+    @Throws(ClientException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `sendStickyDelayedEvent`(`eventType`: kotlin.String, `content`: kotlin.String, `delayMs`: kotlin.ULong, `stickyDurationMs`: kotlin.ULong, `requestConfigOverride`: RequestConfigOverride?) : kotlin.String {
+        return uniffiRustCallAsync(
+        callWithHandle { uniffiHandle ->
+            UniffiLib.uniffi_matrix_sdk_ffi_fn_method_room_send_sticky_delayed_event(
+                uniffiHandle,
+                
+        FfiConverterString.lower(`eventType`),
+        FfiConverterString.lower(`content`),
+        FfiConverterULong.lower(`delayMs`),
+        FfiConverterULong.lower(`stickyDurationMs`),
+        FfiConverterOptionalTypeRequestConfigOverride.lower(`requestConfigOverride`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.ffi_matrix_sdk_ffi_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterString.lift(it) },
         // Error FFI converter
         ClientException.ErrorHandler,
     )
@@ -51239,6 +51730,56 @@ public object FfiConverterTypeDehydratedDeviceEvent : FfiConverterRustBuffer<Deh
 
 
 /**
+ * What to do with a delayed event that hasn't been distributed to the room
+ * yet ([MSC4140]).
+ *
+ * [MSC4140]: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+ */
+
+enum class DelayedEventUpdateAction {
+    
+    /**
+     * Cancel the delayed event: it will never be sent to the room.
+     */
+    CANCEL,
+    /**
+     * Restart the delay timeout, keeping the event scheduled.
+     */
+    RESTART,
+    /**
+     * Send the event to the room right away.
+     */
+    SEND;
+
+    
+
+
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDelayedEventUpdateAction: FfiConverterRustBuffer<DelayedEventUpdateAction> {
+    override fun read(buf: ByteBuffer) = try {
+        DelayedEventUpdateAction.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: DelayedEventUpdateAction) = 4UL
+
+    override fun write(value: DelayedEventUpdateAction, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
  * Result for the check if a store has a valid secrets bundle.
  */
 
@@ -63652,6 +64193,9 @@ sealed class RtcTransport {
     
     /**
      * A LiveKit RTC transport.
+     *
+     * This covers both the `m.livekit` transport type and the legacy `livekit`
+     * type used by implementations of earlier versions of MSC4195.
      */
     data class LiveKit(
         /**
